@@ -610,7 +610,7 @@ input,select,textarea{font-family:inherit;}
   font-size:10px;font-weight:600;color:var(--text2);transition:all .12s;
 }
 .stream-tab:hover{border-color:var(--border3);color:var(--text);}
-.stream-tab.active{background:var(--blue-bg);border-color:rgba(59,123,221,.4);color:var(--blue-text);}
+.stream-tab.active{background:var(--mode-accent-bg);border-color:var(--mode-accent);color:var(--mode-accent-text);}
 .stream-tab-dot{width:6px;height:6px;border-radius:50%;}
 .stream-add-btn{
   padding:3px 9px;background:none;
@@ -650,7 +650,7 @@ input,select,textarea{font-family:inherit;}
 #cue-list-wrap{flex:1;overflow-y:auto;}
 .cue-row{
   display:grid;
-  grid-template-columns:26px 16px var(--col-tc,114px) var(--col-name,1fr) var(--col-desc,1fr) 26px;
+  grid-template-columns:26px 34px var(--col-tc,114px) var(--col-name,1fr) var(--col-desc,1fr) 26px;
   align-items:stretch;
   border-bottom:1px solid var(--border);
   transition:background .08s;position:relative;
@@ -680,7 +680,7 @@ input,select,textarea{font-family:inherit;}
 
 .cue-list-header{
   display:grid;
-  grid-template-columns:26px 16px var(--col-tc,114px) var(--col-name,1fr) var(--col-desc,1fr) 26px;
+  grid-template-columns:26px 34px var(--col-tc,114px) var(--col-name,1fr) var(--col-desc,1fr) 26px;
   border-bottom:1px solid var(--border2);
   flex-shrink:0;background:var(--surface);position:relative;
 }
@@ -1099,11 +1099,11 @@ input.minp:focus{border-color:var(--mode-accent);}
 
 /* Stream assignment dot — replaces passive bar */
 .cue-stream-dot{
-  width:10px;height:10px;border-radius:50%;flex-shrink:0;border:none;cursor:pointer;
-  padding:0;align-self:center;margin:0 2px 0 0;opacity:.75;
-  transition:opacity .1s,transform .1s;
+  width:22px;height:22px;border-radius:5px;flex-shrink:0;border:none;cursor:pointer;
+  padding:0;align-self:center;margin:0 4px 0 2px;opacity:.9;
+  transition:opacity .1s,transform .1s;display:flex;align-items:center;justify-content:center;
 }
-.cue-stream-dot:hover{opacity:1;transform:scale(1.25);}
+.cue-stream-dot:hover{opacity:1;transform:scale(1.1);}
 
 /* Selected cue in list */
 .cue-row.tl-sel{background:rgba(220, 220, 220, 0.1)!important;outline:0px solid rgba(59,123,221,.3);}
@@ -1735,8 +1735,8 @@ input.minp:focus{border-color:var(--mode-accent);}
 .cue-list-wrap { overflow-x: hidden !important; }
 .cue-list-header,
 .cue-list-wrap .cue-row {
-  grid-template-columns: 26px 16px 114px 1fr 1fr 30px !important;
-  min-width: 0 !important;
+  grid-template-columns: 26px 34px var(--col-tc,114px) var(--col-name,1fr) var(--col-desc,1fr) 26px;
+  min-width: 0;
 }
 .cue-col-del { justify-self: end; }
 
@@ -1998,7 +1998,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
           <button class="er-tab"        id="ertab-wf"    onclick="switchEditView('wf')">Preview</button>
           <button class="er-tab"        id="ertab-vid"   onclick="switchEditView('vid')">Video</button>
           <button class="er-tab"        id="ertab-notes" onclick="switchEditView('notes')">Notes</button>
-          <button class="er-tab"        id="ertab-cams"  onclick="switchEditView('cams')" style="display:none;">Cameras</button>
+          <!-- Cameras tab removed: camera track managed via streams bar + cam-track-bar -->
+          <button class="er-tab" id="ertab-cams" onclick="switchEditView('cams')" style="display:none;"></button>
         </div>
         <div id="er-list-header" style="display:none;">
           <div id="cue-editor-song-name" class="seq-name-badge" style="display:none;">Select a sequence</div>
@@ -2090,6 +2091,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 
   <!-- TIMELINE: always at bottom, toggle visibility -->
   <div id="edit-tl-section" style="flex-shrink:0;background:#08080b;border-top:1px solid var(--border2);display:flex;flex-direction:column;">
+    <!-- Camera track bar: shown when camera track is selected -->
+    <div id="cam-track-bar" style="display:none;align-items:center;padding:4px 10px;gap:6px;flex-wrap:wrap;background:var(--surface2);border-bottom:1px solid var(--border2);flex-shrink:0;min-height:36px;"></div>
     <!-- Timeline toolbar -->
     <div id="tl-toolbar" style="display:flex;align-items:center;padding:4px 10px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;height:44px;">
       <!-- Far left: zoom + snap -->
@@ -2309,10 +2312,14 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   </div>
 </div>
 
-<!-- Camera fast cue creation modal -->
+<!-- Camera cue creation modal -->
 <div id="camera-cue-modal" class="modal-bg">
-  <div class="modal-box" style="max-width:340px;">
-    <div class="modal-title" id="cam-cue-modal-title">New Camera Cue</div>
+  <div class="modal-box" style="max-width:360px;">
+    <div class="modal-title">New Camera Cue</div>
+    <div class="mrow"><span class="mlabel">Camera</span>
+      <select class="minp" id="cam-cue-camera-sel" style="margin:0;flex:1;"></select>
+    </div>
+    <div class="mrow"><span class="mlabel">TC</span><span id="cam-cue-tc-disp" style="font-family:var(--mono);font-size:12px;color:var(--orange-text);flex:1;padding:0 4px;"></span></div>
     <div class="mrow"><span class="mlabel">Name</span><input class="minp" id="cam-cue-name" placeholder="Shot name" style="margin:0;flex:1;" onkeydown="if(event.key==='Enter')commitCameraCue()"></div>
     <div class="mrow"><span class="mlabel">Description</span><input class="minp" id="cam-cue-desc" placeholder="Optional" style="margin:0;flex:1;" onkeydown="if(event.key==='Enter')commitCameraCue()"></div>
     <div class="modal-actions">
@@ -2347,7 +2354,7 @@ const STREAM_COLORS=[
   {id:'slate',  hex:'#7788aa',bg:'#14161c',text:'#aabbcc'},
 ];
 // Camera track: 12 fixed colors (identified by index 0-11)
-const CAMERA_COLORS=['#ff4500','#2563eb','#d946ef','#16a34a','#7c3aed','#c026d3','#ea580c','#ca8a04','#0891b2','#a855f7','#0d9488','#dc2626'];
+const CAMERA_COLORS=['#06b6d4','#2563eb','#d946ef','#16a34a','#7c3aed','#c026d3','#f59e0b','#ca8a04','#0891b2','#a855f7','#0d9488','#84cc16'];
 // All normal tracks render in this single neutral color
 const NORMAL_TRACK_COLOR={hex:'#4a6080',bg:'#0e1520',text:'#8aa0c0'};
 const DEFAULT_PROJECT={
@@ -2378,6 +2385,7 @@ let state={
   ltcDeviceId:'',        // audioinput deviceId for LTC
   tcOffset:0,            // ±frames applied to incoming TC
   cameraTrack:null,      // {id,name,cameras:[{id,number,label,colorIdx}]} | null
+  cameraTrackVisible:true, // whether camera track rows are shown in timelines
 };
 
 // ─── PERSISTENCE ───
@@ -2403,7 +2411,8 @@ function persist(){
     playlists:state.playlists,songs:state.songs,streams:state.streams,
     visibleStreamIds:state.visibleStreamIds,
     tcSource:state.tcSource,ltcDeviceId:state.ltcDeviceId,tcOffset:state.tcOffset,
-    cameraTrack:state.cameraTrack?JSON.parse(JSON.stringify(state.cameraTrack)):null});
+    cameraTrack:state.cameraTrack?JSON.parse(JSON.stringify(state.cameraTrack)):null,
+    cameraTrackVisible:state.cameraTrackVisible!==false});
   const el=document.getElementById('save-indicator');
   if(el){el.classList.add('show');clearTimeout(persistTimer);persistTimer=setTimeout(()=>el.classList.remove('show'),1800);}
 }
@@ -2436,6 +2445,7 @@ function applyProject(proj){
   });
   state.streams=proj.streams||[{id:'stream_default',name:'Default',colorId:'blue'}];
   state.cameraTrack=proj.cameraTrack||null;
+  state.cameraTrackVisible=proj.cameraTrackVisible!==false;
   state.songs.forEach(s=>s.cues.forEach(c=>{if(!c.streamId&&!c.cameraId)c.streamId=state.streams[0]?.id||'';}));
   state.activeSongId=proj.activeSongId||(state.songs[0]?.id??null);
   // Guard: reset activeSongId if it points outside the active playlist
@@ -2779,7 +2789,17 @@ function getActivePlaylistSongs(){
 function getSortedCues(songId,visibleOnly){
   const s=state.songs.find(x=>x.id===songId);if(!s)return[];
   let cues=[...s.cues];
-  if(visibleOnly) cues=cues.filter(c=>state.visibleStreamIds.includes(c.streamId)||(!!c.cameraId&&!!state.cameraTrack));
+  if(visibleOnly){
+    const camIds=window.CF&&CF.cameraIds&&CF.cameraIds.length?CF.cameraIds:null;
+    cues=cues.filter(c=>{
+      if(c.cameraId&&state.cameraTrack){
+        if(state.cameraTrackVisible===false)return false;
+        if(camIds)return camIds.includes(c.cameraId);
+        return true;
+      }
+      return state.visibleStreamIds.includes(c.streamId);
+    });
+  }
   return cues.map(c=>({...c,_f:tcF(c.tc)})).sort((a,b)=>a._f-b._f);
 }
 function getAllCues(visibleOnly){
@@ -2907,21 +2927,51 @@ function renderStreamsBar(){
     div.ondblclick=()=>openStreamModal(stream.id);
     el.appendChild(div);
   });
-  // Camera track badge
+  // Camera track tab — selectable like any other track
   if(state.cameraTrack){
     const cam=document.createElement('div');
-    cam.className='stream-tab';cam.style.cssText='border-left:2px solid var(--border2);margin-left:4px;padding-left:8px;';
+    const isCamSel=state.activeStreamId==='CAMERA';
+    cam.className='stream-tab'+(isCamSel?' active':'');
+    cam.style.cssText='border-left:2px solid var(--border2);margin-left:4px;padding-left:8px;';
     cam.innerHTML=`<div class="stream-tab-dot" style="background:${getCameraColor(0)};"></div>🎥 ${escH(state.cameraTrack.name)}`;
     cam.title=`Camera Track — ${state.cameraTrack.cameras.length} cameras`;
     cam.ondblclick=()=>openCameraTrackModal();
-    cam.onclick=()=>switchEditView('cams');
+    cam.onclick=()=>{state.activeStreamId='CAMERA';renderStreamsBar();updateCamTrackBar();if(ETL.visible)renderEditTimeline();};
     el.appendChild(cam);
   }
+  updateCamTrackBar();
   // + New track button
   const addBtn=document.createElement('div');
   addBtn.className='stream-tab';addBtn.style.cssText='cursor:pointer;color:var(--text3);font-size:11px;';
   addBtn.textContent='+ Track';addBtn.onclick=()=>openNewTrackModal();
   el.appendChild(addBtn);
+}
+
+// ─── CAMERA TRACK BAR ───
+function updateCamTrackBar(){
+  const bar=document.getElementById('cam-track-bar');if(!bar)return;
+  const show=state.activeStreamId==='CAMERA'&&!!state.cameraTrack;
+  bar.style.display=show?'flex':'none';
+  if(!show)return;
+  bar.innerHTML='';
+  const lbl=document.createElement('span');
+  lbl.style.cssText='font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);flex-shrink:0;margin-right:4px;';
+  lbl.textContent=state.cameraTrack.name+':';
+  bar.appendChild(lbl);
+  state.cameraTrack.cameras.forEach(cam=>{
+    const hex=getCameraColor(cam.colorIdx||0);
+    const btn=document.createElement('button');
+    btn.className='tl-tbtn';
+    btn.style.cssText=`background:${hex}18;border-color:${hex};color:${hex};font-weight:900;font-family:var(--mono);font-size:13px;padding:3px 10px;min-width:32px;`;
+    btn.textContent=cam.number;
+    btn.title=cam.label||`CAM ${cam.number}`;
+    btn.onclick=()=>openCameraCueModal(cam.id);
+    bar.appendChild(btn);
+  });
+  const editBtn=document.createElement('button');
+  editBtn.className='tl-tbtn';editBtn.style.cssText='margin-left:auto;font-size:10px;color:var(--text3);';
+  editBtn.textContent='✎ Edit track';editBtn.onclick=()=>openCameraTrackModal();
+  bar.appendChild(editBtn);
 }
 
 // ─── CUE FILTER BAR (edit — filter visible sequence by stream) ───
@@ -3120,11 +3170,18 @@ function deleteCameraTrack(){
 }
 
 let _pendingCamId=null;
-function openCameraCueModal(cameraId){
-  _pendingCamId=cameraId;
-  const cam=getCameraById(cameraId);
-  const titleEl=document.getElementById('cam-cue-modal-title');
-  if(titleEl&&cam)titleEl.textContent=`New Cue — ${cam.label||`CAM ${cam.number}`}`;
+let _pendingCamTcF=null;
+function openCameraCueModal(cameraId, tcFrames){
+  if(!state.cameraTrack)return;
+  _pendingCamId=cameraId||state.cameraTrack.cameras[0]?.id||null;
+  _pendingCamTcF=tcFrames!=null?tcFrames:(state.appMode==='live'?state.currentFrames:state.simFrames);
+  // Populate camera selector
+  const sel=document.getElementById('cam-cue-camera-sel');
+  if(sel){
+    sel.innerHTML=state.cameraTrack.cameras.map(c=>`<option value="${escH(c.id)}"${c.id===_pendingCamId?' selected':''}>${escH(c.label||`CAM ${c.number}`)}</option>`).join('');
+  }
+  const tcDisp=document.getElementById('cam-cue-tc-disp');
+  if(tcDisp)tcDisp.textContent=fTC(Math.floor(_pendingCamTcF));
   document.getElementById('cam-cue-name').value='';
   document.getElementById('cam-cue-desc').value='';
   document.getElementById('camera-cue-modal').classList.add('show');
@@ -3135,12 +3192,16 @@ function commitCameraCue(){
   const name=document.getElementById('cam-cue-name').value.trim();
   if(!name){document.getElementById('cam-cue-name').focus();return;}
   const desc=document.getElementById('cam-cue-desc').value.trim();
+  const sel=document.getElementById('cam-cue-camera-sel');
+  const cameraId=sel?sel.value:_pendingCamId;
   const song=getActiveSong();if(!song){closeModal('camera-cue-modal');return;}
-  const tc=fTC(state.appMode==='live'?state.currentFrames:state.simFrames);
+  const tcF_val=_pendingCamTcF!=null?Math.floor(_pendingCamTcF):(state.appMode==='live'?state.currentFrames:state.simFrames);
+  const tc=fTC(tcF_val);
   snapshot();
-  song.cues.push({id:uid(),tc,name,desc,cameraId:_pendingCamId});
+  song.cues.push({id:uid(),tc,name,desc,cameraId});
   persist();renderCueList();redrawActive();
   closeModal('camera-cue-modal');
+  _pendingCamTcF=null;
 }
 
 function renderCamerasTab(){
@@ -3530,11 +3591,15 @@ function renderWaterfall(target,frames,allCues,curIdx,upNextSongId){
   wa.innerHTML='';
   const visN=state.visibleCount,areaH=isPreview?9999:(wa.clientHeight||480),gap=3;
 
-  // Single globally-next cue — earliest upcoming cue across all visible streams
+  // Single globally-next cue — earliest upcoming cue across all visible streams + camera track
   const visStreams=state.visibleStreamIds;
   let _singleNextIdx=-1;
   for(let i=curIdx+1;i<allCues.length;i++){
-    if(visStreams.includes(allCues[i].streamId)){_singleNextIdx=i;break;}
+    const _nc=allCues[i];
+    const _ncVis=_nc.cameraId
+      ?(!!state.cameraTrack&&state.cameraTrackVisible!==false)
+      :visStreams.includes(_nc.streamId);
+    if(_ncVis){_singleNextIdx=i;break;}
   }
   const nextGlobalIndices=_singleNextIdx>=0?new Set([_singleNextIdx]):new Set();
   const nextPerStream={};
@@ -3643,15 +3708,15 @@ function renderWaterfall(target,frames,allCues,curIdx,upNextSongId){
     row.dataset.bgTint=bgTint;
     const warnBg=isWarn?'var(--red-bg)':'';
 
-    const _shotName=_isCamRow&&_camRow?`[${_camRow.number}] ${cue.name}`:cue.name;
     row.innerHTML=`<div class="wf-num">${cueNum}</div>
       <div class="wf-cd" style="font-size:${cdFS}px${isWarn?';color:var(--red)':''}">${cdStr}</div>
       <div class="wf-name-wrap" style="border-left-color:${isWarn?'var(--red)':isUpNext?'var(--orange)':col.hex};border-left-width:${isCurrent||isNextForStream?'4px':'3px'};">
         <div class="wf-bg" style="background:${warnBg||bgTint};"></div>
         ${!isCurrent&&!isUpNext?`<div class="wf-prog" style="width:${(fillPct*100).toFixed(1)}%;background:var(--red);position:absolute;top:0;left:0;bottom:0;pointer-events:none;"></div>`:''}
         <div class="wf-content">
-          ${_isCamRow&&_camRow?`<div style="font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:${col.hex};margin-bottom:1px;">${escH(_camRow.label||`CAM ${_camRow.number}`)}</div>`:''}
-          <div class="wf-shot" style="font-size:${shotFS}px;${_isCamRow?`color:${col.hex};`:''}">${escH(_shotName)}</div>
+          ${_isCamRow&&_camRow&&!(window.CF&&CF.cameraIds&&CF.cameraIds.length===1)?`<div style="display:flex;align-items:baseline;gap:${Math.max(6,Math.round(h*.06))}px;min-width:0;"><span style="font-size:${Math.max(16,Math.round(shotFS*1.7))}px;font-weight:900;font-family:var(--mono);color:${col.hex};line-height:1;flex-shrink:0;">${_camRow.number}</span>`:''}
+          <div class="wf-shot" style="font-size:${shotFS}px;${_isCamRow?`color:${col.hex};`:''}">${escH(cue.name)}</div>
+          ${_isCamRow&&_camRow&&!(window.CF&&CF.cameraIds&&CF.cameraIds.length===1)?'</div>':''}
           ${cue.desc?`<div class="wf-desc" style="font-size:${isNextForStream?'20px':isCurrent?'16px':isUpNext?'12px':'14px'};">${escH(cue.desc)}</div>`:''}
           ${(!_isCamRow&&visStreams.length>1)?`<div style="font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255, 255, 255, .76);opacity:.5;margin-top:1px;">${escH(streamName(cue.streamId))}</div>`:''}
         </div>
@@ -3760,7 +3825,7 @@ function renderTimeline(target,frames,allCues,curIdx){
     tracksWrap.appendChild(track);
   });
   // Single camera track row (all cameras combined)
-  if(state.cameraTrack){
+  if(state.cameraTrack&&state.cameraTrackVisible!==false){
     // Label
     const camCell=document.createElement('div');
     camCell.style.cssText=`height:${dynTrackH}px;display:flex;align-items:center;padding:0 6px;border-bottom:1px solid var(--border);overflow:hidden;gap:3px;`;
@@ -4027,7 +4092,7 @@ function renderCueList(){
     const _cueCam=_isCamCue?getCameraById(cue.cameraId):null;
     const _cueCamHex=_isCamCue?getCameraColor(_cueCam?.colorIdx||0):null;
     const _dotEl=_isCamCue
-      ?`<button class="cue-stream-dot" data-cid="${cue.id}" style="background:${_cueCamHex};font-family:var(--mono);font-size:8px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;" title="Change camera — click to reassign">${_cueCam?.number||'?'}</button>`
+      ?`<button class="cue-stream-dot" data-cid="${cue.id}" style="width:22px;height:22px;border-radius:5px;background:${_cueCamHex};font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;opacity:1;margin:0 4px 0 0;flex-shrink:0;" title="Change camera — click to reassign">${_cueCam?.number||'?'}</button>`
       :`<button class="cue-stream-dot" data-cid="${cue.id}" style="background:${col.hex};" title="Move to track — click to reassign"></button>`;
     row.innerHTML=`<div class="cue-col-num">${i+1}</div>
       ${_dotEl}
@@ -5432,18 +5497,17 @@ function _sbRender(name){
       </div>
       <div class="sbp-swatches" style="margin-bottom:8px;">${swatches}</div>`;
     });
-    html += `<button class="sbp-add" onclick="openNewTrackModal()">+ New track</button>`;
     if(state.cameraTrack){
-      html+=`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
-        <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">Camera Track</div>
-        <div class="sbp-trk" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;">
-          <div style="width:10px;height:10px;border-radius:50%;background:${getCameraColor(0)};flex-shrink:0;margin-right:4px;"></div>
-          <span style="flex:1;font-size:12px;font-weight:600;color:var(--text);">${escH(state.cameraTrack.name)}</span>
-          <span style="font-size:10px;color:var(--text3);">${state.cameraTrack.cameras.length} cams</span>
-          <button class="sbp-trk-del" onclick="openCameraTrackModal()" title="Edit" style="font-size:10px;padding:0 6px;">✎</button>
-        </div>
+      const isCamVis = state.cameraTrackVisible!==false;
+      html += `<div class="sbp-trk" style="margin-bottom:4px;">
+        <div class="sbp-trk-dot" style="background:${getCameraColor(0)};" title="Camera track"></div>
+        <span class="sbp-trk-name" style="cursor:pointer;" onclick="openCameraTrackModal()">${escH(state.cameraTrack.name)}</span>
+        <span style="font-size:10px;color:var(--text3);flex-shrink:0;margin-right:4px;">${state.cameraTrack.cameras.length} cams</span>
+        <button class="sbp-trk-vis" onclick="sbCamVis()" title="${isCamVis?'Hide camera track':'Show camera track'}">${isCamVis?'●':'○'}</button>
+        <button class="sbp-trk-del" onclick="openCameraTrackModal()" title="Edit camera track" style="font-size:11px;">✎</button>
       </div>`;
     }
+    html += `<button class="sbp-add" onclick="openNewTrackModal()">+ New track</button>`;
   } else if(name === 'online'){
     html = window.CF && CF._buildRolesPanel ? CF._buildRolesPanel() : '';
   }
@@ -5482,6 +5546,13 @@ function sbTrkVis(sid){
     : [...state.visibleStreamIds, sid];
   persist(); renderStreamsBar(); renderCueList();
   if(ETL.visible) renderEditTimeline();
+  _sbRender('tracks');
+}
+function sbCamVis(){
+  state.cameraTrackVisible=state.cameraTrackVisible===false?true:false;
+  persist(); renderStreamsBar(); renderCueList();
+  if(ETL.visible) renderEditTimeline();
+  if(window.CF&&CF._rebuildTimeline) CF._rebuildTimeline();
   _sbRender('tracks');
 }
 function sbTrkDel(sid){
@@ -6244,10 +6315,15 @@ function switchEditView(view){
   if(isCams){renderCamerasTab();}
 }
 function _updateCamerasTab(){
+  // Cameras tab is hidden; camera track managed via streams bar + cam-track-bar
   const btn=document.getElementById('ertab-cams');
-  if(btn)btn.style.display=state.cameraTrack?'':'none';
-  if(state.cameraTrack&&_editView==='cams')renderCamerasTab();
-  else if(!state.cameraTrack&&_editView==='cams')switchEditView('list');
+  if(btn)btn.style.display='none';
+  if(!state.cameraTrack&&state.activeStreamId==='CAMERA'){
+    state.activeStreamId=state.streams[0]?.id||null;
+    renderStreamsBar();
+  }
+  updateCamTrackBar();
+  if(state.cameraTrack&&_editView==='cams')switchEditView('list');
 }
 // compat stub
 function switchEditRightTab(tab){ switchEditView(tab==='list'?'list':'wf'); }
@@ -6589,18 +6665,21 @@ function renderEditTimeline(){
   });
 
   // Single camera track row in edit timeline (all cameras combined)
-  if(state.cameraTrack&&song){
+  if(state.cameraTrack&&song&&state.cameraTrackVisible!==false){
     const camCues=songCues.filter(c=>c.cameraId).sort((a,b)=>a._f-b._f);
-    // Label
+    const isCamSel=state.activeStreamId==='CAMERA';
+    // Label — clickable to select camera track
     const camCell=document.createElement('div');
-    camCell.style.cssText=`height:${trackH}px;display:flex;align-items:center;padding:0 8px;border-bottom:1px solid var(--border);overflow:hidden;`;
+    camCell.style.cssText=`height:${trackH}px;display:flex;align-items:center;padding:0 8px;border-bottom:1px solid var(--border);overflow:hidden;cursor:pointer;${isCamSel?'background:var(--surface2);':''}`;
+    camCell.title='Click to select camera track';
+    camCell.onclick=()=>{state.activeStreamId='CAMERA';renderStreamsBar();updateCamTrackBar();renderEditTimeline();};
     const camLbl=document.createElement('div');
-    camLbl.style.cssText=`font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+    camLbl.style.cssText=`font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:${isCamSel?'var(--mode-accent)':'var(--text3)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
     camLbl.textContent=state.cameraTrack.name||'Cameras';
     camCell.appendChild(camLbl);lblStrip.appendChild(camCell);
     // Track — all camera cues in one row, each colored by its camera
     const camTrack=document.createElement('div');
-    camTrack.style.cssText=`position:relative;height:${trackH}px;border-bottom:1px solid var(--border);`;
+    camTrack.style.cssText=`position:relative;height:${trackH}px;border-bottom:1px solid var(--border);${isCamSel?'background:rgba(255,255,255,.02);':''}`;
     camCues.forEach((cue,ki)=>{
       const cam=getCameraById(cue.cameraId);
       const camHex=getCameraColor(cam?.colorIdx||0);
@@ -6609,12 +6688,13 @@ function renderEditTimeline(){
       const rawW=nextC?(nextC._f-cue._f)*pxPF:Math.min(60*pxPS,(endSec-cue._f/fps)*pxPS+10);
       const blockW=Math.max(16,rawW);
       if(x+blockW<-20||x>tlW)return;
+      const isDragging=ETL.drag&&ETL.drag.cueId===cue.id;
       const isSel=ETL.selId===cue.id;
       const isCur=cue.id===curCueId;
       const block=document.createElement('div');
       block.className='etl-cue'+(isSel?' selected':'')+(isCur?' active-cue':'');
       block.dataset.cueId=cue.id;
-      block.style.cssText=`left:${Math.round(x)}px;width:${Math.round(blockW)-1}px;height:${trackH-8}px;`;
+      block.style.cssText=`left:${Math.round(x)}px;width:${Math.round(blockW)-1}px;height:${trackH-8}px;opacity:${isDragging?.6:1};`;
       const inner=document.createElement('div');
       inner.className='etl-cue-inner';
       inner.style.borderColor=isSel?'#fff':isCur?'var(--orange)':camHex+'bb';
@@ -6624,6 +6704,9 @@ function renderEditTimeline(){
       const lbl2=document.createElement('span');
       lbl2.className='etl-cue-label';lbl2.style.color=camHex;lbl2.textContent=cue.name;
       inner.appendChild(num);inner.appendChild(lbl2);
+      const handle=document.createElement('div');
+      handle.className='etl-cue-handle';
+      block.appendChild(handle);
       block.appendChild(inner);
       block.addEventListener('click',e=>{
         e.stopPropagation();
@@ -6780,6 +6863,11 @@ function commitTlCreate(){
 
 
 function openTlCreateFromBtn(){
+  // When camera track is selected, open camera cue modal instead
+  if(state.activeStreamId==='CAMERA'&&state.cameraTrack){
+    openCameraCueModal(null, state.simFrames);
+    return;
+  }
   // Position popup below the + button in the toolbar
   const f=Math.floor(state.simFrames);
   _tlCreateTcF=f;
@@ -6900,10 +6988,14 @@ function _initEditTimeline(){
         redrawTest(f);
       }
     } else if(y<ETL.RULER_H){
-      // RULER CLICK: open create-cue popup
+      // RULER CLICK: open create-cue popup (or camera cue popup when camera track selected)
       e.preventDefault();
       closeTlCreatePopup();
       _tlCreateTcF=_xToTcF(container,e.clientX);
+      if(state.activeStreamId==='CAMERA'&&state.cameraTrack){
+        openCameraCueModal(null,_tlCreateTcF);
+        return;
+      }
       const pop=document.getElementById('tl-create-popup');
       const tcLbl=document.getElementById('tl-create-tc');
       const nameInp=document.getElementById('tl-create-name');
@@ -7844,6 +7936,7 @@ window.CF = {
   role:     null,
   isOwner:  false,
   tracks:   null,
+  cameraIds: null,  // array of camera IDs for camera-specific viewer links
   dirty:    false,
   _tcChan:  null,
   _projChan:null,
@@ -7927,7 +8020,8 @@ function snapshot(){
     tcSource: state.tcSource||'midi',
     ltcDeviceId: state.ltcDeviceId||'',
     tcOffset: state.tcOffset||0,
-    cameraTrack: state.cameraTrack ? JSON.parse(JSON.stringify(state.cameraTrack)) : null
+    cameraTrack: state.cameraTrack ? JSON.parse(JSON.stringify(state.cameraTrack)) : null,
+    cameraTrackVisible: state.cameraTrackVisible!==false
   };
 }
 
@@ -7994,8 +8088,20 @@ function subscribeProject(){
 function applyRemote(proj){
   if(window._cfCleanupPending) return;
   var prev = state.activeSongId;
+  var prevFrames = state.simFrames;
+  var prevVisible = state.visibleStreamIds ? state.visibleStreamIds.slice() : null;
+  var prevCamVis = state.cameraTrackVisible;
   applyProject(proj);
+  // Restore playhead + visibility — never let a sync echo overwrite local state
+  state.simFrames = prevFrames;
+  if(prevVisible) state.visibleStreamIds = prevVisible;
+  state.cameraTrackVisible = prevCamVis;
   if(CF.tracks && CF.tracks.length) state.visibleStreamIds = CF.tracks;
+  // Camera-only viewer: keep normal tracks hidden
+  if(CF.cameraIds&&CF.cameraIds.length&&(!CF.tracks||!CF.tracks.length)){
+    state.visibleStreamIds=[];
+    state.cameraTrackVisible=true;
+  }
   var validPrev = prev && state.songs.find(function(s){return s.id===prev;});
   state.activeSongId = (validPrev ? prev : null) || (state.songs[0]&&state.songs[0].id);
   renderSongList(); renderCueList(); redrawActive();
@@ -8350,7 +8456,15 @@ function cfJoin(){
       if(err) err.textContent='Wrong PIN — double-check and try again';
       return;
     }
-    CF.role=r.data.role; CF.tracks=r.data.track_ids||null; CF._accessId=r.data.id;
+    CF.role=r.data.role; CF._accessId=r.data.id;
+    var rawTrackIds=r.data.track_ids||null;
+    // Separate camera IDs (prefixed 'cam:') from normal stream IDs
+    if(rawTrackIds&&rawTrackIds.length){
+      CF.cameraIds=rawTrackIds.filter(function(id){return id&&id.indexOf('cam:')===0;}).map(function(id){return id.replace('cam:','');});
+      CF.tracks=rawTrackIds.filter(function(id){return id&&id.indexOf('cam:')!==0;});
+      if(!CF.cameraIds.length) CF.cameraIds=null;
+      if(!CF.tracks.length) CF.tracks=null;
+    } else { CF.tracks=null; CF.cameraIds=null; }
     db().from('shows').select('name,project_data').eq('id',CF.showId).single()
       .then(function(r2){
         if(r2.error){
@@ -8362,6 +8476,9 @@ function cfJoin(){
         if(show.project_data){
           applyProject(show.project_data);
           if(CF.tracks&&CF.tracks.length) state.visibleStreamIds=CF.tracks;
+          if(CF.cameraIds){
+            state.cameraTrackVisible=true;
+          }
         }
         subscribeProject();
         subscribeTc();
@@ -8464,7 +8581,11 @@ function showViewerScreen(show){
     /* Set app mode to 'live' without calling switchMode (which switches screens) */
     state.appMode='live';
     /* Initialise visible streams */
-    if(CF.tracks&&CF.tracks.length){
+    if(CF.cameraIds&&CF.cameraIds.length&&(!CF.tracks||!CF.tracks.length)){
+      // Camera-only viewer: hide all normal track cues, show only the assigned camera
+      state.visibleStreamIds=[];
+      state.cameraTrackVisible=true;
+    } else if(CF.tracks&&CF.tracks.length){
       state.visibleStreamIds=CF.tracks.slice();
     } else if(!CF.tracks){
       state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});
@@ -9048,6 +9169,22 @@ function buildRolesPanel(){
   h+='</div>';
   h+='<button class="sbp-add" style="width:100%;font-weight:700;" onclick="CF._addPin()">Create link</button>';
   h+='</div>';
+
+  /* Camera track sharing */
+  if(state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.length){
+    h+='<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">';
+    h+='<div style="font-size:9px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em;">Share Camera Track</div>';
+    h+='<div style="font-size:10px;color:var(--text4);margin-bottom:8px;">Generates one viewer link per camera. The viewer only sees cues for that camera.</div>';
+    h+='<div style="display:flex;flex-wrap:wrap;gap:5px;">';
+    state.cameraTrack.cameras.forEach(function(cam){
+      var hex=typeof getCameraColor==='function'?getCameraColor(cam.colorIdx||0):'#06b6d4';
+      h+='<button onclick="CF._addCameraPin(\''+cam.id+'\')" '+
+        'style="padding:5px 12px;background:'+hex+'18;border:1px solid '+hex+';border-radius:4px;color:'+hex+';font-size:11px;font-weight:900;font-family:var(--mono);cursor:pointer;">'+
+        cam.number+'</button>';
+    });
+    h+='</div></div>';
+  }
+
   return h;
 }
 
@@ -9078,7 +9215,12 @@ function renderPinsList(){
     var roleTxt=p.role==='tc'?'TC':(p.role==='editor'||p.role==='track-editor'?'Editor':'Viewer');
     var canEditTracks=(p.role==='viewer'||p.role==='editor'||p.role==='crew'||p.role==='track-editor');
     var trackSummary='';
-    if(p.track_ids&&p.track_ids.length){
+    var isCamPin=p.track_ids&&p.track_ids.length&&p.track_ids[0]&&p.track_ids[0].indexOf('cam:')=== 0;
+    if(isCamPin){
+      var camId=p.track_ids[0].replace('cam:','');
+      var camObj=state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.find(function(c){return c.id===camId;});
+      trackSummary='Camera '+(camObj?camObj.number:camId);
+    } else if(p.track_ids&&p.track_ids.length){
       var names=p.track_ids.map(function(id){
         var s=state.streams&&state.streams.find(function(s){return s.id===id;});
         return s?s.name:id;
@@ -9157,6 +9299,25 @@ function deletePin(id){
     renderPinsList();
   });
 }
+
+CF._addCameraPin=function(camId){
+  if(!state.cameraTrack)return;
+  var cam=state.cameraTrack.cameras.find(function(c){return c.id===camId;});
+  if(!cam)return;
+  var label=(cam.label||('CAM '+cam.number))+' viewer';
+  var trackIds=['cam:'+camId];
+  var pin=String(Math.floor(100000+Math.random()*900000));
+  hashPin(pin).then(function(h){
+    return db().from('show_access').insert({
+      show_id:CF.showId,pin_hash:h,display_pin:pin,
+      role:'viewer',label:label,track_ids:trackIds
+    }).select().single();
+  }).then(function(r){
+    if(r.error){alert('Error: '+r.error.message);return;}
+    CF._pinList.push(r.data);
+    renderPinsList();
+  });
+};
 
 CF._selectAllTracks=function(){
   document.querySelectorAll('#cf-pin-tracks-list input[type=checkbox]').forEach(function(cb){cb.checked=true;});
