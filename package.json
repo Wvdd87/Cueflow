@@ -1,0 +1,30 @@
+{
+  "name": "cueflow",
+  "version": "1.0.0",
+  "description": "CueFlow — live show cue management",
+  "main": "main.js",
+  "scripts": {
+    "start": "env -u ELECTRON_RUN_AS_NODE electron .",
+    "dist": "electron-builder --mac"
+  },
+  "devDependencies": {
+    "electron": "^29.4.6",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.cueflow.app",
+    "productName": "Cueflow",
+    "mac": {
+      "category": "public.app-category.music",
+      "icon": "build/icon.png",
+      "identity": null
+    },
+    "dmg": {
+      "title": "Cueflow"
+    },
+    "files": [
+      "main.js",
+      "cueflow_v18.html"
+    ]
+  }
+}
