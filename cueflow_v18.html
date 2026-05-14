@@ -3759,41 +3759,38 @@ function renderTimeline(target,frames,allCues,curIdx){
     });
     tracksWrap.appendChild(track);
   });
-  // Camera track rows (one per camera, below regular streams)
+  // Single camera track row (all cameras combined)
   if(state.cameraTrack){
-    state.cameraTrack.cameras.forEach((cam,ci)=>{
-      const camHex=getCameraColor(cam.colorIdx||ci);
-      const camBg='#0a0a12';
-      // Label
-      const camCell=document.createElement('div');
-      camCell.style.cssText=`height:${dynTrackH}px;display:flex;align-items:center;padding:0 6px;border-bottom:1px solid var(--border);overflow:hidden;`;
-      const camLbl=document.createElement('div');
-      camLbl.style.cssText=`font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:${camHex};opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;`;
-      camLbl.textContent=cam.label||`CAM ${cam.number}`;
-      camCell.appendChild(camLbl);labelStrip.appendChild(camCell);
-      // Track body
-      const camTrack=document.createElement('div');
-      camTrack.style.cssText=`position:relative;height:${dynTrackH}px;border-bottom:1px solid var(--border);`;
-      const camCuesAll=allCues.filter(c=>c.cameraId===cam.id);
-      camCuesAll.forEach((cue,ki)=>{
-        const gi=allCues.indexOf(cue);
-        const phX=TL_PH_X-TL_LBL_W;
-        const x=phX+(cue._f-frames)*pxPF;
-        const nextCamCue=camCuesAll[ki+1];
-        const nextF=nextCamCue?nextCamCue._f:cue._f+fps*30;
-        const w=Math.max(2,(nextF-cue._f)*pxPF);
-        if(x+w<-4||x>tlW+4)return;
-        const isPast=gi<curIdx,isCurrent=gi===curIdx;
-        const block=document.createElement('div');
-        block.style.cssText=`position:absolute;left:${Math.round(x)}px;top:2px;width:${Math.max(2,Math.round(w)-2)}px;height:${dynTrackH-4}px;background:${isPast?'#0a0a12':camBg};border:1px solid ${isPast?'var(--border)':isCurrent?camHex:camHex+'66'};border-radius:3px;overflow:hidden;display:flex;align-items:center;padding:0 4px;gap:3px;pointer-events:none;opacity:${isPast?.25:1};`;
-        block.innerHTML=`<span style="font-family:var(--mono);font-size:8px;font-weight:800;color:${camHex};flex-shrink:0;">${cam.number}</span><span style="font-size:9px;font-weight:500;color:${camHex};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escH(cue.name)}</span>`;
-        camTrack.appendChild(block);
-      });
-      tracksWrap.appendChild(camTrack);
+    // Label
+    const camCell=document.createElement('div');
+    camCell.style.cssText=`height:${dynTrackH}px;display:flex;align-items:center;padding:0 6px;border-bottom:1px solid var(--border);overflow:hidden;gap:3px;`;
+    const camLbl=document.createElement('div');
+    camLbl.style.cssText=`font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+    camLbl.textContent=state.cameraTrack.name||'Cameras';
+    camCell.appendChild(camLbl);labelStrip.appendChild(camCell);
+    // Single track body — all camera cues interleaved, colored per camera
+    const camTrack=document.createElement('div');
+    camTrack.style.cssText=`position:relative;height:${dynTrackH}px;border-bottom:1px solid var(--border);`;
+    const allCamCues=allCues.filter(c=>c.cameraId&&state.cameraTrack).sort((a,b)=>a._f-b._f);
+    allCamCues.forEach((cue,ki)=>{
+      const cam=getCameraById(cue.cameraId);
+      const camHex=getCameraColor(cam?.colorIdx||0);
+      const gi=allCues.indexOf(cue);
+      const phX=TL_PH_X-TL_LBL_W;
+      const x=phX+(cue._f-frames)*pxPF;
+      const nextCamCue=allCamCues[ki+1];
+      const nextF=nextCamCue?nextCamCue._f:cue._f+fps*30;
+      const w=Math.max(2,(nextF-cue._f)*pxPF);
+      if(x+w<-4||x>tlW+4)return;
+      const isPast=gi<curIdx,isCurrent=gi===curIdx;
+      const block=document.createElement('div');
+      block.style.cssText=`position:absolute;left:${Math.round(x)}px;top:2px;width:${Math.max(2,Math.round(w)-2)}px;height:${dynTrackH-4}px;background:${isPast?'#0a0a12':'#0a0a12'};border:1px solid ${isPast?'var(--border)':isCurrent?camHex:camHex+'66'};border-radius:3px;overflow:hidden;display:flex;align-items:center;padding:0 4px;gap:3px;pointer-events:none;opacity:${isPast?.25:1};`;
+      block.innerHTML=`<span style="font-family:var(--mono);font-size:8px;font-weight:800;color:${camHex};flex-shrink:0;">${cam?.number||'?'}</span><span style="font-size:9px;font-weight:500;color:${camHex};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escH(cue.name)}</span>`;
+      camTrack.appendChild(block);
     });
-    // Resize tl height for camera rows
-    const totalRows=visStreams.length+(state.cameraTrack.cameras.length||0);
-    const newH=RULER_H+totalRows*dynTrackH;
+    tracksWrap.appendChild(camTrack);
+    // Resize tl height for the single camera row
+    const newH=RULER_H+(visStreams.length+1)*dynTrackH;
     tl.style.height=newH+'px';
     tl.style.setProperty('--tl-height',newH+'px');
   }
@@ -6591,59 +6588,56 @@ function renderEditTimeline(){
     tracksWrap.appendChild(track);
   });
 
-  // Camera track rows in edit timeline
+  // Single camera track row in edit timeline (all cameras combined)
   if(state.cameraTrack&&song){
-    const camCues=songCues.filter(c=>c.cameraId);
-    state.cameraTrack.cameras.forEach((cam,ci)=>{
-      const camHex=getCameraColor(cam.colorIdx||ci);
-      // Label
-      const camCell=document.createElement('div');
-      camCell.style.cssText=`height:${trackH}px;display:flex;align-items:center;padding:0 8px;border-bottom:1px solid var(--border);overflow:hidden;`;
-      const camLbl=document.createElement('div');
-      camLbl.style.cssText=`font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:${camHex};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
-      camLbl.textContent=cam.label||`CAM ${cam.number}`;
-      camCell.appendChild(camLbl);lblStrip.appendChild(camCell);
-      // Track
-      const camTrack=document.createElement('div');
-      camTrack.style.cssText=`position:relative;height:${trackH}px;border-bottom:1px solid var(--border);`;
-      const camCuesForCam=camCues.filter(c=>c.cameraId===cam.id);
-      camCuesForCam.forEach((cue,ki)=>{
-        const x=(cue._f/fps-startSec)*pxPS;
-        const nextC=camCuesForCam[ki+1];
-        const rawW=nextC?(nextC._f-cue._f)*pxPF:Math.min(60*pxPS,(endSec-cue._f/fps)*pxPS+10);
-        const blockW=Math.max(16,rawW);
-        if(x+blockW<-20||x>tlW)return;
-        const isSel=ETL.selId===cue.id;
-        const isCur=cue.id===curCueId;
-        const block=document.createElement('div');
-        block.className='etl-cue'+(isSel?' selected':'')+(isCur?' active-cue':'');
-        block.dataset.cueId=cue.id;
-        block.style.cssText=`left:${Math.round(x)}px;width:${Math.round(blockW)-1}px;height:${trackH-8}px;`;
-        const inner=document.createElement('div');
-        inner.className='etl-cue-inner';
-        inner.style.borderColor=isSel?'#fff':isCur?'var(--orange)':camHex+'bb';
-        inner.style.background=isSel?'#0a0a12ee':isCur?'rgba(245,158,11,.12)':'#0a0a1299';
-        const num=document.createElement('span');
-        num.className='etl-cue-num';num.style.color=camHex;num.textContent=cam.number;
-        const lbl2=document.createElement('span');
-        lbl2.className='etl-cue-label';lbl2.style.color=camHex;lbl2.textContent=cue.name;
-        inner.appendChild(num);inner.appendChild(lbl2);
-        block.appendChild(inner);
-        // Click to select
-        block.addEventListener('click',e=>{
-          e.stopPropagation();
-          ETL.selId=cue.id;_etlHighlightList(cue.id);
-          state.simFrames=cue._f;
-          const tcEl=document.getElementById('sim-tc');if(tcEl)tcEl.textContent=fTC(cue._f);
-          redrawTest(cue._f);renderCueList();
-        });
-        camTrack.appendChild(block);
+    const camCues=songCues.filter(c=>c.cameraId).sort((a,b)=>a._f-b._f);
+    // Label
+    const camCell=document.createElement('div');
+    camCell.style.cssText=`height:${trackH}px;display:flex;align-items:center;padding:0 8px;border-bottom:1px solid var(--border);overflow:hidden;`;
+    const camLbl=document.createElement('div');
+    camLbl.style.cssText=`font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+    camLbl.textContent=state.cameraTrack.name||'Cameras';
+    camCell.appendChild(camLbl);lblStrip.appendChild(camCell);
+    // Track — all camera cues in one row, each colored by its camera
+    const camTrack=document.createElement('div');
+    camTrack.style.cssText=`position:relative;height:${trackH}px;border-bottom:1px solid var(--border);`;
+    camCues.forEach((cue,ki)=>{
+      const cam=getCameraById(cue.cameraId);
+      const camHex=getCameraColor(cam?.colorIdx||0);
+      const x=(cue._f/fps-startSec)*pxPS;
+      const nextC=camCues[ki+1];
+      const rawW=nextC?(nextC._f-cue._f)*pxPF:Math.min(60*pxPS,(endSec-cue._f/fps)*pxPS+10);
+      const blockW=Math.max(16,rawW);
+      if(x+blockW<-20||x>tlW)return;
+      const isSel=ETL.selId===cue.id;
+      const isCur=cue.id===curCueId;
+      const block=document.createElement('div');
+      block.className='etl-cue'+(isSel?' selected':'')+(isCur?' active-cue':'');
+      block.dataset.cueId=cue.id;
+      block.style.cssText=`left:${Math.round(x)}px;width:${Math.round(blockW)-1}px;height:${trackH-8}px;`;
+      const inner=document.createElement('div');
+      inner.className='etl-cue-inner';
+      inner.style.borderColor=isSel?'#fff':isCur?'var(--orange)':camHex+'bb';
+      inner.style.background=isSel?'#0a0a12ee':isCur?'rgba(245,158,11,.12)':'#0a0a1299';
+      const num=document.createElement('span');
+      num.className='etl-cue-num';num.style.color=camHex;num.textContent=cam?.number||'?';
+      const lbl2=document.createElement('span');
+      lbl2.className='etl-cue-label';lbl2.style.color=camHex;lbl2.textContent=cue.name;
+      inner.appendChild(num);inner.appendChild(lbl2);
+      block.appendChild(inner);
+      block.addEventListener('click',e=>{
+        e.stopPropagation();
+        ETL.selId=cue.id;_etlHighlightList(cue.id);
+        state.simFrames=cue._f;
+        const tcEl=document.getElementById('sim-tc');if(tcEl)tcEl.textContent=fTC(cue._f);
+        redrawTest(cue._f);renderCueList();
       });
-      tracksWrap.appendChild(camTrack);
-      // Extend container height for camera rows
-      const prevH2=parseInt(container.style.height)||(ETL.RULER_H+MKRH+_ty);
-      container.style.height=(prevH2+trackH)+'px';
+      camTrack.appendChild(block);
     });
+    tracksWrap.appendChild(camTrack);
+    // Extend container height by one row
+    const prevH2=parseInt(container.style.height)||(ETL.RULER_H+MKRH+_ty);
+    container.style.height=(prevH2+trackH)+'px';
   }
 
   container.appendChild(tracksWrap);
