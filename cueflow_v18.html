@@ -2354,7 +2354,7 @@ const STREAM_COLORS=[
   {id:'slate',  hex:'#7788aa',bg:'#14161c',text:'#aabbcc'},
 ];
 // Camera track: 12 fixed colors (identified by index 0-11)
-const CAMERA_COLORS=['#06b6d4','#2563eb','#d946ef','#16a34a','#7c3aed','#c026d3','#f59e0b','#ca8a04','#0891b2','#a855f7','#0d9488','#84cc16'];
+const CAMERA_COLORS=['#E64E2A','#4E7CFF','#C23FD6','#59AC44','#704DFF','#7F3DB2','#3F5189','#7F2C66','#C6512C','#F3ED58','#7CEEB2','#8741FF'];
 // All normal tracks render in this single neutral color
 const NORMAL_TRACK_COLOR={hex:'#4a6080',bg:'#0e1520',text:'#8aa0c0'};
 const DEFAULT_PROJECT={
@@ -2453,7 +2453,7 @@ function applyProject(proj){
   if(state.activeSongId&&!_aplSongs.find(s=>s.id===state.activeSongId))
     state.activeSongId=_aplSongs[0]?.id||null;
   state.visibleStreamIds=proj.visibleStreamIds?.length?proj.visibleStreamIds:state.streams.map(s=>s.id);
-  if(!state.activeStreamId||!state.streams.find(s=>s.id===state.activeStreamId))
+  if(!state.activeStreamId||(state.activeStreamId!=='CAMERA'&&!state.streams.find(s=>s.id===state.activeStreamId)))
     state.activeStreamId=state.streams[0]?.id;
   state.tcSource=proj.tcSource||'midi';
   state.ltcDeviceId=proj.ltcDeviceId||'';
@@ -3202,6 +3202,7 @@ function commitCameraCue(){
   persist();renderCueList();redrawActive();
   closeModal('camera-cue-modal');
   _pendingCamTcF=null;
+  if(state.cameraTrack){state.activeStreamId='CAMERA';renderStreamsBar();updateCamTrackBar();}
 }
 
 function renderCamerasTab(){
@@ -3518,6 +3519,8 @@ function _doRedraw(target,frames){
   }
 
   renderWaterfall(target,frames,allCues,curIdx,upNextSongId);
+  // All-cameras secondary waterfall (camera viewer split panel)
+  if(target==='live'&&document.getElementById('wf-live-all'))_renderWaterfallAllCams(frames,upNextSongId);
   // Live timeline only — edit timeline is handled by renderEditTimeline()
   if(target==='live'&&state.tlVisible?.live)renderTimeline(target,frames,allCues,curIdx);
 
@@ -3527,6 +3530,19 @@ function _doRedraw(target,frames){
       el.classList.toggle('active-cue',curIdx>=0&&el.dataset.cid===allCues[curIdx]?.id);
     });
   }
+}
+
+/* Render all-cameras secondary waterfall in the show-all split panel */
+function _renderWaterfallAllCams(frames,upNextSongId){
+  const wa=document.getElementById('wf-live-all');if(!wa)return;
+  // Temporarily clear camera filter so getSortedCues returns all cameras
+  const _prevCamIds=window.CF?CF.cameraIds:null;
+  if(window.CF)CF.cameraIds=null;
+  const allCamsCues=getAllCues(true);
+  if(window.CF)CF.cameraIds=_prevCamIds;
+  let curIdx=-1;
+  for(let i=allCamsCues.length-1;i>=0;i--){if(frames>=allCamsCues[i]._f){curIdx=i;break;}}
+  renderWaterfall('live-all',frames,allCamsCues,curIdx,upNextSongId);
 }
 
 function renderMiniSongs(target,liveSongId,upNextId){
@@ -3547,10 +3563,11 @@ function renderMiniSongs(target,liveSongId,upNextId){
 }
 
 function renderWaterfall(target,frames,allCues,curIdx,upNextSongId){
-  const wa=document.getElementById(target==='live'?'wf-live':'wf-test');if(!wa)return;
-  const isPreview=(target!=='live');
+  const wa=document.getElementById(target==='live'?'wf-live':target==='live-all'?'wf-live-all':'wf-test');if(!wa)return;
+  const isPreview=(target!=='live'&&target!=='live-all');
   /* Fast path: structure unchanged → update only countdowns + progress at full RAF speed */
-  const _visKey=state.visibleStreamIds.join(',');
+  const _camKey=window.CF&&CF.cameraIds?CF.cameraIds.join('|'):'';
+  const _visKey=state.visibleStreamIds.join(',')+(_camKey?'|cam:'+_camKey:'');
   if(!isPreview && wa._wfCurIdx===curIdx && wa._wfUpNext===upNextSongId && wa._wfVis===_visKey){
     wa.querySelectorAll('.wf-row[data-cue-id]').forEach(row=>{
       const ci=allCues.findIndex(c=>c.id===row.dataset.cueId);if(ci<0)return;
@@ -5541,6 +5558,8 @@ function sbTrkColor(sid, colorId){
 }
 function sbTrkVis(sid){
   const on = state.visibleStreamIds.includes(sid);
+  const camVisible = state.cameraTrackVisible!==false && !!state.cameraTrack;
+  if(on && state.visibleStreamIds.length<=1 && !camVisible) return; // keep at least 1 thing visible
   state.visibleStreamIds = on
     ? state.visibleStreamIds.filter(id=>id!==sid)
     : [...state.visibleStreamIds, sid];
@@ -6553,13 +6572,12 @@ function renderEditTimeline(){
     const myH=isActiveSid?trackH+SEL_EXTRA:trackH;
     const cell=document.createElement('div');
     cell.className='etl-stream-cell'+(isActiveSid?' sel-stream':'');
-    cell.style.cssText=`height:${myH}px;display:flex;align-items:center;padding:0 8px;border-bottom:1px solid var(--border);overflow:hidden;gap:4px;`;
+    cell.style.cssText=`height:${myH}px;display:flex;align-items:center;padding:0 8px;border-bottom:1px solid var(--border);overflow:hidden;gap:4px;cursor:pointer;${isActiveSid?'background:var(--surface2);':''}`;
     cell.title='Click to set active stream';
     cell.onclick=()=>{state.activeStreamId=sid;renderStreamsBar();requestAnimationFrame(renderEditTimeline);};
-    if(isActiveSid){const dot=document.createElement('div');dot.style.cssText=`width:3px;height:${trackH*.4}px;border-radius:2px;background:${col.hex};flex-shrink:0;`;cell.appendChild(dot);}
     const lbl=document.createElement('div');
     lbl.className='etl-stream-lbl';
-    lbl.style.cssText=`font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:${col.hex};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+    lbl.style.cssText=`font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:${isActiveSid?'var(--mode-accent)':col.hex};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
     lbl.textContent=streamName(sid);cell.appendChild(lbl);lblStrip.appendChild(cell);
   });
   container.appendChild(lblStrip);
@@ -8091,11 +8109,14 @@ function applyRemote(proj){
   var prevFrames = state.simFrames;
   var prevVisible = state.visibleStreamIds ? state.visibleStreamIds.slice() : null;
   var prevCamVis = state.cameraTrackVisible;
+  var prevStreamSel = state.activeStreamId;
   applyProject(proj);
-  // Restore playhead + visibility — never let a sync echo overwrite local state
+  // Restore playhead + visibility + stream selection — never let a sync echo overwrite local state
   state.simFrames = prevFrames;
   if(prevVisible) state.visibleStreamIds = prevVisible;
   state.cameraTrackVisible = prevCamVis;
+  if(prevStreamSel==='CAMERA'||state.streams.find(function(s){return s.id===prevStreamSel;}))
+    state.activeStreamId = prevStreamSel;
   if(CF.tracks && CF.tracks.length) state.visibleStreamIds = CF.tracks;
   // Camera-only viewer: keep normal tracks hidden
   if(CF.cameraIds&&CF.cameraIds.length&&(!CF.tracks||!CF.tracks.length)){
@@ -8458,11 +8479,18 @@ function cfJoin(){
     }
     CF.role=r.data.role; CF._accessId=r.data.id;
     var rawTrackIds=r.data.track_ids||null;
+    var _camSelectMode=false;
     // Separate camera IDs (prefixed 'cam:') from normal stream IDs
     if(rawTrackIds&&rawTrackIds.length){
-      CF.cameraIds=rawTrackIds.filter(function(id){return id&&id.indexOf('cam:')===0;}).map(function(id){return id.replace('cam:','');});
+      var rawCamIds=rawTrackIds.filter(function(id){return id&&id.indexOf('cam:')===0;}).map(function(id){return id.replace('cam:','');});
       CF.tracks=rawTrackIds.filter(function(id){return id&&id.indexOf('cam:')!==0;});
-      if(!CF.cameraIds.length) CF.cameraIds=null;
+      if(rawCamIds.length===1&&rawCamIds[0]==='select'){
+        // Special sentinel: viewer must pick their camera
+        _camSelectMode=true;
+        CF.cameraIds=null;
+      } else {
+        CF.cameraIds=rawCamIds.length?rawCamIds:null;
+      }
       if(!CF.tracks.length) CF.tracks=null;
     } else { CF.tracks=null; CF.cameraIds=null; }
     db().from('shows').select('name,project_data').eq('id',CF.showId).single()
@@ -8501,10 +8529,122 @@ function cfJoin(){
         document.getElementById('cf-join-screen').style.display='none';
         if(CF.role==='tc') showTcScreen(show);
         else if(CF.role==='editor'||CF.role==='track-editor') showEditorApp(show);
+        else if(_camSelectMode) showCameraPickerModal(show);
         else showViewerScreen(show);
       });
   });
 }
+
+/* ── CAMERA PICKER MODAL (cam:select links) ──────────────── */
+function showCameraPickerModal(show){
+  var existing=document.getElementById('cf-cam-picker-modal');
+  if(existing) existing.remove();
+  var cameras=(state.cameraTrack&&state.cameraTrack.cameras)||[];
+  if(!cameras.length){showViewerScreen(show);return;}
+
+  var modal=document.createElement('div');
+  modal.id='cf-cam-picker-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;';
+
+  var box=document.createElement('div');
+  box.style.cssText='background:var(--surface1);border:1px solid var(--border);border-radius:10px;padding:28px 24px;min-width:280px;max-width:380px;width:90%;';
+  box.innerHTML='<div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">Select your camera</div>'+
+    '<div style="font-size:11px;color:var(--text3);margin-bottom:18px;">You\'ll only see cues for the camera you pick. You can change it later.</div>'+
+    '<div id="cf-cam-picker-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px;"></div>';
+
+  var grid=box.querySelector('#cf-cam-picker-grid');
+  cameras.forEach(function(cam){
+    var hex=typeof getCameraColor==='function'?getCameraColor(cam.colorIdx||0):'#06b6d4';
+    var btn=document.createElement('button');
+    btn.style.cssText='padding:14px 8px;background:'+hex+'18;border:2px solid '+hex+';border-radius:8px;color:'+hex+
+      ';font-size:22px;font-weight:900;font-family:var(--mono);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;transition:background .1s;';
+    btn.innerHTML='<span>'+cam.number+'</span>'+
+      (cam.label?'<span style="font-size:9px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:'+hex+';opacity:.8;">'+escH(cam.label)+'</span>':'');
+    btn.onclick=function(){
+      CF.cameraIds=[cam.id];
+      state.cameraTrackVisible=true;
+      state.visibleStreamIds=[];
+      modal.remove();
+      showViewerScreen(show);
+    };
+    grid.appendChild(btn);
+  });
+
+  modal.appendChild(box);
+  document.body.appendChild(modal);
+}
+
+/* Shows the camera picker overlay on the viewer screen to switch cameras */
+function openCameraSwitcher(){
+  var cameras=(state.cameraTrack&&state.cameraTrack.cameras)||[];
+  if(!cameras.length) return;
+  var existing=document.getElementById('cf-cam-picker-modal');
+  if(existing){existing.remove();return;}
+  showCameraPickerModal(null);
+  // Override pick action to stay on viewer screen
+  var grid=document.querySelector('#cf-cam-picker-grid');
+  if(grid) grid.querySelectorAll('button').forEach(function(btn,i){
+    var cam=cameras[i];
+    btn.onclick=function(){
+      CF.cameraIds=[cam.id];
+      state.cameraTrackVisible=true;
+      state.visibleStreamIds=[];
+      document.getElementById('cf-cam-picker-modal').remove();
+      // Update switch button label
+      var swBtn=document.getElementById('cf-v-camswitch-btn');
+      if(swBtn) swBtn.textContent='CAM '+cam.number;
+      buildTrackPills();
+      if(window.redrawActive) redrawActive();
+    };
+  });
+}
+
+/* Toggle split view: top = this camera's waterfall, bottom = all cameras list */
+var _viewerShowAll=false;
+function toggleViewerShowAll(){
+  _viewerShowAll=!_viewerShowAll;
+  var slot=document.getElementById('cf-v-wf');
+  var btn=document.getElementById('cf-v-showall-btn');
+  if(!slot) return;
+  var wfEl=document.getElementById('wf-live');
+  if(!_viewerShowAll){
+    // Restore normal waterfall
+    slot.style.display='';
+    slot.style.flexDirection='';
+    var allCamsDiv=document.getElementById('cf-v-showall-list');
+    if(allCamsDiv) allCamsDiv.remove();
+    if(wfEl){wfEl.style.position='absolute';wfEl.style.inset='0';wfEl.style.flex='';}
+    if(btn){btn.style.background='var(--surface2)';btn.style.color='';}
+    return;
+  }
+  // Split view: slot becomes a flex column, wf-live takes top portion
+  slot.style.display='flex';
+  slot.style.flexDirection='column';
+  if(btn){btn.style.background='var(--mode-accent-bg)';btn.style.color='var(--mode-accent)';}
+  if(wfEl){
+    // Switch from absolute fill to flex child
+    wfEl.style.position='relative';
+    wfEl.style.inset='';
+    wfEl.style.flex='1 1 0';
+    wfEl.style.minHeight='0';
+  }
+  var existing=document.getElementById('cf-v-showall-list');
+  if(!existing){
+    var allDiv=document.createElement('div');
+    allDiv.id='cf-v-showall-list';
+    allDiv.style.cssText='flex:0 0 45%;min-height:0;border-top:2px solid var(--border);position:relative;overflow:hidden;background:var(--bg);';
+    // All-cameras waterfall lives inside here
+    var wfAll=document.createElement('div');
+    wfAll.id='wf-live-all';
+    wfAll.className='wf-area';
+    wfAll.style.cssText='position:absolute;inset:0;';
+    allDiv.appendChild(wfAll);
+    slot.appendChild(allDiv);
+    // Trigger initial render
+    if(window.redrawActive) redrawActive();
+  }
+}
+
 
 /* ── TC-ONLY SCREEN ──────────────────────────────────────── */
 function showTcScreen(show){
@@ -8542,14 +8682,39 @@ function showViewerScreen(show){
       statusTxt.style.cssText='font-size:10px;color:var(--text3);flex-shrink:0;text-transform:uppercase;letter-spacing:.05em;';
       if(dot) dot.parentNode.insertBefore(statusTxt, dot.nextSibling);
 
-      /* Overview panel button */
-      var overviewBtn=document.createElement('button');
-      overviewBtn.id='cf-v-overview-btn';
-      overviewBtn.textContent='Overview';
-      overviewBtn.style.cssText='padding:5px 14px;font-size:11px;font-weight:600;background:var(--surface2);'+
-        'border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);cursor:pointer;flex-shrink:0;margin-left:8px;transition:all .12s;';
-      overviewBtn.onclick=function(){ toggleViewerOverview(); };
-      if(dot) dot.parentNode.insertBefore(overviewBtn, dot);
+      var isCamOnlyViewer=!!(CF.cameraIds&&CF.cameraIds.length);
+
+      if(!isCamOnlyViewer){
+        /* Overview panel button — not needed for single-camera viewers */
+        var overviewBtn=document.createElement('button');
+        overviewBtn.id='cf-v-overview-btn';
+        overviewBtn.textContent='Overview';
+        overviewBtn.style.cssText='padding:5px 14px;font-size:11px;font-weight:600;background:var(--surface2);'+
+          'border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);cursor:pointer;flex-shrink:0;margin-left:8px;transition:all .12s;';
+        overviewBtn.onclick=function(){ toggleViewerOverview(); };
+        if(dot) dot.parentNode.insertBefore(overviewBtn, dot);
+      }
+
+      if(isCamOnlyViewer){
+        /* Show all: split waterfall top / all cameras bottom */
+        var showAllBtn=document.createElement('button');
+        showAllBtn.id='cf-v-showall-btn';
+        showAllBtn.textContent='Show all';
+        showAllBtn.style.cssText='padding:5px 14px;font-size:11px;font-weight:600;background:var(--surface2);'+
+          'border:1px solid var(--border2);border-radius:4px;color:var(--text2);cursor:pointer;flex-shrink:0;margin-left:8px;';
+        showAllBtn.onclick=function(){ toggleViewerShowAll(); };
+        if(dot) dot.parentNode.insertBefore(showAllBtn, dot);
+
+        /* Change camera button */
+        var camSwBtn=document.createElement('button');
+        camSwBtn.id='cf-v-camswitch-btn';
+        var _swCam=state.cameraTrack&&CF.cameraIds&&state.cameraTrack.cameras.find(function(c){return c.id===CF.cameraIds[0];});
+        camSwBtn.textContent='CAM '+(_swCam?_swCam.number:'?');
+        camSwBtn.style.cssText='padding:5px 14px;font-size:11px;font-weight:900;font-family:var(--mono);background:var(--surface2);'+
+          'border:1px solid var(--border2);border-radius:4px;color:var(--text2);cursor:pointer;flex-shrink:0;margin-left:8px;';
+        camSwBtn.onclick=function(){ openCameraSwitcher(); };
+        if(dot) dot.parentNode.insertBefore(camSwBtn, dot);
+      }
 
       /* Add description / edit button */
       var editBtn=document.createElement('button');
@@ -8602,9 +8767,14 @@ function openViewerDescEdit(){
   var slot=document.getElementById('cf-v-wf');
   if(!slot) return;
   CF._viewerInEditMode=true;
-  /* Hide overview in description-edit mode */
+  /* Hide overview / camera controls in description-edit mode */
   var overviewBtn=document.getElementById('cf-v-overview-btn');
   if(overviewBtn) overviewBtn.style.display='none';
+  var showAllBtn=document.getElementById('cf-v-showall-btn');
+  if(showAllBtn) showAllBtn.style.display='none';
+  var camSwBtn=document.getElementById('cf-v-camswitch-btn');
+  if(camSwBtn) camSwBtn.style.display='none';
+  if(_viewerShowAll) toggleViewerShowAll(); // collapse split view first
   var lr=document.getElementById('live-right');
   if(lr && lr.dataset.viewerOverlay==='1') toggleViewerOverview();
 
@@ -8650,9 +8820,18 @@ function openViewerDescEdit(){
 
     /* Build interleaved items sorted by TC */
     var items=[];
+    var _camOnly=!!(CF.cameraIds&&CF.cameraIds.length);
     (song.cues||[]).forEach(function(cue){
-      if(allowed&&allowed.indexOf(cue.streamId)===-1) return;
-      if(state.visibleStreamIds&&state.visibleStreamIds.indexOf(cue.streamId)===-1) return;
+      if(cue.cameraId){
+        // Camera cue: include only if this viewer is assigned to that camera
+        if(_camOnly&&CF.cameraIds.indexOf(cue.cameraId)===-1) return;
+        if(!_camOnly) return; // non-camera viewers don't see camera cues here
+      } else {
+        // Normal cue: camera-only viewers never see normal stream cues in description edit
+        if(_camOnly) return;
+        if(allowed&&allowed.indexOf(cue.streamId)===-1) return;
+        if(state.visibleStreamIds&&state.visibleStreamIds.indexOf(cue.streamId)===-1) return;
+      }
       items.push({type:'cue',tc:window.tcF?tcF(cue.tc):0,cue:cue});
     });
     (song.chapters||[]).forEach(function(ch){
@@ -8670,7 +8849,13 @@ function openViewerDescEdit(){
         '</div>';
       } else {
         var cue=item.cue;
-        var dotColor=window.getStreamColor?getStreamColor(cue.streamId).hex:'#555';
+        var dotColor;
+        if(cue.cameraId){
+          var _dc=state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.find(function(c){return c.id===cue.cameraId;});
+          dotColor=typeof getCameraColor==='function'?getCameraColor(_dc&&_dc.colorIdx||0):'#06b6d4';
+        } else {
+          dotColor=window.getStreamColor?getStreamColor(cue.streamId).hex:'#555';
+        }
         ch+='<div style="padding:10px 16px;border-bottom:1px solid var(--border2);">';
         ch+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'+
           '<span style="width:8px;height:8px;border-radius:50%;background:'+dotColor+';flex-shrink:0;"></span>'+
@@ -8723,7 +8908,10 @@ function closeViewerDescEdit(){
   if(!slot) return;
   CF._viewerInEditMode=false;
   CF._renderViewerCues=null;
+  _viewerShowAll=false;
   /* Restore waterfall */
+  slot.style.display='';
+  slot.style.flexDirection='';
   slot.innerHTML='';
   var wf=document.createElement('div');
   wf.id='wf-live'; wf.style.cssText='position:absolute;inset:0;';
@@ -8741,6 +8929,10 @@ function closeViewerDescEdit(){
   if(window.redrawActive) redrawActive();
   var overviewBtn=document.getElementById('cf-v-overview-btn');
   if(overviewBtn) overviewBtn.style.display='';
+  var showAllBtn=document.getElementById('cf-v-showall-btn');
+  if(showAllBtn) showAllBtn.style.display='';
+  var camSwBtn=document.getElementById('cf-v-camswitch-btn');
+  if(camSwBtn) camSwBtn.style.display='';
 }
 
 /* ── Viewer Overview panel ───────────────────────────────── */
@@ -8791,6 +8983,22 @@ function refreshViewerOverview(){ /* _doRedraw keeps #live-right current */ }
 function buildTrackPills(){
   var c=document.getElementById('cf-v-tracks'); if(!c) return;
   c.innerHTML='';
+
+  // Camera-only viewer: show the active camera as a single pill
+  if(CF.cameraIds&&CF.cameraIds.length){
+    var cam=state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.find(function(c){return c.id===CF.cameraIds[0];});
+    if(cam){
+      var hex=typeof getCameraColor==='function'?getCameraColor(cam.colorIdx||0):'#06b6d4';
+      c.style.display='flex';
+      var p=document.createElement('div');
+      p.style.cssText='padding:3px 12px;border-radius:12px;font-size:12px;font-weight:900;font-family:var(--mono);'+
+        'background:'+hex+';color:#fff;border:1px solid '+hex+';user-select:none;letter-spacing:.04em;';
+      p.textContent='CAM '+cam.number;
+      c.appendChild(p);
+      return;
+    }
+  }
+
   var streams=state.streams||[];
   var allowed=CF.tracks;
   var visible=streams.filter(function(s){ return !allowed||allowed.indexOf(s.id)!==-1; });
@@ -9159,6 +9367,9 @@ function buildRolesPanel(){
   h+='<option value="viewer">Viewer</option>';
   h+='<option value="editor">Editor</option>';
   h+='<option value="tc">TC</option>';
+  if(state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.length){
+    h+='<option value="cam-viewer">Camera Viewer</option>';
+  }
   h+='</select>';
   h+='<div id="cf-pin-tracks-wrap" style="display:none;margin-bottom:6px;">';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">';
@@ -9169,21 +9380,6 @@ function buildRolesPanel(){
   h+='</div>';
   h+='<button class="sbp-add" style="width:100%;font-weight:700;" onclick="CF._addPin()">Create link</button>';
   h+='</div>';
-
-  /* Camera track sharing */
-  if(state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.length){
-    h+='<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">';
-    h+='<div style="font-size:9px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em;">Share Camera Track</div>';
-    h+='<div style="font-size:10px;color:var(--text4);margin-bottom:8px;">Generates one viewer link per camera. The viewer only sees cues for that camera.</div>';
-    h+='<div style="display:flex;flex-wrap:wrap;gap:5px;">';
-    state.cameraTrack.cameras.forEach(function(cam){
-      var hex=typeof getCameraColor==='function'?getCameraColor(cam.colorIdx||0):'#06b6d4';
-      h+='<button onclick="CF._addCameraPin(\''+cam.id+'\')" '+
-        'style="padding:5px 12px;background:'+hex+'18;border:1px solid '+hex+';border-radius:4px;color:'+hex+';font-size:11px;font-weight:900;font-family:var(--mono);cursor:pointer;">'+
-        cam.number+'</button>';
-    });
-    h+='</div></div>';
-  }
 
   return h;
 }
@@ -9218,8 +9414,12 @@ function renderPinsList(){
     var isCamPin=p.track_ids&&p.track_ids.length&&p.track_ids[0]&&p.track_ids[0].indexOf('cam:')=== 0;
     if(isCamPin){
       var camId=p.track_ids[0].replace('cam:','');
-      var camObj=state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.find(function(c){return c.id===camId;});
-      trackSummary='Camera '+(camObj?camObj.number:camId);
+      if(camId==='select'){
+        trackSummary='Camera track (viewer picks camera)';
+      } else {
+        var camObj=state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.find(function(c){return c.id===camId;});
+        trackSummary='Camera '+(camObj?camObj.number:camId);
+      }
     } else if(p.track_ids&&p.track_ids.length){
       var names=p.track_ids.map(function(id){
         var s=state.streams&&state.streams.find(function(s){return s.id===id;});
@@ -9252,12 +9452,27 @@ function onRoleChange(){
   var wrap=document.getElementById('cf-pin-tracks-wrap');
   if(!wrap) return;
   var needsTracks=role==='viewer'||role==='editor';
+  var isCamViewer=role==='cam-viewer';
   wrap.style.display=needsTracks?'block':'none';
   var lbl=document.getElementById('cf-pin-tracks-lbl');
   if(lbl) lbl.textContent=role==='editor'?'Editing rights':'Visible tracks';
   var streams=state.streams||[];
   var addAllBtn=document.getElementById('cf-pin-tracks-all');
   if(addAllBtn) addAllBtn.style.display=needsTracks&&streams.length>5?'':'none';
+  // cam-viewer hint
+  var camHint=document.getElementById('cf-pin-camviewer-hint');
+  if(isCamViewer){
+    if(!camHint){
+      camHint=document.createElement('div');
+      camHint.id='cf-pin-camviewer-hint';
+      camHint.style.cssText='font-size:10px;color:var(--text3);margin-bottom:6px;';
+      camHint.textContent='Viewer picks their camera after joining. One link for all cameras.';
+      wrap.parentNode.insertBefore(camHint,wrap);
+    }
+    camHint.style.display='';
+  } else if(camHint){
+    camHint.style.display='none';
+  }
   if(needsTracks){
     var list=document.getElementById('cf-pin-tracks-list'); if(!list) return;
     list.innerHTML='';
@@ -9272,9 +9487,13 @@ function onRoleChange(){
 
 function addPin(){
   var role=(document.getElementById('cf-pin-role')||{}).value||'viewer';
-  var label=((document.getElementById('cf-pin-label')||{}).value||'').trim()||role;
+  var label=((document.getElementById('cf-pin-label')||{}).value||'').trim()||(role==='cam-viewer'?'Camera Viewer':role);
   var trackIds=null;
-  if(role==='viewer'||role==='editor'){
+  var dbRole=role;
+  if(role==='cam-viewer'){
+    dbRole='viewer';
+    trackIds=['cam:select'];
+  } else if(role==='viewer'||role==='editor'){
     var boxes=document.querySelectorAll('#cf-pin-tracks-list input:checked');
     if(boxes.length) trackIds=Array.from(boxes).map(function(b){return b.value;});
   }
@@ -9282,7 +9501,7 @@ function addPin(){
   hashPin(pin).then(function(h){
     return db().from('show_access').insert({
       show_id:CF.showId,pin_hash:h,display_pin:pin,
-      role:role,label:label,track_ids:trackIds
+      role:dbRole,label:label,track_ids:trackIds
     }).select().single();
   }).then(function(r){
     if(r.error){alert('Error: '+r.error.message);return;}
