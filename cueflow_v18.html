@@ -1080,10 +1080,10 @@ input.minp:focus{border-color:var(--mode-accent);}
 /* Cue blocks in edit timeline */
 .etl-cue{
   position:absolute;top:4px;
-  cursor:grab;
+  cursor:pointer;
   user-select:none;
 }
-.etl-cue:active{cursor:grabbing;}
+.etl-cue:active{cursor:pointer;}
 .etl-cue-inner{
   height:100%;border-radius:3px;
   display:flex;align-items:center;padding:0 6px;gap:3px;
@@ -1094,7 +1094,7 @@ input.minp:focus{border-color:var(--mode-accent);}
 .etl-cue.active-cue .etl-cue-inner{border-color:var(--orange)!important;}
 .etl-cue.invalid .etl-cue-inner{opacity:.3;filter:grayscale(.9);}
 .etl-cue-num{font-family:var(--mono);font-size:9px;font-weight:700;flex-shrink:0;}
-.etl-cue-label{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.01em;}
+.etl-cue-label{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.01em;}
 .etl-cue-handle{
   position:absolute;left:0;top:0;bottom:0;width:8px;
   cursor:ew-resize;
@@ -1108,7 +1108,7 @@ input.minp:focus{border-color:var(--mode-accent);}
 /* Stream assignment dot — replaces passive bar */
 .cue-stream-dot{
   width:22px;height:22px;border-radius:5px;flex-shrink:0;border:none;cursor:pointer;
-  padding:0;align-self:center;margin:0 4px 0 2px;opacity:.9;
+  padding:0;align-self:center;justify-self:center;margin:0;opacity:.9;
   transition:opacity .1s,transform .1s;display:flex;align-items:center;justify-content:center;
 }
 .cue-stream-dot:hover{opacity:1;transform:scale(1.1);}
@@ -1453,7 +1453,7 @@ input.minp:focus{border-color:var(--mode-accent);}
 /* ── CHAPTER ROWS IN CUE LIST ────────────────────────── */
 .chapter-list-row{
   display:grid;
-  grid-template-columns:26px 16px var(--col-tc,114px) var(--col-name,1fr) var(--col-desc,1fr) 26px;
+  grid-template-columns:26px 34px var(--col-tc,114px) var(--col-name,1fr) var(--col-desc,1fr) 26px;
   align-items:center;min-height:32px;border-bottom:1px solid rgba(251,191,36,.1);
   background:rgba(251,191,36,.025);cursor:default;
 }
@@ -1465,8 +1465,8 @@ input.minp:focus{border-color:var(--mode-accent);}
 .chapter-tag-col{
   display:flex;align-items:center;justify-content:center;
 }
-.chapter-tag-bar{
-  width:3px;height:14px;border-radius:2px;background:rgba(251,191,36,.6);
+.chapter-tag-chevron{
+  display:block;flex-shrink:0;opacity:.75;
 }
 .chapter-list-tc{
   font-family:var(--mono);font-size:11px;color:rgba(251,191,36,.75);
@@ -2981,10 +2981,6 @@ function updateCamTrackBar(){
     btn.onclick=()=>openCameraCueModal(cam.id);
     bar.appendChild(btn);
   });
-  const editBtn=document.createElement('button');
-  editBtn.className='tl-tbtn';editBtn.style.cssText='margin-left:auto;font-size:10px;color:var(--text3);';
-  editBtn.textContent='✎ Edit track';editBtn.onclick=()=>openCameraTrackModal();
-  bar.appendChild(editBtn);
 }
 
 // ─── CUE FILTER BAR (edit — filter visible sequence by stream) ───
@@ -4027,10 +4023,10 @@ function renderCueList(){
         numCell.textContent='';
         sep.appendChild(numCell);
 
-        // Col 2: amber bar tag
+        // Col 2: downward-chevron marker
         const tagCell=document.createElement('div');
         tagCell.className='chapter-tag-col';
-        tagCell.innerHTML='<div class="chapter-tag-bar"></div>';
+        tagCell.innerHTML='<svg class="chapter-tag-chevron" width="12" height="16" viewBox="0 0 12 16" fill="none"><path d="M0 0 H12 V10 L6 16 L0 10 Z" fill="rgba(251,191,36,.65)"/></svg>';
         sep.appendChild(tagCell);
 
         // Col 3: TC — input, readonly until selected
@@ -4123,7 +4119,7 @@ function renderCueList(){
     const _cueCamHex=_isCamCue?getCameraColor(_cueCam?.colorIdx||0):null;
     const _dotEl=_isCamCue
       ?`<button class="cue-stream-dot" data-cid="${cue.id}" style="width:22px;height:22px;border-radius:5px;background:${_cueCamHex};font-family:var(--mono);font-size:13px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;opacity:1;margin:0 4px 0 0;flex-shrink:0;" title="Change camera — click to reassign">${_cueCam?.number||'?'}</button>`
-      :`<button class="cue-stream-dot" data-cid="${cue.id}" style="background:${col.hex};" title="Move to track — click to reassign"></button>`;
+      :`<button class="cue-stream-dot" data-cid="${cue.id}" style="background:${col.hex};font-family:var(--mono);font-size:11px;font-weight:900;color:#fff;" title="Move to track — click to reassign">${escH(streamName(cue.streamId).charAt(0).toUpperCase()||'?')}</button>`;
     row.innerHTML=`<div class="cue-col-num">${i+1}</div>
       ${_dotEl}
       <input class="cue-field tc${isSelected?'':' cue-readonly'}" value="${escH(cue.tc)}" data-id="${cue.id}" data-f="tc" placeholder="01:00:00:00" ${isSelected?'':'readonly'}>
@@ -4157,6 +4153,9 @@ function renderCueList(){
       _etlHighlightList(cue.id);
       state.simFrames=cue._f;
       const tcEl=document.getElementById('sim-tc');if(tcEl)tcEl.textContent=fTC(cue._f);
+      // Also select the track this cue belongs to
+      const _newSid=cue.cameraId?'CAMERA':cue.streamId;
+      if(state.activeStreamId!==_newSid){state.activeStreamId=_newSid;renderStreamsBar();if(_newSid==='CAMERA')updateCamTrackBar();}
       redrawTest(cue._f);
       // Re-render to show selected state (make inputs editable on this row)
       renderCueList();
@@ -4923,7 +4922,11 @@ function _jumpCue(dir){
   let cuePool;
   if(state.activeStreamId){
     const song=getActiveSong();
-    cuePool=song?getSortedCues(song.id,true).filter(c=>c.streamId===state.activeStreamId):[];
+    if(state.activeStreamId==='CAMERA'){
+      cuePool=song?getSortedCues(song.id,true).filter(c=>!!c.cameraId):[];
+    } else {
+      cuePool=song?getSortedCues(song.id,true).filter(c=>c.streamId===state.activeStreamId):[];
+    }
   } else {
     cuePool=getAllCues(true);
   }
@@ -6449,7 +6452,7 @@ function _refreshWfNotes(){
 const ETL={
   // Config
   RULER_H:   24,
-  TRACK_H:   56,   // px per stream track
+  TRACK_H:   64,   // px per stream track
   LBL_W:     72,   // stream label column
   PH_X:      220,  // playhead x from left edge (fixed)
   // Zoom: px per second
@@ -6666,23 +6669,35 @@ function renderEditTimeline(){
       inner.className='etl-cue-inner';
       inner.style.borderColor=isSel?'#fff':isCur?'var(--orange)':col.hex+'bb';
       inner.style.background=isSel?col.bg+'ee':isCur?'rgba(245,158,11,.12)':col.bg+'99';
+      // Always column so the name never jumps position on selection
+      inner.style.flexDirection='column';inner.style.alignItems='flex-start';inner.style.padding='4px 6px';inner.style.gap='1px';
 
+      const topRow=document.createElement('div');
+      topRow.style.cssText='display:flex;align-items:center;gap:3px;width:100%;min-width:0;';
       const num=document.createElement('span');
       num.className='etl-cue-num';num.style.color=col.hex;num.textContent=ci+1;
-
       const lbl=document.createElement('span');
-      lbl.className='etl-cue-label';lbl.style.color=isCur?'var(--orange-text)':col.text;
+      lbl.className='etl-cue-label';lbl.style.color=isCur?'var(--orange-text)':col.text;lbl.style.flex='1';
       lbl.textContent=cue.name;
-
-      inner.appendChild(num);inner.appendChild(lbl);
-
-      // Expanded info when track is selected
-      if(isSel&&(cue.tc||cue.desc)){
-        const sub=document.createElement('div');
-        sub.style.cssText='font-size:8px;color:var(--text3);margin-top:1px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--mono);';
-        if(cue.tc) sub.textContent=cue.tc+(cue.desc?'  '+cue.desc:'');
-        else if(cue.desc) sub.textContent=cue.desc;
-        inner.appendChild(sub);
+      topRow.appendChild(num);topRow.appendChild(lbl);
+      inner.appendChild(topRow);
+      // TC + desc — always visible when data exists (not gated on selection)
+      if(cue.tc||cue.desc){
+        const subRow=document.createElement('div');
+        subRow.style.cssText='display:flex;align-items:center;gap:6px;width:100%;min-width:0;';
+        if(cue.tc){
+          const tcLbl=document.createElement('span');
+          tcLbl.style.cssText='font-family:var(--mono);font-size:10px;color:var(--text3);white-space:nowrap;flex-shrink:0;';
+          tcLbl.textContent=cue.tc;
+          subRow.appendChild(tcLbl);
+        }
+        if(cue.desc){
+          const descLbl=document.createElement('span');
+          descLbl.style.cssText='font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;';
+          descLbl.textContent=cue.desc;
+          subRow.appendChild(descLbl);
+        }
+        inner.appendChild(subRow);
       }
 
       // Drag handle (left edge, wider hit area)
@@ -6699,9 +6714,11 @@ function renderEditTimeline(){
   if(state.cameraTrack&&song&&state.cameraTrackVisible!==false){
     const camCues=songCues.filter(c=>c.cameraId).sort((a,b)=>a._f-b._f);
     const isCamSel=state.activeStreamId==='CAMERA';
+    const camTrackH=isCamSel?trackH+SEL_EXTRA:trackH;
     // Label — clickable to select camera track
     const camCell=document.createElement('div');
-    camCell.style.cssText=`height:${trackH}px;display:flex;align-items:center;padding:0 8px;border-bottom:1px solid var(--border);overflow:hidden;cursor:pointer;${isCamSel?'background:var(--surface2);':''}`;
+    camCell.className='etl-stream-cell'+(isCamSel?' sel-stream':'');
+    camCell.style.cssText=`height:${camTrackH}px;display:flex;align-items:center;padding:0 8px;border-bottom:1px solid var(--border);overflow:hidden;cursor:pointer;${isCamSel?'background:var(--surface2);':''}`;
     camCell.title='Click to select camera track';
     camCell.onclick=()=>{state.activeStreamId='CAMERA';renderStreamsBar();updateCamTrackBar();renderEditTimeline();};
     const camLbl=document.createElement('div');
@@ -6710,7 +6727,7 @@ function renderEditTimeline(){
     camCell.appendChild(camLbl);lblStrip.appendChild(camCell);
     // Track — all camera cues in one row, each colored by its camera
     const camTrack=document.createElement('div');
-    camTrack.style.cssText=`position:relative;height:${trackH}px;border-bottom:1px solid var(--border);${isCamSel?'background:rgba(255,255,255,.02);':''}`;
+    camTrack.style.cssText=`position:relative;height:${camTrackH}px;border-bottom:1px solid var(--border);${isCamSel?'background:rgba(255,255,255,.02);':''}`;
     camCues.forEach((cue,ki)=>{
       const cam=getCameraById(cue.cameraId);
       const camHex=getCameraColor(cam?.colorIdx||0);
@@ -6725,16 +6742,44 @@ function renderEditTimeline(){
       const block=document.createElement('div');
       block.className='etl-cue'+(isSel?' selected':'')+(isCur?' active-cue':'');
       block.dataset.cueId=cue.id;
-      block.style.cssText=`left:${Math.round(x)}px;width:${Math.round(blockW)-1}px;height:${trackH-8}px;opacity:${isDragging?.6:1};`;
+      block.style.cssText=`left:${Math.round(x)}px;width:${Math.round(blockW)-1}px;height:${camTrackH-8}px;opacity:${isDragging?.6:1};`;
       const inner=document.createElement('div');
       inner.className='etl-cue-inner';
       inner.style.borderColor=isSel?'#fff':isCur?'var(--orange)':camHex+'bb';
       inner.style.background=isSel?'#0a0a12ee':isCur?'rgba(245,158,11,.12)':'#0a0a1299';
+      // Always column — no jump on selection
+      inner.style.flexDirection='column';inner.style.alignItems='flex-start';inner.style.padding='4px 6px';inner.style.gap='1px';
+      const camTopRow=document.createElement('div');
+      camTopRow.style.cssText='display:flex;align-items:center;gap:4px;width:100%;min-width:0;overflow:hidden;';
+      // Camera number — always the visual anchor, large and bold
       const num=document.createElement('span');
-      num.className='etl-cue-num';num.style.color=camHex;num.textContent=cam?.number||'?';
+      num.style.cssText=`font-family:var(--mono);font-size:15px;font-weight:900;color:${camHex};flex-shrink:0;line-height:1;`;
+      num.textContent=cam?.number||'?';
+      camTopRow.appendChild(num);
+      // Name — shows after number, truncates if narrow
       const lbl2=document.createElement('span');
-      lbl2.className='etl-cue-label';lbl2.style.color=camHex;lbl2.textContent=cue.name;
-      inner.appendChild(num);inner.appendChild(lbl2);
+      lbl2.style.cssText=`font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;color:${camHex};opacity:.85;`;
+      lbl2.textContent=cue.name;
+      camTopRow.appendChild(lbl2);
+      inner.appendChild(camTopRow);
+      // TC + desc — always visible when data exists
+      if(cue.tc||cue.desc){
+        const subRow=document.createElement('div');
+        subRow.style.cssText='display:flex;align-items:center;gap:6px;width:100%;min-width:0;';
+        if(cue.tc){
+          const tcLbl=document.createElement('span');
+          tcLbl.style.cssText='font-family:var(--mono);font-size:10px;color:var(--text3);white-space:nowrap;flex-shrink:0;';
+          tcLbl.textContent=cue.tc;
+          subRow.appendChild(tcLbl);
+        }
+        if(cue.desc){
+          const descLbl=document.createElement('span');
+          descLbl.style.cssText='font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;';
+          descLbl.textContent=cue.desc;
+          subRow.appendChild(descLbl);
+        }
+        inner.appendChild(subRow);
+      }
       const handle=document.createElement('div');
       handle.className='etl-cue-handle';
       block.appendChild(handle);
@@ -6751,7 +6796,7 @@ function renderEditTimeline(){
     tracksWrap.appendChild(camTrack);
     // Extend container height by one row
     const prevH2=parseInt(container.style.height)||(ETL.RULER_H+MKRH+_ty);
-    container.style.height=(prevH2+trackH)+'px';
+    container.style.height=(prevH2+camTrackH)+'px';
   }
 
   container.appendChild(tracksWrap);
