@@ -5181,6 +5181,21 @@ function openConfirmModal(msg,onConfirm,onCancel){
 }
 function doConfirm(){closeModal('confirm-modal');if(_confirmCb)_confirmCb();}
 function doCancel(){closeModal('confirm-modal');if(_cancelCb)_cancelCb();}
+var _renameCb=null;
+function openRenameModal(currentName,onConfirm){
+  var inp=document.getElementById('rename-modal-input');
+  if(inp){inp.value=currentName||'';}
+  _renameCb=onConfirm;
+  document.getElementById('rename-modal').classList.add('show');
+  setTimeout(function(){if(inp){inp.focus();inp.select();}},50);
+}
+function doRenameConfirm(){
+  var inp=document.getElementById('rename-modal-input');
+  var name=inp?inp.value.trim():'';
+  closeModal('rename-modal');
+  if(name&&_renameCb)_renameCb(name);
+}
+function doRenameCancel(){closeModal('rename-modal');}
 
 // ── RIGHT PANEL TOGGLE ──
 
@@ -7780,6 +7795,15 @@ init();
   </div>
 </div></div>
 
+<div id="rename-modal" class="modal-bg"><div class="modal-box" style="max-width:340px;">
+  <div class="modal-title">Rename Project</div>
+  <input id="rename-modal-input" type="text" style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:13px;padding:7px 10px;margin-bottom:4px;" onkeydown="if(event.key==='Enter')doRenameConfirm();else if(event.key==='Escape')doRenameCancel();" />
+  <div class="modal-actions">
+    <button class="mbtn" onclick="doRenameCancel()">Cancel</button>
+    <button class="mbtn primary" onclick="doRenameConfirm()">Rename</button>
+  </div>
+</div></div>
+
 
 
 <!-- Keyboard Shortcuts Overlay -->
@@ -9217,11 +9241,20 @@ CF._showTrackPermissionModal=function(streamId){
   },true);
 })();
 
-/* ── Escape key to close join PIN screen ─────────────────── */
+/* ── Escape key closes all modals ───────────────────────── */
 document.addEventListener('keydown',function(e){
   if(e.key!=='Escape') return;
   var cm=document.getElementById('cf-conflict-modal');
   if(cm&&cm.style.display!=='none') cm.style.display='none';
+  ['confirm-modal','rename-modal','cf-auth-modal'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el&&el.classList.contains('show')) el.classList.remove('show');
+  });
+});
+/* ── Click modal backdrop to close ─────────────────────── */
+document.addEventListener('click',function(e){
+  if(!e.target.classList.contains('modal-bg')) return;
+  e.target.classList.remove('show');
 });
 
 /* ══════════════════════════════════════════════════════════
@@ -9277,12 +9310,19 @@ function afterProjectsRender(){
     var el=document.getElementById(id);
     if(el) el.addEventListener('keydown',function(e){if(e.key==='Enter')CF._sbSignIn();});
   });
+  /* Refresh show list ONCE — then do a light DOM update that does NOT
+     re-schedule afterProjectsRender, breaking the infinite render loop. */
   if(navigator.onLine) refreshShowList().then(function(){
-    if(window._sbPanel==='save'&&window._sbRender){
-      var f=document.activeElement;
-      if(f&&(f.id==='sb-auth-username'||f.id==='sb-auth-password')) return;
-      _sbRender('save');
-    }
+    if(window._sbPanel!=='save') return;
+    var f=document.activeElement;
+    if(f&&(f.id==='sb-auth-username'||f.id==='sb-auth-password')) return;
+    var body=document.getElementById('cf-panel-body');
+    if(body) body.innerHTML=CF._buildProjectsPanel();
+    /* Re-wire auth inputs in the freshly-rendered HTML */
+    ['sb-auth-username','sb-auth-password'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) el.addEventListener('keydown',function(e){if(e.key==='Enter')CF._sbSignIn();});
+    });
   });
 }
 
@@ -9298,26 +9338,33 @@ function switchProject(id){
 }
 
 function deleteProject(id){
-  if(!confirm('Delete this project? This cannot be undone.')) return;
-  db().from('shows').delete().eq('id',id).then(function(){
-    CF._showList=CF._showList.filter(function(s){return s.id!==id;});
-    if(CF.showId===id){
-      CF.showId=null; CF.isOwner=false; CF.role=null;
-      localStorage.removeItem('cf18_session');
-    }
-    if(window._sbRender) _sbRender('save');
-  });
+  var s=CF._showList.find(function(x){return x.id===id;});
+  var msg='Delete "'+(s?s.name:'this project')+'"? This cannot be undone.';
+  if(window.openConfirmModal){
+    openConfirmModal(msg,function(){
+      db().from('shows').delete().eq('id',id).then(function(){
+        CF._showList=CF._showList.filter(function(s){return s.id!==id;});
+        if(CF.showId===id){
+          CF.showId=null; CF.isOwner=false; CF.role=null;
+          localStorage.removeItem('cf18_session');
+        }
+        if(window._sbRender) _sbRender('save');
+      });
+    },null);
+  }
 }
 
 function renameProject(id){
   var s=CF._showList.find(function(x){return x.id===id;});
-  var name=prompt('New name:',s?s.name:'');
-  if(!name||!name.trim()) return;
-  db().from('shows').update({name:name.trim()}).eq('id',id).then(function(){
-    if(s) s.name=name.trim();
-    if(id===CF.showId) state.name=name.trim();
-    if(window._sbRender) _sbRender('save');
-  });
+  if(window.openRenameModal){
+    openRenameModal(s?s.name:'',function(name){
+      db().from('shows').update({name:name}).eq('id',id).then(function(){
+        if(s) s.name=name;
+        if(id===CF.showId) state.name=name;
+        if(window._sbRender) _sbRender('save');
+      });
+    });
+  }
 }
 
 function makeFreshProject(name){
