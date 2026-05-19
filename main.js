@@ -22,7 +22,7 @@ function createWindow() {
     }
   });
 
-  win.loadFile('cueflow_v18.html');
+  win.loadFile('index.html');
 }
 
 app.whenReady().then(createWindow);

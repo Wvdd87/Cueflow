@@ -7905,6 +7905,10 @@ function initAuth(){
   db().auth.getSession().then(function(r){
     authUser = r.data.session ? r.data.session.user : null;
     updateAuthUI();
+    /* Always refresh show list after auth state is known */
+    if(navigator.onLine) refreshShowList().then(function(){
+      if(window._sbPanel==='save' && window._sbRender) _sbRender('save');
+    });
   });
   db().auth.onAuthStateChange(function(event, session){
     var wasAuthed = !!authUser;
@@ -8472,7 +8476,6 @@ function ownerBoot(){
     if(navigator.onLine){ ownerRestoreShow(sess.showId); }
   }
 
-  if(navigator.onLine) refreshShowList();
   hideLoading();
 
   /* Patch redrawLive — called by name each frame from mtcRafLoop */
