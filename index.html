@@ -569,16 +569,23 @@ input, select, textarea { font-family: inherit; }
 .tl-wrap { height: var(--tl-height,70px); flex-shrink: 0; background: var(--bg); border-top: 1px solid var(--hair2); position: relative; overflow: hidden; user-select: none; width: 100%; transition: height .2s; }
 .tl-wrap.scrubable { cursor: crosshair; }
 
-#tl-toolbar { position: relative; display: flex; align-items: center; padding: 0 12px; gap: 8px; height: 36px; border-bottom: 1px solid var(--hair); background: var(--surface); font-family: var(--cond); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--txt-mid); }
+#tl-toolbar { position: relative; display: flex; align-items: center; padding: 0 10px; gap: 0; height: 48px; border-bottom: 1px solid var(--hair); background: #0a0a0f; font-family: var(--cond); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--txt-mid); }
 #tl-tc-disp-wrap { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; pointer-events: none; }
-#tl-tc-disp { font-family: var(--mono) !important; font-size: 21px; font-weight: 700; color: var(--txt); letter-spacing: .02em; font-variant-numeric: tabular-nums; pointer-events: none; }
+#tl-tc-disp { font-family: var(--mono) !important; font-size: 26px; font-weight: 700; color: var(--txt); letter-spacing: .02em; font-variant-numeric: tabular-nums; pointer-events: none; }
+#tl-seq-info { font-family: var(--cond); font-size: 11px; font-weight: 600; letter-spacing: .08em; color: var(--txt-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+.tl-sep { color: var(--hair3); margin: 0 12px; font-size: 18px; font-weight: 200; line-height: 1; pointer-events: none; }
 .tl-left-zone  { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .tl-right-zone { display: flex; align-items: center; gap: 4px; margin-left: auto; flex-shrink: 0; }
-.tl-transport  { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.tl-transport  { display: flex; align-items: center; gap: 2px; flex-shrink: 0; margin-right: 12px; }
+.tl-tbtn-transport { width: 30px; height: 30px; background: transparent; border: 1px solid var(--hair); border-radius: 3px; color: var(--txt-mid); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .1s, color .1s; }
+.tl-tbtn-transport:hover { background: var(--surface2); color: var(--txt); }
+.tl-tbtn-transport.playing { color: var(--amber); border-color: var(--amber); background: var(--amber-bg); }
 
-.tl-tbtn { padding: 3px 9px; background: var(--surface2); border: 1px solid var(--hair); color: var(--txt-mid); font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; white-space: nowrap; transition: background .1s, border-color .1s, color .1s; }
+.tl-tbtn { padding: 3px 9px; height: 28px; background: var(--surface2); border: 1px solid var(--hair); color: var(--txt-mid); font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; white-space: nowrap; transition: background .1s, border-color .1s, color .1s; display: flex; align-items: center; }
 .tl-tbtn:hover { background: var(--surface3); border-color: var(--hair2); color: var(--txt); }
 .tl-tbtn.active { border-color: var(--amber); color: var(--amber); background: var(--amber-bg); }
+.tl-tbtn.accent { border-color: var(--amber); color: var(--amber); background: var(--amber-bg); }
+.tl-tbtn.accent:hover { filter: brightness(1.15); }
 
 .tl-add-btn { width: 30px; height: 30px; border-radius: 50%; background: var(--amber-bg); border: 1px solid var(--amber); color: var(--amber); font-size: 20px; font-weight: 300; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: filter .12s; flex-shrink: 0; line-height: 1; }
 .tl-add-btn:hover { filter: brightness(1.2); }
@@ -591,15 +598,21 @@ input, select, textarea { font-family: inherit; }
 #tl-ruler-hover { position: absolute; top: 0; pointer-events: none; background: var(--amber-bg); border: 1px solid var(--amber); padding: 2px 6px; font-family: var(--mono); font-size: 9px; color: var(--amber); white-space: nowrap; z-index: 30; display: none; transform: translateX(-50%); }
 
 /* Cue blocks */
-.etl-cue { position: absolute; top: 4px; cursor: pointer; user-select: none; }
-.etl-cue-inner { height: 100%; display: flex; align-items: center; padding: 0 6px; gap: 3px; border: 1.5px solid; overflow: hidden; }
-.etl-cue.selected .etl-cue-inner { border-color: #fff !important; outline: 1px solid rgba(255,255,255,.2); outline-offset: 1px; }
-.etl-cue.active-cue .etl-cue-inner { border-color: var(--amber) !important; }
+.etl-cue { position: absolute; top: 0; cursor: pointer; user-select: none; }
+.etl-cue-inner { position: absolute; inset: 1px 0 1px 0; display: flex; align-items: center; padding: 0 10px; gap: 0; overflow: hidden; }
+.etl-cue.selected .etl-cue-inner { outline: 2px solid #fff; outline-offset: -2px; }
+.etl-cue.active-cue .etl-cue-inner { outline: 2px solid var(--amber); outline-offset: -2px; }
 .etl-cue.invalid .etl-cue-inner { opacity: .3; filter: grayscale(.9); }
-.etl-cue-num { font-family: var(--mono); font-size: 9px; font-weight: 700; flex-shrink: 0; }
-.etl-cue-label { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .01em; }
+/* Camera cue block */
+.etl-cam-inner { position: absolute; inset: 0; display: flex; flex-direction: row; align-items: center; overflow: hidden; gap: 8px; padding: 0 10px; }
+.etl-cam-num { font-family: var(--mono); font-weight: 900; flex-shrink: 0; line-height: 1; letter-spacing: -.01em; }
+.etl-cam-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .04em; text-transform: uppercase; flex: 1; }
+.etl-cue.cam-selected .etl-cam-inner { outline: 2px solid #fff; outline-offset: -2px; }
+.etl-cue.cam-active .etl-cam-inner { outline: 2px solid var(--amber); outline-offset: -2px; }
+/* Regular cue block */
+.etl-cue-label { font-family: var(--cond); font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .07em; text-transform: uppercase; flex: 1; }
 .etl-cue-handle { position: absolute; left: 0; top: 0; bottom: 0; width: 8px; cursor: ew-resize; background: transparent; transition: background .1s; z-index: 2; }
-.etl-cue:hover .etl-cue-handle { background: rgba(255,255,255,.15); }
+.etl-cue:hover .etl-cue-handle { background: rgba(255,255,255,.2); }
 
 /* Stream cells */
 .etl-stream-cell, .etl-stream-cell.active-stream { cursor: pointer; transition: background .1s; }
@@ -654,7 +667,7 @@ input, select, textarea { font-family: inherit; }
 .etl-video-thumb { height: 100%; object-fit: cover; flex-shrink: 0; opacity: .7; border-right: 1px solid rgba(139,92,246,.3); }
 .etl-video-row-label { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: rgba(139,92,246,.7); }
 .etl-media-row { position: relative; display: flex; border-top: 1px solid var(--hair); background: var(--bg); }
-.etl-media-lbl { width: 72px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2px; padding: 0 6px; font-size: 8px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--txt-mid); border-right: 1px solid var(--hair); cursor: pointer; background: rgba(8,8,12,.96); z-index: 5; }
+.etl-media-lbl { width: 56px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2px; padding: 0 4px; font-family: var(--cond); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.35); border-right: 1px solid rgba(255,255,255,.06); cursor: pointer; background: #080810; z-index: 5; border-left: 3px solid transparent; }
 .etl-media-lbl:hover { color: var(--txt); }
 .etl-media-track { position: relative; flex: 1; overflow: hidden; }
 .etl-media-bar { position: absolute; top: 3px; bottom: 3px; background: rgba(99,102,241,.1); border: 1px solid rgba(99,102,241,.25); pointer-events: none; }
@@ -1400,22 +1413,26 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <!-- Camera track bar: shown when camera track is selected -->
     <div id="cam-track-bar" style="display:none;align-items:center;padding:4px 10px;gap:6px;flex-wrap:wrap;background:var(--surface2);border-bottom:1px solid var(--border2);flex-shrink:0;min-height:36px;"></div>
     <!-- Timeline toolbar -->
-    <div id="tl-toolbar" style="display:flex;align-items:center;padding:4px 10px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;height:44px;">
-      <!-- Far left: zoom + snap -->
-      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
-        <button class="tl-tbtn" onclick="tlZoomOut()" title="Zoom out (-)" aria-label="Zoom out">−</button>
-        <button class="tl-tbtn" onclick="tlZoomIn()" title="Zoom in (+)" aria-label="Zoom in">+</button>
-        <button class="tl-tbtn" id="tl-snap-btn" onclick="tlToggleSnap()" title="Snap (S)" aria-label="Toggle snap">Snap</button>
+    <div id="tl-toolbar">
+      <!-- Transport -->
+      <div class="tl-transport">
+        <button class="tl-tbtn-transport" id="tl-prev-btn" onclick="simPrev()" title="Restart (R)" aria-label="Restart">⏮</button>
+        <button class="tl-tbtn-transport" id="tl-play-btn" onclick="simTogglePlay()" title="Play/Stop (Space)" aria-label="Play">▶</button>
+        <button class="tl-tbtn-transport" onclick="simStop()" title="Stop" aria-label="Stop" style="font-size:11px;">■</button>
       </div>
-      <!-- Center: transport + TC + add -->
-      <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;">
-        <button class="transport-btn" id="tl-prev-btn" onclick="simPrev()" title="Restart (R)" aria-label="Restart" style="font-size:15px;padding:2px 5px;">⏮</button>
-        <button class="transport-btn" id="tl-play-btn" onclick="simTogglePlay()" title="Play (Space)" aria-label="Play" style="font-size:17px;padding:2px 5px;">▶</button>
-        <span id="tl-tc-disp" style="font-family:var(--mono);font-size:21px;font-weight:700;color:var(--text);letter-spacing:.02em;font-variant-numeric:tabular-nums;padding:0 10px;cursor:default;">00:00:00:00</span>
-        <button class="tl-tbtn" onclick="openTlCreateFromBtn()" title="Add cue or marker" aria-label="Add cue or marker"
-          style="font-size:11px;font-weight:700;padding:4px 12px;background:var(--mode-accent-bg);border-color:var(--mode-accent);color:var(--mode-accent-text);">＋</button>
+      <!-- TC + seq info -->
+      <span id="tl-tc-disp" style="font-family:var(--mono);font-size:26px;font-weight:700;color:var(--text);letter-spacing:.02em;font-variant-numeric:tabular-nums;cursor:default;flex-shrink:0;">00:00:00:00</span>
+      <span class="tl-sep">|</span>
+      <span id="tl-seq-info" style="font-family:var(--cond);font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--txt-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1;">—</span>
+      <!-- Right zone -->
+      <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;margin-left:12px;">
+        <button class="tl-tbtn accent" onclick="openTlCreateFromBtn()" title="Add cue (timeline click or this btn)" aria-label="Add cue">+ CUE</button>
+        <button class="tl-tbtn accent" onclick="openTlCreateMarkerBtn()" title="Add chapter marker" aria-label="Add marker">+ MARKER</button>
+        <button class="tl-tbtn" onclick="tlZoomOut()" title="Zoom out (-)" aria-label="Zoom out" style="padding:3px 8px;">−</button>
+        <button class="tl-tbtn" onclick="tlZoomIn()" title="Zoom in (+)" aria-label="Zoom in" style="padding:3px 8px;">+</button>
+        <button class="tl-tbtn" id="tl-snap-btn" onclick="tlToggleSnap()" title="Snap (S)" aria-label="Toggle snap">SNAP</button>
       </div>
-      <!-- Hidden compat -->
+      <!-- Hidden compat elements -->
       <span id="tl-seq-label" style="display:none;"></span>
       <span id="tl-zoom-display" style="display:none;"></span>
       <span id="tl-waveform-btn" style="display:none;"></span>
@@ -2143,7 +2160,6 @@ function _etlDrawChapters(container, song, startSec, pxPS, fps){
   _ensureChapters(song);
   const frames = state.simFrames;
   const trackH=Math.max(ETL.TRACK_H,40);
-  const SEL_EXTRA=24; // extra px for selected track
   const tracksTop=ETL.RULER_H;
   const totalTracksH = state.visibleStreamIds.length * trackH;
   song.chapters.forEach(ch=>{
@@ -2307,6 +2323,8 @@ function batchDeleteStage(){
 }
 // ─── STREAMS BAR (edit) ───
 function renderStreamsBar(){
+  // Always sync the camera bar first — independent of whether streams-bar exists
+  updateCamTrackBar();
   const el=document.getElementById('streams-bar');if(!el)return;
   el.innerHTML='';
   state.streams.forEach(stream=>{
@@ -2314,7 +2332,7 @@ function renderStreamsBar(){
     const div=document.createElement('button');
     div.className='stream-tab'+(state.activeStreamId===stream.id?' active':'');
     div.innerHTML=`<div class="stream-tab-dot" style="background:${col.hex}"></div>${escH(stream.name)}`;
-    div.onclick=()=>{state.activeStreamId=stream.id;renderStreamsBar();};
+    div.onclick=()=>{state.activeStreamId=stream.id;updateCamTrackBar();renderStreamsBar();};
     div.ondblclick=()=>openStreamModal(stream.id);
     el.appendChild(div);
   });
@@ -2330,7 +2348,6 @@ function renderStreamsBar(){
     cam.onclick=()=>{state.activeStreamId='CAMERA';renderStreamsBar();updateCamTrackBar();if(ETL.visible)renderEditTimeline();};
     el.appendChild(cam);
   }
-  updateCamTrackBar();
   // + New track button
   const addBtn=document.createElement('div');
   addBtn.className='stream-tab';addBtn.style.cssText='cursor:pointer;color:var(--text3);font-size:11px;';
@@ -5223,6 +5240,24 @@ function _syncTopbarSeqName(){
   if(el) el.textContent = song?.name||'—';
   const pn=document.getElementById('topbar-proj-name');
   if(pn){ pn.textContent=state.name||''; pn.title=state.name||''; }
+  _syncTlSeqInfo();
+}
+function _syncTlSeqInfo(){
+  const el=document.getElementById('tl-seq-info');if(!el)return;
+  const song=getActiveSong();if(!song){el.textContent='—';return;}
+  // Sequence index in active playlist
+  const pSongs=getActivePlaylistSongs();
+  const idx=pSongs.findIndex(s=>s.id===song.id);
+  const seqNum=idx>=0?String(idx+1).padStart(2,'0'):'—';
+  // Duration from cues or audio
+  const cues=getSortedCues(song.id,true);
+  let durStr='';
+  if(cues.length>=2){
+    const totalS=Math.round((cues[cues.length-1]._f-cues[0]._f)/state.fps);
+    const m=Math.floor(totalS/60),s=totalS%60;
+    durStr=m+':'+String(s).padStart(2,'0');
+  }
+  el.textContent='SEQ '+seqNum+' · '+song.name+(durStr?' · '+durStr:'');
 }
 
 // ══════════════════════════════════════════════════════
@@ -5231,6 +5266,13 @@ function _syncTopbarSeqName(){
 function _syncTlTC(frames){
   const el = document.getElementById('tl-tc-disp');
   if(el) el.textContent = fTC(Math.floor(frames));
+}
+
+// Open the create popup in marker/chapter mode
+function openTlCreateMarkerBtn(){
+  openTlCreateFromBtn();
+  // After popup opens, switch to marker mode
+  requestAnimationFrame(()=>setTlCreateMode('marker'));
 }
 
 // ══════════════════════════════════════════════════════
@@ -6059,8 +6101,9 @@ function _refreshWfNotes(){
 const ETL={
   // Config
   RULER_H:   24,
-  TRACK_H:   64,   // px per stream track
-  LBL_W:     72,   // stream label column
+  TRACK_H:   60,   // px per stream track
+  CAM_H:     76,   // camera track height (fixed, doesn't expand)
+  LBL_W:     56,   // stream label column — compact
   PH_X:      220,  // playhead x from left edge (fixed)
   // Zoom: px per second
   zoom:      8,
@@ -6125,10 +6168,12 @@ function renderEditTimeline(){
   const song=getActiveSong();
   const visStreams=state.visibleStreamIds.filter(sid=>state.streams.find(s=>s.id===sid));
   const trackH=Math.max(ETL.TRACK_H,40);
-  const SEL_EXTRA=24; // extra px for selected track
+  const camTrackFixedH=ETL.CAM_H||76;
+  const SEL_EXTRA=0; // no expansion — all tracks same height in new design
   const MKRH=16; // marker strip height
   const neededH=ETL.RULER_H+MKRH+visStreams.length*trackH;
   container.style.height=neededH+'px';
+  _syncTlSeqInfo();
   const tlW=container.clientWidth||1000;
 
   // Start second of left edge so playhead lands at PH_X over current frames
@@ -6188,20 +6233,21 @@ function renderEditTimeline(){
 
   // ── Label strip ──
   const lblStrip=document.createElement('div');
-  lblStrip.style.cssText=`position:absolute;top:${ETL.RULER_H+MKRH}px;left:0;width:${ETL.LBL_W}px;bottom:0;background:rgba(8,8,12,.96);border-right:1px solid var(--border);z-index:5;`;
+  lblStrip.style.cssText=`position:absolute;top:${ETL.RULER_H+MKRH}px;left:0;width:${ETL.LBL_W}px;bottom:0;background:#080810;border-right:1px solid rgba(255,255,255,.06);z-index:5;`;
   visStreams.forEach(sid=>{
     const col=getStreamColor(sid);
     const isActiveSid=sid===state.activeStreamId;
-    const myH=isActiveSid?trackH+SEL_EXTRA:trackH;
+    const myH=trackH; // no expansion
+    const st=state.streams.find(s=>s.id===sid);
+    const short=(st?.shortName||st?.name||'?').slice(0,4).toUpperCase();
     const cell=document.createElement('div');
     cell.className='etl-stream-cell'+(isActiveSid?' sel-stream':'');
-    cell.style.cssText=`height:${myH}px;display:flex;align-items:center;padding:0 8px;border-bottom:1px solid var(--border);overflow:hidden;gap:4px;cursor:pointer;${isActiveSid?'background:var(--surface2);':''}`;
-    cell.title='Click to set active stream';
+    cell.style.cssText=`height:${myH}px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid rgba(255,255,255,.05);overflow:hidden;cursor:pointer;position:relative;${isActiveSid?`background:${col.hex}18;border-left:3px solid ${col.hex};`:'border-left:3px solid transparent;'}`;
+    cell.title=streamName(sid)+' — click to select';
     cell.onclick=()=>{state.activeStreamId=sid;renderStreamsBar();requestAnimationFrame(renderEditTimeline);};
     const lbl=document.createElement('div');
-    lbl.className='etl-stream-lbl';
-    lbl.style.cssText=`font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:${isActiveSid?'var(--mode-accent)':col.hex};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
-    lbl.textContent=streamName(sid);cell.appendChild(lbl);lblStrip.appendChild(cell);
+    lbl.style.cssText=`font-family:var(--cond);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:${isActiveSid?col.hex:'rgba(255,255,255,.4)'};`;
+    lbl.textContent=short;cell.appendChild(lbl);lblStrip.appendChild(cell);
   });
   container.appendChild(lblStrip);
 
@@ -6232,27 +6278,17 @@ function renderEditTimeline(){
   const constrainMin=song?tcF(song.startTc||'01:00:00:00'):0;
   const constrainMax=song?getSeqMaxFrames(song):constrainMin+3600*fps;
 
-  // Per-track heights: selected track is taller
-  // Pre-compute track Y positions
+  // All tracks same height (no expansion)
   const trackTops=[];let _ty=0;
-  visStreams.forEach(sid=>{
-    const th=sid===state.activeStreamId?trackH+SEL_EXTRA:trackH;
-    trackTops.push(_ty); _ty+=th;
-  });
-  // Recalculate neededH with variable heights
+  visStreams.forEach(()=>{trackTops.push(_ty);_ty+=trackH;});
   container.style.height=(ETL.RULER_H+MKRH+_ty)+'px';
 
   visStreams.forEach((sid,ti)=>{
     const col=getStreamColor(sid);
     const isSel=sid===state.activeStreamId;
-    const myTrackH=isSel?trackH+SEL_EXTRA:trackH;
+    const myTrackH=trackH; // uniform height — no expansion
     const track=document.createElement('div');
-    track.style.cssText=`position:relative;height:${myTrackH}px;border-bottom:1px solid var(--border);`;
-
-    // Subtle track bg tint
-    const bg=document.createElement('div');
-    bg.style.cssText=`position:absolute;inset:0;background:${col.bg};opacity:.05;pointer-events:none;`;
-    track.appendChild(bg);
+    track.style.cssText=`position:relative;height:${myTrackH}px;border-bottom:1px solid rgba(255,255,255,.05);${isSel?`background:${col.hex}08;`:''}`;
 
     const streamCues=songCues.filter(c=>c.streamId===sid);
     streamCues.forEach((cue,ci)=>{
@@ -6263,51 +6299,29 @@ function renderEditTimeline(){
       if(x+blockW<-20||x>tlW)return;
 
       const isDragging=ETL.drag&&ETL.drag.cueId===cue.id;
-      const isSel=ETL.selId===cue.id;
+      const isCueSel=ETL.selId===cue.id;
       const isCur=cue.id===curCueId;
       const isInvalid=cue._f<constrainMin||cue._f>=constrainMax;
 
       const block=document.createElement('div');
-      block.className='etl-cue'+(isSel?' selected':'')+(isCur?' active-cue':'')+(isInvalid?' invalid':'');
+      block.className='etl-cue'+(isCueSel?' selected':'')+(isCur?' active-cue':'')+(isInvalid?' invalid':'');
       block.dataset.cueId=cue.id;
-      block.style.cssText=`left:${Math.round(x)}px;width:${Math.round(blockW)-1}px;height:${myTrackH-8}px;opacity:${isDragging?.6:1};`;
+      block.style.cssText=`left:${Math.round(x)}px;width:${Math.round(blockW)-1}px;height:${myTrackH}px;top:0;opacity:${isDragging?.5:1};`;
 
       const inner=document.createElement('div');
       inner.className='etl-cue-inner';
-      inner.style.borderColor=isSel?'#fff':isCur?'var(--orange)':col.hex+'bb';
-      inner.style.background=isSel?col.bg+'ee':isCur?'rgba(245,158,11,.12)':col.bg+'99';
-      // Always column so the name never jumps position on selection
-      inner.style.flexDirection='column';inner.style.alignItems='flex-start';inner.style.padding='4px 6px';inner.style.gap='1px';
+      // Background: dark with subtle color tint; bright accent on current cue
+      const bg=isCur?`rgba(245,158,11,.15)`:isCueSel?`${col.hex}28`:`${col.hex}10`;
+      const borderL=isCur?'var(--amber)':isCueSel?'#fff':col.hex;
+      inner.style.cssText=`position:absolute;inset:0;display:flex;align-items:center;padding:0 10px 0 14px;overflow:hidden;background:${bg};border-left:3px solid ${borderL};border-right:none;border-top:none;border-bottom:none;`;
+      if(isCueSel)inner.style.outline='1.5px solid rgba(255,255,255,.25)';
 
-      const topRow=document.createElement('div');
-      topRow.style.cssText='display:flex;align-items:center;gap:3px;width:100%;min-width:0;';
-      const num=document.createElement('span');
-      num.className='etl-cue-num';num.style.color=col.hex;num.textContent=ci+1;
       const lbl=document.createElement('span');
-      lbl.className='etl-cue-label';lbl.style.color=isCur?'var(--orange-text)':col.text;lbl.style.flex='1';
+      lbl.className='etl-cue-label';
+      lbl.style.color=isCur?'var(--amber)':isCueSel?'#fff':col.text||'rgba(255,255,255,.8)';
       lbl.textContent=cue.name;
-      topRow.appendChild(num);topRow.appendChild(lbl);
-      inner.appendChild(topRow);
-      // TC + desc — always visible when data exists (not gated on selection)
-      if(cue.tc||cue.desc){
-        const subRow=document.createElement('div');
-        subRow.style.cssText='display:flex;align-items:center;gap:6px;width:100%;min-width:0;';
-        if(cue.tc){
-          const tcLbl=document.createElement('span');
-          tcLbl.style.cssText='font-family:var(--mono);font-size:10px;color:var(--text3);white-space:nowrap;flex-shrink:0;';
-          tcLbl.textContent=cue.tc;
-          subRow.appendChild(tcLbl);
-        }
-        if(cue.desc){
-          const descLbl=document.createElement('span');
-          descLbl.style.cssText='font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;';
-          descLbl.textContent=cue.desc;
-          subRow.appendChild(descLbl);
-        }
-        inner.appendChild(subRow);
-      }
+      inner.appendChild(lbl);
 
-      // Drag handle (left edge, wider hit area)
       const handle=document.createElement('div');
       handle.className='etl-cue-handle';
       block.appendChild(handle);
@@ -6317,76 +6331,74 @@ function renderEditTimeline(){
     tracksWrap.appendChild(track);
   });
 
-  // Single camera track row in edit timeline (all cameras combined)
+  // ── Camera track row (fixed height, always same regardless of selection) ──
   if(state.cameraTrack&&song&&state.cameraTrackVisible!==false){
     const camCues=songCues.filter(c=>c.cameraId).sort((a,b)=>a._f-b._f);
     const isCamSel=state.activeStreamId==='CAMERA';
-    const camTrackH=isCamSel?trackH+SEL_EXTRA:trackH;
-    // Label — clickable to select camera track
+    const camH=camTrackFixedH; // fixed, no expansion
+    // Camera label cell
     const camCell=document.createElement('div');
     camCell.className='etl-stream-cell'+(isCamSel?' sel-stream':'');
-    camCell.style.cssText=`height:${camTrackH}px;display:flex;align-items:center;padding:0 8px;border-bottom:1px solid var(--border);overflow:hidden;cursor:pointer;${isCamSel?'background:var(--surface2);':''}`;
+    camCell.style.cssText=`height:${camH}px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-bottom:1px solid rgba(255,255,255,.05);overflow:hidden;cursor:pointer;${isCamSel?`background:rgba(255,255,255,.07);border-left:3px solid rgba(255,255,255,.4);`:'border-left:3px solid transparent;'}`;
     camCell.title='Click to select camera track';
     camCell.onclick=()=>{state.activeStreamId='CAMERA';renderStreamsBar();updateCamTrackBar();renderEditTimeline();};
-    const camLbl=document.createElement('div');
-    camLbl.style.cssText=`font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:${isCamSel?'var(--mode-accent)':'var(--text3)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
-    camLbl.textContent=state.cameraTrack.name||'Cameras';
-    camCell.appendChild(camLbl);lblStrip.appendChild(camCell);
-    // Track — all camera cues in one row, each colored by its camera
+    // Camera SVG icon
+    const camIcon=document.createElement('div');
+    camIcon.innerHTML=`<svg width="16" height="12" viewBox="0 0 20 14" fill="none" stroke="${isCamSel?'rgba(255,255,255,.8)':'rgba(255,255,255,.3)'}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2" width="13" height="10" rx="2"/><path d="M14 5l5-2v8l-5-2V5z"/></svg>`;
+    camCell.appendChild(camIcon);
+    // Cam count badge
+    if(state.cameraTrack.cameras.length>0){
+      const cnt=document.createElement('div');
+      cnt.style.cssText=`font-family:var(--cond);font-size:9px;font-weight:700;color:${isCamSel?'rgba(255,255,255,.7)':'rgba(255,255,255,.25)'};letter-spacing:.05em;`;
+      cnt.textContent='×'+state.cameraTrack.cameras.length;
+      camCell.appendChild(cnt);
+    }
+    lblStrip.appendChild(camCell);
+
+    // Camera track body
     const camTrack=document.createElement('div');
-    camTrack.style.cssText=`position:relative;height:${camTrackH}px;border-bottom:1px solid var(--border);${isCamSel?'background:rgba(255,255,255,.02);':''}`;
+    camTrack.style.cssText=`position:relative;height:${camH}px;border-bottom:1px solid rgba(255,255,255,.05);${isCamSel?'background:rgba(255,255,255,.015);':''}`;
     camCues.forEach((cue,ki)=>{
       const cam=getCameraById(cue.cameraId);
       const camHex=getCameraColor(cam?.colorIdx||0);
       const x=(cue._f/fps-startSec)*pxPS;
       const nextC=camCues[ki+1];
       const rawW=nextC?(nextC._f-cue._f)*pxPF:Math.min(60*pxPS,(endSec-cue._f/fps)*pxPS+10);
-      const blockW=Math.max(16,rawW);
+      const blockW=Math.max(20,rawW);
       if(x+blockW<-20||x>tlW)return;
       const isDragging=ETL.drag&&ETL.drag.cueId===cue.id;
-      const isSel=ETL.selId===cue.id;
+      const isCueSel=ETL.selId===cue.id;
       const isCur=cue.id===curCueId;
       const block=document.createElement('div');
-      block.className='etl-cue'+(isSel?' selected':'')+(isCur?' active-cue':'');
+      // Use dedicated cam-selected/cam-active classes to avoid conflict with etl-cue-inner outline logic
+      block.className='etl-cue'+(isCueSel?' cam-selected':'')+(isCur?' cam-active':'');
       block.dataset.cueId=cue.id;
-      block.style.cssText=`left:${Math.round(x)}px;width:${Math.round(blockW)-1}px;height:${camTrackH-8}px;opacity:${isDragging?.6:1};`;
+      block.style.cssText=`left:${Math.round(x)}px;width:${Math.round(blockW)-1}px;height:${camH}px;top:0;opacity:${isDragging?.5:1};`;
+
+      // Camera block inner: large number + name, colored by camera
       const inner=document.createElement('div');
-      inner.className='etl-cue-inner';
-      inner.style.borderColor=isSel?'#fff':isCur?'var(--orange)':camHex+'bb';
-      inner.style.background=isSel?'#0a0a12ee':isCur?'rgba(245,158,11,.12)':'#0a0a1299';
-      // Always column — no jump on selection
-      inner.style.flexDirection='column';inner.style.alignItems='flex-start';inner.style.padding='4px 6px';inner.style.gap='1px';
-      const camTopRow=document.createElement('div');
-      camTopRow.style.cssText='display:flex;align-items:center;gap:4px;width:100%;min-width:0;overflow:hidden;';
-      // Camera number — always the visual anchor, large and bold
+      inner.className='etl-cam-inner';
+      const bgAlpha=isCur?'28':isCueSel?'22':'14';
+      inner.style.cssText=`position:absolute;inset:0;display:flex;flex-direction:row;align-items:center;gap:8px;padding:0 10px 0 12px;overflow:hidden;background:${camHex}${bgAlpha};border-left:3px solid ${isCur?'var(--amber)':isCueSel?'#fff':camHex};`;
+      if(isCueSel)inner.style.outline='1.5px solid rgba(255,255,255,.3)';
+
+      // Number — large, zero-padded, monospaced
+      const numFontPx=Math.min(Math.round(camH*0.45),32);
       const num=document.createElement('span');
-      num.style.cssText=`font-family:var(--mono);font-size:15px;font-weight:900;color:${camHex};flex-shrink:0;line-height:1;`;
-      num.textContent=cam?.number||'?';
-      camTopRow.appendChild(num);
-      // Name — shows after number, truncates if narrow
-      const lbl2=document.createElement('span');
-      lbl2.style.cssText=`font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;color:${camHex};opacity:.85;`;
-      lbl2.textContent=cue.name;
-      camTopRow.appendChild(lbl2);
-      inner.appendChild(camTopRow);
-      // TC + desc — always visible when data exists
-      if(cue.tc||cue.desc){
-        const subRow=document.createElement('div');
-        subRow.style.cssText='display:flex;align-items:center;gap:6px;width:100%;min-width:0;';
-        if(cue.tc){
-          const tcLbl=document.createElement('span');
-          tcLbl.style.cssText='font-family:var(--mono);font-size:10px;color:var(--text3);white-space:nowrap;flex-shrink:0;';
-          tcLbl.textContent=cue.tc;
-          subRow.appendChild(tcLbl);
-        }
-        if(cue.desc){
-          const descLbl=document.createElement('span');
-          descLbl.style.cssText='font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;';
-          descLbl.textContent=cue.desc;
-          subRow.appendChild(descLbl);
-        }
-        inner.appendChild(subRow);
+      num.className='etl-cam-num';
+      num.style.cssText=`font-size:${numFontPx}px;color:${isCur?'var(--amber)':camHex};`;
+      num.textContent=String(cam?.number||'?').padStart(2,'0');
+      inner.appendChild(num);
+
+      // Shot name
+      if(blockW>numFontPx+20){
+        const nameEl=document.createElement('span');
+        nameEl.className='etl-cam-name';
+        nameEl.style.color=isCur?'rgba(245,158,11,.8)':camHex+'cc';
+        nameEl.textContent=cue.name;
+        inner.appendChild(nameEl);
       }
+
       const handle=document.createElement('div');
       handle.className='etl-cue-handle';
       block.appendChild(handle);
@@ -6401,9 +6413,8 @@ function renderEditTimeline(){
       camTrack.appendChild(block);
     });
     tracksWrap.appendChild(camTrack);
-    // Extend container height by one row
     const prevH2=parseInt(container.style.height)||(ETL.RULER_H+MKRH+_ty);
-    container.style.height=(prevH2+camTrackH)+'px';
+    container.style.height=(prevH2+camH)+'px';
   }
 
   container.appendChild(tracksWrap);
@@ -6434,7 +6445,7 @@ function renderEditTimeline(){
       mLbl.style.width=ETL.LBL_W+'px';
       mLbl.title='Click to toggle waveform';
       mLbl.onclick=()=>tlToggleWaveform();
-      mLbl.textContent=mediaType==='video'?'VIDEO':'AUDIO';
+      mLbl.textContent=mediaType==='video'?'VID':'AUD';
       mRow.appendChild(mLbl);
 
       // Track area
@@ -6639,19 +6650,18 @@ function _initEditTimeline(){
     // Handled here in mousedown (not cell onclick) so it works even while TC is rolling
     // and renderEditTimeline() is rebuilding the DOM at ~10fps.
     if(x<ETL.LBL_W&&y>ETL.RULER_H){
-      const _trackH=Math.max(ETL.TRACK_H,40),_selExtra=24,_mkrH=16;
+      const _trackH=Math.max(ETL.TRACK_H,40),_mkrH=16;
+      const _camH=ETL.CAM_H||76;
       const yInTracks=y-ETL.RULER_H-_mkrH;
       if(yInTracks>=0){
         const visStreams=state.visibleStreamIds.filter(sid=>state.streams.find(s=>s.id===sid));
         let cumY=0,clickedSid=null;
         for(const sid of visStreams){
-          const th=sid===state.activeStreamId?_trackH+_selExtra:_trackH;
-          if(yInTracks<cumY+th){clickedSid=sid;break;}
-          cumY+=th;
+          if(yInTracks<cumY+_trackH){clickedSid=sid;break;}
+          cumY+=_trackH;
         }
         if(!clickedSid&&state.cameraTrack&&state.cameraTrackVisible!==false){
-          const camH=state.activeStreamId==='CAMERA'?_trackH+_selExtra:_trackH;
-          if(yInTracks<cumY+camH)clickedSid='CAMERA';
+          if(yInTracks<cumY+_camH)clickedSid='CAMERA';
         }
         if(clickedSid&&clickedSid!==state.activeStreamId){
           state.activeStreamId=clickedSid;
