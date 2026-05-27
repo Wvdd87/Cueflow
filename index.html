@@ -411,17 +411,32 @@ input, select, textarea { font-family: inherit; }
   background: var(--surface); height: 36px;
 }
 .er-tab {
-  padding: 0 16px; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  padding: 0 14px; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
   font-family: var(--cond); color: var(--txt-mid); background: none; border: none;
   border-right: 1px solid var(--hair); cursor: pointer;
   border-top: 2px solid transparent;
   transition: color .12s, background .12s, border-top-color .12s;
-  flex-shrink: 0; display: flex; align-items: center;
+  flex-shrink: 0; display: flex; align-items: center; gap: 5px;
 }
-.er-tab.active { color: var(--txt-hi); background: var(--bg); border-top-color: var(--amber); border-bottom-color: transparent !important; }
+.er-tab.active { color: var(--txt-hi); background: var(--bg); border-top-color: var(--amber); }
 .er-tab:hover  { color: var(--txt-hi); background: var(--surface2); }
-.er-tab-pill { display: flex; gap: 1px; background: var(--surface2); border: 1px solid var(--hair); padding: 2px; flex-shrink: 0; }
-.er-tab-pill .er-tab { padding: 4px 9px; font-size: 10px; }
+.er-tab-pill { display: none; } /* legacy — tabs now sit directly in .edit-right-tabs */
+.cl-tab-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 16px; height: 14px; padding: 0 4px;
+  background: var(--surface3); border: 1px solid var(--hair2);
+  border-radius: 2px; font-size: 9px; font-weight: 700;
+  color: var(--txt-mid); font-family: var(--mono); letter-spacing: 0; line-height: 1;
+}
+.er-tab.active .cl-tab-badge { background: rgba(251,191,36,.15); border-color: rgba(251,191,36,.3); color: var(--amber); }
+.er-tab-icon {
+  width: 34px; display: flex; align-items: center; justify-content: center;
+  background: none; border: none; border-left: 1px solid var(--hair);
+  color: var(--txt-low); cursor: pointer; flex-shrink: 0; font-size: 13px;
+  transition: color .12s, background .12s;
+}
+.er-tab-icon:hover { color: var(--txt-hi); background: var(--surface2); }
+.er-tab-icon.active { color: var(--amber); background: rgba(251,191,36,.07); }
 
 /* ── Action buttons ── */
 .cue-header-actions { display: flex; gap: 3px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
@@ -466,12 +481,14 @@ input, select, textarea { font-family: inherit; }
 
 /* ═══════════════════════════════════════════
    CUE LIST TABLE
+   cols: # | BADGE+TC | CUE | DESC | TYPE | NEXT | ×
    ═══════════════════════════════════════════ */
+:root { --col-tc: 148px; --col-name: 1fr; --col-desc: 1fr; --col-type: 70px; --col-next: 52px; }
 #cue-list-wrap { flex: 1; overflow-y: auto; overflow-x: hidden !important; }
 .cue-list-wrap { overflow-x: hidden !important; }
 .cue-row {
   display: grid;
-  grid-template-columns: 26px 34px var(--col-tc,114px) var(--col-name,1fr) var(--col-desc,1fr) 26px;
+  grid-template-columns: 30px var(--col-tc,148px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px;
   align-items: stretch;
   border-bottom: 1px solid var(--hair);
   transition: background .08s; position: relative;
@@ -485,6 +502,25 @@ input, select, textarea { font-family: inherit; }
 .cue-row.audio-out-range .cue-field { color: var(--txt-mid) !important; }
 .cue-col-num { display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 10px; color: var(--txt-low); font-variant-numeric: tabular-nums; }
 .cue-stream-bar { width: 10px; }
+/* Badge + TC combined cell */
+.cl-badge-cell {
+  display: flex; align-items: center; gap: 5px; padding: 0 7px;
+  border-right: 1px solid var(--hair); overflow: hidden;
+}
+.cl-badge-cell .cue-field.tc { border-right: none; padding: 8px 2px; min-width: 0; flex: 1; font-size: 10.5px; }
+/* TYPE and TO NEXT columns */
+.cl-type-cell {
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--cond); font-size: 9px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--txt-low);
+  border-right: 1px solid var(--hair);
+}
+.cl-type-cell.cam { color: var(--amber); }
+.cl-next-cell {
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 10px; color: var(--txt-low);
+  border-right: 1px solid var(--hair); font-variant-numeric: tabular-nums;
+}
 .cue-field {
   background: transparent; border: none; outline: none;
   font-size: 12px; color: var(--txt);
@@ -498,25 +534,47 @@ input, select, textarea { font-family: inherit; }
 .cue-field:focus { background: var(--surface3); }
 .cue-readonly { cursor: pointer !important; user-select: none; }
 .cue-readonly:focus { background: var(--surface2) !important; }
-.cue-col-del { display: flex; align-items: center; justify-content: center; justify-self: end; }
-.cue-del { background: none; border: none; color: var(--txt-low); cursor: pointer; font-size: 13px; padding: 8px 10px; min-width: 34px; min-height: 34px; display: flex; align-items: center; justify-content: center; transition: color .1s; }
+.cue-col-del { display: flex; align-items: center; justify-content: center; }
+.cue-del { background: none; border: none; color: var(--txt-low); cursor: pointer; font-size: 13px; padding: 6px; min-width: 28px; min-height: 28px; display: flex; align-items: center; justify-content: center; transition: color .1s; }
 .cue-del:hover { color: var(--red); }
 .cue-checkbox { width: 13px; height: 13px; accent-color: var(--amber); }
 
 .cue-list-header {
   display: grid;
-  grid-template-columns: 26px 34px var(--col-tc,114px) var(--col-name,1fr) var(--col-desc,1fr) 26px;
+  grid-template-columns: 30px var(--col-tc,148px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px;
   border-bottom: 1px solid var(--hair2); flex-shrink: 0;
   background: var(--surface); position: relative; height: 28px;
 }
 .cue-list-header span {
   padding: 0 8px; display: flex; align-items: center;
-  font-family: var(--cond); font-size: 9.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+  font-family: var(--cond); font-size: 9px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
   color: var(--txt-mid); border-right: 1px solid var(--hair);
 }
 .cue-list-header span:last-child { border-right: none; }
 .col-resize-handle { position: absolute; top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 10; background: transparent; }
 .col-resize-handle:hover { background: var(--amber); opacity: .35; }
+
+/* ── Filter panel ── */
+.cl-filter-panel {
+  border-bottom: 1px solid var(--hair); background: var(--surface);
+  padding: 8px 12px 10px; flex-shrink: 0;
+}
+.cl-filter-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 5px; }
+.cl-filter-row:last-child { margin-bottom: 0; }
+.cl-filter-label {
+  font-size: 9px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--txt-low); font-family: var(--cond); flex-shrink: 0; min-width: 46px;
+}
+.cl-filter-chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 7px; border-radius: 2px;
+  border: 1px solid var(--hair2); background: var(--surface2);
+  font-size: 10px; font-weight: 600; cursor: pointer; color: var(--txt-mid);
+  transition: all .1s; font-family: var(--cond); letter-spacing: .06em; text-transform: uppercase;
+}
+.cl-filter-chip.on { border-color: var(--amber); background: rgba(251,191,36,.12); color: var(--amber); }
+.cl-filter-chip:hover:not(.on) { background: var(--surface3); color: var(--txt-hi); }
+.cl-filter-chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
 /* Cue stream dot (camera badge or track glyph in cue row) */
 .cue-stream-dot { flex-shrink: 0; border: none; cursor: pointer; padding: 0; align-self: center; justify-self: center; margin: 0; opacity: .85; transition: opacity .1s, transform .1s; }
@@ -640,7 +698,7 @@ input, select, textarea { font-family: inherit; }
 .chapter-field { background: transparent; border: none; color: rgba(251,191,36,.85); font-size: 12px; font-weight: 700; padding: 0 6px; width: 100%; outline: none; font-family: var(--sans); caret-color: rgba(251,191,36,.9); }
 .chapter-field.tc { font-family: var(--mono); }
 .chapter-field:not(.cue-readonly):focus { background: rgba(251,191,36,.06); outline: 1px solid rgba(251,191,36,.3); }
-.chapter-list-row { display: grid; grid-template-columns: 26px 34px var(--col-tc,114px) var(--col-name,1fr) var(--col-desc,1fr) 26px; align-items: center; min-height: 32px; border-bottom: 1px solid rgba(251,191,36,.1); background: rgba(251,191,36,.025); cursor: default; }
+.chapter-list-row { display: grid; grid-template-columns: 30px var(--col-tc,148px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px; align-items: center; min-height: 32px; border-bottom: 1px solid rgba(251,191,36,.1); background: rgba(251,191,36,.025); cursor: default; }
 .chapter-list-row:hover { background: rgba(251,191,36,.06); }
 .chapter-list-row.ch-sel { background: rgba(251,191,36,.1); outline: 1px solid rgba(251,191,36,.3); }
 .chapter-tag-col { display: flex; align-items: center; justify-content: center; }
@@ -1311,27 +1369,28 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <!-- ── RIGHT: view area (List or Waterfall) ── -->
     <div class="edit-right" id="edit-right-panel">
       <!-- View tab bar -->
-      <div class="edit-right-tabs" id="edit-right-tabs" style="align-items:center;padding:0 10px;gap:8px;">
-        <div class="er-tab-pill">
-          <button class="er-tab active" id="ertab-list"  onclick="switchEditView('list')">List</button>
-          <button class="er-tab"        id="ertab-wf"    onclick="switchEditView('wf')">Preview</button>
-          <button class="er-tab"        id="ertab-vid"   onclick="switchEditView('vid')">Media</button>
-          <button class="er-tab"        id="ertab-notes" onclick="switchEditView('notes')">Notes</button>
-          <!-- Cameras tab removed: camera track managed via streams bar + cam-track-bar -->
-          <button class="er-tab" id="ertab-cams" onclick="switchEditView('cams')" style="display:none;"></button>
-        </div>
-        <div id="er-list-header" style="display:none;">
-          <div id="cue-editor-song-name" class="seq-name-badge" style="display:none;">Select a sequence</div>
-          <div id="audio-hdr-status" style="display:none;"></div>
-        </div>
+      <div class="edit-right-tabs" id="edit-right-tabs">
+        <button class="er-tab active" id="ertab-list"  onclick="switchEditView('list')">LIST<span class="cl-tab-badge" id="cl-badge-list"></span></button>
+        <button class="er-tab"        id="ertab-wf"    onclick="switchEditView('wf')">WATERFALL</button>
+        <button class="er-tab"        id="ertab-vid"   onclick="switchEditView('vid')">VIDEO</button>
+        <button class="er-tab"        id="ertab-notes" onclick="switchEditView('notes')">NOTES<span class="cl-tab-badge" id="cl-badge-notes"></span></button>
+        <!-- Cameras tab removed: camera track managed via streams bar + cam-track-bar -->
+        <button class="er-tab" id="ertab-cams" onclick="switchEditView('cams')" style="display:none;"></button>
+        <!-- hidden compat elements -->
+        <div id="er-list-header" style="display:none;"><div id="cue-editor-song-name" class="seq-name-badge" style="display:none;">Select a sequence</div><div id="audio-hdr-status" style="display:none;"></div></div>
         <div id="er-wf-header" style="display:none;"></div>
-        <!-- ⋯ always visible, always right-aligned -->
         <div style="flex:1;"></div>
-        <button class="btn-icon" id="more-menu-btn" onclick="toggleMoreMenu(event)" aria-label="More options" style="padding:4px 10px;font-size:13px;flex-shrink:0;">⋯</button>
+        <!-- Right-side action icons -->
+        <button class="er-tab-icon" id="list-filter-btn" onclick="toggleListFilter()" title="Filter cues by track or camera">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 2h11M3 6.5h7M5 11h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <button class="er-tab-icon" id="more-menu-btn" onclick="toggleMoreMenu(event)" aria-label="More options" style="font-size:16px;letter-spacing:.05em;">⋯</button>
       </div>
 
       <!-- LIST view -->
       <div id="er-list-content" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
+        <!-- Filter panel (toggled by funnel button) -->
+        <div class="cl-filter-panel" id="cl-filter-panel" style="display:none;"></div>
         <div class="batch-bar" id="batch-bar">
           <button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:4px 8px;min-height:32px;white-space:nowrap;" onclick="batchSelectAll()">All</button>
           <span class="batch-count" id="batch-count">0 selected</span>
@@ -1339,7 +1398,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
           <button class="batch-del-btn" id="batch-del-btn" onclick="batchDeleteStage()">Delete selected</button>
           <button style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:4px 8px;min-height:32px;" onclick="toggleBatchMode()">Cancel</button>
         </div>
-        <div class="cue-list-header"><span></span><span></span><span>Timecode</span><span>Cue name</span><span>Description</span><span></span></div>
+        <div class="cue-list-header"><span></span><span>Track · TC</span><span>Cue</span><span>Description</span><span>Type</span><span>Next</span><span></span></div>
         <div id="cue-list-wrap"></div>
         <div style="display:none;"><span id="desc-has-content"></span></div>
       </div>
@@ -3554,11 +3613,20 @@ function renderCueList(){
     return;
   }
   let cues=getSortedCues(song.id,true); // visibleOnly=true: global stream visibility
+  // Apply list filter (additive — on top of global stream visibility)
+  if(_listFilterTracks!==null||_listFilterCams!==null){
+    cues=cues.filter(cue=>{
+      if(cue.cameraId)return _listFilterCams===null||_listFilterCams.has(cue.cameraId);
+      return _listFilterTracks===null||_listFilterTracks.has(cue.streamId);
+    });
+  }
+  // Update tab count badges + keep filter panel in sync
+  _updateListTabBadges(cues);
+  if(_listFilterOpen)renderListFilterPanel();
   // Track which chapters have had their header rendered
   const _renderedChapterIds=new Set();
   cues.forEach((cue,i)=>{
-    const col=getStreamColor(cue.streamId);
-    // Chapter row before the first cue of that chapter — same interaction as cues
+    // ── Chapter marker row (7 cols) ──────────────────────────────
     if(song.chapters?.length){
       const ch=getChapterForCue(song,cue);
       if(ch&&!_renderedChapterIds.has(ch.id)){
@@ -3567,88 +3635,53 @@ function renderCueList(){
         const sep=document.createElement('div');
         sep.className='chapter-list-row'+(isSel?' ch-sel':'');
         sep.dataset.chid=ch.id;
-
-        // Build cells manually (same grid as cues)
-        // Col 1: index marker
-        const numCell=document.createElement('div');
-        numCell.className='cue-col-num';
-        numCell.style.cssText='opacity:.35;font-size:9px;color:rgba(251,191,36,.7);';
-        numCell.textContent='';
-        sep.appendChild(numCell);
-
-        // Col 2: downward-chevron marker
+        // Col 1: num (empty)
+        const numCell=document.createElement('div');numCell.className='cue-col-num';sep.appendChild(numCell);
+        // Col 2: chevron badge cell
         const tagCell=document.createElement('div');
-        tagCell.className='chapter-tag-col';
+        tagCell.className='cl-badge-cell chapter-tag-col';
+        tagCell.style.cssText='border-right:1px solid rgba(251,191,36,.15);gap:8px;padding-left:10px;';
         tagCell.innerHTML='<svg class="chapter-tag-chevron" width="12" height="16" viewBox="0 0 12 16" fill="none"><path d="M0 0 H12 V10 L6 16 L0 10 Z" fill="rgba(251,191,36,.65)"/></svg>';
         sep.appendChild(tagCell);
-
-        // Col 3: TC — input, readonly until selected
+        // Col 3: TC input
         const tcInp=document.createElement('input');
         tcInp.className='cue-field tc chapter-field'+(isSel?'':' cue-readonly');
-        tcInp.value=ch.tc;
-        tcInp.dataset.chid=ch.id;
-        tcInp.dataset.f='tc';
+        tcInp.value=ch.tc;tcInp.dataset.chid=ch.id;tcInp.dataset.f='tc';
         if(!isSel)tcInp.readOnly=true;
         sep.appendChild(tcInp);
-
-        // Col 4: Name — input, readonly until selected
+        // Col 4: Name input
         const nameInp=document.createElement('input');
         nameInp.className='cue-field chapter-field'+(isSel?'':' cue-readonly');
-        nameInp.value=ch.name;
-        nameInp.dataset.chid=ch.id;
-        nameInp.dataset.f='name';
+        nameInp.value=ch.name;nameInp.dataset.chid=ch.id;nameInp.dataset.f='name';
         if(!isSel)nameInp.readOnly=true;
         sep.appendChild(nameInp);
-
         // Col 5: type label
-        const typeCell=document.createElement('div');
-        typeCell.className='chapter-type-lbl';
-        typeCell.textContent='marker';
-        sep.appendChild(typeCell);
-
-        // Col 6: delete
-        const delCell=document.createElement('div');
-        delCell.className='cue-col-del';
-        const delBtn=document.createElement('button');
-        delBtn.className='cue-del';
-        delBtn.textContent='✕';
-        delBtn.title='Delete chapter';
+        const typeCell=document.createElement('div');typeCell.className='chapter-type-lbl';typeCell.textContent='MARKER';sep.appendChild(typeCell);
+        // Col 6: empty next cell
+        const nextCell=document.createElement('div');sep.appendChild(nextCell);
+        // Col 7: delete
+        const delCell=document.createElement('div');delCell.className='cue-col-del';
+        const delBtn=document.createElement('button');delBtn.className='cue-del';delBtn.textContent='✕';delBtn.title='Delete marker';
         delBtn.addEventListener('click',e=>{e.stopPropagation();_chapterDelete(ch.id);});
-        delCell.appendChild(delBtn);
-        sep.appendChild(delCell);
-
-        // Row click: first click → select+jump, second click on input → editable
+        delCell.appendChild(delBtn);sep.appendChild(delCell);
+        // Row interaction
         sep.addEventListener('click',e=>{
           if(e.target.classList.contains('cue-del'))return;
           const inp=e.target;
           if(_selChapterId===ch.id){
-            // Already selected — unlock the clicked input for editing
-            if(inp.classList.contains('cue-readonly')){
-              inp.classList.remove('cue-readonly');
-              inp.removeAttribute('readonly');
-              inp.focus();
-              // Place cursor at click position, not select-all
-            }
+            if(inp.classList.contains('cue-readonly')){inp.classList.remove('cue-readonly');inp.removeAttribute('readonly');inp.focus();}
             return;
           }
-          // First click: select chapter + jump
-          _selChapterId=ch.id;
-          _etlHighlightList(null); // clear cue selection
-          ETL.selId=null;
-          jumpToChapter(ch.id);
-          renderCueList(); // re-render so this row becomes editable
+          _selChapterId=ch.id;_etlHighlightList(null);ETL.selId=null;
+          jumpToChapter(ch.id);renderCueList();
         });
-
-        // Save on blur/Enter for both inputs
         [tcInp,nameInp].forEach(inp=>{
           inp.addEventListener('blur',()=>{
             if(inp.readOnly)return;
-            const f=inp.dataset.f;
-            const v=inp.value.trim();
+            const f=inp.dataset.f,v=inp.value.trim();
             if(f==='tc'){const tc=normalizeTcInput(v||ch.tc);if(validateTc(tc))ch.tc=tc;}
             else if(v)ch.name=v;
-            persist();
-            if(ETL.visible)renderEditTimeline();
+            persist();if(ETL.visible)renderEditTimeline();
           });
           inp.addEventListener('keydown',e2=>{
             if(e2.key==='Enter'){e2.preventDefault();inp.blur();}
@@ -3656,10 +3689,10 @@ function renderCueList(){
             e2.stopPropagation();
           });
         });
-
         el.appendChild(sep);
       }
     }
+    // ── Cue row (7 cols) ─────────────────────────────────────────
     const row=document.createElement('div');
     const _inRange=isCueInAudioRange(cue,song);
     row.className='cue-row'+(_inRange?'':' audio-out-range');
@@ -3672,53 +3705,59 @@ function renderCueList(){
     const _cueCamHex=_isCamCue?getCameraColor(_cueCam?.colorIdx||0):null;
     const _stName=streamName(cue.streamId);
     const _stShort=state.streams.find(s=>s.id===cue.streamId)?.shortName||_stName.slice(0,4);
+    const _camNumStr=_isCamCue?String(_cueCam?.number||'?').padStart(2,'0'):null;
+    // Badge element (camera or track)
     const _dotEl=_isCamCue
-      ?`<button class="cue-stream-dot cam-badge-sq xs" data-cid="${cue.id}" style="background:${_cueCamHex};color:#fff;" title="Change camera — click to reassign">${_cueCam?.number||'?'}</button>`
-      :`<button class="cue-stream-dot track-glyph xs" data-cid="${cue.id}" title="Move to track — click to reassign">${escH((_stShort||_stName.charAt(0)||'?').slice(0,4).toUpperCase())}</button>`;
+      ?`<button class="cue-stream-dot cam-badge-sq xs" data-cid="${cue.id}" style="background:${_cueCamHex};color:#fff;flex-shrink:0;" title="Change camera — click to reassign">${_camNumStr}</button>`
+      :`<button class="cue-stream-dot track-glyph xs" data-cid="${cue.id}" title="Move to track — click to reassign" style="flex-shrink:0;">${escH((_stShort||_stName.charAt(0)||'?').slice(0,4).toUpperCase())}</button>`;
+    // TO NEXT computation
+    const _nextCue=cues[i+1];
+    let _toNext='—';
+    if(_nextCue){
+      const _diffS=Math.round((_nextCue._f-cue._f)/(state.fps||25));
+      const _m=Math.floor(_diffS/60),_s=_diffS%60;
+      _toNext=_m+':'+String(_s).padStart(2,'0');
+    }
     row.innerHTML=`<div class="cue-col-num">${i+1}</div>
-      ${_dotEl}
-      <input class="cue-field tc${isSelected?'':' cue-readonly'}" value="${escH(cue.tc)}" data-id="${cue.id}" data-f="tc" placeholder="01:00:00:00" ${isSelected?'':'readonly'}>
+      <div class="cl-badge-cell">${_dotEl}<input class="cue-field tc${isSelected?'':' cue-readonly'}" value="${escH(cue.tc)}" data-id="${cue.id}" data-f="tc" placeholder="01:00:00:00" ${isSelected?'':'readonly'}></div>
       <input class="cue-field${isSelected?'':' cue-readonly'}" value="${escH(cue.name)}" data-id="${cue.id}" data-f="name" placeholder="Cue name" ${isSelected?'':'readonly'}>
       <input class="cue-field desc${isSelected?'':' cue-readonly'}" value="${escH(cue.desc||'')}" data-id="${cue.id}" data-f="desc" placeholder="Description" ${isSelected?'':'readonly'}>
-      <div class="cue-col-del">
-        ${state.batchMode?`<input type="checkbox" class="cue-checkbox" ${checked?'checked':''} data-id="${cue.id}">`:`<button class="cue-del" data-id="${cue.id}">✕</button>`}
-      </div>`;
+      <div class="cl-type-cell${_isCamCue?' cam':''}">${_isCamCue?'CAMERA':'NORMAL'}</div>
+      <div class="cl-next-cell">${_toNext}</div>
+      <div class="cue-col-del">${state.batchMode?`<input type="checkbox" class="cue-checkbox" ${checked?'checked':''} data-id="${cue.id}">`:`<button class="cue-del" data-id="${cue.id}">✕</button>`}</div>`;
     row.addEventListener('contextmenu',e=>{e.preventDefault();showStreamCtxMenu(e,cue.id);});
-    // Stream dot click → show stream reassign menu
     const dotBtn=row.querySelector('.cue-stream-dot');
     if(dotBtn)dotBtn.addEventListener('click',e=>{e.stopPropagation();showStreamCtxMenu(e,cue.id);});
     row.addEventListener('click',e=>{
       const inp=e.target;
-      if(inp.classList.contains('cue-stream-dot'))return; // handled separately
+      if(inp.classList.contains('cue-stream-dot'))return;
       if(inp.classList.contains('cue-del')||inp.classList.contains('cue-checkbox'))return;
       if(ETL.selId===cue.id){
-        // Already selected — enable editing on the clicked input
         if(inp.classList.contains('cue-readonly')){
           if(window.CF&&(CF.role==='editor'||CF.role==='track-editor')&&CF.tracks&&CF.tracks.indexOf(cue.streamId)===-1){
-            if(CF._showTrackPermissionModal)CF._showTrackPermissionModal(cue.streamId);
-            return;
+            if(CF._showTrackPermissionModal)CF._showTrackPermissionModal(cue.streamId);return;
           }
           inp.classList.remove('cue-readonly');inp.removeAttribute('readonly');
           inp.focus();inp.select();
         }
         return;
       }
-      // First click: select cue, navigate TC
-      ETL.selId=cue.id;
-      _etlHighlightList(cue.id);
+      ETL.selId=cue.id;_etlHighlightList(cue.id);
       state.simFrames=cue._f;
       const tcEl=document.getElementById('sim-tc');if(tcEl)tcEl.textContent=fTC(cue._f);
-      // Also select the track this cue belongs to
       const _newSid=cue.cameraId?'CAMERA':cue.streamId;
       if(state.activeStreamId!==_newSid){state.activeStreamId=_newSid;renderStreamsBar();if(_newSid==='CAMERA')updateCamTrackBar();}
-      redrawTest(cue._f);
-      // Re-render to show selected state (make inputs editable on this row)
-      renderCueList();
+      redrawTest(cue._f);renderCueList();
     });
     el.appendChild(row);
   });
   if(!cues.length){
-    el.innerHTML='<div style="padding:28px 20px;text-align:center;"><div style="font-size:12px;color:var(--text3);margin-bottom:10px;">No cues yet</div><button class="btn-icon primary" onclick="addCue()" style="padding:7px 16px;font-size:12px;">+ Add first cue</button></div>';
+    const _totalCues=getSortedCues(song.id,true).length;
+    if(_totalCues>0&&(_listFilterTracks!==null||_listFilterCams!==null)){
+      el.innerHTML='<div style="padding:28px 20px;text-align:center;"><div style="font-size:12px;color:var(--txt-low);margin-bottom:10px;">No cues match the current filter</div><button class="btn-icon" onclick="toggleListFilter()" style="padding:5px 14px;font-size:11px;">Clear filter</button></div>';
+    } else {
+      el.innerHTML='<div style="padding:28px 20px;text-align:center;"><div style="font-size:12px;color:var(--txt-low);margin-bottom:10px;">No cues yet</div><button class="btn-icon primary" onclick="addCue()" style="padding:7px 16px;font-size:12px;">+ Add first cue</button></div>';
+    }
   }
   const rte=document.getElementById('rte-editor');if(rte)rte.innerHTML=song.description||'';
   const badge=document.getElementById('desc-has-content');if(badge)badge.style.display=song.description?.trim()?'inline':'none';
@@ -3759,12 +3798,12 @@ function attachColResizeHandles(){
   _initColResizeGlobal();
   const hdr=document.querySelector('.cue-list-header');
   if(!hdr||hdr.querySelector('.col-resize-handle'))return;
-  // grid cols: num(26px) | dot(16px) | TC | Name | Desc | del(26px)
-  // header children index: 0=num, 1=dot, 2=TC, 3=Name, 4=Desc, 5=del
+  // grid cols: #(30) | BADGE+TC(148) | CUE(1fr) | DESC(1fr) | TYPE(70) | NEXT(52) | ×(28)
+  // header children index:  0          1           2           3          4          5     6
   const cols=[
-    {idx:2,varName:'--col-tc',  min:80},
-    {idx:3,varName:'--col-name',min:100},
-    {idx:4,varName:'--col-desc',min:80}
+    {idx:1,varName:'--col-tc',  min:100},
+    {idx:2,varName:'--col-name',min:100},
+    {idx:3,varName:'--col-desc',min:80}
   ];
   cols.forEach(col=>{
     const span=hdr.children[col.idx];
@@ -5980,6 +6019,10 @@ function updateProgressBar(){
 
 // ── EDIT VIEW SWITCHER ─────────────────────────────────────────
 let _editView='list'; // 'list','wf','vid','notes','cams'
+// Cue list filter state: null = show all, otherwise a Set of IDs to include
+let _listFilterOpen=false;
+let _listFilterTracks=null; // null | Set<streamId>
+let _listFilterCams=null;   // null | Set<cameraId>
 function switchEditView(view){
   _editView=view;
   const isList=view==='list',isWf=view==='wf',isVid=view==='vid',isNotes=view==='notes',isCams=view==='cams';
@@ -5997,6 +6040,9 @@ function switchEditView(view){
   if(isVid){_vidUpdateForActiveSong();_updateVidEmptyState();}
   if(isNotes){_loadNotesTab();}
   if(isCams){renderCamerasTab();}
+  // Sync filter button active state whenever list tab is shown
+  const _fbtn=document.getElementById('list-filter-btn');
+  if(_fbtn)_fbtn.classList.toggle('active',_listFilterOpen);
 }
 function _updateCamerasTab(){
   // Cameras tab is hidden; camera track managed via streams bar + cam-track-bar
@@ -6011,6 +6057,91 @@ function _updateCamerasTab(){
 }
 // compat stub
 function switchEditRightTab(tab){ switchEditView(tab==='list'?'list':'wf'); }
+
+// ── LIST FILTER ───────────────────────────────────────────────
+function toggleListFilter(){
+  _listFilterOpen=!_listFilterOpen;
+  const btn=document.getElementById('list-filter-btn');
+  if(btn)btn.classList.toggle('active',_listFilterOpen);
+  renderListFilterPanel();
+  renderCueList();
+}
+function renderListFilterPanel(){
+  const panel=document.getElementById('cl-filter-panel');
+  if(!panel)return;
+  if(!_listFilterOpen){panel.style.display='none';return;}
+  panel.style.display='block';
+  panel.innerHTML='';
+  const streams=state.streams||[];
+  const hasCam=!!(state.cameraTrack&&state.cameraTrack.cameras?.length);
+  if(!streams.length&&!hasCam){panel.innerHTML='<div style="font-size:11px;color:var(--txt-low);padding:2px 0;">No tracks to filter</div>';return;}
+  // ── Tracks row ──
+  if(streams.length){
+    const row=document.createElement('div');row.className='cl-filter-row';
+    const lbl=document.createElement('span');lbl.className='cl-filter-label';lbl.textContent='Tracks';row.appendChild(lbl);
+    // ALL chip
+    const allChip=document.createElement('button');
+    allChip.className='cl-filter-chip'+(_listFilterTracks===null?' on':'');
+    allChip.textContent='ALL';
+    allChip.onclick=()=>{_listFilterTracks=null;renderListFilterPanel();renderCueList();};
+    row.appendChild(allChip);
+    streams.forEach(s=>{
+      const col=getStreamColor(s.id);
+      const shortName=(s.shortName||s.name||'?').slice(0,4).toUpperCase();
+      const on=_listFilterTracks!==null&&_listFilterTracks.has(s.id);
+      const chip=document.createElement('button');
+      chip.className='cl-filter-chip'+(on?' on':'');
+      chip.innerHTML=`<span class="cl-filter-chip-dot" style="background:${col.hex};"></span>${escH(shortName)}`;
+      chip.onclick=()=>{
+        if(_listFilterTracks===null)_listFilterTracks=new Set(streams.map(x=>x.id));
+        if(_listFilterTracks.has(s.id))_listFilterTracks.delete(s.id);
+        else _listFilterTracks.add(s.id);
+        if(_listFilterTracks.size===streams.length)_listFilterTracks=null;
+        renderListFilterPanel();renderCueList();
+      };
+      row.appendChild(chip);
+    });
+    panel.appendChild(row);
+  }
+  // ── Cameras row ──
+  if(hasCam){
+    const cams=state.cameraTrack.cameras;
+    const row=document.createElement('div');row.className='cl-filter-row';
+    const lbl=document.createElement('span');lbl.className='cl-filter-label';lbl.textContent='Cameras';row.appendChild(lbl);
+    const allChip=document.createElement('button');
+    allChip.className='cl-filter-chip'+(_listFilterCams===null?' on':'');
+    allChip.textContent='ALL';
+    allChip.onclick=()=>{_listFilterCams=null;renderListFilterPanel();renderCueList();};
+    row.appendChild(allChip);
+    cams.forEach(cam=>{
+      const hex=getCameraColor(cam.colorIdx||0);
+      const on=_listFilterCams!==null&&_listFilterCams.has(cam.id);
+      const chip=document.createElement('button');
+      chip.className='cl-filter-chip'+(on?' on':'');
+      chip.innerHTML=`<span class="cl-filter-chip-dot" style="background:${hex};border-radius:1px;"></span>${String(cam.number).padStart(2,'0')}`;
+      chip.onclick=()=>{
+        if(_listFilterCams===null)_listFilterCams=new Set(cams.map(c=>c.id));
+        if(_listFilterCams.has(cam.id))_listFilterCams.delete(cam.id);
+        else _listFilterCams.add(cam.id);
+        if(_listFilterCams.size===cams.length)_listFilterCams=null;
+        renderListFilterPanel();renderCueList();
+      };
+      row.appendChild(chip);
+    });
+    panel.appendChild(row);
+  }
+}
+function _updateListTabBadges(cues){
+  const listBadge=document.getElementById('cl-badge-list');
+  if(listBadge)listBadge.textContent=cues.length||'';
+  const song=getActiveSong();
+  const notesBadge=document.getElementById('cl-badge-notes');
+  if(notesBadge){
+    const notesCount=(song?.description?.trim()||'').length>0?
+      (song.chapters?.length||0)+1 : (song?.chapters?.length||0);
+    notesBadge.textContent=notesCount||'';
+  }
+}
 
 // ── WATERFALL SIDE PANELS ─────────────────────────────────────
 const _wfPanels={seq:false,notes:false};
