@@ -219,7 +219,7 @@ input, select, textarea { font-family: inherit; }
 }
 .live-toggle:hover { background: var(--red); color: #fff; }
 .live-toggle.red { background: var(--red-bg); color: var(--red); }
-#live-toggle { background: var(--red-bg); color: var(--red); }
+#live-toggle { background: var(--red-dim); color: #fff; }
 #live-toggle:hover { background: var(--red); color: #fff; }
 
 /* Stream popup button */
@@ -259,10 +259,10 @@ input, select, textarea { font-family: inherit; }
 }
 .sb-btn:hover  { background: var(--surface2); color: var(--txt-hi); }
 .sb-btn.active { background: var(--surface2); color: var(--txt-hi); border-left-color: var(--amber); }
-#sb-save.sb-auth-on { color: var(--green); }
+#sb-save.sb-auth-on { color: var(--amber); }
 #sb-save.sb-auth-on.active { color: var(--amber); }
 .sb-icon { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; }
-.sb-label { display: none; }
+.sb-label { font-size: 9px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: inherit; white-space: nowrap; }
 #sb-spacer { flex: 1; }
 .sb-btn-kbd { margin-bottom: 2px; }
 
@@ -854,16 +854,17 @@ input, select, textarea { font-family: inherit; }
   color: var(--txt-mid); white-space: nowrap; flex-shrink: 0;
 }
 .live-sb-cell.grow { flex: 1; border-right: none; }
-.live-sb-cell.right { margin-left: auto; border-right: none; border-left: 1px solid var(--hair); }
-.live-sb-cell .sb-val { font-family: var(--mono); color: var(--txt-hi); font-size: 12px; letter-spacing: .01em; text-transform: none; font-weight: 600; font-variant-numeric: tabular-nums; }
+.live-sb-cell.right { margin-left: auto; border-right: none; border-left: none; }
+.live-sb-cell .sb-val { font-family: var(--mono); color: var(--txt-hi); font-size: 10px; letter-spacing: .01em; text-transform: none; font-weight: 600; font-variant-numeric: tabular-nums; }
 .live-sb-cell.onair-cell { color: var(--red); }
 .live-sb-cell.onair-cell .sb-val { color: var(--red); }
 
 /* Sequence header strip */
-.live-seq-head { display: flex; align-items: center; gap: 12px; padding: 10px 28px; background: var(--surface); border-bottom: 1px solid var(--hair); flex-shrink: 0; }
+.live-seq-head { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--hair); flex-shrink: 0; }
 .live-seq-head .breadcrumb { font-family: var(--cond); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--txt-mid); }
 .live-seq-head .breadcrumb .cur { color: var(--txt-hi); }
 .live-seq-head .seq-steps { display: flex; gap: 4px; margin-left: auto; }
+.live-seq-head.grow { flex: 1; border-right: none; }
 .live-seq-step { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 10px; font-weight: 700; background: var(--surface2); border: 1px solid var(--hair2); color: var(--txt-low); cursor: default; letter-spacing: 0; }
 .live-seq-step.done { background: var(--hair); color: var(--txt-mid); }
 .live-seq-step.live { background: var(--red-bg); border-color: var(--red); color: var(--red); }
@@ -891,11 +892,11 @@ input, select, textarea { font-family: inherit; }
 }
 .live-next .nh-eyebrow { position: absolute; top: 11px; left: 28px; font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: var(--amber); display: flex; align-items: center; gap: 8px; }
 .live-next .nh-badge { display: flex; align-items: center; gap: 14px; margin-top: 4px; }
-.live-next .nh-name { font-family: var(--cond); font-weight: 700; font-size: clamp(40px, 6vw, 88px); line-height: 0.92; letter-spacing: -0.01em; color: var(--txt-hi); text-transform: uppercase; }
+.live-next .nh-name { font-family: var(--cond); font-weight: 700; font-size: clamp(40px, 5vw, 88px); line-height: 0.92; letter-spacing: -0.01em; color: var(--txt-hi); text-transform: uppercase; }
 .live-next .nh-desc { font-family: var(--sans); font-size: 14px; color: var(--txt); margin-top: 10px; max-width: 60ch; line-height: 1.45; }
 .live-next .nh-count { text-align: right; flex-shrink: 0; }
 .live-next .nh-count .v { font-family: var(--mono); font-size: clamp(48px, 8vw, 96px); font-weight: 700; color: var(--amber); line-height: 0.92; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-.live-next .nh-count.warn .v { color: var(--red); animation: nh-blink 0.8s steps(2,end) infinite; }
+.live-next .nh-count.warn .v { color: var(--red); }
 @keyframes nh-blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
 .live-next .nh-count .nh-cd-lbl { font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--txt-mid); margin-top: 5px; text-align: right; }
 .live-next .nh-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: var(--hair); overflow: hidden; }
@@ -915,7 +916,7 @@ input, select, textarea { font-family: inherit; }
 }
 .live-then-row:last-child { border-bottom: none; }
 .live-then-row .ix { font-family: var(--mono); font-size: 12px; color: var(--txt-low); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
-.live-then-row .nm { font-family: var(--cond); font-size: 22px; font-weight: 700; color: var(--txt-hi); letter-spacing: 0; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.live-then-row .nm { font-family: var(--cond); font-size: 30px; font-weight: 700; color: var(--txt-hi); letter-spacing: 0; text-transform: uppercase; white-space: wrap; overflow: hidden; text-overflow: ellipsis; }
 .live-then-row .nm .ds { font-family: var(--sans); font-size: 11px; font-weight: 400; color: var(--txt-mid); text-transform: none; letter-spacing: 0; display: block; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .live-then-row .tc-lbl { font-family: var(--mono); font-size: 12px; color: var(--txt-mid); text-align: right; font-variant-numeric: tabular-nums; }
 .live-then-row .cd { font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--txt); letter-spacing: -0.02em; text-align: right; min-width: 80px; font-variant-numeric: tabular-nums; }
@@ -1191,36 +1192,36 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 <aside id="cf-sidebar">
   <button class="sb-btn" id="sb-save" onclick="sbOpen('save')" title="Account &amp; Projects" aria-label="Account &amp; Projects">
     <span class="sb-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-    <span class="sb-label">Account</span>
+    <span class="sb-label">PROJ</span>
   </button>
   <button class="sb-btn" id="sb-online" onclick="CF.sbOpenRoles()" title="Sharing" aria-label="Sharing" style="display:none;">
     <span class="sb-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></span>
-    <span class="sb-label">Sharing</span>
+    <span class="sb-label">SHARE</span>
   </button>
   <button class="sb-btn" id="sb-playlists" onclick="sbOpen('playlists')" title="Playlists" aria-label="Playlists">
     <span class="sb-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
-    <span class="sb-label">Playlists</span>
+    <span class="sb-label">LISTS</span>
   </button>
   <button class="sb-btn" id="sb-seqs" onclick="sbOpen('seqs')" title="Sequences" aria-label="Sequences">
     <span class="sb-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
-    <span class="sb-label">Sequences</span>
+    <span class="sb-label">SEQ</span>
   </button>
   <button class="sb-btn" id="sb-tracks" onclick="sbOpen('tracks')" title="Tracks" aria-label="Tracks">
     <span class="sb-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="17" width="18" height="4" rx="1"/></svg></span>
-    <span class="sb-label">Tracks</span>
+    <span class="sb-label">TRACKS</span>
   </button>
   <div id="sb-spacer"></div>
   <button class="sb-btn sb-btn-kbd" onclick="toggleShortcutsOverlay()" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">
     <span class="sb-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg></span>
-    <span class="sb-label">Shortcuts</span>
+    <span class="sb-label">KEYS</span>
   </button>
   <button class="sb-btn" onclick="openHelpModal()" title="Help &amp; Documentation" aria-label="Help &amp; Documentation">
     <span class="sb-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
-    <span class="sb-label">Help</span>
+    <span class="sb-label">HELP</span>
   </button>
   <button class="sb-btn" id="sb-settings" onclick="openSettingsModal()" title="Settings" aria-label="Settings">
     <span class="sb-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
-    <span class="sb-label">Settings</span>
+    <span class="sb-label">SET</span>
   </button>
 </aside>
 <div id="cf-panel"><div class="sbp-head"><span class="sbp-title" id="cf-panel-title">Panel</span><button class="sbp-close" onclick="sbClose()">✕</button></div><div class="sbp-body" id="cf-panel-body"></div></div>
@@ -1246,7 +1247,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   <div class="topbar">
     <div class="topbar-left">
       <span class="save-indicator" id="save-indicator">Saved</span>
-      <div class="live-sb-cell" id="edit-mode-chip" style="color:var(--amber);border-right:1px solid var(--hair);">Edit Mode</div>
+      
     </div>
     <div class="topbar-center">
       <div class="seq-nav">
@@ -1262,7 +1263,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <button id="mtab-edit-e"></button><button id="mtab-live-e"></button>
         <div class="tc-dot" id="tc-dot-edit"></div><span id="tc-lbl-edit"></span>
       </div>
-      <button class="live-toggle" id="live-toggle" onclick="switchMode('live')">Live</button>
+      <div class="live-sb-cell" id="edit-mode-chip" style="color:var(--amber);border-right:1px solid var(--hair);">Edit Mode</div>
+      <button class="live-toggle" id="live-toggle" onclick="switchMode('live')">Go Live</button>
     </div>
   </div>
   <div class="mode-banner edit" id="edit-mode-banner"></div>
@@ -1300,7 +1302,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <div class="er-tab-pill">
           <button class="er-tab active" id="ertab-list"  onclick="switchEditView('list')">List</button>
           <button class="er-tab"        id="ertab-wf"    onclick="switchEditView('wf')">Preview</button>
-          <button class="er-tab"        id="ertab-vid"   onclick="switchEditView('vid')">Video</button>
+          <button class="er-tab"        id="ertab-vid"   onclick="switchEditView('vid')">Media</button>
           <button class="er-tab"        id="ertab-notes" onclick="switchEditView('notes')">Notes</button>
           <!-- Cameras tab removed: camera track managed via streams bar + cam-track-bar -->
           <button class="er-tab" id="ertab-cams" onclick="switchEditView('cams')" style="display:none;"></button>
@@ -1460,10 +1462,17 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <div class="tc-pip" id="live-tc-pip"></div>
       <span class="sb-val" id="tc-disp-live" style="font-size:13px;letter-spacing:-0.01em;">--:--:--:--</span>
     </div>
-    <!-- Sequence / playlist name -->
-    <div class="live-sb-cell grow">
-      <span id="live-topbar-seq-name" style="font-size:11px;font-weight:700;color:var(--text);font-family:var(--cond);letter-spacing:0.06em;text-transform:uppercase;max-width:400px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</span>
-    </div>
+    <!-- Sequence/playlist header -->
+      <div class="live-seq-head grow" id="live-seq-head">
+        <div class="breadcrumb">
+          <span id="live-playlist-crumb" style="color:var(--text3);">—</span>
+          <span style="margin:0 6px;color:var(--text4);">›</span>
+          <span id="live-seq-crumb" class="cur">—</span>
+        </div>
+        <!-- Hidden compat -->
+        <span id="live-seq-lbl" style="display:none;"></span>
+        <span id="tc-live-badge" style="display:none;"></span>
+      </div>
     <!-- Sharing -->
     <div class="live-sb-cell right" id="live-sharing-cell" style="display:none;">
       <div class="tc-pip ok"></div>
@@ -1471,12 +1480,12 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     </div>
     <!-- ON AIR chip -->
     <div class="live-sb-cell right onair-cell" id="live-onair-chip">
-      <div class="tc-pip live pulse"></div>
-      <span class="sb-val">On Air</span>
+      
+      <span class="sb-val">LIVE</span>
     </div>
     <!-- Edit button -->
-    <div class="live-sb-cell right" style="padding:0 10px;">
-      <button class="live-toggle" onclick="exitLiveGuard()" style="height:26px;padding:0 14px;font-size:10px;">Edit</button>
+    <div class="live-sb-cell right" style="padding-left:0px;padding-right: 10px;">
+      <button class="live-toggle mbtn primary" onclick="exitLiveGuard()" style="height:26px;padding:0 14px;font-size:10px;">Edit</button>
     </div>
     <!-- Hidden compat elements -->
     <div style="display:none;">
@@ -1511,17 +1520,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <!-- Main content column -->
     <div class="live-main">
 
-      <!-- Sequence/playlist header -->
-      <div class="live-seq-head" id="live-seq-head">
-        <div class="breadcrumb">
-          <span id="live-playlist-crumb" style="color:var(--text3);">—</span>
-          <span style="margin:0 6px;color:var(--text4);">›</span>
-          <span id="live-seq-crumb" class="cur">—</span>
-        </div>
-        <!-- Hidden compat -->
-        <span id="live-seq-lbl" style="display:none;"></span>
-        <span id="tc-live-badge" style="display:none;"></span>
-      </div>
+      
 
       <!-- ON AIR strip -->
       <div class="live-onair" id="live-onair-strip">
@@ -2886,7 +2885,7 @@ function _doRedraw(target,frames){
     const plCrumb=document.getElementById('live-playlist-crumb');if(plCrumb)plCrumb.textContent=pln||'—';
     const seqCrumb=document.getElementById('live-seq-crumb');if(seqCrumb)seqCrumb.textContent=seqName;
     const ltn=document.getElementById('live-topbar-seq-name');
-    if(ltn)ltn.textContent=(pln?pln+' / ':'')+seqName;
+    if(ltn)ltn.textContent='playlist : '+(pln?pln:'');
     // Compat elements
     const lbl=document.getElementById('live-seq-lbl');if(lbl)lbl.textContent=seqName;
     const badge=document.getElementById('tc-live-badge');if(badge)badge.classList.toggle('show',!!liveSongId);
@@ -3004,7 +3003,7 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId){
     const cdF=Math.max(0,nextCue._f-frames);
     const cdSec=cdF/state.fps;
     if(nhName)nhName.textContent=nextCue.name||'—';
-    if(nhBadge)nhBadge.innerHTML=_makeLiveBadge(nextCue,'md');
+    if(nhBadge)nhBadge.innerHTML=_makeLiveBadge(nextCue,'lg');
     if(nhDesc)nhDesc.textContent=nextCue.desc||'';
     if(nhCd)nhCd.textContent=cdF>0?fmtCD(cdF):'GO';
     const isWarn=cdSec<=WARN_SEC&&cdSec>=0;
@@ -3046,7 +3045,7 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId){
       const urgBarHtml=showUrgBar?`<div class="urg-bar${isUrgent?' urgent':''}"><div class="urg-fill" style="width:${((1-cdSec/URGENCY_SEC)*100).toFixed(1)}%"></div></div>`:'';
 
       row.innerHTML=`<div class="ix">${qi+1}</div>
-        <div class="tag">${_makeLiveBadge(qc,'xs')}</div>
+        <div class="tag">${_makeLiveBadge(qc,'md')}</div>
         <div class="nm">${escH(qc.name||'—')}<span class="ds">${escH(qc.desc||'')}</span></div>
         <div class="tc-lbl">${escH(qc.tc||'')}</div>
         <div class="${cdClass}">${cdF>0?fmtCD(cdF):''}</div>
@@ -4143,7 +4142,7 @@ class LTCDecoder extends AudioWorkletProcessor {
       const mnU=f[32]|(f[33]<<1)|(f[34]<<2)|(f[35]<<3), mnT=f[40]|(f[41]<<1)|(f[42]<<2);
       const hrU=f[48]|(f[49]<<1)|(f[50]<<2)|(f[51]<<3), hrT=f[56]|(f[57]<<1);
       const fr=frT*10+frU, sc=scT*10+scU, mn=mnT*10+mnU, hr=hrT*10+hrU;
-      if(fr<=29&&sc<=59&&mn<=59&&hr<=23) this.port.postMessage({hr,mn,sc,fr});
+      if(fr<=29&&sc<=59&&mn<=59) this.port.postMessage({hr,mn,sc,fr});
       this._bits=[];  // clear — next frame starts fresh
     }
   }
@@ -4533,6 +4532,33 @@ document.addEventListener('keydown',e=>{
       state.songs.forEach(s=>{const idx=s.cues.findIndex(c=>c.id===ETL.selId);if(idx>=0)s.cues.splice(idx,1);});
       ETL.selId=null;persist();renderCueList();redrawActive();
       showUndoToast('Cue deleted');return;}
+    // Camera track hotkeys: 1–9 = cameras 1–9, 0 = camera 10
+    if(state.activeStreamId==='CAMERA'&&state.cameraTrack&&!e.metaKey&&!e.ctrlKey&&!e.altKey){
+      const _camKeys={'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'0':10};
+      const camNum=_camKeys[e.key];
+      if(camNum!==undefined){
+        e.preventDefault();
+        const song=getActiveSong();if(!song)return;
+        const tcFrames=Math.floor(state.simFrames);
+        const cam=state.cameraTrack.cameras.find(c=>c.number===camNum);
+        if(cam){
+          snapshot();
+          song.cues.push({id:uid(),tc:fTC(tcFrames),name:'',desc:'',cameraId:cam.id});
+          persist();renderCueList();redrawActive();
+        } else {
+          openConfirmModal('Camera '+camNum+' doesn\'t exist on this track. Add it now?',
+            function(){
+              const newCam={id:uid(),number:camNum,label:'CAM '+camNum,colorIdx:state.cameraTrack.cameras.length%12};
+              state.cameraTrack.cameras.push(newCam);
+              state.cameraTrack.cameras.sort(function(a,b){return a.number-b.number;});
+              snapshot();
+              song.cues.push({id:uid(),tc:fTC(tcFrames),name:'',desc:'',cameraId:newCam.id});
+              persist();renderCueList();redrawActive();renderStreamsBar();updateCamTrackBar();
+            },null,'Add Camera','primary');
+        }
+        return;
+      }
+    }
   }
 
 });
@@ -4575,7 +4601,15 @@ function renderProjectList(){
     const div=document.createElement('div');
     div.className='proj-entry'+(p.id===state.projectId?' current-proj':'');
     div.innerHTML=`<div class="proj-entry-name">${escH(p.name)}</div><div class="proj-entry-date">${p.updated?new Date(p.updated).toLocaleDateString():''}</div><button class="proj-entry-del" data-id="${p.id}">✕</button>`;
-    div.addEventListener('click',e=>{if(e.target.classList.contains('proj-entry-del'))return;const d=loadProjectData(p.id);if(d){applyProject(d);closeModal('proj-modal');}});
+    div.addEventListener('click',e=>{
+      if(e.target.classList.contains('proj-entry-del'))return;
+      if(p.id===state.projectId){closeModal('proj-modal');return;}
+      const d=loadProjectData(p.id);
+      if(d){
+        openConfirmModal('Switch to "'+d.name+'"? Your current project is auto-saved.',
+          ()=>{applyProject(d);closeModal('proj-modal');},null,'Switch now','primary');
+      }
+    });
     div.querySelector('.proj-entry-del').addEventListener('click',e=>{e.stopPropagation();if(!confirm('Delete "'+p.name+'"?'))return;deleteProjectData(p.id);renderProjectList();});
     el.appendChild(div);
   });
@@ -4725,9 +4759,11 @@ function notesRteCmd(cmd,val){document.execCommand(cmd,false,val||null);}
 
 // ── CONFIRM MODAL ──
 let _confirmCb=null,_cancelCb=null;
-function openConfirmModal(msg,onConfirm,onCancel){
+function openConfirmModal(msg,onConfirm,onCancel,okLabel,okClass){
   document.getElementById('confirm-msg').textContent=msg;
   _confirmCb=onConfirm;_cancelCb=onCancel;
+  const okBtn=document.getElementById('confirm-ok-btn');
+  if(okBtn){okBtn.textContent=okLabel||'Confirm';okBtn.className='mbtn '+(okClass||'danger');}
   document.getElementById('confirm-modal').classList.add('show');
 }
 function doConfirm(){closeModal('confirm-modal');if(_confirmCb)_confirmCb();}
@@ -5017,8 +5053,12 @@ function sbSeqDrop(e,toIdx){
 
 
 function sbLoadProject(id){
+  if(id===state.projectId){sbClose();return;}
   const d=loadProjectData(id);
-  if(d){applyProject(d);sbClose();}
+  if(d){
+    openConfirmModal('Switch to "'+d.name+'"? Your current project is auto-saved.',
+      ()=>{applyProject(d);sbClose();},null,'Switch now','primary');
+  }
 }
 function sbDeleteProject(id){
   if(!confirm('Delete this project?'))return;
@@ -6595,8 +6635,33 @@ function _initEditTimeline(){
     const rect=container.getBoundingClientRect();
     const x=e.clientX-rect.left;
     const y=e.clientY-rect.top;
-    // Let label strip clicks fall through to the cell's own onclick handler
-    if(x<ETL.LBL_W&&y>ETL.RULER_H)return;
+    // Label strip: resolve which track was clicked and select it immediately.
+    // Handled here in mousedown (not cell onclick) so it works even while TC is rolling
+    // and renderEditTimeline() is rebuilding the DOM at ~10fps.
+    if(x<ETL.LBL_W&&y>ETL.RULER_H){
+      const _trackH=Math.max(ETL.TRACK_H,40),_selExtra=24,_mkrH=16;
+      const yInTracks=y-ETL.RULER_H-_mkrH;
+      if(yInTracks>=0){
+        const visStreams=state.visibleStreamIds.filter(sid=>state.streams.find(s=>s.id===sid));
+        let cumY=0,clickedSid=null;
+        for(const sid of visStreams){
+          const th=sid===state.activeStreamId?_trackH+_selExtra:_trackH;
+          if(yInTracks<cumY+th){clickedSid=sid;break;}
+          cumY+=th;
+        }
+        if(!clickedSid&&state.cameraTrack&&state.cameraTrackVisible!==false){
+          const camH=state.activeStreamId==='CAMERA'?_trackH+_selExtra:_trackH;
+          if(yInTracks<cumY+camH)clickedSid='CAMERA';
+        }
+        if(clickedSid&&clickedSid!==state.activeStreamId){
+          state.activeStreamId=clickedSid;
+          renderStreamsBar();
+          if(clickedSid==='CAMERA')updateCamTrackBar();
+          renderEditTimeline();
+        }
+      }
+      return;
+    }
     const handle=e.target.closest('.etl-cue-handle');
     const block=e.target.closest('.etl-cue');
 
@@ -7342,7 +7407,7 @@ init();
   <div class="modal-body" id="confirm-msg"></div>
   <div class="modal-actions">
     <button class="mbtn" onclick="doCancel()">Cancel</button>
-    <button class="mbtn danger" onclick="doConfirm()">Confirm</button>
+    <button class="mbtn danger" id="confirm-ok-btn" onclick="doConfirm()">Confirm</button>
   </div>
 </div></div>
 
@@ -8818,8 +8883,8 @@ function buildProjectsPanel(){
   /* Auth section */
   if(authUser){
     h+='<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border-radius:6px;margin-bottom:12px;border:1px solid var(--border);">';
-    h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
-    h+='<span style="font-size:12px;font-weight:600;color:var(--green);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escH(displayUser(authUser))+'</span>';
+    h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    h+='<span style="font-size:12px;font-weight:600;color:var(--amber);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escH(displayUser(authUser))+'</span>';
     h+='<button onclick="CF.cfSignOut()" style="background:none;border:1px solid var(--border2);border-radius:4px;color:var(--text3);cursor:pointer;font-size:10px;padding:3px 7px;" title="Sign out">Sign out</button>';
     h+='</div>';
   } else {
@@ -8879,13 +8944,22 @@ function afterProjectsRender(){
 
 function switchProject(id){
   if(id===CF.showId) return;
-  if(CF._projChan){CF._projChan.unsubscribe();CF._projChan=null;}
-  CF.showId=id; CF.isOwner=true; CF.role='owner';
-  saveSession(id);
-  /* Re-render panel immediately so selected state shows before async restore */
-  if(window._sbRender) _sbRender('save');
-  openTcChan();
-  ownerRestoreShow(id);
+  var name=(CF._showList.find(function(x){return x.id===id;})||{}).name||'this project';
+  function doSwitch(){
+    if(CF._projChan){CF._projChan.unsubscribe();CF._projChan=null;}
+    CF.showId=id; CF.isOwner=true; CF.role='owner';
+    saveSession(id);
+    /* Re-render panel immediately so selected state shows before async restore */
+    if(window._sbRender) _sbRender('save');
+    openTcChan();
+    ownerRestoreShow(id);
+  }
+  if(window.openConfirmModal){
+    openConfirmModal('Switch to "'+name+'"? Your current project is auto-saved.',
+      doSwitch,null,'Switch now','primary');
+  } else {
+    doSwitch();
+  }
 }
 
 function deleteProject(id){

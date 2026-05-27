@@ -1,8 +1,8 @@
 {
   "permissions": {
+    "defaultMode": "bypassPermissions",
     "allow": [
-      "Bash(node --check \"/Users/wannesvandendriessche/Desktop/Projects W/Claude Code projects/Cueflow/cueflow_v18.html\")",
-      "Bash(python3 -c ' *)"
+      "Bash(*)"
     ]
   }
 }
