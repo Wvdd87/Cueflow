@@ -244,6 +244,24 @@ input, select, textarea { font-family: inherit; }
 .tcs-btn-outline { background:none; border:1px solid var(--hair2); color:var(--txt-mid); font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:5px 10px; cursor:pointer; border-radius:var(--radius); }
 .tcs-btn-outline:hover { border-color:var(--hair3); color:var(--txt-hi); }
 .tcs-shared { padding:0 20px; }
+/* Outer tabs (TIMECODE / SHOW SETTINGS) — slightly more prominent */
+.tcs-outer-tabs { background:var(--surface2); border-bottom:2px solid var(--hair2); }
+.tcs-outer-tab { flex:1; padding:13px 0; background:none; border:none; border-bottom:3px solid transparent; font-family:var(--cond); font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; transition:color .12s,border-color .12s; margin-bottom:-2px; }
+.tcs-outer-tab.active { color:var(--amber); border-bottom-color:var(--amber); }
+.tcs-outer-tab:not(.active):hover { color:var(--txt-hi); }
+/* Show settings section body */
+.tcs-show-body { padding:16px 20px 4px; display:flex; flex-direction:column; gap:0; }
+.tcs-show-toggle-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 0; border-bottom:1px solid var(--hair); }
+.tcs-show-toggle-row:last-child { border-bottom:none; }
+.tcs-show-toggle-info { flex:1; }
+.tcs-show-toggle-name { font-size:12px; color:var(--txt); font-weight:500; }
+.tcs-show-toggle-desc { font-size:11px; color:var(--txt-mid); margin-top:2px; }
+.tcs-show-toggle { position:relative; width:36px; height:20px; flex-shrink:0; cursor:pointer; }
+.tcs-show-toggle input { opacity:0; width:0; height:0; position:absolute; }
+.tcs-show-toggle-slider { position:absolute; cursor:pointer; inset:0; background:var(--hair2); border-radius:10px; transition:.2s; }
+.tcs-show-toggle-slider::before { content:''; position:absolute; height:14px; width:14px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.2s; }
+.tcs-show-toggle input:checked + .tcs-show-toggle-slider { background:var(--amber); }
+.tcs-show-toggle input:checked + .tcs-show-toggle-slider::before { transform:translateX(16px); }
 .tcs-checks { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
 .tcs-check-row { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--txt); cursor:pointer; }
 .tcs-check-row input[type=checkbox] { width:15px; height:15px; accent-color:var(--amber); cursor:pointer; }
@@ -298,12 +316,8 @@ button.et-item:hover { color: var(--txt-hi); background: var(--surface2); }
 .et-item.et-online { border-right: none; border-left: 1px solid var(--hair); }
 #edit-topbar .save-indicator { padding: 0 14px; border-right: 1px solid var(--hair); border-left: none; display: flex; align-items: center; }
 
-/* Live mode: hide edit chrome — live-sb spans full width */
+/* Live mode: hide edit-topbar only — sidebar stays visible */
 body.mode-live #edit-topbar { display: none; }
-body.mode-live #cf-sidebar { display: none; }
-/* Panel: hidden at width:0 by default; when open in live mode, float as overlay */
-body.mode-live #cf-panel { width: 0 !important; overflow: hidden; }
-body.mode-live #cf-panel.open { display: flex; position: absolute; left: 0; top: 0; height: 100%; z-index: 600; width: 260px !important; box-shadow: 4px 0 24px rgba(0,0,0,.6); overflow: visible; }
 
 /* Clickable TC cell in live status bar */
 #live-tc-sb-cell { cursor: pointer; transition: background .12s; }
@@ -4992,7 +5006,42 @@ function switchTCTab(tab){
   else if(tab==='mtc') tcsConnectMIDI();
 }
 
-function openSettingsModal(){
+var _settTab='tc';
+function switchSettTab(tab){
+  _settTab=tab;
+  const isTc=tab==='tc';
+  document.getElementById('sett-tab-tc').classList.toggle('active',isTc);
+  document.getElementById('sett-tab-show').classList.toggle('active',!isTc);
+  document.getElementById('sett-tc-section').style.display=isTc?'':'none';
+  document.getElementById('sett-show-section').style.display=isTc?'none':'';
+  // Status line only relevant for TC
+  const sl=document.getElementById('tcs-status-line');
+  if(sl) sl.style.display=isTc?'':'none';
+  if(isTc){
+    startSettingsTCReadout();
+  } else {
+    stopSettingsTCReadout();
+    _populateShowSettings();
+  }
+}
+
+function _populateShowSettings(){
+  document.getElementById('pset-proj-name').value=state.name||'';
+  const fpsEl=document.getElementById('pset-fps');
+  if(fpsEl){
+    const map={'23.976':23.976,'24':24,'25':25,'29.97':29.97,'30':30};
+    let bestOpt='25';
+    for(const [key,val] of Object.entries(map)){
+      if(Math.abs(val-state.fps)<0.01){bestOpt=key;break;}
+    }
+    fpsEl.value=bestOpt;
+  }
+  document.getElementById('pset-cue-flash').checked=state.cueFlash!==false;
+  document.getElementById('pset-show-clock').checked=!!state.showClock;
+}
+
+function openSettingsModal(tab){
+  _settTab=tab||'tc';
   _tcsTab=state.tcSource==='ltc'?'ltc':'mtc';
   // Populate shared controls
   document.getElementById('settings-tc-offset').value=state.tcOffset||0;
@@ -5006,9 +5055,19 @@ function openSettingsModal(){
   document.getElementById('tcs-mtc-panel').style.display=_tcsTab==='mtc'?'':'none';
   if(_tcsTab==='ltc') refreshLTCDevices();
   else tcsConnectMIDI();
-  // Update fps display
-  _tcsUpdateFpsDisplay();
-  startSettingsTCReadout();
+  // Outer tab init
+  const isTc=_settTab==='tc';
+  document.getElementById('sett-tab-tc').classList.toggle('active',isTc);
+  document.getElementById('sett-tab-show').classList.toggle('active',!isTc);
+  document.getElementById('sett-tc-section').style.display=isTc?'':'none';
+  document.getElementById('sett-show-section').style.display=isTc?'none':'';
+  const sl=document.getElementById('tcs-status-line');if(sl)sl.style.display=isTc?'':'none';
+  if(isTc){
+    _tcsUpdateFpsDisplay();
+    startSettingsTCReadout();
+  } else {
+    _populateShowSettings();
+  }
   document.getElementById('settings-modal').classList.add('show');
 }
 
@@ -5223,21 +5282,9 @@ function _tcsUpdateReadout(){
   }
 }
 
-// ── PROJECT SETTINGS MODAL ──
+// ── PROJECT SETTINGS MODAL (now integrated into settings-modal show tab) ──
 function openProjectSettingsModal(){
-  document.getElementById('pset-proj-name').value=state.name||'';
-  const fpsEl=document.getElementById('pset-fps');
-  if(fpsEl){
-    const map={'23.976':23.976,'24':24,'25':25,'29.97':29.97,'30':30};
-    let bestOpt='25';
-    for(const [key,val] of Object.entries(map)){
-      if(Math.abs(val-state.fps)<0.01){bestOpt=key;break;}
-    }
-    fpsEl.value=bestOpt;
-  }
-  document.getElementById('pset-cue-flash').checked=state.cueFlash!==false;
-  document.getElementById('pset-show-clock').checked=!!state.showClock;
-  document.getElementById('project-settings-modal').classList.add('show');
+  openSettingsModal('show');
 }
 function saveProjectSettings(){
   const newName=document.getElementById('pset-proj-name').value.trim();
@@ -5258,7 +5305,7 @@ function saveProjectSettings(){
   redrawActive();
   // Update clock display in live view
   _updateLiveClock();
-  closeModal('project-settings-modal');
+  closeModal('settings-modal');
 }
 
 // ── NOTES EDITOR POP-UP ──
@@ -7910,183 +7957,190 @@ init();
       <span id="tcs-status-text">No signal</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <div class="tcs-title" id="settings-modal-title">TIMECODE SOURCE</div>
+      <div class="tcs-title" id="settings-modal-title">SETTINGS</div>
       <button class="tcs-close" onclick="stopSettingsTCReadout();closeModal('settings-modal')" aria-label="Close">✕</button>
     </div>
   </div>
-  <!-- Tab bar -->
-  <div class="tcs-tabs">
-    <button class="tcs-tab active" id="tcs-tab-ltc" onclick="switchTCTab('ltc')">LTC</button>
-    <button class="tcs-tab" id="tcs-tab-mtc" onclick="switchTCTab('mtc')">MTC</button>
+  <!-- Outer tabs: TIMECODE | SHOW SETTINGS -->
+  <div class="tcs-tabs tcs-outer-tabs" style="display:flex;">
+    <button class="tcs-outer-tab active" id="sett-tab-tc" onclick="switchSettTab('tc')">TIMECODE</button>
+    <button class="tcs-outer-tab" id="sett-tab-show" onclick="switchSettTab('show')">SHOW SETTINGS</button>
   </div>
-  <!-- LTC panel -->
-  <div id="tcs-ltc-panel">
-    <div class="tcs-row">
-      <div class="tcs-field-group" style="flex:1;min-width:0;">
-        <div class="tcs-field-label">INPUT DEVICE</div>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <select class="tcs-select" id="settings-ltc-device" style="flex:1;" onchange="initLTC(this.value)"></select>
-          <button class="tcs-icon-btn" onclick="refreshLTCDevices()" title="Refresh">↺</button>
+
+  <!-- ══ TIMECODE SECTION ══ -->
+  <div id="sett-tc-section">
+    <!-- Inner tabs: LTC | MTC -->
+    <div class="tcs-tabs">
+      <button class="tcs-tab active" id="tcs-tab-ltc" onclick="switchTCTab('ltc')">LTC</button>
+      <button class="tcs-tab" id="tcs-tab-mtc" onclick="switchTCTab('mtc')">MTC</button>
+    </div>
+    <!-- LTC panel -->
+    <div id="tcs-ltc-panel">
+      <div class="tcs-row">
+        <div class="tcs-field-group" style="flex:1;min-width:0;">
+          <div class="tcs-field-label">INPUT DEVICE</div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select class="tcs-select" id="settings-ltc-device" style="flex:1;" onchange="initLTC(this.value)"></select>
+            <button class="tcs-icon-btn" onclick="refreshLTCDevices()" title="Refresh">↺</button>
+          </div>
+        </div>
+        <div class="tcs-field-group" style="width:160px;flex-shrink:0;">
+          <div class="tcs-field-label">FRAME RATE</div>
+          <div class="tcs-fps-display" id="tcs-fps-display">
+            <span id="tcs-fps-val">—</span>
+            <span class="tcs-fps-badge" id="tcs-fps-badge"></span>
+          </div>
         </div>
       </div>
-      <div class="tcs-field-group" style="width:160px;flex-shrink:0;">
-        <div class="tcs-field-label">FRAME RATE</div>
-        <div class="tcs-fps-display" id="tcs-fps-display">
-          <span id="tcs-fps-val">—</span>
-          <span class="tcs-fps-badge" id="tcs-fps-badge"></span>
+      <!-- Status card -->
+      <div class="tcs-card" id="tcs-ltc-card">
+        <div class="tcs-card-status">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="tcs-card-pip" id="tcs-ltc-pip"></span>
+            <span class="tcs-card-state" id="tcs-ltc-state">WAITING</span>
+          </div>
+          <span class="tcs-drift" id="tcs-ltc-drift"></span>
+        </div>
+        <div class="tcs-tc-display">
+          <span class="tcs-tc-val" id="tcs-ltc-tc">--:--:--:--</span>
+          <span class="tcs-tc-lbl">INCOMING</span>
+        </div>
+        <canvas class="tcs-waveform" id="tcs-ltc-waveform" height="28"></canvas>
+      </div>
+      <!-- Hidden compat: level fill for old readout code -->
+      <div style="display:none;"><div id="ltc-level-fill"></div></div>
+    </div>
+    <!-- MTC panel -->
+    <div id="tcs-mtc-panel" style="display:none;">
+      <div class="tcs-row">
+        <div class="tcs-field-group" style="flex:1;">
+          <div class="tcs-field-label">MIDI DEVICE</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="tcs-midi-status" id="tcs-midi-status-dot"></div>
+            <span id="tcs-midi-device-name" style="flex:1;font-size:11px;color:var(--txt-mid);">Not connected</span>
+            <button class="tcs-btn-outline" id="tcs-midi-connect-btn" onclick="tcsConnectMIDI()">Connect</button>
+          </div>
+        </div>
+        <div class="tcs-field-group" style="width:160px;flex-shrink:0;">
+          <div class="tcs-field-label">FRAME RATE</div>
+          <div class="tcs-fps-display" id="tcs-mtc-fps-display">
+            <span id="tcs-mtc-fps-val">—</span>
+            <span class="tcs-fps-badge" id="tcs-mtc-fps-badge"></span>
+          </div>
         </div>
       </div>
-    </div>
-    <!-- Status card -->
-    <div class="tcs-card" id="tcs-ltc-card">
-      <div class="tcs-card-status">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span class="tcs-card-pip" id="tcs-ltc-pip"></span>
-          <span class="tcs-card-state" id="tcs-ltc-state">WAITING</span>
+      <!-- Status card -->
+      <div class="tcs-card" id="tcs-mtc-card">
+        <div class="tcs-card-status">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="tcs-card-pip" id="tcs-mtc-pip"></span>
+            <span class="tcs-card-state" id="tcs-mtc-state">WAITING</span>
+          </div>
+          <span class="tcs-drift" id="tcs-mtc-drift"></span>
         </div>
-        <span class="tcs-drift" id="tcs-ltc-drift"></span>
-      </div>
-      <div class="tcs-tc-display">
-        <span class="tcs-tc-val" id="tcs-ltc-tc">--:--:--:--</span>
-        <span class="tcs-tc-lbl">INCOMING</span>
-      </div>
-      <canvas class="tcs-waveform" id="tcs-ltc-waveform" height="28"></canvas>
-    </div>
-    <!-- Hidden compat: level fill for old readout code -->
-    <div style="display:none;"><div id="ltc-level-fill"></div></div>
-  </div>
-  <!-- MTC panel -->
-  <div id="tcs-mtc-panel" style="display:none;">
-    <div class="tcs-row">
-      <div class="tcs-field-group" style="flex:1;">
-        <div class="tcs-field-label">MIDI DEVICE</div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div class="tcs-midi-status" id="tcs-midi-status-dot"></div>
-          <span id="tcs-midi-device-name" style="flex:1;font-size:11px;color:var(--txt-mid);">Not connected</span>
-          <button class="tcs-btn-outline" id="tcs-midi-connect-btn" onclick="tcsConnectMIDI()">Connect</button>
+        <div class="tcs-tc-display">
+          <span class="tcs-tc-val" id="tcs-mtc-tc">--:--:--:--</span>
+          <span class="tcs-tc-lbl">INCOMING</span>
         </div>
+        <div style="height:28px;"></div>
       </div>
-      <div class="tcs-field-group" style="width:160px;flex-shrink:0;">
-        <div class="tcs-field-label">FRAME RATE</div>
-        <div class="tcs-fps-display" id="tcs-mtc-fps-display">
-          <span id="tcs-mtc-fps-val">—</span>
-          <span class="tcs-fps-badge" id="tcs-mtc-fps-badge"></span>
+    </div>
+    <!-- Shared TC controls -->
+    <div class="tcs-shared">
+      <div class="tcs-row" style="gap:12px;">
+        <div class="tcs-field-group" style="flex:1;">
+          <div class="tcs-field-label">OFFSET <span style="font-weight:400;color:var(--txt-low);text-transform:none;letter-spacing:0;">— added to incoming TC</span></div>
+          <input type="number" class="tcs-select" id="settings-tc-offset" value="0" min="-9999" max="9999" placeholder="0" style="width:100%;font-family:var(--mono);">
+          <div style="font-size:10px;color:var(--txt-low);margin-top:3px;">frames (positive = TC arrives late)</div>
+        </div>
+        <div class="tcs-field-group" style="flex:1;">
+          <div class="tcs-field-label">ON SIGNAL LOSS</div>
+          <select class="tcs-select" id="settings-signal-loss">
+            <option value="freerun">Free-run from last</option>
+            <option value="stop">Stop immediately</option>
+          </select>
         </div>
       </div>
+      <div class="tcs-checks">
+        <label class="tcs-check-row">
+          <input type="checkbox" id="tcs-auto-reconnect">
+          <span>Auto-reconnect</span>
+        </label>
+        <label class="tcs-check-row">
+          <input type="checkbox" id="tcs-open-modal-before-live">
+          <span>Open modal before live <span style="color:var(--txt-low);font-size:10px;">(if no TC connected)</span></span>
+        </label>
+      </div>
     </div>
-    <!-- Status card -->
-    <div class="tcs-card" id="tcs-mtc-card">
-      <div class="tcs-card-status">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span class="tcs-card-pip" id="tcs-mtc-pip"></span>
-          <span class="tcs-card-state" id="tcs-mtc-state">WAITING</span>
+    <!-- TC Footer -->
+    <div class="tcs-footer">
+      <div class="tcs-footer-status">
+        <span class="tcs-status-pip" id="tcs-footer-pip"></span>
+        <span id="tcs-footer-text">—</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="tcs-btn-cancel" onclick="stopSettingsTCReadout();closeModal('settings-modal')">CANCEL</button>
+        <button class="tcs-btn-connect" id="tcs-connect-btn" onclick="tcsConnect()">CONNECT</button>
+      </div>
+    </div>
+  </div><!-- /sett-tc-section -->
+
+  <!-- ══ SHOW SETTINGS SECTION ══ -->
+  <div id="sett-show-section" style="display:none;">
+    <div class="tcs-show-body">
+      <!-- Project name + FPS row -->
+      <div class="tcs-row" style="margin-bottom:16px;">
+        <div class="tcs-field-group" style="flex:1;">
+          <div class="tcs-field-label">PROJECT NAME</div>
+          <input type="text" class="tcs-select" id="pset-proj-name" placeholder="Project name" style="font-size:13px;">
         </div>
-        <span class="tcs-drift" id="tcs-mtc-drift"></span>
+        <div class="tcs-field-group" style="width:170px;flex-shrink:0;">
+          <div class="tcs-field-label">FRAMES PER SECOND</div>
+          <select class="tcs-select" id="pset-fps">
+            <option value="23.976">23.976 fps</option>
+            <option value="24">24 fps</option>
+            <option value="25">25 fps</option>
+            <option value="29.97">29.97 fps</option>
+            <option value="29.97df">29.97 DF (drop)</option>
+            <option value="30">30 fps</option>
+          </select>
+        </div>
       </div>
-      <div class="tcs-tc-display">
-        <span class="tcs-tc-val" id="tcs-mtc-tc">--:--:--:--</span>
-        <span class="tcs-tc-lbl">INCOMING</span>
+      <!-- Toggle rows -->
+      <div class="tcs-show-toggle-row">
+        <div class="tcs-show-toggle-info">
+          <div class="tcs-show-toggle-name">Cue trigger flash</div>
+          <div class="tcs-show-toggle-desc">Brief highlight when a cue fires in live view</div>
+        </div>
+        <label class="tcs-show-toggle">
+          <input type="checkbox" id="pset-cue-flash">
+          <span class="tcs-show-toggle-slider"></span>
+        </label>
       </div>
-      <div style="height:28px;"></div>
-    </div>
-  </div>
-  <!-- Shared controls -->
-  <div class="tcs-shared">
-    <div class="tcs-row" style="gap:12px;">
-      <div class="tcs-field-group" style="flex:1;">
-        <div class="tcs-field-label">OFFSET <span style="font-weight:400;color:var(--txt-low);text-transform:none;letter-spacing:0;">— added to incoming TC</span></div>
-        <input type="number" class="tcs-select" id="settings-tc-offset" value="0" min="-9999" max="9999" placeholder="0" style="width:100%;font-family:var(--mono);">
-        <div style="font-size:10px;color:var(--txt-low);margin-top:3px;">frames (positive = TC arrives late)</div>
-      </div>
-      <div class="tcs-field-group" style="flex:1;">
-        <div class="tcs-field-label">ON SIGNAL LOSS</div>
-        <select class="tcs-select" id="settings-signal-loss">
-          <option value="freerun">Free-run from last</option>
-          <option value="stop">Stop immediately</option>
-        </select>
+      <div class="tcs-show-toggle-row">
+        <div class="tcs-show-toggle-info">
+          <div class="tcs-show-toggle-name">Clock display</div>
+          <div class="tcs-show-toggle-desc">Show wall clock with seconds alongside TC in live view</div>
+        </div>
+        <label class="tcs-show-toggle">
+          <input type="checkbox" id="pset-show-clock">
+          <span class="tcs-show-toggle-slider"></span>
+        </label>
       </div>
     </div>
-    <div class="tcs-checks">
-      <label class="tcs-check-row">
-        <input type="checkbox" id="tcs-auto-reconnect">
-        <span>Auto-reconnect</span>
-      </label>
-      <label class="tcs-check-row">
-        <input type="checkbox" id="tcs-open-modal-before-live">
-        <span>Open modal before live <span style="color:var(--txt-low);font-size:10px;">(if no TC connected)</span></span>
-      </label>
+    <!-- Show Footer -->
+    <div class="tcs-footer">
+      <div></div>
+      <div style="display:flex;gap:8px;">
+        <button class="tcs-btn-cancel" onclick="closeModal('settings-modal')">CANCEL</button>
+        <button class="tcs-btn-connect" onclick="saveProjectSettings()">SAVE</button>
+      </div>
     </div>
-  </div>
-  <!-- Footer -->
-  <div class="tcs-footer">
-    <div class="tcs-footer-status">
-      <span class="tcs-status-pip" id="tcs-footer-pip"></span>
-      <span id="tcs-footer-text">—</span>
-    </div>
-    <div style="display:flex;gap:8px;">
-      <button class="tcs-btn-cancel" onclick="stopSettingsTCReadout();closeModal('settings-modal')">CANCEL</button>
-      <button class="tcs-btn-connect" id="tcs-connect-btn" onclick="tcsConnect()">CONNECT</button>
-    </div>
-  </div>
+  </div><!-- /sett-show-section -->
+
 </div>
 </div>
 
-<!-- PROJECT SETTINGS MODAL -->
-<div id="project-settings-modal" class="modal-bg" role="dialog" aria-modal="true" aria-labelledby="pset-modal-title">
-<div class="modal-box pset-box">
-  <div class="pset-header">
-    <div class="pset-title" id="pset-modal-title">PROJECT SETTINGS</div>
-    <button class="tcs-close" onclick="closeModal('project-settings-modal')" aria-label="Close">✕</button>
-  </div>
-  <div class="pset-body">
-    <div class="pset-row">
-      <div class="pset-label">Project Name</div>
-      <input type="text" class="pset-input" id="pset-proj-name" placeholder="Project name">
-    </div>
-    <div class="pset-row">
-      <div class="pset-label">Frames per Second</div>
-      <select class="pset-select" id="pset-fps">
-        <option value="23.976">23.976 fps</option>
-        <option value="24">24 fps</option>
-        <option value="25">25 fps</option>
-        <option value="29.97">29.97 fps</option>
-        <option value="29.97df">29.97 DF (drop-frame)</option>
-        <option value="30">30 fps</option>
-      </select>
-    </div>
-    <div class="pset-row">
-      <div class="pset-label">Cue Trigger Flash</div>
-      <div class="pset-toggle-row">
-        <div class="pset-toggle-info">
-          <div class="pset-toggle-name">Flash on cue trigger</div>
-          <div class="pset-toggle-desc">Brief highlight when a cue fires in live view</div>
-        </div>
-        <label class="pset-toggle">
-          <input type="checkbox" id="pset-cue-flash">
-          <span class="pset-toggle-slider"></span>
-        </label>
-      </div>
-    </div>
-    <div class="pset-row">
-      <div class="pset-label">Clock Display</div>
-      <div class="pset-toggle-row">
-        <div class="pset-toggle-info">
-          <div class="pset-toggle-name">Show wall clock in live view</div>
-          <div class="pset-toggle-desc">Displays local time with seconds alongside TC</div>
-        </div>
-        <label class="pset-toggle">
-          <input type="checkbox" id="pset-show-clock">
-          <span class="pset-toggle-slider"></span>
-        </label>
-      </div>
-    </div>
-  </div>
-  <div class="pset-footer">
-    <button class="tcs-btn-cancel" onclick="closeModal('project-settings-modal')">CANCEL</button>
-    <button class="tcs-btn-connect" onclick="saveProjectSettings()">SAVE</button>
-  </div>
-</div>
-</div>
 
 <!-- HELP MODAL -->
 <div id="help-modal" class="modal-bg" role="dialog" aria-modal="true" aria-labelledby="help-modal-title"><div class="modal-box" style="max-width:560px;max-height:80vh;display:flex;flex-direction:column;">
