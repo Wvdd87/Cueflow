@@ -2283,14 +2283,20 @@ function switchMode(mode){
 
   const exitBanner=document.getElementById('exit-live-banner');
   if(exitBanner)exitBanner.style.display='none';
-  // ── Sidebar: move into live-body so live-sb spans full width ──
+  // ── Sidebar: move into live-body so live-sb spans full width (owner/editor only) ──
   const _sb=document.getElementById('cf-sidebar');
-  if(mode==='live'){
-    const _lb=document.querySelector('.live-body');
-    if(_sb&&_lb&&_sb.parentNode!==_lb) _lb.insertBefore(_sb,_lb.firstChild);
-  } else {
-    const _cfb=document.getElementById('cf-body');
-    if(_sb&&_cfb&&_sb.parentNode!==_cfb) _cfb.insertBefore(_sb,_cfb.firstChild);
+  const _isEditorRole=window.CF&&(CF.role==='editor'||CF.role==='track-editor');
+  const _showSidebar=!window.CF||CF.isOwner||_isEditorRole;
+  if(_sb) _sb.style.display=_showSidebar?'':'none';
+  if(_showSidebar&&_sb){
+    if(mode==='live'){
+      // Target the owner's live-screen .live-body specifically (not the viewer screen's)
+      const _lb=document.querySelector('#live-screen .live-body');
+      if(_lb&&_sb.parentNode!==_lb) _lb.insertBefore(_sb,_lb.firstChild);
+    } else {
+      const _cfb=document.getElementById('cf-body');
+      if(_cfb&&_sb.parentNode!==_cfb) _cfb.insertBefore(_sb,_cfb.firstChild);
+    }
   }
 
   if(mode==='live'){
