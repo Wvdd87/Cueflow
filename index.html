@@ -196,6 +196,120 @@ input, select, textarea { font-family: inherit; }
 .save-indicator { font-family: var(--cond); font-size: 10px; font-weight: 700; color: var(--txt-low); letter-spacing: .1em; text-transform: uppercase; opacity: 0; transition: opacity .5s; white-space: nowrap; padding: 0 10px; }
 .save-indicator.show { opacity: 1; }
 
+/* ── TC Settings Modal ── */
+.tcs-box { max-width:520px; padding:0; overflow:hidden; background:var(--surface); border:1px solid var(--hair2); }
+.tcs-header { padding:20px 20px 12px; border-bottom:1px solid var(--hair); }
+.tcs-status-line { display:flex; align-items:center; gap:7px; margin-bottom:8px; }
+.tcs-status-pip { width:8px; height:8px; border-radius:50%; background:var(--txt-low); flex-shrink:0; }
+.tcs-status-pip.ok { background:var(--green); box-shadow:0 0 8px rgba(24,217,134,.6); }
+.tcs-status-pip.warn { background:var(--amber); box-shadow:0 0 8px rgba(240,168,56,.6); }
+#tcs-status-text { font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-low); }
+#tcs-status-text.ok { color:var(--green); }
+#tcs-status-text.warn { color:var(--amber); }
+.tcs-title { font-family:var(--cond); font-size:15px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-hi); flex:1; }
+.tcs-close { background:none; border:1px solid var(--hair2); color:var(--txt-mid); width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; border-radius:var(--radius); }
+.tcs-close:hover { background:var(--surface2); color:var(--txt-hi); }
+.tcs-tabs { display:flex; border-bottom:1px solid var(--hair); }
+.tcs-tab { flex:1; padding:12px 0; background:none; border:none; border-bottom:2px solid transparent; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; transition:color .12s,border-color .12s; }
+.tcs-tab.active { color:var(--amber); border-bottom-color:var(--amber); }
+.tcs-tab:not(.active):hover { color:var(--txt-hi); }
+.tcs-ltc-panel, #tcs-ltc-panel, #tcs-mtc-panel { padding:16px 20px 0; }
+.tcs-row { display:flex; gap:16px; margin-bottom:12px; }
+.tcs-field-group { display:flex; flex-direction:column; gap:5px; }
+.tcs-field-label { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-low); }
+.tcs-select { background:var(--surface2); border:1px solid var(--hair2); color:var(--txt); font-family:inherit; font-size:12px; padding:7px 10px; outline:none; border-radius:var(--radius); width:100%; }
+.tcs-select:focus { border-color:var(--amber); }
+.tcs-icon-btn { background:var(--surface2); border:1px solid var(--hair2); color:var(--txt-mid); width:32px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; border-radius:var(--radius); flex-shrink:0; }
+.tcs-icon-btn:hover { color:var(--txt-hi); border-color:var(--hair3); }
+.tcs-fps-display { display:flex; align-items:center; gap:7px; padding:7px 10px; background:var(--surface2); border:1px solid var(--hair2); border-radius:var(--radius); min-height:34px; }
+.tcs-fps-display span:first-child { font-family:var(--mono); font-size:13px; font-weight:600; color:var(--txt-hi); }
+.tcs-fps-badge { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:2px 6px; border-radius:2px; }
+.tcs-fps-badge.ok { background:rgba(24,217,134,.15); color:var(--green); border:1px solid rgba(24,217,134,.3); }
+.tcs-fps-badge.warn { background:var(--amber-bg); color:var(--amber); border:1px solid rgba(240,168,56,.3); }
+.tcs-card { background:var(--canvas); border:1px solid var(--hair2); border-radius:var(--radius); padding:12px 14px; margin-bottom:12px; }
+.tcs-card-status { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.tcs-card-pip { width:8px; height:8px; border-radius:50%; background:var(--txt-low); flex-shrink:0; }
+.tcs-card-pip.ok { background:var(--green); box-shadow:0 0 8px rgba(24,217,134,.6); }
+.tcs-card-pip.warn { background:var(--amber); box-shadow:0 0 8px rgba(240,168,56,.5); }
+.tcs-card-state { font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--green); }
+.tcs-card-state.warn { color:var(--amber); }
+.tcs-card-state.idle { color:var(--txt-low); }
+.tcs-drift { font-family:var(--mono); font-size:10px; color:var(--txt-low); }
+.tcs-tc-display { display:flex; align-items:baseline; gap:10px; margin-bottom:6px; }
+.tcs-tc-val { font-family:var(--mono); font-size:36px; font-weight:700; color:var(--txt-hi); letter-spacing:-.01em; line-height:1; }
+.tcs-tc-lbl { font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-low); }
+.tcs-waveform { width:100%; display:block; background:transparent; }
+.tcs-midi-status { width:8px; height:8px; border-radius:50%; background:var(--txt-low); flex-shrink:0; }
+.tcs-midi-status.ok { background:var(--green); }
+.tcs-btn-outline { background:none; border:1px solid var(--hair2); color:var(--txt-mid); font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:5px 10px; cursor:pointer; border-radius:var(--radius); }
+.tcs-btn-outline:hover { border-color:var(--hair3); color:var(--txt-hi); }
+.tcs-shared { padding:0 20px; }
+.tcs-checks { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+.tcs-check-row { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--txt); cursor:pointer; }
+.tcs-check-row input[type=checkbox] { width:15px; height:15px; accent-color:var(--amber); cursor:pointer; }
+.tcs-footer { display:flex; align-items:center; justify-content:space-between; padding:12px 20px; background:var(--surface2); border-top:1px solid var(--hair); }
+.tcs-footer-status { display:flex; align-items:center; gap:7px; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); }
+.tcs-btn-cancel { background:none; border:1px solid var(--hair2); color:var(--txt-mid); font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:8px 16px; cursor:pointer; border-radius:var(--radius); }
+.tcs-btn-cancel:hover { color:var(--txt-hi); border-color:var(--hair3); }
+.tcs-btn-connect { background:var(--green); color:#000; border:none; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:8px 20px; cursor:pointer; border-radius:var(--radius); }
+.tcs-btn-connect:hover { background:#20f09a; }
+
+/* ── Project Settings Modal ── */
+.pset-box { max-width:400px; padding:0; overflow:hidden; background:var(--surface); border:1px solid var(--hair2); }
+.pset-header { padding:20px 20px 14px; border-bottom:1px solid var(--hair); display:flex; align-items:center; justify-content:space-between; }
+.pset-title { font-family:var(--cond); font-size:15px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-hi); }
+.pset-body { padding:16px 20px; display:flex; flex-direction:column; gap:14px; }
+.pset-row { display:flex; flex-direction:column; gap:5px; }
+.pset-label { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-low); }
+.pset-input { background:var(--surface2); border:1px solid var(--hair2); color:var(--txt); font-family:inherit; font-size:13px; padding:8px 10px; outline:none; border-radius:var(--radius); width:100%; }
+.pset-input:focus { border-color:var(--amber); }
+.pset-select { background:var(--surface2); border:1px solid var(--hair2); color:var(--txt); font-family:inherit; font-size:12px; padding:7px 10px; outline:none; border-radius:var(--radius); width:100%; }
+.pset-select:focus { border-color:var(--amber); }
+.pset-toggle-row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.pset-toggle-info { flex:1; }
+.pset-toggle-name { font-size:12px; color:var(--txt); font-weight:500; }
+.pset-toggle-desc { font-size:11px; color:var(--txt-mid); margin-top:2px; }
+.pset-toggle { position:relative; width:36px; height:20px; flex-shrink:0; }
+.pset-toggle input { opacity:0; width:0; height:0; }
+.pset-toggle-slider { position:absolute; cursor:pointer; inset:0; background:var(--hair2); border-radius:10px; transition:.2s; }
+.pset-toggle-slider::before { content:''; position:absolute; height:14px; width:14px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.2s; }
+.pset-toggle input:checked + .pset-toggle-slider { background:var(--amber); }
+.pset-toggle input:checked + .pset-toggle-slider::before { transform:translateX(16px); }
+.pset-footer { padding:12px 20px; background:var(--surface2); border-top:1px solid var(--hair); display:flex; justify-content:flex-end; gap:8px; }
+
+/* ── Edit mode global topbar (full-width, above sidebar) ── */
+#edit-topbar {
+  flex-shrink: 0; height: 36px;
+  display: flex; align-items: stretch; flex-direction: row;
+  background: var(--surface); border-bottom: 1px solid var(--hair);
+  z-index: 400;
+}
+.et-item {
+  display: flex; align-items: center; gap: 7px;
+  padding: 0 16px; border: none; background: none;
+  font-family: var(--cond); font-size: 10px; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--txt-mid); white-space: nowrap;
+  border-right: 1px solid var(--hair); height: 100%;
+  transition: color .12s, background .12s; cursor: default;
+}
+button.et-item { cursor: pointer; }
+button.et-item:hover { color: var(--txt-hi); background: var(--surface2); }
+.et-item.et-online { border-right: none; border-left: 1px solid var(--hair); }
+#edit-topbar .save-indicator { padding: 0 14px; border-right: 1px solid var(--hair); border-left: none; display: flex; align-items: center; }
+
+/* Live mode: hide edit chrome — live-sb spans full width */
+body.mode-live #edit-topbar { display: none; }
+body.mode-live #cf-sidebar { display: none; }
+/* Panel: hidden at width:0 by default; when open in live mode, float as overlay */
+body.mode-live #cf-panel { width: 0 !important; overflow: hidden; }
+body.mode-live #cf-panel.open { display: flex; position: absolute; left: 0; top: 0; height: 100%; z-index: 600; width: 260px !important; box-shadow: 4px 0 24px rgba(0,0,0,.6); overflow: visible; }
+
+/* Clickable TC cell in live status bar */
+#live-tc-sb-cell { cursor: pointer; transition: background .12s; }
+#live-tc-sb-cell:hover { background: var(--surface2); }
+.live-tc-src { font-size: 9px; color: var(--txt-low); letter-spacing: .1em; text-transform: uppercase; font-family: var(--cond); font-weight: 700; }
+
 /* TC pill */
 .tc-pill { display: flex; align-items: center; gap: 8px; padding: 0 14px; border-left: 1px solid var(--hair); height: 100%; font-family: var(--cond); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--txt-mid); }
 .tc-lbl { font-size: 10px; font-weight: 600; color: var(--txt-mid); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
@@ -299,7 +413,7 @@ input, select, textarea { font-family: inherit; }
 .sbp-add { width: 100%; padding: 6px; background: none; border: 1px dashed var(--hair2); color: var(--txt-low); font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; margin-top: 4px; }
 .sbp-add:hover { border-color: var(--amber); color: var(--amber); }
 .sbp-swatches { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
-.sbp-swatch { width: 14px; height: 14px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+.sbp-swatch { width: 14px; height: 14px; border-radius: 0%; cursor: pointer; border: 2px solid transparent; }
 .sbp-swatch.sel { border-color: #fff; }
 
 
@@ -481,14 +595,14 @@ input, select, textarea { font-family: inherit; }
 
 /* ═══════════════════════════════════════════
    CUE LIST TABLE
-   cols: # | BADGE+TC | CUE | DESC | TYPE | NEXT | ×
+   cols: # | TRK | TIMECODE | CUE | DESC | TYPE | NEXT | ×
    ═══════════════════════════════════════════ */
-:root { --col-tc: 148px; --col-name: 1fr; --col-desc: 1fr; --col-type: 70px; --col-next: 52px; }
+:root { --col-tc: 108px; --col-name: 1fr; --col-desc: 1fr; --col-type: 70px; --col-next: 52px; }
 #cue-list-wrap { flex: 1; overflow-y: auto; overflow-x: hidden !important; }
 .cue-list-wrap { overflow-x: hidden !important; }
 .cue-row {
   display: grid;
-  grid-template-columns: 30px var(--col-tc,148px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px;
+  grid-template-columns: 30px 32px var(--col-tc,108px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px;
   align-items: stretch;
   border-bottom: 1px solid var(--hair);
   transition: background .08s; position: relative;
@@ -502,12 +616,8 @@ input, select, textarea { font-family: inherit; }
 .cue-row.audio-out-range .cue-field { color: var(--txt-mid) !important; }
 .cue-col-num { display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 10px; color: var(--txt-low); font-variant-numeric: tabular-nums; }
 .cue-stream-bar { width: 10px; }
-/* Badge + TC combined cell */
-.cl-badge-cell {
-  display: flex; align-items: center; gap: 5px; padding: 0 7px;
-  border-right: 1px solid var(--hair); overflow: hidden;
-}
-.cl-badge-cell .cue-field.tc { border-right: none; padding: 8px 2px; min-width: 0; flex: 1; font-size: 10.5px; }
+/* Track badge column (standalone) */
+.cue-col-badge { display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--hair); }
 /* TYPE and TO NEXT columns */
 .cl-type-cell {
   display: flex; align-items: center; justify-content: center;
@@ -541,7 +651,7 @@ input, select, textarea { font-family: inherit; }
 
 .cue-list-header {
   display: grid;
-  grid-template-columns: 30px var(--col-tc,148px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px;
+  grid-template-columns: 30px 32px var(--col-tc,108px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px;
   border-bottom: 1px solid var(--hair2); flex-shrink: 0;
   background: var(--surface); position: relative; height: 28px;
 }
@@ -553,6 +663,31 @@ input, select, textarea { font-family: inherit; }
 .cue-list-header span:last-child { border-right: none; }
 .col-resize-handle { position: absolute; top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 10; background: transparent; }
 .col-resize-handle:hover { background: var(--amber); opacity: .35; }
+
+/* ── Marker / chapter divider row (full-width, not a data grid row) ── */
+/* ── Marker rows — grid-aligned with cue rows ── */
+.chapter-list-row {
+  display: grid;
+  grid-template-columns: 30px 32px var(--col-tc,108px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px;
+  align-items: stretch; min-height: 34px;
+  border-bottom: 1px solid rgba(251,191,36,.1);
+  background: rgba(251,191,36,.03); cursor: default; position: relative;
+}
+.chapter-list-row:hover { background: rgba(251,191,36,.07); }
+.chapter-list-row.ch-sel { background: rgba(251,191,36,.1); outline: 1px solid rgba(251,191,36,.28); outline-offset: -1px; }
+/* Marker icon in TRK column — same sizing as track-glyph xs, amber tint */
+.cl-marker-badge {
+  background: rgba(251,191,36,.1) !important; color: rgba(251,191,36,.8) !important;
+  border: 1px solid rgba(251,191,36,.22) !important; font-size: 11px !important;
+}
+/* Marker name and TC — inherit .cue-field structure, amber colour override */
+.chapter-list-row .cue-field { color: rgba(251,191,36,.85); caret-color: rgba(251,191,36,.9); }
+.chapter-list-row .cue-field.tc { color: rgba(251,191,36,.6); }
+/* TYPE cell amber for MARKER rows */
+.chapter-list-row .cl-type-cell { color: rgba(251,191,36,.5); }
+/* Delete button subtle amber until hover */
+.chapter-list-row .cue-del { color: rgba(251,191,36,.28); }
+.chapter-list-row .cue-del:hover { color: var(--red); }
 
 /* ── Filter panel ── */
 .cl-filter-panel {
@@ -698,13 +833,8 @@ input, select, textarea { font-family: inherit; }
 .chapter-field { background: transparent; border: none; color: rgba(251,191,36,.85); font-size: 12px; font-weight: 700; padding: 0 6px; width: 100%; outline: none; font-family: var(--sans); caret-color: rgba(251,191,36,.9); }
 .chapter-field.tc { font-family: var(--mono); }
 .chapter-field:not(.cue-readonly):focus { background: rgba(251,191,36,.06); outline: 1px solid rgba(251,191,36,.3); }
-.chapter-list-row { display: grid; grid-template-columns: 30px var(--col-tc,148px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px; align-items: center; min-height: 32px; border-bottom: 1px solid rgba(251,191,36,.1); background: rgba(251,191,36,.025); cursor: default; }
-.chapter-list-row:hover { background: rgba(251,191,36,.06); }
-.chapter-list-row.ch-sel { background: rgba(251,191,36,.1); outline: 1px solid rgba(251,191,36,.3); }
-.chapter-tag-col { display: flex; align-items: center; justify-content: center; }
+/* chapter-list-row grid rule removed — now uses flex layout defined above */
 .chapter-tag-chevron { display: block; flex-shrink: 0; opacity: .75; }
-.chapter-list-tc { font-family: var(--mono); font-size: 11px; color: rgba(251,191,36,.75); padding: 0 6px; white-space: nowrap; cursor: text; }
-.chapter-list-name { font-size: 11px; font-weight: 700; letter-spacing: .05em; color: rgba(251,191,36,.9); padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: text; }
 .chapter-type-lbl { font-size: 9px; color: rgba(251,191,36,.4); padding: 0 6px; letter-spacing: .06em; text-transform: uppercase; }
 
 /* Popup modes */
@@ -936,6 +1066,8 @@ input, select, textarea { font-family: inherit; }
 .live-seq-head .breadcrumb .cur { color: var(--txt-hi); }
 .live-seq-head .seq-steps { display: flex; gap: 4px; margin-left: auto; }
 .live-seq-head.grow { flex: 1; border-right: none; }
+/* When seq-head sits inside the live status bar, suppress its standalone styling */
+.live-sb .live-seq-head { border-bottom: none; padding: 0 16px; background: transparent; }
 .live-seq-step { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 10px; font-weight: 700; background: var(--surface2); border: 1px solid var(--hair2); color: var(--txt-low); cursor: default; letter-spacing: 0; }
 .live-seq-step.done { background: var(--hair); color: var(--txt-mid); }
 .live-seq-step.live { background: var(--red-bg); border-color: var(--red); color: var(--red); }
@@ -1259,7 +1391,21 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   </div>
 </div>
 
-<div id="cf-root" style="display:flex;height:100%;overflow:hidden;">
+<div id="cf-root" style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+<!-- ── Edit mode full-width topbar ── -->
+<div id="edit-topbar">
+  <button class="et-item" id="et-project-btn" onclick="sbOpen('save')" title="Project menu">Project</button>
+  <button class="et-item" id="et-playlist-btn" onclick="sbOpen('playlists')" title="Playlist menu">Playlist</button>
+  <div style="flex:1;min-width:0;"></div>
+  <span class="save-indicator" id="save-indicator">Saved</span>
+  <div class="et-item et-online" id="et-online-cell">
+    <span class="pip idle" id="et-online-dot"></span>
+    <span id="et-online-lbl">Local</span>
+  </div>
+  <button class="live-toggle" id="live-toggle" onclick="switchMode('live')">Go Live</button>
+</div>
+<!-- ── App body: sidebar + panel + screens ── -->
+<div id="cf-body" style="display:flex;flex:1;min-height:0;overflow:hidden;">
 <aside id="cf-sidebar">
   <button class="sb-btn" id="sb-save" onclick="sbOpen('save')" title="Account &amp; Projects" aria-label="Account &amp; Projects">
     <span class="sb-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
@@ -1315,27 +1461,15 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 
 <!-- ═══ EDIT SCREEN ═══ -->
 <div id="edit-screen" class="screen active">
-  <div class="topbar">
-    <div class="topbar-left">
-      <span class="save-indicator" id="save-indicator">Saved</span>
-      
-    </div>
-    <div class="topbar-center">
-      <div class="seq-nav">
-        <button class="seq-nav-chev" onclick="navSeq(-1)" title="Previous sequence" aria-label="Previous sequence">‹</button>
-        <span id="topbar-seq-name">—</span>
-        <button class="seq-nav-chev" onclick="navSeq(1)" title="Next sequence" aria-label="Next sequence">›</button>
-      </div>
-    </div>
-    <div class="topbar-right">
-      <div style="display:none;">
-        <div class="dot-row" id="edit-stream-dots"></div>
-        <div id="edit-stream-btn-topbar"></div>
-        <button id="mtab-edit-e"></button><button id="mtab-live-e"></button>
-        <div class="tc-dot" id="tc-dot-edit"></div><span id="tc-lbl-edit"></span>
-      </div>
-      <div class="live-sb-cell" id="edit-mode-chip" style="color:var(--amber);border-right:1px solid var(--hair);">Edit Mode</div>
-      <button class="live-toggle" id="live-toggle" onclick="switchMode('live')">Go Live</button>
+  <!-- Old topbar hidden; compat elements kept for JS selectors -->
+  <div class="topbar" style="display:none;">
+    <div style="display:none;">
+      <span id="topbar-seq-name">—</span>
+      <div class="dot-row" id="edit-stream-dots"></div>
+      <div id="edit-stream-btn-topbar"></div>
+      <button id="mtab-edit-e"></button><button id="mtab-live-e"></button>
+      <div class="tc-dot" id="tc-dot-edit"></div><span id="tc-lbl-edit"></span>
+      <div class="live-sb-cell" id="edit-mode-chip">Edit Mode</div>
     </div>
   </div>
   <div class="mode-banner edit" id="edit-mode-banner"></div>
@@ -1370,10 +1504,10 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <div class="edit-right" id="edit-right-panel">
       <!-- View tab bar -->
       <div class="edit-right-tabs" id="edit-right-tabs">
-        <button class="er-tab active" id="ertab-list"  onclick="switchEditView('list')">LIST<span class="cl-tab-badge" id="cl-badge-list"></span></button>
+        <button class="er-tab active" id="ertab-list"  onclick="switchEditView('list')">LIST</button>
         <button class="er-tab"        id="ertab-wf"    onclick="switchEditView('wf')">WATERFALL</button>
         <button class="er-tab"        id="ertab-vid"   onclick="switchEditView('vid')">VIDEO</button>
-        <button class="er-tab"        id="ertab-notes" onclick="switchEditView('notes')">NOTES<span class="cl-tab-badge" id="cl-badge-notes"></span></button>
+        <button class="er-tab"        id="ertab-notes" onclick="switchEditView('notes')">NOTES</button>
         <!-- Cameras tab removed: camera track managed via streams bar + cam-track-bar -->
         <button class="er-tab" id="ertab-cams" onclick="switchEditView('cams')" style="display:none;"></button>
         <!-- hidden compat elements -->
@@ -1398,7 +1532,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
           <button class="batch-del-btn" id="batch-del-btn" onclick="batchDeleteStage()">Delete selected</button>
           <button style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:4px 8px;min-height:32px;" onclick="toggleBatchMode()">Cancel</button>
         </div>
-        <div class="cue-list-header"><span></span><span>Track · TC</span><span>Cue</span><span>Description</span><span>Type</span><span>Next</span><span></span></div>
+        <div class="cue-list-header"><span></span><span style="padding:0 4px;justify-content:center;border-right:1px solid var(--hair);">TRK</span><span>Timecode</span><span>Cue</span><span>Description</span><span>Type</span><span>Next</span><span></span></div>
         <div id="cue-list-wrap"></div>
         <div style="display:none;"><span id="desc-has-content"></span></div>
       </div>
@@ -1534,14 +1668,15 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   <!-- ── Status bar ── -->
   <div class="live-sb">
     <!-- TC source indicator -->
-    <div class="live-sb-cell" id="live-tc-sb-cell">
+    <div class="live-sb-cell" id="live-tc-sb-cell" onclick="openSettingsModal()" title="Timecode Settings">
       <div class="tc-pip" id="live-tc-pip"></div>
+      <span class="live-tc-src" id="live-tc-src-lbl">—</span>
       <span class="sb-val" id="tc-disp-live" style="font-size:13px;letter-spacing:-0.01em;">--:--:--:--</span>
     </div>
     <!-- Sequence/playlist header -->
       <div class="live-seq-head grow" id="live-seq-head">
         <div class="breadcrumb">
-          <span id="live-playlist-crumb" style="color:var(--text3);">—</span>
+          <span id="live-playlist-crumb" onclick="sbOpen('playlists')" style="color:var(--text3);cursor:pointer;" title="Switch playlist">—</span>
           <span style="margin:0 6px;color:var(--text4);">›</span>
           <span id="live-seq-crumb" class="cur">—</span>
         </div>
@@ -1549,6 +1684,15 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <span id="live-seq-lbl" style="display:none;"></span>
         <span id="tc-live-badge" style="display:none;"></span>
       </div>
+    <!-- TC Offset indicator (hidden when 0) -->
+    <div class="live-sb-cell" id="live-offset-cell" style="display:none;">
+      <span style="font-size:9px;color:var(--txt-low);letter-spacing:.06em;text-transform:uppercase;margin-right:3px;">OFFSET</span>
+      <span class="sb-val" id="live-offset-lbl" style="font-size:11px;color:var(--amber);"></span>
+    </div>
+    <!-- Wall clock -->
+    <div class="live-sb-cell" id="live-clock-cell" style="display:none;">
+      <span class="sb-val" id="live-clock-lbl" style="font-size:12px;font-family:var(--mono);"></span>
+    </div>
     <!-- Sharing -->
     <div class="live-sb-cell right" id="live-sharing-cell" style="display:none;">
       <div class="tc-pip ok"></div>
@@ -1642,8 +1786,6 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <div class="live-then-rows" id="live-then-rows"></div>
       </div>
 
-      <!-- Show step segments (setlist progress) at bottom -->
-      <div class="show-steps" id="live-show-steps" style="height:4px;padding:0;"></div>
 
     </div><!-- /live-main -->
 
@@ -1851,6 +1993,11 @@ let state={
   tcSource:'midi',       // 'midi' | 'ltc'
   ltcDeviceId:'',        // audioinput deviceId for LTC
   tcOffset:0,            // ±frames applied to incoming TC
+  signalLoss:'freerun',  // 'freerun' | 'stop'
+  autoReconnect:true,
+  openModalBeforeLive:false,
+  cueFlash:true,
+  showClock:false,
   cameraTrack:null,      // {id,name,cameras:[{id,number,label,colorIdx}]} | null
   cameraTrackVisible:true, // whether camera track rows are shown in timelines
 };
@@ -1878,6 +2025,11 @@ function persist(){
     playlists:state.playlists,songs:state.songs,streams:state.streams,
     visibleStreamIds:state.visibleStreamIds,
     tcSource:state.tcSource,ltcDeviceId:state.ltcDeviceId,tcOffset:state.tcOffset,
+    signalLoss:state.signalLoss||'freerun',
+    autoReconnect:state.autoReconnect!==false,
+    openModalBeforeLive:!!state.openModalBeforeLive,
+    cueFlash:state.cueFlash!==false,
+    showClock:!!state.showClock,
     cameraTrack:state.cameraTrack?JSON.parse(JSON.stringify(state.cameraTrack)):null,
     cameraTrackVisible:state.cameraTrackVisible!==false});
   const el=document.getElementById('save-indicator');
@@ -1925,6 +2077,11 @@ function applyProject(proj){
   state.tcSource=proj.tcSource||'midi';
   state.ltcDeviceId=proj.ltcDeviceId||'';
   state.tcOffset=proj.tcOffset||0;
+  state.signalLoss=proj.signalLoss||'freerun';
+  state.autoReconnect=proj.autoReconnect!==false;
+  state.openModalBeforeLive=!!proj.openModalBeforeLive;
+  state.cueFlash=proj.cueFlash!==false;
+  state.showClock=!!proj.showClock;
   const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=String(v);};
   sv('fps-sel',state.fps);sv('vis-count',state.visibleCount);sv('warn-sec',state.warnSec);
   sv('auto-adv',state.autoAdvanceSec);
@@ -1933,7 +2090,7 @@ function applyProject(proj){
   document.title='CueFlow — '+pn;
   resetSimToActiveSong();
   renderSongList();renderStreamsBar();renderCueList();
-  redrawActive();updateStreamDots();_updateCamerasTab();
+  redrawActive();updateStreamDots();_updateCamerasTab();_updateLiveOffsetDisplay();_updateLiveClock();
 }
 
 // ─── STREAM HELPERS ───
@@ -1968,6 +2125,11 @@ function cancelExitLive(){
 }
 
 function switchMode(mode){
+  // "Open modal before live" guard
+  if(mode==='live'&&state.openModalBeforeLive){
+    const hasTC=tcListening&&(mtc.locked||ltc.locked);
+    if(!hasTC){openSettingsModal();return;}
+  }
   // Update all tab instances (3 topbars each with edit/test/live)
   ['edit','test','live'].forEach(m=>{
     ['e','t','l'].forEach(suffix=>{
@@ -2919,11 +3081,13 @@ function _doRedraw(target,frames){
   // cue-trigger flash on new cue
   if(curIdx!==_lastCurIdx[target]&&curIdx>=0){
     _lastCurIdx[target]=curIdx;
-    const wfEl=document.getElementById(isLive?'wf-live':'wf-test');
-    requestAnimationFrame(()=>{
-      const cur=wfEl?.querySelector('.wf-row.current');
-      if(cur){cur.classList.add('triggered');setTimeout(()=>cur.classList.remove('triggered'),300);}
-    });
+    if(state.cueFlash!==false){
+      const wfEl=document.getElementById(isLive?'wf-live':'wf-test');
+      requestAnimationFrame(()=>{
+        const cur=wfEl?.querySelector('.wf-row.current');
+        if(cur){cur.classList.add('triggered');setTimeout(()=>cur.classList.remove('triggered'),300);}
+      });
+    }
   }
 
   // auto-advance active song (live only)
@@ -3613,11 +3777,16 @@ function renderCueList(){
     return;
   }
   let cues=getSortedCues(song.id,true); // visibleOnly=true: global stream visibility
-  // Apply list filter (additive — on top of global stream visibility)
+  // Apply list filter (null=ALL, empty Set=NONE, Set with IDs=specific)
   if(_listFilterTracks!==null||_listFilterCams!==null){
     cues=cues.filter(cue=>{
-      if(cue.cameraId)return _listFilterCams===null||_listFilterCams.has(cue.cameraId);
-      return _listFilterTracks===null||_listFilterTracks.has(cue.streamId);
+      if(cue.cameraId){
+        // Camera cue: show if cams filter is null (ALL) or cams set includes this camera
+        return _listFilterCams===null||(_listFilterCams.size>0&&_listFilterCams.has(cue.cameraId));
+      } else {
+        // Track cue: show if tracks filter is null (ALL) or tracks set includes this stream
+        return _listFilterTracks===null||(_listFilterTracks.size>0&&_listFilterTracks.has(cue.streamId));
+      }
     });
   }
   // Update tab count badges + keep filter panel in sync
@@ -3626,7 +3795,7 @@ function renderCueList(){
   // Track which chapters have had their header rendered
   const _renderedChapterIds=new Set();
   cues.forEach((cue,i)=>{
-    // ── Chapter marker row (7 cols) ──────────────────────────────
+    // ── Marker row — 8 grid columns, aligned with cue rows ──────────
     if(song.chapters?.length){
       const ch=getChapterForCue(song,cue);
       if(ch&&!_renderedChapterIds.has(ch.id)){
@@ -3635,41 +3804,42 @@ function renderCueList(){
         const sep=document.createElement('div');
         sep.className='chapter-list-row'+(isSel?' ch-sel':'');
         sep.dataset.chid=ch.id;
-        // Col 1: num (empty)
+        // Col 1: # — empty
         const numCell=document.createElement('div');numCell.className='cue-col-num';sep.appendChild(numCell);
-        // Col 2: chevron badge cell
-        const tagCell=document.createElement('div');
-        tagCell.className='cl-badge-cell chapter-tag-col';
-        tagCell.style.cssText='border-right:1px solid rgba(251,191,36,.15);gap:8px;padding-left:10px;';
-        tagCell.innerHTML='<svg class="chapter-tag-chevron" width="12" height="16" viewBox="0 0 12 16" fill="none"><path d="M0 0 H12 V10 L6 16 L0 10 Z" fill="rgba(251,191,36,.65)"/></svg>';
-        sep.appendChild(tagCell);
-        // Col 3: TC input
+        // Col 2: TRK — marker icon badge
+        const badgeCell=document.createElement('div');badgeCell.className='cue-col-badge';
+        badgeCell.innerHTML='<span class="track-glyph xs cl-marker-badge" title="Section marker">◆</span>';
+        sep.appendChild(badgeCell);
+        // Col 3: TC — same input style as cue TC
         const tcInp=document.createElement('input');
-        tcInp.className='cue-field tc chapter-field'+(isSel?'':' cue-readonly');
-        tcInp.value=ch.tc;tcInp.dataset.chid=ch.id;tcInp.dataset.f='tc';
+        tcInp.className='cue-field tc'+(isSel?'':' cue-readonly');
+        tcInp.value=ch.tc;tcInp.dataset.chid=ch.id;tcInp.dataset.f='tc';tcInp.placeholder='01:00:00:00';
         if(!isSel)tcInp.readOnly=true;
         sep.appendChild(tcInp);
-        // Col 4: Name input
+        // Col 4: CUE — name input, same style as cue name
         const nameInp=document.createElement('input');
-        nameInp.className='cue-field chapter-field'+(isSel?'':' cue-readonly');
-        nameInp.value=ch.name;nameInp.dataset.chid=ch.id;nameInp.dataset.f='name';
+        nameInp.className='cue-field'+(isSel?'':' cue-readonly');
+        nameInp.value=ch.name;nameInp.placeholder='Marker name';
+        nameInp.dataset.chid=ch.id;nameInp.dataset.f='name';
         if(!isSel)nameInp.readOnly=true;
         sep.appendChild(nameInp);
-        // Col 5: type label
-        const typeCell=document.createElement('div');typeCell.className='chapter-type-lbl';typeCell.textContent='MARKER';sep.appendChild(typeCell);
-        // Col 6: empty next cell
+        // Col 5: DESC — empty (markers have no description)
+        const descCell=document.createElement('div');descCell.className='cue-field desc';descCell.style.cssText='cursor:default;';sep.appendChild(descCell);
+        // Col 6: TYPE — same style as cue type cell
+        const typeCell=document.createElement('div');typeCell.className='cl-type-cell';typeCell.textContent='MARKER';sep.appendChild(typeCell);
+        // Col 7: NEXT — empty
         const nextCell=document.createElement('div');sep.appendChild(nextCell);
-        // Col 7: delete
+        // Col 8: delete
         const delCell=document.createElement('div');delCell.className='cue-col-del';
         const delBtn=document.createElement('button');delBtn.className='cue-del';delBtn.textContent='✕';delBtn.title='Delete marker';
         delBtn.addEventListener('click',e=>{e.stopPropagation();_chapterDelete(ch.id);});
         delCell.appendChild(delBtn);sep.appendChild(delCell);
-        // Row interaction
+        // Row click — first selects+jumps, second unlocks the clicked field
         sep.addEventListener('click',e=>{
           if(e.target.classList.contains('cue-del'))return;
           const inp=e.target;
           if(_selChapterId===ch.id){
-            if(inp.classList.contains('cue-readonly')){inp.classList.remove('cue-readonly');inp.removeAttribute('readonly');inp.focus();}
+            if(inp.classList.contains('cue-readonly')){inp.classList.remove('cue-readonly');inp.removeAttribute('readonly');inp.focus();inp.select();}
             return;
           }
           _selChapterId=ch.id;_etlHighlightList(null);ETL.selId=null;
@@ -3692,7 +3862,7 @@ function renderCueList(){
         el.appendChild(sep);
       }
     }
-    // ── Cue row (7 cols) ─────────────────────────────────────────
+    // ── Cue row (8 cols: # | TRK | TC | CUE | DESC | TYPE | NEXT | ×) ──
     const row=document.createElement('div');
     const _inRange=isCueInAudioRange(cue,song);
     row.className='cue-row'+(_inRange?'':' audio-out-range');
@@ -3706,20 +3876,19 @@ function renderCueList(){
     const _stName=streamName(cue.streamId);
     const _stShort=state.streams.find(s=>s.id===cue.streamId)?.shortName||_stName.slice(0,4);
     const _camNumStr=_isCamCue?String(_cueCam?.number||'?').padStart(2,'0'):null;
-    // Badge element (camera or track)
     const _dotEl=_isCamCue
-      ?`<button class="cue-stream-dot cam-badge-sq xs" data-cid="${cue.id}" style="background:${_cueCamHex};color:#fff;flex-shrink:0;" title="Change camera — click to reassign">${_camNumStr}</button>`
-      :`<button class="cue-stream-dot track-glyph xs" data-cid="${cue.id}" title="Move to track — click to reassign" style="flex-shrink:0;">${escH((_stShort||_stName.charAt(0)||'?').slice(0,4).toUpperCase())}</button>`;
-    // TO NEXT computation
+      ?`<button class="cue-stream-dot cam-badge-sq xs" data-cid="${cue.id}" style="background:${_cueCamHex};color:#fff;" title="Change camera — click to reassign">${_camNumStr}</button>`
+      :`<button class="cue-stream-dot track-glyph xs" data-cid="${cue.id}" title="Move to track — click to reassign">${escH((_stShort||_stName.charAt(0)||'?').slice(0,4).toUpperCase())}</button>`;
+    // TO NEXT
     const _nextCue=cues[i+1];
     let _toNext='—';
     if(_nextCue){
       const _diffS=Math.round((_nextCue._f-cue._f)/(state.fps||25));
-      const _m=Math.floor(_diffS/60),_s=_diffS%60;
-      _toNext=_m+':'+String(_s).padStart(2,'0');
+      _toNext=Math.floor(_diffS/60)+':'+String(_diffS%60).padStart(2,'0');
     }
     row.innerHTML=`<div class="cue-col-num">${i+1}</div>
-      <div class="cl-badge-cell">${_dotEl}<input class="cue-field tc${isSelected?'':' cue-readonly'}" value="${escH(cue.tc)}" data-id="${cue.id}" data-f="tc" placeholder="01:00:00:00" ${isSelected?'':'readonly'}></div>
+      <div class="cue-col-badge">${_dotEl}</div>
+      <input class="cue-field tc${isSelected?'':' cue-readonly'}" value="${escH(cue.tc)}" data-id="${cue.id}" data-f="tc" placeholder="01:00:00:00" ${isSelected?'':'readonly'}>
       <input class="cue-field${isSelected?'':' cue-readonly'}" value="${escH(cue.name)}" data-id="${cue.id}" data-f="name" placeholder="Cue name" ${isSelected?'':'readonly'}>
       <input class="cue-field desc${isSelected?'':' cue-readonly'}" value="${escH(cue.desc||'')}" data-id="${cue.id}" data-f="desc" placeholder="Description" ${isSelected?'':'readonly'}>
       <div class="cl-type-cell${_isCamCue?' cam':''}">${_isCamCue?'CAMERA':'NORMAL'}</div>
@@ -3751,13 +3920,81 @@ function renderCueList(){
     });
     el.appendChild(row);
   });
+  // ── Orphan chapter rows: chapters not preceding any visible cue ──
+  // (Covers the case of a Start marker on an empty sequence, or chapters after all cues)
+  if(song.chapters?.length){
+    [...song.chapters].sort((a,b)=>tcF(a.tc)-tcF(b.tc)).forEach(ch=>{
+      if(_renderedChapterIds.has(ch.id))return;
+      _renderedChapterIds.add(ch.id);
+      const isSel=_selChapterId===ch.id;
+      const sep=document.createElement('div');
+      sep.className='chapter-list-row'+(isSel?' ch-sel':'');
+      sep.dataset.chid=ch.id;
+      const numCell=document.createElement('div');numCell.className='cue-col-num';sep.appendChild(numCell);
+      const badgeCell=document.createElement('div');badgeCell.className='cue-col-badge';
+      badgeCell.innerHTML='<span class="track-glyph xs cl-marker-badge" title="Section marker">◆</span>';
+      sep.appendChild(badgeCell);
+      const tcInp=document.createElement('input');
+      tcInp.className='cue-field tc'+(isSel?'':' cue-readonly');
+      tcInp.value=ch.tc;tcInp.dataset.chid=ch.id;tcInp.dataset.f='tc';tcInp.placeholder='01:00:00:00';
+      if(!isSel)tcInp.readOnly=true;
+      sep.appendChild(tcInp);
+      const nameInp=document.createElement('input');
+      nameInp.className='cue-field'+(isSel?'':' cue-readonly');
+      nameInp.value=ch.name;nameInp.placeholder='Marker name';
+      nameInp.dataset.chid=ch.id;nameInp.dataset.f='name';
+      if(!isSel)nameInp.readOnly=true;
+      sep.appendChild(nameInp);
+      const descCell=document.createElement('div');descCell.className='cue-field desc';descCell.style.cssText='cursor:default;';sep.appendChild(descCell);
+      const typeCell=document.createElement('div');typeCell.className='cl-type-cell';typeCell.textContent='MARKER';sep.appendChild(typeCell);
+      sep.appendChild(document.createElement('div'));// next cell empty
+      const delCell=document.createElement('div');delCell.className='cue-col-del';
+      const delBtn=document.createElement('button');delBtn.className='cue-del';delBtn.textContent='✕';delBtn.title='Delete marker';
+      delBtn.addEventListener('click',e=>{e.stopPropagation();_chapterDelete(ch.id);});
+      delCell.appendChild(delBtn);sep.appendChild(delCell);
+      sep.addEventListener('click',e=>{
+        if(e.target.classList.contains('cue-del'))return;
+        const inp=e.target;
+        if(_selChapterId===ch.id){
+          if(inp.classList.contains('cue-readonly')){inp.classList.remove('cue-readonly');inp.removeAttribute('readonly');inp.focus();inp.select();}
+          return;
+        }
+        _selChapterId=ch.id;_etlHighlightList(null);ETL.selId=null;
+        jumpToChapter(ch.id);renderCueList();
+      });
+      [tcInp,nameInp].forEach(inp=>{
+        inp.addEventListener('blur',()=>{
+          if(inp.readOnly)return;
+          const f=inp.dataset.f,v=inp.value.trim();
+          if(f==='tc'){const tc=normalizeTcInput(v||ch.tc);if(validateTc(tc))ch.tc=tc;}
+          else if(v)ch.name=v;
+          persist();if(ETL.visible)renderEditTimeline();
+        });
+        inp.addEventListener('keydown',e2=>{
+          if(e2.key==='Enter'){e2.preventDefault();inp.blur();}
+          if(e2.key==='Escape'){inp.value=inp.dataset.f==='tc'?ch.tc:ch.name;inp.blur();}
+          e2.stopPropagation();
+        });
+      });
+      el.appendChild(sep);
+    });
+  }
   if(!cues.length){
     const _totalCues=getSortedCues(song.id,true).length;
+    const emptyMsg=document.createElement('div');
     if(_totalCues>0&&(_listFilterTracks!==null||_listFilterCams!==null)){
-      el.innerHTML='<div style="padding:28px 20px;text-align:center;"><div style="font-size:12px;color:var(--txt-low);margin-bottom:10px;">No cues match the current filter</div><button class="btn-icon" onclick="toggleListFilter()" style="padding:5px 14px;font-size:11px;">Clear filter</button></div>';
+      emptyMsg.style.cssText='padding:28px 20px;text-align:center;';
+      emptyMsg.innerHTML='<div style="font-size:12px;color:var(--txt-low);margin-bottom:10px;">No cues match the current filter</div><button class="btn-icon" onclick="toggleListFilter()" style="padding:5px 14px;font-size:11px;">Clear filter</button>';
     } else {
-      el.innerHTML='<div style="padding:28px 20px;text-align:center;"><div style="font-size:12px;color:var(--txt-low);margin-bottom:10px;">No cues yet</div><button class="btn-icon primary" onclick="addCue()" style="padding:7px 16px;font-size:12px;">+ Add first cue</button></div>';
+      emptyMsg.style.cssText='padding:20px 20px;text-align:center;';
+      emptyMsg.innerHTML='<div style="font-size:12px;color:var(--txt-low);margin-bottom:10px;">No cues yet</div><button class="btn-icon primary" onclick="addCue()" style="padding:7px 16px;font-size:12px;height:auto;">+ Add first cue</button>';
     }
+    el.appendChild(emptyMsg);
+  }
+  // ── Auto-scroll: keep selected cue visible ──
+  if(ETL.selId){
+    const selRow=el.querySelector(`[data-cid="${ETL.selId}"]`);
+    if(selRow) selRow.scrollIntoView({block:'nearest'});
   }
   const rte=document.getElementById('rte-editor');if(rte)rte.innerHTML=song.description||'';
   const badge=document.getElementById('desc-has-content');if(badge)badge.style.display=song.description?.trim()?'inline':'none';
@@ -3798,12 +4035,12 @@ function attachColResizeHandles(){
   _initColResizeGlobal();
   const hdr=document.querySelector('.cue-list-header');
   if(!hdr||hdr.querySelector('.col-resize-handle'))return;
-  // grid cols: #(30) | BADGE+TC(148) | CUE(1fr) | DESC(1fr) | TYPE(70) | NEXT(52) | ×(28)
-  // header children index:  0          1           2           3          4          5     6
+  // grid cols: #(30) | TRK(32) | TC(108) | CUE(1fr) | DESC(1fr) | TYPE(70) | NEXT(52) | ×(28)
+  // header children index:  0     1        2           3           4          5          6     7
   const cols=[
-    {idx:1,varName:'--col-tc',  min:100},
-    {idx:2,varName:'--col-name',min:100},
-    {idx:3,varName:'--col-desc',min:80}
+    {idx:2,varName:'--col-tc',  min:80},
+    {idx:3,varName:'--col-name',min:100},
+    {idx:4,varName:'--col-desc',min:80}
   ];
   cols.forEach(col=>{
     const span=hdr.children[col.idx];
@@ -3825,74 +4062,72 @@ let _ctxMenu=null;
 function showStreamCtxMenu(e,cueId){
   if(_ctxMenu)_ctxMenu.remove();
   _ctxMenu=document.createElement('div');
-  _ctxMenu.style.cssText=`position:fixed;z-index:700;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:5px;min-width:150px;left:${e.clientX}px;top:${e.clientY}px;`;
+  _ctxMenu.style.cssText=`position:fixed;z-index:700;background:var(--surface2);border:1px solid var(--hair2);padding:4px;min-width:170px;left:${e.clientX}px;top:${e.clientY}px;box-shadow:0 6px 24px rgba(0,0,0,.45);`;
 
-  // Find the cue to check if it's a camera cue
+  // Find cue
   let _thisCue=null;state.songs.forEach(s=>s.cues.forEach(c=>{if(c.id===cueId)_thisCue=c;}));
   const _isCtxCam=!!_thisCue?.cameraId&&!!state.cameraTrack;
 
-  const title=document.createElement('div');title.style.cssText='font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);padding:3px 7px 5px;';
+  // Helper: section title
+  function _ctxTitle(text){
+    const t=document.createElement('div');
+    t.style.cssText='font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--txt-low);padding:4px 6px 3px;font-family:var(--cond);';
+    t.textContent=text;_ctxMenu.appendChild(t);
+  }
+  // Helper: build a menu item with a 24×24 badge + label
+  function _ctxItem(badgeHtml,labelText,isCurrent,onClick){
+    const item=document.createElement('div');
+    item.style.cssText=`display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;${isCurrent?'background:var(--surface3);':''}`;
+    item.innerHTML=`${badgeHtml}<span style="font-size:12px;color:var(--txt);font-family:var(--sans);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escH(labelText)}</span>${isCurrent?'<span style="font-size:9px;color:var(--txt-low);font-family:var(--cond);">✓</span>':''}`;
+    item.onmouseenter=()=>{if(!isCurrent)item.style.background='var(--surface3)';};
+    item.onmouseleave=()=>{if(!isCurrent)item.style.background='';};
+    item.onclick=onClick;
+    _ctxMenu.appendChild(item);
+  }
+  // Helper: hairline separator
+  function _ctxSep(){const d=document.createElement('div');d.style.cssText='height:1px;background:var(--hair);margin:3px 0;';_ctxMenu.appendChild(d);}
 
-  // Camera assignment section
+  // ── Camera section ──
   if(state.cameraTrack){
-    title.textContent=_isCtxCam?'Change camera':'Assign to camera';
-    _ctxMenu.appendChild(title);
-    // "No camera" option (convert to regular track cue) — only for existing camera cues
+    _ctxTitle(_isCtxCam?'Change camera':'Assign to camera');
+    // "Remove camera" → convert back to track cue
     if(_isCtxCam){
-      const noneItem=document.createElement('div');
-      noneItem.style.cssText=`display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:4px;cursor:pointer;font-size:12px;color:var(--text3);`;
-      noneItem.innerHTML='<div style="width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0;"></div>Remove camera';
-      noneItem.onmouseenter=()=>noneItem.style.background='var(--surface3)';
-      noneItem.onmouseleave=()=>noneItem.style.background='';
-      noneItem.onclick=()=>{
-        snapshot();
-        state.songs.forEach(sg=>{const c=sg.cues.find(x=>x.id===cueId);if(c){delete c.cameraId;c.streamId=state.streams[0]?.id||'';}});
-        persist();renderCueList();redrawActive();_ctxMenu.remove();_ctxMenu=null;
-      };
-      _ctxMenu.appendChild(noneItem);
+      const shortName=(state.streams[0]?.shortName||state.streams[0]?.name||'—').slice(0,4).toUpperCase();
+      _ctxItem(
+        `<span class="track-glyph xs" style="opacity:.45;">${escH(shortName)}</span>`,
+        'Remove camera',false,
+        ()=>{snapshot();state.songs.forEach(sg=>{const c=sg.cues.find(x=>x.id===cueId);if(c){delete c.cameraId;c.streamId=state.streams[0]?.id||'';}});persist();renderCueList();redrawActive();_ctxMenu.remove();_ctxMenu=null;}
+      );
+      _ctxSep();
     }
     state.cameraTrack.cameras.forEach(cam=>{
-      const camHex=getCameraColor(cam.colorIdx);
-      const item=document.createElement('div');
-      item.style.cssText=`display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:4px;cursor:pointer;font-size:12px;color:var(--text);`;
-      item.innerHTML=`<div style="width:14px;height:14px;border-radius:50%;background:${camHex};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:8px;font-weight:900;color:#fff;">${cam.number}</div>${escH(cam.label||`CAM ${cam.number}`)}`;
-      item.onmouseenter=()=>item.style.background='var(--surface3)';
-      item.onmouseleave=()=>item.style.background='';
-      item.onclick=()=>{
-        snapshot();
-        state.songs.forEach(sg=>{const c=sg.cues.find(x=>x.id===cueId);if(c){c.cameraId=cam.id;delete c.streamId;}});
-        persist();renderCueList();redrawActive();_ctxMenu.remove();_ctxMenu=null;
-      };
-      _ctxMenu.appendChild(item);
+      const hex=getCameraColor(cam.colorIdx);
+      const isCur=_thisCue?.cameraId===cam.id;
+      const numStr=String(cam.number).padStart(2,'0');
+      _ctxItem(
+        `<span class="cam-badge-sq xs" style="background:${hex};color:#fff;">${numStr}</span>`,
+        cam.label||`CAM ${cam.number}`,isCur,
+        ()=>{if(isCur){_ctxMenu.remove();_ctxMenu=null;return;}snapshot();state.songs.forEach(sg=>{const c=sg.cues.find(x=>x.id===cueId);if(c){c.cameraId=cam.id;delete c.streamId;}});persist();renderCueList();redrawActive();_ctxMenu.remove();_ctxMenu=null;}
+      );
     });
-    // Separator
-    if(!_isCtxCam){
-      const sep2=document.createElement('div');sep2.style.cssText='height:1px;background:var(--border);margin:4px 0;';
-      _ctxMenu.appendChild(sep2);
-    }
+    if(!_isCtxCam)_ctxSep();
   }
 
+  // ── Track section ──
   if(!_isCtxCam){
-    const title2=document.createElement('div');title2.style.cssText='font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);padding:3px 7px 5px;';
-    title2.textContent='Move to track';_ctxMenu.appendChild(title2);
+    _ctxTitle('Move to track');
     state.streams.forEach(s=>{
-      const col=getStreamColor(s.id);
-      const item=document.createElement('div');
-      item.style.cssText=`display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:4px;cursor:pointer;font-size:12px;color:var(--text);`;
-      item.innerHTML=`<div style="width:7px;height:7px;border-radius:50%;background:${col.hex};flex-shrink:0;"></div>${escH(s.name)}`;
-      item.onmouseenter=()=>item.style.background='var(--surface3)';
-      item.onmouseleave=()=>item.style.background='';
-      item.onclick=()=>{
-        snapshot();
-        state.songs.forEach(sg=>{const c=sg.cues.find(x=>x.id===cueId);if(c){c.streamId=s.id;delete c.cameraId;}});
-        persist();renderCueList();redrawActive();_ctxMenu.remove();_ctxMenu=null;
-      };
-      _ctxMenu.appendChild(item);
+      const shortName=(s.shortName||s.name||'?').slice(0,4).toUpperCase();
+      const isCur=_thisCue?.streamId===s.id;
+      _ctxItem(
+        `<span class="track-glyph xs">${escH(shortName)}</span>`,
+        s.name,isCur,
+        ()=>{if(isCur){_ctxMenu.remove();_ctxMenu=null;return;}snapshot();state.songs.forEach(sg=>{const c=sg.cues.find(x=>x.id===cueId);if(c){c.streamId=s.id;delete c.cameraId;}});persist();renderCueList();redrawActive();_ctxMenu.remove();_ctxMenu=null;}
+      );
     });
   }
 
   document.body.appendChild(_ctxMenu);
-  // Position flip if off-screen bottom
   requestAnimationFrame(()=>{
     if(!_ctxMenu)return;
     const r=_ctxMenu.getBoundingClientRect();
@@ -4068,6 +4303,13 @@ function updateTCStatus(status,label){
       pip.className='tc-pip'+(status==='receiving'?' ok pulse':status==='waiting'?' warn pulse':' idle');
     }
   }
+  // TC source label (LTC / MTC / —)
+  const srcLbl=document.getElementById('live-tc-src-lbl');
+  if(srcLbl){
+    if(label&&label.startsWith('LTC'))srcLbl.textContent='LTC';
+    else if(label&&label.startsWith('MTC'))srcLbl.textContent='MTC';
+    else srcLbl.textContent='—';
+  }
   // setup icon
   const si=document.getElementById('setup-tc-icon');if(si)si.classList.toggle('active',status==='receiving');
   const st=document.getElementById('setup-tc-text');if(st)st.textContent=label;
@@ -4121,7 +4363,12 @@ function mtcRafLoop(ts){
     if(isStale) updateTCStatus('freerun','Free run');
     else updateTCStatus('receiving','MTC — '+mtc.inputName);
   }
-  redrawLive(interpolated+(state.tcOffset||0));
+  if(isStale&&state.signalLoss==='stop'){
+    const pip=document.getElementById('live-tc-pip');
+    if(pip) pip.className='tc-pip idle';
+  } else {
+    redrawLive(interpolated+(state.tcOffset||0));
+  }
   mtc.rafId=requestAnimationFrame(mtcRafLoop);
 }
 function onMTCMessage(m){
@@ -4296,7 +4543,13 @@ function _ltcRafLoop(ts){
     if(isStale)updateTCStatus('freerun','Free run');
     else updateTCStatus('receiving','LTC — '+ltc.inputName);
   }
-  redrawLive(interpolated);
+  if(isStale&&state.signalLoss==='stop'){
+    // Stop mode — freeze TC display but don't advance
+    const pip=document.getElementById('live-tc-pip');
+    if(pip) pip.className='tc-pip idle';
+  } else {
+    redrawLive(interpolated);
+  }
   ltc.rafId=requestAnimationFrame(_ltcRafLoop);
 }
 
@@ -4366,42 +4619,7 @@ async function refreshLTCDevices(){
 }
 
 let _settingsTCTimer=null;
-let _ltcPeakHold=0;
-function startSettingsTCReadout(){
-  clearInterval(_settingsTCTimer);
-  _ltcPeakHold=0;
-  _settingsTCTimer=setInterval(()=>{
-    const dot=document.getElementById('settings-tc-dot');
-    const val=document.getElementById('settings-tc-val');
-    if(!dot||!val)return;
-    const srcEl=document.getElementById('settings-tc-source');
-    const isMidi=(srcEl?srcEl.value:state.tcSource)==='midi';
-    if(isMidi){
-      const ok=mtc.locked&&!mtc._wasStale;
-      dot.style.background=ok?'var(--green)':'var(--text4)';
-      val.textContent=ok?fTC(state.currentFrames):'—';
-    }else{
-      // Read LTC directly — no tcListening dependency for preview
-      const age=ltc.lastWall?(performance.now()-ltc.lastWall):Infinity;
-      const ok=age<350;
-      dot.style.background=ok?'var(--green)':'var(--text4)';
-      if(ok){
-        const elapsed=age/1000;
-        val.textContent=fTC(Math.round(ltc.lastFrames+elapsed*(state.fps||25)));
-      }else{val.textContent='—';}
-      // Level meter — float32 + peak-hold decay
-      if(ltc._analyser){
-        const data=new Float32Array(ltc._analyser.fftSize);
-        ltc._analyser.getFloatTimeDomainData(data);
-        let peak=0;for(let i=0;i<data.length;i++)peak=Math.max(peak,Math.abs(data[i]));
-        _ltcPeakHold=Math.max(peak,_ltcPeakHold*0.75);
-        const fill=document.getElementById('ltc-level-fill');
-        if(fill)fill.style.width=Math.min(100,_ltcPeakHold*100)+'%';
-      }
-    }
-  },80);
-}
-function stopSettingsTCReadout(){clearInterval(_settingsTCTimer);_settingsTCTimer=null;}
+let _ltcPeakHold=0; // legacy compat — used by old level-meter; new code uses _tcsLtcPeak
 
 async function connectMIDI(){
   const msg=document.getElementById('midi-msg');msg.textContent='Requesting access…';
@@ -4719,10 +4937,10 @@ function confirmAddSeq(){
     const inp=document.getElementById('add-seq-tc');
     inp.style.outline='1px solid var(--red)';inp.focus();return;
   }
-  const s={id:uid(),name,description:'',startTc,cues:[]};
+  const s={id:uid(),name,description:'',startTc,cues:[],chapters:[]};
   if(_pendingAudioFile){s.audioFilename=_pendingAudioFile.name;}
-  // Auto-create first cue at sequence start TC
-  s.cues.push({id:uid(),tc:startTc,name:'Start '+name,desc:'',streamId:state.streams[0]?.id||''});
+  // Auto-create Start marker (chapter) at sequence start TC — shown as a marker, not a cue
+  s.chapters.push({id:uid(),tc:startTc,name:'Start'});
   state.songs.push(s);state.activeSongId=s.id;
   const _apl=getActivePlaylist();if(_apl)_apl.songIds.push(s.id);
   persist();renderSongList();renderCueList();
@@ -4758,40 +4976,289 @@ function deleteSeqWithConfirm(){
 
 // ── SETTINGS POP-UP ──
 function openHelpModal(){document.getElementById('help-modal').classList.add('show');}
+
+// ── TC SETTINGS MODAL ──
+let _tcsTab='ltc'; // 'ltc' | 'mtc'
+let _tcsWaveTimer=null;
+let _tcsLtcPeak=0;
+
+function switchTCTab(tab){
+  _tcsTab=tab;
+  document.getElementById('tcs-tab-ltc').classList.toggle('active',tab==='ltc');
+  document.getElementById('tcs-tab-mtc').classList.toggle('active',tab==='mtc');
+  document.getElementById('tcs-ltc-panel').style.display=tab==='ltc'?'':'none';
+  document.getElementById('tcs-mtc-panel').style.display=tab==='mtc'?'':'none';
+  if(tab==='ltc') refreshLTCDevices();
+  else if(tab==='mtc') tcsConnectMIDI();
+}
+
 function openSettingsModal(){
-  document.getElementById('settings-fps').value=state.fps;
-  document.getElementById('settings-warn').value=state.warnSec;
-  document.getElementById('settings-adv').value=state.autoAdvanceSec;
-  document.getElementById('settings-tc-source').value=state.tcSource||'midi';
+  _tcsTab=state.tcSource==='ltc'?'ltc':'mtc';
+  // Populate shared controls
   document.getElementById('settings-tc-offset').value=state.tcOffset||0;
-  onSettingsTCSourceChange();
+  document.getElementById('settings-signal-loss').value=state.signalLoss||'freerun';
+  document.getElementById('tcs-auto-reconnect').checked=state.autoReconnect!==false;
+  document.getElementById('tcs-open-modal-before-live').checked=!!state.openModalBeforeLive;
+  // Tab init
+  document.getElementById('tcs-tab-ltc').classList.toggle('active',_tcsTab==='ltc');
+  document.getElementById('tcs-tab-mtc').classList.toggle('active',_tcsTab==='mtc');
+  document.getElementById('tcs-ltc-panel').style.display=_tcsTab==='ltc'?'':'none';
+  document.getElementById('tcs-mtc-panel').style.display=_tcsTab==='mtc'?'':'none';
+  if(_tcsTab==='ltc') refreshLTCDevices();
+  else tcsConnectMIDI();
+  // Update fps display
+  _tcsUpdateFpsDisplay();
   startSettingsTCReadout();
   document.getElementById('settings-modal').classList.add('show');
 }
+
+function _tcsUpdateFpsDisplay(){
+  const fps=state.fps;
+  const ltcOk=ltc.locked&&!ltc._wasStale;
+  const mtcOk=mtc.locked&&!mtc._wasStale;
+  // LTC fps display
+  const lv=document.getElementById('tcs-fps-val');
+  const lb=document.getElementById('tcs-fps-badge');
+  if(ltcOk){
+    if(lv) lv.textContent=fps.toFixed(fps%1?3:0)+' fps';
+    if(lb){lb.textContent='DETECTED';lb.className='tcs-fps-badge ok';}
+  } else {
+    if(lv) lv.textContent=fps.toFixed(fps%1?3:0)+' fps';
+    if(lb){lb.textContent='';lb.className='tcs-fps-badge';}
+  }
+  // MTC fps display
+  const mv=document.getElementById('tcs-mtc-fps-val');
+  const mb=document.getElementById('tcs-mtc-fps-badge');
+  if(mtcOk){
+    if(mv) mv.textContent=fps.toFixed(fps%1?3:0)+' fps';
+    if(mb){mb.textContent='DETECTED';mb.className='tcs-fps-badge ok';}
+  } else {
+    if(mv) mv.textContent=fps.toFixed(fps%1?3:0)+' fps';
+    if(mb){mb.textContent='';mb.className='tcs-fps-badge';}
+  }
+}
+
 function saveSettings(){
-  state.fps=parseInt(document.getElementById('settings-fps').value)||25;
-  state.visibleCount=999; /* always show all cues */
-  state.warnSec=parseInt(document.getElementById('settings-warn').value)||10;
-  state.autoAdvanceSec=parseInt(document.getElementById('settings-adv').value)||10;
   state.tcOffset=parseInt(document.getElementById('settings-tc-offset').value)||0;
-  const newSource=document.getElementById('settings-tc-source').value;
-  if(newSource==='ltc'){
+  state.signalLoss=document.getElementById('settings-signal-loss').value||'freerun';
+  state.autoReconnect=document.getElementById('tcs-auto-reconnect').checked;
+  state.openModalBeforeLive=document.getElementById('tcs-open-modal-before-live').checked;
+  // sync setup panel inputs (legacy compat)
+  const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=String(v);};
+  sv('fps-sel',state.fps);
+  stopSettingsTCReadout();
+  _updateLiveOffsetDisplay();
+  persist();
+  closeModal('settings-modal');
+}
+
+function tcsConnect(){
+  if(_tcsTab==='ltc'){
     const devId=document.getElementById('settings-ltc-device').value;
+    if(!devId)return;
     state.ltcDeviceId=devId;
     state.tcSource='ltc';
     initLTC(devId);
-    const toggle=document.getElementById('tc-toggle');
-    if(toggle)toggle.checked=true;
+    const toggle=document.getElementById('tc-toggle');if(toggle)toggle.checked=true;
     setTCListening(true);
-  }else{
+  } else {
     state.tcSource='midi';
     stopLTC();
+    tcsConnectMIDI();
   }
-  // sync setup panel inputs
+  saveSettings();
+}
+
+async function tcsConnectMIDI(){
+  const dot=document.getElementById('tcs-midi-status-dot');
+  const name=document.getElementById('tcs-midi-device-name');
+  const btn=document.getElementById('tcs-midi-connect-btn');
+  if(mtc.inputName&&tcListening){
+    if(dot){dot.className='tcs-midi-status ok';}
+    if(name)name.textContent='Connected — '+mtc.inputName;
+    if(btn)btn.textContent='Reconnect';
+    return;
+  }
+  if(!navigator.requestMIDIAccess){
+    if(dot)dot.className='tcs-midi-status';
+    if(name)name.textContent='Web MIDI not supported';
+    return;
+  }
+  if(dot)dot.className='tcs-midi-status warn';
+  if(name)name.textContent='Connecting…';
+  if(btn){btn.textContent='Connecting…';btn.disabled=true;}
+  try{
+    const access=await navigator.requestMIDIAccess();
+    if(!access.inputs.size){
+      if(dot)dot.className='tcs-midi-status';
+      if(name)name.textContent='No MIDI inputs found';
+      if(btn){btn.textContent='Retry';btn.disabled=false;}
+      return;
+    }
+    let n='';
+    access.inputs.forEach(function(input){mtc.inputName=input.name||'MTC';input.onmidimessage=onMTCMessage;n=input.name||'MTC';});
+    const toggle=document.getElementById('tc-toggle');if(toggle)toggle.checked=true;
+    setTCListening(true);
+    if(dot)dot.className='tcs-midi-status ok';
+    if(name)name.textContent='Connected — '+n;
+    if(btn){btn.textContent='Reconnect';btn.disabled=false;}
+  }catch(err){
+    if(dot)dot.className='tcs-midi-status';
+    if(name)name.textContent='Error: '+err.message;
+    if(btn){btn.textContent='Retry';btn.disabled=false;}
+  }
+}
+
+// Replace old startSettingsTCReadout/stopSettingsTCReadout
+function startSettingsTCReadout(){
+  clearInterval(_settingsTCTimer);
+  _tcsLtcPeak=0;
+  _settingsTCTimer=setInterval(function(){
+    _tcsUpdateReadout();
+  },80);
+}
+function stopSettingsTCReadout(){clearInterval(_settingsTCTimer);_settingsTCTimer=null;}
+
+function _tcsUpdateReadout(){
+  const fps=state.fps;
+  const ltcAge=ltc.lastWall?(performance.now()-ltc.lastWall):Infinity;
+  const ltcOk=ltcAge<350;
+  const mtcOk=mtc.locked&&!mtc._wasStale;
+
+  // LTC card
+  const ltcPip=document.getElementById('tcs-ltc-pip');
+  const ltcState=document.getElementById('tcs-ltc-state');
+  const ltcTc=document.getElementById('tcs-ltc-tc');
+  const ltcDrift=document.getElementById('tcs-ltc-drift');
+  if(ltcOk){
+    if(ltcPip)ltcPip.className='tcs-card-pip ok';
+    if(ltcState){ltcState.textContent='LOCKED · LTC';ltcState.className='tcs-card-state';}
+    const elapsed=ltcAge/1000;
+    if(ltcTc)ltcTc.textContent=fTC(Math.round(ltc.lastFrames+elapsed*fps));
+    if(ltcDrift)ltcDrift.textContent='';
+  } else if(ltc.lastWall){
+    if(ltcPip)ltcPip.className='tcs-card-pip warn';
+    if(ltcState){ltcState.textContent='FREE RUN';ltcState.className='tcs-card-state warn';}
+    if(ltcTc){const elapsed=ltcAge/1000;ltcTc.textContent=fTC(Math.round(ltc.lastFrames+elapsed*fps));}
+    if(ltcDrift)ltcDrift.textContent='signal lost';
+  } else {
+    if(ltcPip)ltcPip.className='tcs-card-pip';
+    if(ltcState){ltcState.textContent='WAITING';ltcState.className='tcs-card-state idle';}
+    if(ltcTc)ltcTc.textContent='--:--:--:--';
+    if(ltcDrift)ltcDrift.textContent='';
+  }
+
+  // MTC card
+  const mtcPip=document.getElementById('tcs-mtc-pip');
+  const mtcState=document.getElementById('tcs-mtc-state');
+  const mtcTc=document.getElementById('tcs-mtc-tc');
+  const mtcDrift=document.getElementById('tcs-mtc-drift');
+  if(mtcOk){
+    if(mtcPip)mtcPip.className='tcs-card-pip ok';
+    if(mtcState){mtcState.textContent='LOCKED · MTC';mtcState.className='tcs-card-state';}
+    if(mtcTc)mtcTc.textContent=fTC(state.currentFrames||0);
+    if(mtcDrift)mtcDrift.textContent='';
+  } else if(mtc.inputName){
+    if(mtcPip)mtcPip.className='tcs-card-pip warn';
+    if(mtcState){mtcState.textContent='WAITING';mtcState.className='tcs-card-state warn';}
+    if(mtcTc)mtcTc.textContent='--:--:--:--';
+    if(mtcDrift)mtcDrift.textContent='';
+  } else {
+    if(mtcPip)mtcPip.className='tcs-card-pip';
+    if(mtcState){mtcState.textContent='NOT CONNECTED';mtcState.className='tcs-card-state idle';}
+    if(mtcTc)mtcTc.textContent='--:--:--:--';
+    if(mtcDrift)mtcDrift.textContent='';
+  }
+
+  // Status header + footer
+  const anyOk=ltcOk||mtcOk;
+  const anyWaiting=(ltc.lastWall&&!ltcOk)||(mtc.inputName&&!mtcOk);
+  const stPip=document.getElementById('tcs-status-pip');
+  const stTxt=document.getElementById('tcs-status-text');
+  const ftPip=document.getElementById('tcs-footer-pip');
+  const ftTxt=document.getElementById('tcs-footer-text');
+  if(anyOk){
+    if(stPip)stPip.className='tcs-status-pip ok';
+    if(stTxt){stTxt.textContent=(ltcOk?'LTC FOUND':'MTC LOCKED');stTxt.className='ok';}
+    if(ftPip)ftPip.className='tcs-status-pip ok';
+    if(ftTxt)ftTxt.textContent='READY TO CAPTURE';
+  } else if(anyWaiting){
+    if(stPip)stPip.className='tcs-status-pip warn';
+    if(stTxt){stTxt.textContent='DETECTING SIGNAL';stTxt.className='warn';}
+    if(ftPip)ftPip.className='tcs-status-pip warn';
+    if(ftTxt)ftTxt.textContent='DETECTING SIGNAL';
+  } else {
+    if(stPip)stPip.className='tcs-status-pip';
+    if(stTxt){stTxt.textContent='NO SIGNAL';stTxt.className='';}
+    if(ftPip)ftPip.className='tcs-status-pip';
+    if(ftTxt)ftTxt.textContent='NO TC SOURCE';
+  }
+
+  // FPS display
+  _tcsUpdateFpsDisplay();
+
+  // Waveform
+  const canvas=document.getElementById('tcs-ltc-waveform');
+  if(canvas&&ltc._analyser){
+    const data=new Float32Array(ltc._analyser.fftSize);
+    ltc._analyser.getFloatTimeDomainData(data);
+    const ctx2=canvas.getContext('2d');
+    canvas.width=canvas.clientWidth||400;
+    ctx2.clearRect(0,0,canvas.width,canvas.height);
+    ctx2.strokeStyle=ltcOk?'rgba(24,217,134,.7)':'rgba(240,168,56,.5)';
+    ctx2.lineWidth=1;
+    ctx2.beginPath();
+    const step=Math.max(1,Math.floor(data.length/canvas.width));
+    for(let x=0;x<canvas.width;x++){
+      const v=data[x*step]||0;
+      const y=(1-v)*canvas.height/2;
+      x===0?ctx2.moveTo(x,y):ctx2.lineTo(x,y);
+    }
+    ctx2.stroke();
+    // Level bar (existing ltc-level-fill compat)
+    let peak=0;for(let i=0;i<data.length;i++)peak=Math.max(peak,Math.abs(data[i]));
+    _tcsLtcPeak=Math.max(peak,_tcsLtcPeak*0.75);
+    const fill=document.getElementById('ltc-level-fill');
+    if(fill)fill.style.width=Math.min(100,_tcsLtcPeak*100)+'%';
+  }
+}
+
+// ── PROJECT SETTINGS MODAL ──
+function openProjectSettingsModal(){
+  document.getElementById('pset-proj-name').value=state.name||'';
+  const fpsEl=document.getElementById('pset-fps');
+  if(fpsEl){
+    const map={'23.976':23.976,'24':24,'25':25,'29.97':29.97,'30':30};
+    let bestOpt='25';
+    for(const [key,val] of Object.entries(map)){
+      if(Math.abs(val-state.fps)<0.01){bestOpt=key;break;}
+    }
+    fpsEl.value=bestOpt;
+  }
+  document.getElementById('pset-cue-flash').checked=state.cueFlash!==false;
+  document.getElementById('pset-show-clock').checked=!!state.showClock;
+  document.getElementById('project-settings-modal').classList.add('show');
+}
+function saveProjectSettings(){
+  const newName=document.getElementById('pset-proj-name').value.trim();
+  if(newName) state.name=newName;
+  const fpsVal=document.getElementById('pset-fps').value;
+  const fpsMap={'23.976':23.976,'24':24,'25':25,'29.97':29.97,'29.97df':29.97,'30':30};
+  state.fps=fpsMap[fpsVal]||25;
+  state.cueFlash=document.getElementById('pset-cue-flash').checked;
+  state.showClock=document.getElementById('pset-show-clock').checked;
+  // Update hidden fps-sel for compat
   const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=String(v);};
-  sv('fps-sel',state.fps);sv('vis-count',state.visibleCount);sv('warn-sec',state.warnSec);sv('auto-adv',state.autoAdvanceSec);
-  stopSettingsTCReadout();
-  persist();redrawActive();closeModal('settings-modal');
+  sv('fps-sel',state.fps);
+  // Update title
+  document.title='CueFlow — '+state.name;
+  // Update project topbar btn
+  _syncEditTopbar();
+  persist();
+  redrawActive();
+  // Update clock display in live view
+  _updateLiveClock();
+  closeModal('project-settings-modal');
 }
 
 // ── NOTES EDITOR POP-UP ──
@@ -5157,7 +5624,9 @@ function _sbRender(name){
       <button class="sbp-add" onclick="sbCreateProject()" style="width:auto;padding:5px 10px;margin:0;white-space:nowrap;">+ Create</button>
     </div>
     <button class="sbp-add" onclick="exportShowFile()" style="width:100%;margin-bottom:4px;">↓ Export show file</button>
-    <label class="sbp-add" style="width:100%;display:block;text-align:center;cursor:pointer;margin-bottom:0;">↑ Import show file<input type="file" accept=".cueflow,.json" style="display:none" onchange="importShowFile(event);sbClose()"></label>`;
+    <label class="sbp-add" style="width:100%;display:block;text-align:center;cursor:pointer;margin-bottom:4px;">↑ Import show file<input type="file" accept=".cueflow,.json" style="display:none" onchange="importShowFile(event);sbClose()"></label>
+    <hr style="border:none;border-top:1px solid var(--hair);margin:6px 0;">
+    <button class="sbp-add" onclick="openProjectSettingsModal()" style="width:100%;margin-bottom:4px;">⚙ Project settings</button>`;
   } else if(name === 'playlists'){
     html = ''; // Block 2 override handles full render
   } else if(name === 'seqs'){
@@ -5279,8 +5748,52 @@ function _syncTopbarSeqName(){
   if(el) el.textContent = song?.name||'—';
   const pn=document.getElementById('topbar-proj-name');
   if(pn){ pn.textContent=state.name||''; pn.title=state.name||''; }
+  _syncEditTopbar();
   _syncTlSeqInfo();
 }
+// ── Full-width edit topbar sync ──
+function _syncEditTopbar(){
+  const pnBtn = document.getElementById('et-project-btn');
+  if(pnBtn) pnBtn.textContent = state.name || 'Project';
+  const pl = getActivePlaylist();
+  const plBtn = document.getElementById('et-playlist-btn');
+  if(plBtn) plBtn.textContent = pl ? pl.name : 'Playlist';
+}
+// ── Live view clock + offset display ──
+let _clockTimer=null;
+function _updateLiveClock(){
+  const cell=document.getElementById('live-clock-cell');
+  const lbl=document.getElementById('live-clock-lbl');
+  if(!cell)return;
+  cell.style.display=state.showClock?'':'none';
+  if(state.showClock&&!_clockTimer){
+    _clockTimer=setInterval(function(){
+      const now=new Date();
+      const h=now.getHours().toString().padStart(2,'0');
+      const m=now.getMinutes().toString().padStart(2,'0');
+      const s=now.getSeconds().toString().padStart(2,'0');
+      if(lbl)lbl.textContent=h+':'+m+':'+s;
+    },500);
+  } else if(!state.showClock&&_clockTimer){
+    clearInterval(_clockTimer);_clockTimer=null;
+  }
+}
+function _updateLiveOffsetDisplay(){
+  const cell=document.getElementById('live-offset-cell');
+  if(!cell)return;
+  const off=state.tcOffset||0;
+  cell.style.display=off!==0?'':'none';
+  const lbl=document.getElementById('live-offset-lbl');
+  if(lbl)lbl.textContent=(off>0?'+':'')+off+'f';
+}
+
+// Called by Block 2 when Supabase connection state changes
+window._syncEditTopbarOnline = function(isOnline, label){
+  const dot = document.getElementById('et-online-dot');
+  const lbl = document.getElementById('et-online-lbl');
+  if(dot) dot.className = 'pip ' + (isOnline ? 'ok' : 'idle');
+  if(lbl) lbl.textContent = label || (isOnline ? 'Online' : 'Offline');
+};
 function _syncTlSeqInfo(){
   const el=document.getElementById('tl-seq-info');if(!el)return;
   const song=getActiveSong();if(!song){el.textContent='—';return;}
@@ -6075,31 +6588,36 @@ function renderListFilterPanel(){
   const streams=state.streams||[];
   const hasCam=!!(state.cameraTrack&&state.cameraTrack.cameras?.length);
   if(!streams.length&&!hasCam){panel.innerHTML='<div style="font-size:11px;color:var(--txt-low);padding:2px 0;">No tracks to filter</div>';return;}
+
+  function _makeChip(label,isOn,onClick,dotColor,dotRadius){
+    const chip=document.createElement('button');
+    chip.className='cl-filter-chip'+(isOn?' on':'');
+    if(dotColor){chip.innerHTML=`<span class="cl-filter-chip-dot" style="background:${dotColor};${dotRadius?'border-radius:'+dotRadius+';':''}"></span>${label}`;}
+    else{chip.textContent=label;}
+    chip.onclick=onClick;
+    return chip;
+  }
+
   // ── Tracks row ──
   if(streams.length){
     const row=document.createElement('div');row.className='cl-filter-row';
     const lbl=document.createElement('span');lbl.className='cl-filter-label';lbl.textContent='Tracks';row.appendChild(lbl);
-    // ALL chip
-    const allChip=document.createElement('button');
-    allChip.className='cl-filter-chip'+(_listFilterTracks===null?' on':'');
-    allChip.textContent='ALL';
-    allChip.onclick=()=>{_listFilterTracks=null;renderListFilterPanel();renderCueList();};
-    row.appendChild(allChip);
+    const isAll=_listFilterTracks===null;
+    const isNone=_listFilterTracks!==null&&_listFilterTracks.size===0;
+    row.appendChild(_makeChip('ALL',isAll,()=>{_listFilterTracks=null;renderListFilterPanel();renderCueList();}));
+    row.appendChild(_makeChip('NONE',isNone,()=>{_listFilterTracks=new Set();renderListFilterPanel();renderCueList();}));
     streams.forEach(s=>{
       const col=getStreamColor(s.id);
       const shortName=(s.shortName||s.name||'?').slice(0,4).toUpperCase();
-      const on=_listFilterTracks!==null&&_listFilterTracks.has(s.id);
-      const chip=document.createElement('button');
-      chip.className='cl-filter-chip'+(on?' on':'');
-      chip.innerHTML=`<span class="cl-filter-chip-dot" style="background:${col.hex};"></span>${escH(shortName)}`;
-      chip.onclick=()=>{
-        if(_listFilterTracks===null)_listFilterTracks=new Set(streams.map(x=>x.id));
+      const on=!isAll&&!isNone&&_listFilterTracks.has(s.id);
+      row.appendChild(_makeChip(escH(shortName),on,()=>{
+        if(_listFilterTracks===null||_listFilterTracks.size===0)_listFilterTracks=new Set(streams.map(x=>x.id));
         if(_listFilterTracks.has(s.id))_listFilterTracks.delete(s.id);
         else _listFilterTracks.add(s.id);
+        if(_listFilterTracks.size===0)_listFilterTracks=new Set(); // stay at NONE, not ALL
         if(_listFilterTracks.size===streams.length)_listFilterTracks=null;
         renderListFilterPanel();renderCueList();
-      };
-      row.appendChild(chip);
+      },col.hex));
     });
     panel.appendChild(row);
   }
@@ -6108,25 +6626,21 @@ function renderListFilterPanel(){
     const cams=state.cameraTrack.cameras;
     const row=document.createElement('div');row.className='cl-filter-row';
     const lbl=document.createElement('span');lbl.className='cl-filter-label';lbl.textContent='Cameras';row.appendChild(lbl);
-    const allChip=document.createElement('button');
-    allChip.className='cl-filter-chip'+(_listFilterCams===null?' on':'');
-    allChip.textContent='ALL';
-    allChip.onclick=()=>{_listFilterCams=null;renderListFilterPanel();renderCueList();};
-    row.appendChild(allChip);
+    const isAll=_listFilterCams===null;
+    const isNone=_listFilterCams!==null&&_listFilterCams.size===0;
+    row.appendChild(_makeChip('ALL',isAll,()=>{_listFilterCams=null;renderListFilterPanel();renderCueList();}));
+    row.appendChild(_makeChip('NONE',isNone,()=>{_listFilterCams=new Set();renderListFilterPanel();renderCueList();}));
     cams.forEach(cam=>{
       const hex=getCameraColor(cam.colorIdx||0);
-      const on=_listFilterCams!==null&&_listFilterCams.has(cam.id);
-      const chip=document.createElement('button');
-      chip.className='cl-filter-chip'+(on?' on':'');
-      chip.innerHTML=`<span class="cl-filter-chip-dot" style="background:${hex};border-radius:1px;"></span>${String(cam.number).padStart(2,'0')}`;
-      chip.onclick=()=>{
-        if(_listFilterCams===null)_listFilterCams=new Set(cams.map(c=>c.id));
+      const on=!isAll&&!isNone&&_listFilterCams.has(cam.id);
+      row.appendChild(_makeChip(String(cam.number).padStart(2,'0'),on,()=>{
+        if(_listFilterCams===null||_listFilterCams.size===0)_listFilterCams=new Set(cams.map(c=>c.id));
         if(_listFilterCams.has(cam.id))_listFilterCams.delete(cam.id);
         else _listFilterCams.add(cam.id);
+        if(_listFilterCams.size===0)_listFilterCams=new Set();
         if(_listFilterCams.size===cams.length)_listFilterCams=null;
         renderListFilterPanel();renderCueList();
-      };
-      row.appendChild(chip);
+      },hex,'1px'));
     });
     panel.appendChild(row);
   }
@@ -7386,84 +7900,193 @@ init();
   </div>
 </div></div>
 
-<!-- SETTINGS MODAL -->
-<div id="settings-modal" class="modal-bg" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title"><div class="modal-box" style="max-width:440px;">
-  <div class="modal-title" id="settings-modal-title">Settings</div>
-
-  <div class="setup-section" style="margin-top:0">TC Input</div>
-
-  <div class="setup-row">
-    <label class="setup-label" for="settings-tc-source">Source</label>
-    <button class="settings-info" data-tip="MTC (MIDI Timecode): received via a MIDI interface or virtual port such as Lockstep or LoopMIDI. LTC (Linear Timecode): decoded directly from an audio input — connect your LTC output to your audio interface or use a virtual audio cable.">i</button>
-    <select class="setup-ctrl" id="settings-tc-source" style="flex:1;width:auto;" onchange="onSettingsTCSourceChange()">
-      <option value="midi">MTC via MIDI</option>
-      <option value="ltc">LTC via Audio</option>
-    </select>
-  </div>
-
-  <!-- Fixed-height source panel — both branches are 2 setup-rows tall so modal never resizes -->
-  <div style="margin-bottom:4px;">
-
-    <!-- MTC sub-panel -->
-    <div id="stc-midi-panel">
-      <div class="setup-row">
-        <span class="setup-label" style="white-space:nowrap;">Device</span>
-        <div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden;">
-          <div id="midi-status-dot" style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--text4);"></div>
-          <span id="midi-status-txt" style="font-size:11px;color:var(--text3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Not connected</span>
-        </div>
-        <button class="mbtn" id="midi-connect-btn" style="flex-shrink:0;margin-left:6px;" onclick="settingsConnectMIDI()">Connect</button>
-      </div>
-      <div style="height:32px;"></div>
+<!-- TC SETTINGS MODAL -->
+<div id="settings-modal" class="modal-bg" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+<div class="modal-box tcs-box">
+  <!-- Header -->
+  <div class="tcs-header">
+    <div class="tcs-status-line" id="tcs-status-line">
+      <span class="tcs-status-pip" id="tcs-status-pip"></span>
+      <span id="tcs-status-text">No signal</span>
     </div>
-
-    <!-- LTC sub-panel -->
-    <div id="stc-ltc-panel" style="display:none;">
-      <div class="setup-row">
-        <label class="setup-label" for="settings-ltc-device" style="white-space:nowrap;">Audio input</label>
-        <select class="setup-ctrl" id="settings-ltc-device" style="flex:1;" onchange="initLTC(this.value)"></select>
-        <button class="mbtn" style="flex-shrink:0;margin-left:4px;padding:4px 8px;" onclick="refreshLTCDevices()" title="Refresh device list">↺</button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="tcs-title" id="settings-modal-title">TIMECODE SOURCE</div>
+      <button class="tcs-close" onclick="stopSettingsTCReadout();closeModal('settings-modal')" aria-label="Close">✕</button>
+    </div>
+  </div>
+  <!-- Tab bar -->
+  <div class="tcs-tabs">
+    <button class="tcs-tab active" id="tcs-tab-ltc" onclick="switchTCTab('ltc')">LTC</button>
+    <button class="tcs-tab" id="tcs-tab-mtc" onclick="switchTCTab('mtc')">MTC</button>
+  </div>
+  <!-- LTC panel -->
+  <div id="tcs-ltc-panel">
+    <div class="tcs-row">
+      <div class="tcs-field-group" style="flex:1;min-width:0;">
+        <div class="tcs-field-label">INPUT DEVICE</div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <select class="tcs-select" id="settings-ltc-device" style="flex:1;" onchange="initLTC(this.value)"></select>
+          <button class="tcs-icon-btn" onclick="refreshLTCDevices()" title="Refresh">↺</button>
+        </div>
       </div>
-      <div class="setup-row" style="margin-bottom:0;">
-        <span class="setup-label" style="font-size:11px;color:var(--text3);white-space:nowrap;">Signal level</span>
-        <div style="flex:1;height:7px;background:var(--surface3);border-radius:4px;overflow:hidden;margin-left:8px;">
-          <div id="ltc-level-fill" style="height:100%;width:0%;background:var(--green);border-radius:4px;"></div>
+      <div class="tcs-field-group" style="width:160px;flex-shrink:0;">
+        <div class="tcs-field-label">FRAME RATE</div>
+        <div class="tcs-fps-display" id="tcs-fps-display">
+          <span id="tcs-fps-val">—</span>
+          <span class="tcs-fps-badge" id="tcs-fps-badge"></span>
         </div>
       </div>
     </div>
+    <!-- Status card -->
+    <div class="tcs-card" id="tcs-ltc-card">
+      <div class="tcs-card-status">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="tcs-card-pip" id="tcs-ltc-pip"></span>
+          <span class="tcs-card-state" id="tcs-ltc-state">WAITING</span>
+        </div>
+        <span class="tcs-drift" id="tcs-ltc-drift"></span>
+      </div>
+      <div class="tcs-tc-display">
+        <span class="tcs-tc-val" id="tcs-ltc-tc">--:--:--:--</span>
+        <span class="tcs-tc-lbl">INCOMING</span>
+      </div>
+      <canvas class="tcs-waveform" id="tcs-ltc-waveform" height="28"></canvas>
+    </div>
+    <!-- Hidden compat: level fill for old readout code -->
+    <div style="display:none;"><div id="ltc-level-fill"></div></div>
   </div>
+  <!-- MTC panel -->
+  <div id="tcs-mtc-panel" style="display:none;">
+    <div class="tcs-row">
+      <div class="tcs-field-group" style="flex:1;">
+        <div class="tcs-field-label">MIDI DEVICE</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="tcs-midi-status" id="tcs-midi-status-dot"></div>
+          <span id="tcs-midi-device-name" style="flex:1;font-size:11px;color:var(--txt-mid);">Not connected</span>
+          <button class="tcs-btn-outline" id="tcs-midi-connect-btn" onclick="tcsConnectMIDI()">Connect</button>
+        </div>
+      </div>
+      <div class="tcs-field-group" style="width:160px;flex-shrink:0;">
+        <div class="tcs-field-label">FRAME RATE</div>
+        <div class="tcs-fps-display" id="tcs-mtc-fps-display">
+          <span id="tcs-mtc-fps-val">—</span>
+          <span class="tcs-fps-badge" id="tcs-mtc-fps-badge"></span>
+        </div>
+      </div>
+    </div>
+    <!-- Status card -->
+    <div class="tcs-card" id="tcs-mtc-card">
+      <div class="tcs-card-status">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="tcs-card-pip" id="tcs-mtc-pip"></span>
+          <span class="tcs-card-state" id="tcs-mtc-state">WAITING</span>
+        </div>
+        <span class="tcs-drift" id="tcs-mtc-drift"></span>
+      </div>
+      <div class="tcs-tc-display">
+        <span class="tcs-tc-val" id="tcs-mtc-tc">--:--:--:--</span>
+        <span class="tcs-tc-lbl">INCOMING</span>
+      </div>
+      <div style="height:28px;"></div>
+    </div>
+  </div>
+  <!-- Shared controls -->
+  <div class="tcs-shared">
+    <div class="tcs-row" style="gap:12px;">
+      <div class="tcs-field-group" style="flex:1;">
+        <div class="tcs-field-label">OFFSET <span style="font-weight:400;color:var(--txt-low);text-transform:none;letter-spacing:0;">— added to incoming TC</span></div>
+        <input type="number" class="tcs-select" id="settings-tc-offset" value="0" min="-9999" max="9999" placeholder="0" style="width:100%;font-family:var(--mono);">
+        <div style="font-size:10px;color:var(--txt-low);margin-top:3px;">frames (positive = TC arrives late)</div>
+      </div>
+      <div class="tcs-field-group" style="flex:1;">
+        <div class="tcs-field-label">ON SIGNAL LOSS</div>
+        <select class="tcs-select" id="settings-signal-loss">
+          <option value="freerun">Free-run from last</option>
+          <option value="stop">Stop immediately</option>
+        </select>
+      </div>
+    </div>
+    <div class="tcs-checks">
+      <label class="tcs-check-row">
+        <input type="checkbox" id="tcs-auto-reconnect">
+        <span>Auto-reconnect</span>
+      </label>
+      <label class="tcs-check-row">
+        <input type="checkbox" id="tcs-open-modal-before-live">
+        <span>Open modal before live <span style="color:var(--txt-low);font-size:10px;">(if no TC connected)</span></span>
+      </label>
+    </div>
+  </div>
+  <!-- Footer -->
+  <div class="tcs-footer">
+    <div class="tcs-footer-status">
+      <span class="tcs-status-pip" id="tcs-footer-pip"></span>
+      <span id="tcs-footer-text">—</span>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="tcs-btn-cancel" onclick="stopSettingsTCReadout();closeModal('settings-modal')">CANCEL</button>
+      <button class="tcs-btn-connect" id="tcs-connect-btn" onclick="tcsConnect()">CONNECT</button>
+    </div>
+  </div>
+</div>
+</div>
 
-  <!-- TC receiving — always visible, styled as a readout card -->
-  <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;">
-    <div id="settings-tc-dot" style="width:9px;height:9px;border-radius:50%;background:var(--text4);flex-shrink:0;"></div>
-    <span style="font-size:11px;color:var(--text3);flex-shrink:0;">Receiving</span>
-    <span id="settings-tc-val" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);flex:1;text-align:right;letter-spacing:.04em;">—</span>
+<!-- PROJECT SETTINGS MODAL -->
+<div id="project-settings-modal" class="modal-bg" role="dialog" aria-modal="true" aria-labelledby="pset-modal-title">
+<div class="modal-box pset-box">
+  <div class="pset-header">
+    <div class="pset-title" id="pset-modal-title">PROJECT SETTINGS</div>
+    <button class="tcs-close" onclick="closeModal('project-settings-modal')" aria-label="Close">✕</button>
   </div>
-
-  <div class="setup-section">Timecode <span style="font-size:9px;font-weight:400;color:var(--text4);text-transform:none;letter-spacing:0;">— this project</span></div>
-  <div class="setup-row"><label class="setup-label" for="settings-fps">Frame rate</label>
-    <button class="settings-info" data-tip="The frame rate your timecode runs at. This is saved per project. Match it to your TC source: 25 fps for European broadcast and theatre, 29.97 for US/NTSC, 30 for most studio work.">i</button>
-    <select class="setup-ctrl" id="settings-fps">
-      <option value="24">24 fps</option><option value="25">25 fps</option>
-      <option value="29">29.97 fps</option><option value="30">30 fps</option>
-      <option value="50">50 fps</option><option value="60">60 fps</option>
-    </select>
+  <div class="pset-body">
+    <div class="pset-row">
+      <div class="pset-label">Project Name</div>
+      <input type="text" class="pset-input" id="pset-proj-name" placeholder="Project name">
+    </div>
+    <div class="pset-row">
+      <div class="pset-label">Frames per Second</div>
+      <select class="pset-select" id="pset-fps">
+        <option value="23.976">23.976 fps</option>
+        <option value="24">24 fps</option>
+        <option value="25">25 fps</option>
+        <option value="29.97">29.97 fps</option>
+        <option value="29.97df">29.97 DF (drop-frame)</option>
+        <option value="30">30 fps</option>
+      </select>
+    </div>
+    <div class="pset-row">
+      <div class="pset-label">Cue Trigger Flash</div>
+      <div class="pset-toggle-row">
+        <div class="pset-toggle-info">
+          <div class="pset-toggle-name">Flash on cue trigger</div>
+          <div class="pset-toggle-desc">Brief highlight when a cue fires in live view</div>
+        </div>
+        <label class="pset-toggle">
+          <input type="checkbox" id="pset-cue-flash">
+          <span class="pset-toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+    <div class="pset-row">
+      <div class="pset-label">Clock Display</div>
+      <div class="pset-toggle-row">
+        <div class="pset-toggle-info">
+          <div class="pset-toggle-name">Show wall clock in live view</div>
+          <div class="pset-toggle-desc">Displays local time with seconds alongside TC</div>
+        </div>
+        <label class="pset-toggle">
+          <input type="checkbox" id="pset-show-clock">
+          <span class="pset-toggle-slider"></span>
+        </label>
+      </div>
+    </div>
   </div>
-  <div class="setup-row">
-    <label class="setup-label" for="settings-tc-offset">TC Offset (frames)</label>
-    <button class="settings-info" data-tip="Shifts all incoming TC by this many frames globally. Use a positive value if your TC source arrives late, negative if it arrives early. Corrects hardware or cable latency without touching any cues.">i</button>
-    <input type="number" class="setup-ctrl" id="settings-tc-offset" value="0" min="-99" max="99">
+  <div class="pset-footer">
+    <button class="tcs-btn-cancel" onclick="closeModal('project-settings-modal')">CANCEL</button>
+    <button class="tcs-btn-connect" onclick="saveProjectSettings()">SAVE</button>
   </div>
-
-  <div class="setup-section">Display</div>
-  <div class="setup-row"><label class="setup-label" for="settings-warn">Warning at (sec)</label><button class="settings-info" data-tip="How many seconds before a cue ends the warning colour appears. Gives operators a heads-up that the next cue is approaching.">i</button><input type="number" class="setup-ctrl" id="settings-warn" value="10" min="1" max="30"></div>
-  <div class="setup-row"><label class="setup-label" for="settings-adv">Auto-advance (sec)</label><button class="settings-info" data-tip="When TC goes silent, CueFlow advances to the next cue after this many seconds. Set high (e.g. 999) to effectively disable for TC-only shows.">i</button><input type="number" class="setup-ctrl" id="settings-adv" value="10" min="1" max="999"></div>
-  <div style="height:16px;"></div>
-  <div class="modal-actions">
-    <button class="mbtn" onclick="stopSettingsTCReadout();closeModal('settings-modal')">Cancel</button>
-    <button class="mbtn primary" onclick="saveSettings()">Save settings</button>
-  </div>
-</div></div>
+</div>
+</div>
 
 <!-- HELP MODAL -->
 <div id="help-modal" class="modal-bg" role="dialog" aria-modal="true" aria-labelledby="help-modal-title"><div class="modal-box" style="max-width:560px;max-height:80vh;display:flex;flex-direction:column;">
@@ -7661,6 +8284,7 @@ init();
 </div>
 
 </div><!-- /cf-screens -->
+</div><!-- /cf-body -->
 </div><!-- /cf-root -->
 <script>
 /* ═══════════════════════════════════════════════════════════
@@ -9778,13 +10402,26 @@ CF._wasOffline=false; CF._offlineDirty=false;
 window.addEventListener('online',function(){
   CF._wasOffline=true;
   var bar=document.getElementById('cf-offline-bar'); if(bar) bar.style.display='none';
+  if(window._syncEditTopbarOnline) _syncEditTopbarOnline(true, CF.showId ? 'Online' : 'Online');
   if(CF.showId&&CF.isOwner&&CF.dirty) pushProject(function(){CF.dirty=false;updateSyncBtn();});
 });
 window.addEventListener('offline',function(){
   if(CF.dirty) CF._offlineDirty=true;
   var bar=document.getElementById('cf-offline-bar'); if(bar) bar.style.display='block';
+  if(window._syncEditTopbarOnline) _syncEditTopbarOnline(false,'Offline');
   updateSyncBtn();
 });
+/* ── Initial online state sync ───────────────────────────── */
+(function(){
+  if(window._syncEditTopbarOnline){
+    if(navigator.onLine && CF.showId){
+      _syncEditTopbarOnline(true,'Online');
+    } else if(!navigator.onLine){
+      _syncEditTopbarOnline(false,'Offline');
+    }
+    /* Local-only (no show): pip stays 'idle', label stays 'Local' */
+  }
+})();
 /* ── Live mode hooks ───────────────────────────────────── */
 CF._tcRelayActive=false;
 CF._onEnterLive=function(){ CF._tcRelayActive=true; openTcChan(); if(window.sbClose) sbClose(); };
