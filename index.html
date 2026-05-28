@@ -2162,6 +2162,16 @@ function switchMode(mode){
 
   const exitBanner=document.getElementById('exit-live-banner');
   if(exitBanner)exitBanner.style.display='none';
+  // ── Sidebar: move into live-body so live-sb spans full width ──
+  const _sb=document.getElementById('cf-sidebar');
+  if(mode==='live'){
+    const _lb=document.querySelector('.live-body');
+    if(_sb&&_lb&&_sb.parentNode!==_lb) _lb.insertBefore(_sb,_lb.firstChild);
+  } else {
+    const _cfb=document.getElementById('cf-body');
+    if(_sb&&_cfb&&_sb.parentNode!==_cfb) _cfb.insertBefore(_sb,_cfb.firstChild);
+  }
+
   if(mode==='live'){
     simStop();stopAllAudio();
     if(mtc.inputName) setTCListening(true);
