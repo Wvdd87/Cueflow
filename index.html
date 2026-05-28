@@ -319,6 +319,29 @@ button.et-item:hover { color: var(--txt-hi); background: var(--surface2); }
 /* Live mode: hide edit-topbar only — sidebar stays visible */
 body.mode-live #edit-topbar { display: none; }
 
+/* ── Viewer Cockpit topbar ── */
+.vw-topbar {
+  display: flex; align-items: stretch; height: 36px;
+  background: var(--surface); border-bottom: 1px solid var(--hair); flex-shrink: 0;
+}
+.vw-cell {
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 14px; border-right: 1px solid var(--hair);
+  font-family: var(--cond); font-size: 9px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--txt-low); white-space: nowrap; flex-shrink: 0;
+}
+.vw-cell.grow { flex: 1; border-right: none; }
+.vw-cell.right { border-right: none; border-left: 1px solid var(--hair); margin-left: auto; }
+.vw-val { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--txt-hi); letter-spacing: .01em; font-variant-numeric: tabular-nums; }
+.vw-tc-val { font-size: 14px; letter-spacing: -.01em; }
+.vw-tc-src { font-size: 10px; font-weight: 700; color: var(--txt-mid); font-family: var(--cond); letter-spacing: .1em; }
+.vw-lock { font-size: 9px; color: var(--green); font-family: var(--cond); font-weight: 700; letter-spacing: .1em; }
+.vw-onair { color: var(--red); gap: 7px; }
+.vw-onair .sb-val { color: var(--red); }
+/* Setlist count badge */
+.vw-setlist-count { font-family: var(--mono); font-size: 10px; color: var(--txt-low); margin-left: auto; }
+
 /* Clickable TC cell in live status bar */
 #live-tc-sb-cell { cursor: pointer; transition: background .12s; }
 #live-tc-sb-cell:hover { background: var(--surface2); }
@@ -1379,17 +1402,115 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <div id="cf-tc-seqname" style="font-size:clamp(14px,3vw,26px);font-weight:700;color:rgba(255,255,255,.45);max-width:80%;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
   </div>
 </div>
-<!-- Viewer/crew waterfall -->
+<!-- Viewer/crew cockpit screen -->
 <div id="cf-viewer-screen" style="display:none;position:fixed;inset:0;z-index:9996;background:var(--bg);flex-direction:column;overflow:hidden;">
-  <div style="display:flex;align-items:center;padding:8px 16px;border-bottom:1px solid var(--border);flex-shrink:0;position:relative;min-height:44px;">
-    <span id="cf-v-project" style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.06em;text-transform:uppercase;flex-shrink:0;"></span>
-    <span id="cf-v-seqname" style="position:absolute;left:50%;transform:translateX(-50%);font-size:16px;font-weight:700;color:var(--text);white-space:nowrap;max-width:40%;overflow:hidden;text-overflow:ellipsis;pointer-events:none;"></span>
-    <div style="flex:1;"></div>
-    <div id="cf-v-dot" style="width:6px;height:6px;border-radius:50%;background:var(--surface3);margin-right:6px;transition:background .3s;flex-shrink:0;"></div>
-    <span id="cf-v-tc" style="font-family:monospace;font-size:12px;font-variant-numeric:tabular-nums;transition:color .2s;color:var(--text4);flex-shrink:0;display:none;" aria-live="polite">00:00:00:00</span>
+
+  <!-- ── Viewer topbar ── -->
+  <div class="vw-topbar">
+    <!-- TC status + source -->
+    <div class="vw-cell" id="vw-tc-cell">
+      <div class="tc-pip idle" id="cf-v-dot"></div>
+      <span class="vw-tc-src" id="vw-tc-src">—</span>
+      <span class="vw-lock" id="vw-tc-lock"></span>
+    </div>
+    <!-- Timecode value -->
+    <div class="vw-cell">
+      TIMECODE
+      <span class="vw-val vw-tc-val" id="cf-v-tc" aria-live="polite">--:--:--:--</span>
+    </div>
+    <!-- FPS -->
+    <div class="vw-cell">
+      FPS
+      <span class="vw-val" id="vw-fps-val">—</span>
+    </div>
+    <!-- Track badge(s) -->
+    <div class="vw-cell" id="vw-track-cell" style="display:none;">
+      TRACK
+      <span id="vw-track-badge-inner"></span>
+    </div>
+    <!-- Sequence crumb (grows) -->
+    <div class="vw-cell grow">
+      <span id="vw-seq-crumb" style="color:var(--txt-mid);font-size:11px;">—</span>
+    </div>
+    <!-- ON AIR chip -->
+    <div class="vw-cell right vw-onair" id="vw-onair-cell">
+      <div class="tc-pip live pulse"></div>
+      <span class="sb-val">LIVE</span>
+    </div>
   </div>
-  <div id="cf-v-tracks" style="display:flex;gap:6px;flex-wrap:wrap;padding:8px 16px;border-bottom:1px solid var(--border);flex-shrink:0;"></div>
-  <div id="cf-v-wf" style="flex:1;overflow:hidden;position:relative;"></div>
+
+  <!-- 4px mode banner -->
+  <div class="live-mode-banner"></div>
+
+  <!-- ── Body: cockpit layout ── -->
+  <div class="live-body">
+
+    <!-- Main cockpit column -->
+    <div class="live-main">
+
+      <!-- ON AIR strip -->
+      <div class="live-onair" id="vw-onair-strip">
+        <div class="oa-lbl">
+          <div class="tc-pip live pulse"></div>
+          On Air
+        </div>
+        <div class="oa-mid">
+          <span id="vw-oa-badge"></span>
+          <div>
+            <div class="oa-name" id="vw-oa-name">—</div>
+            <div class="oa-tc" id="vw-oa-tc"></div>
+          </div>
+        </div>
+        <div class="oa-held">
+          <div>Held</div>
+          <span class="v" id="vw-oa-held">—</span>
+        </div>
+      </div>
+
+      <!-- NEXT cue hero -->
+      <div class="live-next" id="vw-next-hero">
+        <div class="nh-eyebrow" id="vw-next-eyebrow">Next</div>
+        <div style="margin-top:4px;">
+          <div class="nh-badge" id="vw-next-badge-row">
+            <span id="vw-next-badge"></span>
+            <div class="nh-name" id="vw-next-name">—</div>
+          </div>
+          <div class="nh-desc" id="vw-next-desc-txt"></div>
+        </div>
+        <div class="nh-count" id="vw-next-count">
+          <div class="v" id="vw-next-cd">—</div>
+          <div class="nh-cd-lbl">Until cue</div>
+        </div>
+        <div class="nh-bar"><div class="nh-fill" id="vw-next-bar-fill" style="width:0%"></div></div>
+      </div>
+
+      <!-- THEN queue -->
+      <div class="live-then">
+        <div class="live-then-head"><span class="lbl">Upcoming</span></div>
+        <div class="live-then-rows" id="vw-then-rows"></div>
+      </div>
+
+    </div><!-- /live-main -->
+
+    <!-- Setlist rail -->
+    <div class="live-setlist" id="vw-setlist-rail">
+      <div class="live-setlist-head">
+        <span>Setlist</span>
+        <span class="vw-setlist-count" id="vw-setlist-count"></span>
+      </div>
+      <div class="live-setlist-body" id="vw-mini-seqs"></div>
+    </div>
+
+  </div><!-- /live-body -->
+
+  <!-- Hidden compat elements still referenced by Block 2 -->
+  <div style="display:none;">
+    <div id="cf-v-tracks"></div>
+    <div id="cf-v-wf"></div>
+    <span id="cf-v-seqname"></span>
+    <span id="cf-v-project"></span>
+    <span id="cf-v-status-txt">Waiting for TC</span>
+  </div>
 </div>
 <!-- Conflict resolution modal -->
 <div id="cf-conflict-modal" role="dialog" aria-modal="true" aria-labelledby="cf-conflict-modal-title" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);align-items:center;justify-content:center;overscroll-behavior:contain;">
@@ -3157,6 +3278,7 @@ function _doRedraw(target,frames){
 
     // ── Cockpit layout update ──
     _updateLiveCockpit(frames,allCues,curIdx,upNextSongId);
+    _updateViewerCockpit(frames,allCues,curIdx,upNextSongId);
 
     // Setlist / mini-songs
     renderMiniSongs('live',liveSongId,upNextSongId);
@@ -3324,6 +3446,95 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId){
     const hasTc=window.CF&&(CF._tcReady||state.currentFrames>0);
     tcPip.className='tc-pip'+(hasTc?' ok pulse':' warn');
   }
+}
+
+/* ── Viewer cockpit updater (mirrors _updateLiveCockpit for crew/track-editor screens) ── */
+function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
+  const vs=document.getElementById('cf-viewer-screen');
+  if(!vs||vs.style.display==='none')return;
+  const _e=id=>document.getElementById(id);
+  const WARN_SEC=state.warnSec||10,URGENCY_SEC=20;
+
+  // ── ON AIR strip ──
+  const curCue=curIdx>=0?allCues[curIdx]:null;
+  if(curCue){
+    const e=_e('vw-oa-name');if(e)e.textContent=curCue.name||'—';
+    const b=_e('vw-oa-badge');if(b)b.innerHTML=_makeLiveBadge(curCue,'sm');
+    const t=_e('vw-oa-tc');if(t)t.textContent=curCue.tc||'';
+    const h=_e('vw-oa-held');
+    if(h){const hf=Math.max(0,frames-curCue._f),hs=Math.floor(hf/state.fps),m=Math.floor(hs/60),s=hs%60;h.textContent=m>0?m+':'+String(s).padStart(2,'0'):String(s);}
+  } else {
+    const e=_e('vw-oa-name');if(e)e.textContent='—';
+    const b=_e('vw-oa-badge');if(b)b.innerHTML='';
+    const t=_e('vw-oa-tc');if(t)t.textContent='';
+    const h=_e('vw-oa-held');if(h)h.textContent='—';
+  }
+
+  // ── NEXT hero ──
+  const nextIdx=curIdx+1,nextCue=nextIdx<allCues.length?allCues[nextIdx]:null;
+  const nhHero=_e('vw-next-hero'),nhCount=_e('vw-next-count');
+  if(nextCue){
+    const cdF=Math.max(0,nextCue._f-frames),cdSec=cdF/state.fps;
+    const e=_e('vw-next-name');if(e)e.textContent=nextCue.name||'—';
+    const b=_e('vw-next-badge');if(b)b.innerHTML=_makeLiveBadge(nextCue,'lg');
+    const d=_e('vw-next-desc-txt');if(d)d.textContent=nextCue.desc||'';
+    const c=_e('vw-next-cd');if(c)c.textContent=cdF>0?fmtCD(cdF):'GO';
+    const isWarn=cdSec<=WARN_SEC&&cdSec>=0;
+    if(nhCount)nhCount.classList.toggle('warn',isWarn);
+    if(nhHero)nhHero.classList.toggle('warn',isWarn);
+    const bf=_e('vw-next-bar-fill');
+    if(bf){const FILL_SEC=Math.max(WARN_SEC*3,30);const fp=cdSec<=FILL_SEC?Math.max(0,Math.min(100,(1-cdSec/FILL_SEC)*100)):0;bf.style.width=fp.toFixed(1)+'%';}
+  } else {
+    const e=_e('vw-next-name');if(e)e.textContent='—';
+    const b=_e('vw-next-badge');if(b)b.innerHTML='';
+    const d=_e('vw-next-desc-txt');if(d)d.textContent='';
+    const c=_e('vw-next-cd');if(c)c.textContent='—';
+    if(nhCount)nhCount.classList.remove('warn');
+    if(nhHero)nhHero.classList.remove('warn');
+    const bf=_e('vw-next-bar-fill');if(bf)bf.style.width='0%';
+  }
+
+  // ── THEN queue ──
+  const tr=_e('vw-then-rows');
+  if(tr){
+    tr.innerHTML='';
+    const qs=nextIdx+1,qe=Math.min(allCues.length,qs+5);
+    for(let qi=qs;qi<qe;qi++){
+      const qc=allCues[qi],cdF=Math.max(0,qc._f-frames),cdSec=cdF/state.fps;
+      const isWarn=cdSec<=WARN_SEC,isUrgent=cdSec<=10,showUrg=cdSec<=URGENCY_SEC;
+      const row=document.createElement('div');row.className='live-then-row';
+      const cdCls=isUrgent?'cd urgent':isWarn?'cd warn':'cd';
+      const urgHtml=showUrg?`<div class="urg-bar${isUrgent?' urgent':''}"><div class="urg-fill" style="width:${((1-cdSec/URGENCY_SEC)*100).toFixed(1)}%"></div></div>`:'';
+      row.innerHTML=`<div class="ix">${qi+1}</div><div class="tag">${_makeLiveBadge(qc,'md')}</div><div class="nm">${escH(qc.name||'—')}<span class="ds">${escH(qc.desc||'')}</span></div><div class="tc-lbl">${escH(qc.tc||'')}</div><div class="${cdCls}">${cdF>0?fmtCD(cdF):''}</div>${urgHtml}`;
+      tr.appendChild(row);
+    }
+  }
+
+  // ── Setlist ──
+  const ms=_e('vw-mini-seqs');
+  if(ms){
+    ms.innerHTML='';
+    const songs=getActivePlaylistSongs();
+    const liveSongId=curIdx>=0?allCues[curIdx]?.songId:null;
+    const liveIdx=Math.max(0,songs.findIndex(s=>s.id===liveSongId));
+    const cnt=_e('vw-setlist-count');
+    if(cnt)cnt.textContent=liveSongId?`${liveIdx+1} / ${songs.length}`:'';
+    songs.forEach((song,i)=>{
+      const isLive=song.id===liveSongId,isUp=song.id===upNextSongId;
+      const div=document.createElement('div');
+      div.className='mini-song'+(isLive?' live':isUp?' upnext':'');
+      div.innerHTML=`<div class="mini-song-num">${i+1}</div><div class="mini-song-name">${escH(song.name)}</div><div class="mini-dot"></div>`;
+      ms.appendChild(div);
+    });
+  }
+
+  // ── Topbar: TC pip + seq crumb ──
+  const dot=_e('cf-v-dot');
+  if(dot){const hasTc=window.CF&&(CF._tcReady||state.currentFrames>0);dot.className='tc-pip'+(hasTc?' ok pulse':' idle');}
+  const fps=_e('vw-fps-val');
+  if(fps)fps.textContent=(state.fps||25).toFixed((state.fps||25)%1?3:0);
+  const sc=_e('vw-seq-crumb');
+  if(sc){const liveSongId=curIdx>=0?allCues[curIdx]?.songId:null;const ls=liveSongId?state.songs.find(s=>s.id===liveSongId):null;sc.textContent=ls?ls.name:'—';}
 }
 
 function renderMiniSongs(target,liveSongId,upNextId){
@@ -8812,13 +9023,18 @@ function subscribeTc(){
 
       /* Viewer screen */
       var vtc=document.getElementById('cf-v-tc');
-      if(vtc){vtc.textContent=fmtd;vtc.style.color=color;vtc.style.display='';}
+      if(vtc){vtc.textContent=fmtd;vtc.style.color=color;}
       var vseq=document.getElementById('cf-v-seqname');
       if(vseq&&displayLabel) vseq.textContent=displayLabel;
       var vdot=document.getElementById('cf-v-dot');
-      if(vdot) vdot.style.background=dot;
+      if(vdot){vdot.className='tc-pip ok pulse';}
       var vstxt=document.getElementById('cf-v-status-txt');
       if(vstxt) vstxt.style.display='none';
+      /* Viewer cockpit topbar — TC source + lock */
+      var vsrc=document.getElementById('vw-tc-src');
+      if(vsrc) vsrc.textContent=p.source?p.source.toUpperCase():'—';
+      var vlck=document.getElementById('vw-tc-lock');
+      if(vlck) vlck.textContent='RECEIVING';
 
       /* Editor live mode — just update TC digit color */
       var liveDisp=document.getElementById('tc-disp-live');
@@ -8846,13 +9062,15 @@ function subscribeTc(){
   /* Stale TC indicator + overview refresh */
   setInterval(function(){
     if(CF._lastTcRx && Date.now()-CF._lastTcRx<800) return;
-    ['cf-tc-dot','cf-v-dot'].forEach(function(id){
-      var e=document.getElementById(id); if(e) e.style.background='#333';
-    });
-    var vtc2=document.getElementById('cf-v-tc');
-    if(vtc2) vtc2.style.display='none';
+    var dotEl=document.getElementById('cf-v-dot');
+    if(dotEl) dotEl.className='tc-pip idle';
+    var tcDot=document.getElementById('cf-tc-dot');
+    if(tcDot) tcDot.style.background='#333';
     var vstxt=document.getElementById('cf-v-status-txt');
     if(vstxt){vstxt.textContent='Waiting for TC';vstxt.style.display='';}
+    /* Reset viewer topbar source label */
+    var vlck=document.getElementById('vw-tc-lock');
+    if(vlck) vlck.textContent='';
     refreshViewerOverview();
   }, 2000);
 
@@ -9191,89 +9409,9 @@ function showViewerScreen(show){
   var pn=document.getElementById('cf-v-project');
   if(pn) pn.textContent=(show&&show.name)||'';
 
-  /* Add header buttons + role badge (only once) */
-  if(!document.getElementById('cf-v-edit-btn')){
-    var headerRow=document.querySelector('#cf-viewer-screen > div:first-child');
-    if(headerRow){
-      var dot=document.getElementById('cf-v-dot');
-
-      /* Role badge */
-      if(CF.role && CF.role!=='owner'){
-        var roleBadge=document.createElement('span');
-        roleBadge.id='cf-v-role-badge';
-        roleBadge.style.cssText='font-size:9px;font-weight:700;color:var(--text3);margin-left:8px;flex-shrink:0;letter-spacing:.06em;text-transform:uppercase;';
-        roleBadge.textContent=(CF.role==='editor'||CF.role==='track-editor')?'editor':'viewer';
-        headerRow.insertBefore(roleBadge, headerRow.children[1]||null);
-      }
-
-      /* Connection status text */
-      var statusTxt=document.createElement('span');
-      statusTxt.id='cf-v-status-txt';
-      statusTxt.textContent='Waiting for TC';
-      statusTxt.style.cssText='font-size:10px;color:var(--text3);flex-shrink:0;text-transform:uppercase;letter-spacing:.05em;';
-      if(dot) dot.parentNode.insertBefore(statusTxt, dot.nextSibling);
-
-      var isCamOnlyViewer=!!(CF.cameraIds&&CF.cameraIds.length);
-
-      if(!isCamOnlyViewer){
-        /* Overview panel button — not needed for single-camera viewers */
-        var overviewBtn=document.createElement('button');
-        overviewBtn.id='cf-v-overview-btn';
-        overviewBtn.textContent='Overview';
-        overviewBtn.style.cssText='padding:5px 14px;font-size:11px;font-weight:600;background:var(--surface2);'+
-          'border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);cursor:pointer;flex-shrink:0;margin-left:8px;transition:background .12s,border-color .12s,color .12s;';
-        overviewBtn.onclick=function(){ toggleViewerOverview(); };
-        if(dot) dot.parentNode.insertBefore(overviewBtn, dot);
-      }
-
-      if(isCamOnlyViewer){
-        /* Show all: split waterfall top / all cameras bottom */
-        var showAllBtn=document.createElement('button');
-        showAllBtn.id='cf-v-showall-btn';
-        showAllBtn.textContent='Show all';
-        showAllBtn.style.cssText='padding:5px 14px;font-size:11px;font-weight:600;background:var(--surface2);'+
-          'border:1px solid var(--border2);border-radius:4px;color:var(--text2);cursor:pointer;flex-shrink:0;margin-left:8px;';
-        showAllBtn.onclick=function(){ toggleViewerShowAll(); };
-        if(dot) dot.parentNode.insertBefore(showAllBtn, dot);
-
-        /* Change camera button */
-        var camSwBtn=document.createElement('button');
-        camSwBtn.id='cf-v-camswitch-btn';
-        var _swCam=state.cameraTrack&&CF.cameraIds&&state.cameraTrack.cameras.find(function(c){return c.id===CF.cameraIds[0];});
-        camSwBtn.textContent='CAM '+(_swCam?_swCam.number:'?');
-        camSwBtn.style.cssText='padding:5px 14px;font-size:11px;font-weight:900;font-family:var(--mono);background:var(--surface2);'+
-          'border:1px solid var(--border2);border-radius:4px;color:var(--text2);cursor:pointer;flex-shrink:0;margin-left:8px;';
-        camSwBtn.onclick=function(){ openCameraSwitcher(); };
-        if(dot) dot.parentNode.insertBefore(camSwBtn, dot);
-      }
-
-      /* Add description / edit button */
-      var editBtn=document.createElement('button');
-      editBtn.id='cf-v-edit-btn';
-      editBtn.textContent='Add description';
-      editBtn.style.cssText='padding:5px 14px;font-size:11px;font-weight:700;background:var(--surface2);'+
-        'border:1px solid var(--border2);border-radius:4px;color:var(--text3);cursor:pointer;flex-shrink:0;margin-left:6px;margin-right:6px;';
-      editBtn.onclick=function(){ openViewerDescEdit(); };
-      if(dot) dot.parentNode.insertBefore(editBtn, dot);
-    }
-  }
-
   buildTrackPills();
 
-  /* Strip ID from owner's static wf-live so viewer's takes precedence */
-  var ownerWf=document.getElementById('wf-live');
-  if(ownerWf) ownerWf.removeAttribute('id');
-
   setTimeout(function(){
-    var slot=document.getElementById('cf-v-wf');
-    if(slot){
-      slot.innerHTML='';
-      var wf=document.createElement('div');
-      wf.id='wf-live';
-      wf.className='wf-area';
-      wf.style.cssText='position:absolute;inset:0;';
-      slot.appendChild(wf);
-    }
     /* Set app mode to 'live' without calling switchMode (which switches screens) */
     state.appMode='live';
     /* Initialise visible streams */
@@ -9291,8 +9429,9 @@ function showViewerScreen(show){
   },400);
 }
 
-/* ── Viewer description edit view ─────────────────────────────── */
+/* ── Viewer description edit view (legacy — no-op in cockpit layout) ─────────────────────────────── */
 function openViewerDescEdit(){
+  return; /* Cockpit layout replaces description-edit panel */
   var vs=document.getElementById('cf-viewer-screen');
   if(!vs) return;
   var slot=document.getElementById('cf-v-wf');
@@ -9514,6 +9653,10 @@ function refreshViewerOverview(){ /* _doRedraw keeps #live-right current */ }
 function buildTrackPills(){
   var c=document.getElementById('cf-v-tracks'); if(!c) return;
   c.innerHTML='';
+  /* Also populate viewer topbar track cell */
+  var vtc=document.getElementById('vw-track-cell');
+  var vtbi=document.getElementById('vw-track-badge-inner');
+  if(vtbi) vtbi.innerHTML='';
 
   // Camera-only viewer: show the active camera as a single pill
   if(CF.cameraIds&&CF.cameraIds.length){
@@ -9533,8 +9676,26 @@ function buildTrackPills(){
   var streams=state.streams||[];
   var allowed=CF.tracks;
   var visible=streams.filter(function(s){ return !allowed||allowed.indexOf(s.id)!==-1; });
-  if(!visible.length){c.style.display='none';return;}
+  if(!visible.length){c.style.display='none';if(vtc)vtc.style.display='none';return;}
   c.style.display='flex';
+  /* Viewer topbar: show track name(s) */
+  if(vtc&&vtbi){
+    vtc.style.display='flex';
+    visible.forEach(function(s){
+      var col=window.getStreamColor?getStreamColor(s.id):{hex:'#3b7bdd'};
+      var short=(s.shortName||s.name||'?').slice(0,4).toUpperCase();
+      var span=document.createElement('span');
+      span.className='track-glyph sm';
+      span.style.background=col.hex;
+      span.textContent=short;
+      vtbi.appendChild(span);
+      var nm=document.createElement('span');
+      nm.className='vw-tc-src';
+      nm.style.color='var(--txt-hi)';
+      nm.textContent=s.name;
+      vtbi.appendChild(nm);
+    });
+  }
   var isSingle = visible.length===1;
   visible.forEach(function(s){
     var col=window.getStreamColor?getStreamColor(s.id):{hex:'#3b7bdd'};
