@@ -4,14 +4,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this project is
 
-CueFlow is a live show timecode cue manager. A single self-contained HTML file (`cueflow_v18.html`) that runs as a web app or packaged Electron desktop app. Operators create cue sheets tied to SMPTE timecode and share live views with crew via Supabase Realtime.
+CueFlow is a live show timecode cue manager. A single self-contained HTML file (`index.html`) that runs as a web app or packaged Electron desktop app. Operators create cue sheets tied to SMPTE timecode and share live views with crew via Supabase Realtime.
+
+## UI Kit — follow this for all new UI work
+
+**All new additions or changes to the app UI must follow the CueFlow UI Kit.**
+
+Reference file: `CueFlow UI Kit.html` (open in a browser to view)
+
+Before adding any new component, panel, modal, or visual element, consult the UI Kit for:
+- Colour tokens (`--amber`, `--red`, `--green`, `--surface`, `--hair`, etc.)
+- Typography scale and font families (`--cond`, `--mono`, and system sans)
+- Spacing, border-radius, and layout patterns
+- Button styles (primary, cancel, outline, icon)
+- Input / select field styles (`.tcs-select`)
+- Status indicators (pip dots, badges, glyphs)
+- Modal anatomy (header / tab bar / body / footer pattern)
+- Cockpit layout components (ON AIR strip, NEXT hero, THEN rows, setlist rail)
+
+Do **not** invent new colour values, font sizes, or component patterns that aren't in the UI Kit. If a UI Kit pattern doesn't cover the need, extend it conservatively using the same token system.
 
 ## Commands
 
 ```bash
 # Run in browser (no build step)
 npx serve .
-# open http://localhost:3000/cueflow_v18.html
+# open http://localhost:3000/index.html
 
 # Run as Electron app
 npm start
@@ -20,12 +38,12 @@ npm start
 npm run dist
 
 # Validate JS after any edit (always do this)
-node --check cueflow_v18.html
+node --check index.html
 ```
 
 ## Architecture — the three script blocks
 
-`cueflow_v18.html` contains three `<script>` blocks in order. **Never merge them** — the Supabase SDK affects strict-mode parsing in a way that breaks function declarations if they share a tag with app code.
+`index.html` contains three `<script>` blocks in order. **Never merge them** — the Supabase SDK affects strict-mode parsing in a way that breaks function declarations if they share a tag with app code.
 
 | Block | Size | Contents |
 |-------|------|----------|
