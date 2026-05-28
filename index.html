@@ -419,39 +419,69 @@ body.mode-live #edit-topbar { display: none; }
 
 /* Slide-out panel */
 #cf-panel { width: 0; overflow: hidden; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--hair2); display: flex; flex-direction: column; transition: width .18s ease; z-index: 290; }
-#cf-panel.open { width: 260px; }
-.sbp-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--hair); flex-shrink: 0; }
-.sbp-title { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--txt-mid); font-family: var(--cond); }
-.sbp-close { background: none; border: none; color: var(--txt-mid); cursor: pointer; font-size: 15px; padding: 2px 6px; }
+#cf-panel.open { width: 280px; }
+.sbp-head { display: flex; align-items: center; gap: 6px; padding: 0 10px 0 16px; height: 44px; border-bottom: 1px solid var(--hair); border-top: 3px solid var(--amber); flex-shrink: 0; }
+.sbp-title { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--txt-hi); font-family: var(--cond); }
+.sbp-count { font-size: 10px; font-weight: 700; color: var(--amber); font-family: var(--mono); }
+.sbp-sep { font-size: 10px; color: var(--txt-low); }
+.sbp-spacer { flex: 1; }
+.sbp-action { background: none; border: none; color: var(--amber); cursor: pointer; font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 6px 8px; transition: opacity .12s; }
+.sbp-action:hover { opacity: .7; }
+.sbp-close { background: none; border: none; color: var(--txt-low); cursor: pointer; font-size: 14px; padding: 4px; line-height: 1; display: flex; align-items: center; transition: color .12s; }
 .sbp-close:hover { color: var(--txt-hi); }
-.sbp-body { flex: 1; overflow-y: auto; padding: 8px; }
+.sbp-body { flex: 1; overflow-y: auto; padding: 0; }
 
-/* Sequence items in panel */
-.sbp-seq { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--hair); cursor: pointer; border-left: 2px solid transparent; }
+/* Sequence rows in panel */
+.sbp-seq { display: flex; align-items: center; height: 44px; padding: 0 14px 0 16px; border-bottom: 1px solid var(--hair); cursor: pointer; border-left: 3px solid transparent; transition: background .1s; }
 .sbp-seq:hover { background: var(--surface2); }
-.sbp-seq.active { background: var(--surface2); border-left-color: var(--amber); padding-left: 12px; }
-.sbp-seq.active .sbp-seq-n  { color: var(--amber); }
-.sbp-seq.active .sbp-seq-nm { color: var(--txt-hi); font-weight: 600; }
-.sbp-seq-n  { font-size: 10px; color: var(--txt-mid); width: 16px; flex-shrink: 0; font-family: var(--mono); }
-.sbp-seq-nm { font-size: 12px; font-weight: 600; color: var(--txt); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sbp-seq-drag { cursor: grab; color: var(--txt-low); font-size: 12px; padding: 0 4px; }
-.sbp-seq-drag:active { cursor: grabbing; }
-#sbp-seq-add { position: sticky; bottom: 0; background: var(--surface); padding: 8px; border-top: 1px solid var(--hair); flex-shrink: 0; }
+.sbp-seq.active { border-left-color: var(--amber); padding-left: 13px; }
+.sbp-seq.active .sbp-seq-n { color: var(--amber); }
+.sbp-seq.active .sbp-seq-nm { color: var(--txt-hi); }
+.sbp-seq-grip { flex-shrink: 0; width: 10px; color: var(--txt); font-size: 12px; line-height: 1; cursor: grab; opacity: .35; transition: opacity .12s; margin-right: 4px; }
+.sbp-seq:hover .sbp-seq-grip { opacity: 1; }
+.sbp-seq-grip:active { cursor: grabbing; opacity: 1; }
+.sbp-seq-n { font-size: 10px; color: var(--txt-low); width: 18px; flex-shrink: 0; font-family: var(--mono); text-align: right; }
+.sbp-seq-nm { font-size: 12px; font-weight: 700; color: var(--txt); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px; font-family: var(--cond); letter-spacing: .01em; }
+.sbp-seq-cb { font-size: 14px; flex-shrink: 0; margin-right: 6px; line-height: 1; width: 14px; text-align: center; }
+.sbp-seq.selected { background: rgba(240,168,56,.06); }
 
-/* Track items in panel */
-.sbp-trk { display: flex; align-items: center; gap: 6px; padding: 6px 8px; background: var(--surface2); border: 1px solid var(--hair); margin-bottom: 4px; }
-.sbp-trk-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; cursor: pointer; }
-.sbp-trk-name { flex: 1; background: transparent; border: none; color: var(--txt); font-size: 12px; font-weight: 600; outline: none; min-width: 0; }
-.sbp-trk-name:focus { background: var(--surface3); padding: 1px 4px; }
-.sbp-trk-vis { background: none; border: none; color: var(--txt-mid); cursor: pointer; font-size: 12px; padding: 2px 4px; }
-.sbp-trk-vis:hover { color: var(--txt-hi); }
-.sbp-trk-del { background: none; border: none; color: var(--txt-low); cursor: pointer; font-size: 11px; padding: 2px 4px; }
-.sbp-trk-del:hover { color: var(--red); }
-.sbp-add { width: 100%; padding: 6px; background: none; border: 1px dashed var(--hair2); color: var(--txt-low); font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; margin-top: 4px; }
-.sbp-add:hover { border-color: var(--amber); color: var(--amber); }
-.sbp-swatches { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
-.sbp-swatch { width: 14px; height: 14px; border-radius: 0%; cursor: pointer; border: 2px solid transparent; }
-.sbp-swatch.sel { border-color: #fff; }
+/* Panel footer */
+.sbp-foot { border-top: 1px solid var(--hair); flex-shrink: 0; display: flex; gap: 0; }
+.sbp-foot-btn { flex: 1; height: 36px; background: none; border: none; border-right: 1px solid var(--hair); color: var(--txt-low); cursor: pointer; font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; transition: color .12s, background .12s; }
+.sbp-foot-btn:last-child { border-right: none; }
+.sbp-foot-btn:hover { color: var(--txt-hi); background: var(--surface2); }
+.sbp-foot-btn.active { color: var(--amber); }
+.sbp-foot-icon { flex: 0 0 36px; height: 36px; background: none; border: none; border-right: 1px solid var(--hair); color: var(--txt-low); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color .12s, background .12s; }
+.sbp-foot-icon:hover { color: var(--txt-hi); background: var(--surface2); }
+.sbp-foot-sep { width: 1px; background: var(--hair); flex-shrink: 0; }
+
+/* Track items in panel — redesigned UI Kit */
+.sbp-add { width: 100%; padding: 8px 14px; background: none; border: none; border-top: 1px solid var(--hair); color: var(--txt-low); font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; text-align: left; }
+.sbp-add:hover { color: var(--amber); }
+.sbp-trk2 { display:flex; align-items:center; height:44px; padding:0 10px 0 14px; border-bottom:1px solid var(--hair); gap:12px; }
+.sbp-trk2-badge { width:32px; height:32px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; font-family:var(--cond); font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--txt); border:1px solid var(--hair3); background:transparent; transition:opacity .15s; }
+.sbp-trk2-badge.dim { opacity:.3; }
+.sbp-trk2-info { flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center; gap:2px; }
+.sbp-trk2-full { font-size:12px; font-weight:600; color:var(--txt-hi); font-family:var(--cond); letter-spacing:.04em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:opacity .15s; }
+.sbp-trk2-full.dim { opacity:.3; }
+.sbp-trk2-sub { font-size:10px; color:var(--txt-low); font-family:var(--mono); letter-spacing:.03em; }
+.sbp-trk2-actions { display:flex; align-items:center; flex-shrink:0; }
+.sbp-trk2-btn { width:28px; height:28px; background:none; border:none; color:var(--txt-low); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:color .12s; padding:0; }
+.sbp-trk2-btn:hover { color:var(--txt-hi); }
+.sbp-trk2-btn.del:hover { color:var(--red); }
+.sbp-trk2-rename-inp { flex:1; background:var(--surface2); border:1px solid var(--amber); color:var(--txt-hi); font-size:12px; font-weight:600; font-family:var(--cond); letter-spacing:.04em; padding:3px 8px; outline:none; min-width:0; height:28px; }
+/* Playlist rows in panel */
+.sbp-pl { display: flex; align-items: center; height: 44px; padding: 0 14px 0 16px; border-bottom: 1px solid var(--hair); cursor: pointer; border-left: 3px solid transparent; transition: background .1s; gap: 8px; }
+.sbp-pl:hover { background: var(--surface2); }
+.sbp-pl.active { border-left-color: var(--amber); padding-left: 13px; }
+.sbp-pl.active .sbp-pl-nm { color: var(--txt-hi); }
+.sbp-pl-nm { font-size: 12px; font-weight: 700; color: var(--txt); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--cond); letter-spacing: .01em; }
+.sbp-pl-cnt { font-size: 10px; color: var(--txt-low); font-family: var(--mono); flex-shrink: 0; }
+.sbp-pl-acts { display: flex; gap: 2px; flex-shrink: 0; opacity: 0; transition: opacity .12s; }
+.sbp-pl:hover .sbp-pl-acts { opacity: 1; }
+.sbp-pl-act { background: none; border: none; color: var(--txt-mid); cursor: pointer; padding: 3px 5px; font-size: 12px; transition: color .12s; }
+.sbp-pl-act:hover { color: var(--txt-hi); }
+.sbp-pl-act.danger:hover { color: var(--red); }
 
 
 /* ═══════════════════════════════════════════
@@ -708,22 +738,17 @@ body.mode-live #edit-topbar { display: none; }
   grid-template-columns: 30px 32px var(--col-tc,108px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px;
   align-items: stretch; min-height: 34px;
   border-bottom: 1px solid rgba(251,191,36,.1);
-  background: rgba(251,191,36,.03); cursor: default; position: relative;
+  cursor: default; position: relative;
 }
-.chapter-list-row:hover { background: rgba(251,191,36,.07); }
-.chapter-list-row.ch-sel { background: rgba(251,191,36,.1); outline: 1px solid rgba(251,191,36,.28); outline-offset: -1px; }
+.chapter-list-row:hover { background: var(--surface2); }
 /* Marker icon in TRK column — same sizing as track-glyph xs, amber tint */
 .cl-marker-badge {
   background: rgba(251,191,36,.1) !important; color: rgba(251,191,36,.8) !important;
   border: 1px solid rgba(251,191,36,.22) !important; font-size: 11px !important;
 }
-/* Marker name and TC — inherit .cue-field structure, amber colour override */
-.chapter-list-row .cue-field { color: rgba(251,191,36,.85); caret-color: rgba(251,191,36,.9); }
-.chapter-list-row .cue-field.tc { color: rgba(251,191,36,.6); }
-/* TYPE cell amber for MARKER rows */
-.chapter-list-row .cl-type-cell { color: rgba(251,191,36,.5); }
-/* Delete button subtle amber until hover */
-.chapter-list-row .cue-del { color: rgba(251,191,36,.28); }
+
+
+/* Marker Delete button hover */
 .chapter-list-row .cue-del:hover { color: var(--red); }
 
 /* ── Filter panel ── */
@@ -846,7 +871,6 @@ body.mode-live #edit-topbar { display: none; }
 
 /* Stream cells */
 .etl-stream-cell, .etl-stream-cell.active-stream { cursor: pointer; transition: background .1s; }
-.etl-stream-cell.sel-stream { background: rgba(59,123,221,.1) !important; }
 .etl-stream-cell.sel-stream .etl-sl, .etl-stream-cell.active-stream .etl-sl { opacity: 1 !important; }
 .etl-sl { opacity: .6; }
 
@@ -1059,9 +1083,9 @@ body.mode-live #edit-topbar { display: none; }
   flex-shrink: 0; text-transform: uppercase;
 }
 .trk-glyph.xs, .track-glyph.xs { width: 24px; height: 24px; font-size: 8px; }
-.trk-glyph.sm, .track-glyph.sm { width: 32px; height: 32px; font-size: 9px; }
-.trk-glyph.md, .track-glyph.md { width: 52px; height: 52px; font-size: 13px; }
-.trk-glyph.lg, .track-glyph.lg { width: 96px; height: 96px; font-size: 22px; }
+.trk-glyph.sm, .track-glyph.sm { width: 32px; height: 32px; font-size: 12px; }
+.trk-glyph.md, .track-glyph.md { width: 52px; height: 52px; font-size: 16px; }
+.trk-glyph.lg, .track-glyph.lg { width: 96px; height: 96px; font-size: 35px; }
 
 /* ── small chip ── */
 .chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 7px; border: 1px solid var(--hair2); background: var(--surface2); font-family: var(--cond); font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--txt-mid); }
@@ -1239,6 +1263,87 @@ input.minp:focus { border-color: var(--amber); }
 .color-swatch { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform .1s; }
 .color-swatch:hover { transform: scale(1.1); }
 .color-swatch.selected { border-color: #fff; transform: scale(1.05); }
+
+/* ── New Track Modal ── */
+.ntm-bg { position:fixed; inset:0; background:rgba(0,0,0,.75); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:301; }
+.ntm-bg.show { display:flex; }
+.ntm-box { background:var(--surface); border:1px solid var(--hair2); width:480px; max-width:96vw; max-height:92vh; overflow-y:auto; box-shadow:0 32px 80px rgba(0,0,0,.9); display:flex; flex-direction:column; }
+.ntm-header { display:flex; align-items:center; justify-content:space-between; padding:20px 24px 16px; border-bottom:1px solid var(--hair); flex-shrink:0; }
+.ntm-title { font-family:var(--cond); font-size:16px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-hi); }
+.ntm-badge { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-low); }
+.ntm-type-row { display:flex; gap:10px; padding:16px 24px; border-bottom:1px solid var(--hair); flex-shrink:0; }
+.ntm-type-btn { flex:1; height:44px; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; cursor:pointer; border:1px solid transparent; transition:background .15s, color .15s, border-color .15s; }
+.ntm-type-btn.active { background:var(--amber); color:#000; border-color:var(--amber); }
+.ntm-type-btn:not(.active) { background:var(--surface2); color:var(--txt-mid); border-color:var(--hair2); }
+.ntm-type-btn:not(.active):hover { background:var(--surface3); color:var(--txt-hi); border-color:var(--hair3); }
+.ntm-body { padding:22px 24px; display:flex; flex-direction:column; gap:18px; flex:1; }
+.ntm-fg { display:flex; flex-direction:column; gap:7px; }
+.ntm-lbl { font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-mid); }
+.ntm-iw { position:relative; }
+.ntm-inp { width:100%; padding:11px 52px 11px 14px; background:var(--surface2); border:1.5px solid var(--hair2); color:var(--txt-hi); font-size:15px; font-weight:500; outline:none; box-sizing:border-box; transition:border-color .15s; }
+.ntm-inp:focus { border-color:var(--amber); }
+.ntm-cnt { position:absolute; right:12px; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:10px; color:var(--txt-low); pointer-events:none; }
+.ntm-hint { font-size:11px; color:var(--txt-low); font-style:italic; line-height:1.4; }
+.ntm-preview { background:var(--canvas); border:1px solid var(--hair2); padding:14px 16px; }
+.ntm-prev-head { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); margin-bottom:14px; }
+.ntm-prev-cols { display:flex; align-items:flex-end; gap:28px; }
+.ntm-prev-col { display:flex; flex-direction:column; gap:5px; }
+.ntm-prev-col-lbl { font-family:var(--cond); font-size:8px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); }
+.ntm-prev-lg { font-size:22px; font-weight:700; color:var(--txt-hi); min-height:30px; line-height:1; }
+.ntm-prev-chip { display:inline-flex; align-items:center; justify-content:center; font-family:var(--cond); font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--txt); background:transparent; border:1px solid var(--hair3); flex-shrink:0; width:32px; height:32px; }
+.ntm-cam-badge { display:inline-flex; align-items:center; justify-content:center; font-family:var(--cond); font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--txt); background:transparent; border:1px solid var(--hair3); flex-shrink:0; width:32px; height:32px; }
+#ntm-name-rows { display:flex; flex-direction:column; gap:18px; }
+.ntm-cam-stepper { display:flex; align-items:center; gap:12px; }
+.ntm-step-btn { width:32px; height:32px; background:none; border:1.5px solid var(--hair2); color:var(--txt-mid); cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; line-height:1; transition:border-color .12s, color .12s; }
+.ntm-step-btn:hover { border-color:var(--amber); color:var(--amber); }
+.ntm-step-val { font-family:var(--mono); font-size:20px; font-weight:700; color:var(--txt-hi); min-width:36px; text-align:center; }
+.ntm-footer { display:flex; justify-content:flex-end; gap:8px; padding:14px 24px; border-top:1px solid var(--hair); flex-shrink:0; }
+.ntm-btn { height:38px; padding:0 20px; background:none; border:1px solid var(--hair2); color:var(--txt-mid); cursor:pointer; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; transition:color .12s, border-color .12s; }
+.ntm-btn:hover { color:var(--txt-hi); border-color:var(--hair3); }
+.ntm-btn.primary { background:var(--amber); border-color:var(--amber); color:#000; }
+.ntm-btn.primary:hover { filter:brightness(1.1); }
+.ntm-btn.primary:disabled { background:var(--surface2); border-color:var(--hair2); color:var(--txt-low); cursor:not-allowed; filter:none; }
+
+/* ── Add Sequence Modal ── */
+.asm-box { background:var(--surface); border:1px solid var(--hair2); width:580px; max-width:96vw; max-height:92vh; overflow-y:auto; box-shadow:0 32px 80px rgba(0,0,0,.9); display:flex; flex-direction:column; }
+.asm-header { display:flex; align-items:flex-start; justify-content:space-between; padding:22px 28px 20px; }
+.asm-ctx { font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); margin-bottom:7px; }
+.asm-title { font-family:var(--cond); font-size:22px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-hi); line-height:1; }
+.asm-close-row { display:flex; align-items:center; gap:5px; flex-shrink:0; padding-top:2px; }
+.asm-esc-btn { background:var(--surface2); border:1px solid var(--hair2); color:var(--txt-low); font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.1em; padding:4px 8px; cursor:pointer; transition:color .12s, border-color .12s; line-height:1; }
+.asm-esc-btn:hover { color:var(--txt-hi); border-color:var(--hair3); }
+.asm-x-btn { background:var(--surface2); border:1px solid var(--hair2); color:var(--txt-low); font-size:13px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:color .12s; }
+.asm-x-btn:hover { color:var(--txt-hi); }
+.asm-divider { height:1px; background:var(--hair); flex-shrink:0; }
+.asm-body { padding:24px 28px; display:flex; flex-direction:column; gap:20px; }
+.asm-field { display:flex; flex-direction:column; gap:8px; }
+.asm-lbl { font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-mid); }
+.asm-name-inp { width:100%; padding:14px 56px 14px 16px; background:var(--surface2); border:1.5px solid var(--hair2); color:var(--txt-hi); font-size:18px; font-weight:600; outline:none; box-sizing:border-box; transition:border-color .15s; }
+.asm-name-inp:focus { border-color:var(--amber); }
+.asm-row2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.asm-dur-wrap { position:relative; }
+.asm-dur-inp { width:100%; padding:11px 54px 11px 14px; background:var(--surface2); border:1.5px solid var(--hair2); color:var(--txt-hi); font-size:15px; font-weight:600; outline:none; box-sizing:border-box; transition:border-color .15s; font-family:var(--mono); letter-spacing:.06em; }
+.asm-dur-inp:focus { border-color:var(--amber); }
+.asm-dur-hint { position:absolute; right:12px; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.08em; color:var(--txt-low); pointer-events:none; }
+.asm-select { width:100%; padding:11px 36px 11px 14px; background:var(--surface2); border:1.5px solid var(--hair2); color:var(--txt-hi); font-size:13px; font-weight:500; outline:none; appearance:none; -webkit-appearance:none; cursor:pointer; transition:border-color .15s; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; box-sizing:border-box; }
+.asm-select:focus { border-color:var(--amber); }
+.asm-audio-head { display:flex; align-items:center; justify-content:space-between; }
+.asm-optional { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-low); }
+.asm-audio-row { align-items:center; gap:10px; padding:10px 14px; background:var(--surface2); border:1px solid var(--hair2); }
+.asm-audio-icon { width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:var(--amber-bg); border:1px solid rgba(240,168,56,.2); font-size:16px; color:var(--amber); flex-shrink:0; }
+.asm-audio-info { flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
+.asm-audio-name { font-size:13px; font-weight:600; color:var(--txt-hi); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:var(--cond); letter-spacing:.02em; }
+.asm-audio-meta { font-family:var(--mono); font-size:10px; color:var(--txt-low); letter-spacing:.04em; }
+.asm-audio-btn { height:28px; padding:0 12px; background:var(--surface3); border:1px solid var(--hair2); color:var(--txt-mid); cursor:pointer; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; flex-shrink:0; transition:color .12s, border-color .12s; }
+.asm-audio-btn:hover { color:var(--txt-hi); border-color:var(--hair3); }
+.asm-audio-btn.clr:hover { color:var(--red); border-color:var(--red); }
+.asm-audio-empty { padding:12px 14px; background:var(--surface2); border:1px dashed var(--hair2); display:flex; align-items:center; justify-content:center; min-height:52px; cursor:pointer; transition:border-color .15s; }
+.asm-audio-empty:hover { border-color:var(--hair3); }
+.asm-audio-choose { background:none; border:none; color:var(--txt-mid); cursor:pointer; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; transition:color .12s; pointer-events:none; }
+.asm-audio-empty:hover .asm-audio-choose { color:var(--txt-hi); }
+.asm-audio-hint { font-size:11px; color:var(--txt-low); font-style:italic; }
+.asm-footer { display:flex; align-items:center; justify-content:space-between; padding:14px 28px; }
+.asm-foot-info { font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); }
 
 /* Project list */
 #proj-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; max-height: 190px; overflow-y: auto; }
@@ -1576,7 +1681,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <span class="sb-label">SET</span>
   </button>
 </aside>
-<div id="cf-panel"><div class="sbp-head"><span class="sbp-title" id="cf-panel-title">Panel</span><button class="sbp-close" onclick="sbClose()">✕</button></div><div class="sbp-body" id="cf-panel-body"></div></div>
+<div id="cf-panel"><div class="sbp-head"><span class="sbp-title" id="cf-panel-title">Panel</span><span class="sbp-sep" id="cf-panel-sep" style="display:none;">·</span><span class="sbp-count" id="cf-panel-count"></span><div class="sbp-spacer"></div><button class="sbp-action" id="cf-panel-action" style="display:none;"></button><button class="sbp-close" onclick="sbClose()">✕</button></div><div class="sbp-body" id="cf-panel-body"></div></div>
 <div id="cf-screens" style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;">
 
 <div class="undo-toast" id="undo-toast">
@@ -2002,11 +2107,12 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     </div>
   </div>
 </div>
+<!-- Edit existing stream modal (kept for editing only) -->
 <div id="stream-modal" class="modal-bg" role="dialog" aria-modal="true" aria-labelledby="stream-modal-title">
   <div class="modal-box" style="min-width:300px;max-width:380px;">
-    <div class="modal-title" id="stream-modal-title">Add track</div>
+    <div class="modal-title" id="stream-modal-title">Edit track</div>
     <div class="mrow"><label class="mlabel" for="stream-name-inp">Full name</label><input class="minp" id="stream-name-inp" placeholder="e.g. Lighting" style="margin:0;flex:1;"></div>
-    <div class="mrow"><label class="mlabel" for="stream-shortname-inp">Short name</label><input class="minp" id="stream-shortname-inp" placeholder="e.g. LX" maxlength="4" style="margin:0;width:80px;" title="Up to 4 chars — used in small labels"></div>
+    <div class="mrow"><label class="mlabel" for="stream-shortname-inp">Short name</label><input class="minp" id="stream-shortname-inp" placeholder="e.g. LX" maxlength="3" style="margin:0;width:80px;" title="Up to 3 chars — used in timeline labels"></div>
     <div class="mrow" style="align-items:flex-start;"><span class="mlabel" style="padding-top:4px;">Color</span><div class="color-swatches" id="stream-color-swatches"></div></div>
     <div class="modal-actions">
       <button class="mbtn" onclick="closeModal('stream-modal')">Cancel</button>
@@ -2015,43 +2121,146 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     </div>
   </div>
 </div>
-<!-- Camera Track type chooser -->
-<div id="track-type-modal" class="modal-bg" role="dialog" aria-modal="true" aria-labelledby="track-type-modal-title">
-  <div class="modal-box" style="max-width:340px;">
-    <div class="modal-title" id="track-type-modal-title">Add Track</div>
-    <div class="modal-body" style="padding-bottom:4px;">Choose the type of track to add:</div>
-    <div style="display:flex;flex-direction:column;gap:8px;padding:0 20px 16px;">
-      <button class="mbtn" style="text-align:left;padding:12px 16px;border-radius:8px;display:flex;flex-direction:column;gap:3px;" onclick="openStreamModal(null);closeModal('track-type-modal')">
-        <span style="font-weight:700;font-size:13px;">Normal Track</span>
-        <span style="font-size:11px;color:var(--text3);font-weight:400;">Cue list track for audio, lighting, notes, etc.</span>
-      </button>
-      <button id="track-type-camera-btn" class="mbtn" style="text-align:left;padding:12px 16px;border-radius:8px;display:flex;flex-direction:column;gap:3px;" onclick="openCameraTrackModal();closeModal('track-type-modal')">
-        <span style="font-weight:700;font-size:13px;">Camera Track</span>
-        <span style="font-size:11px;color:var(--text3);font-weight:400;">Multicam camera cue track with color-coded cameras</span>
-      </button>
+
+<!-- Track Rename modal -->
+<div id="trk-rename-modal" class="ntm-bg" role="dialog" aria-modal="true">
+  <div class="ntm-box" style="width:380px;">
+    <div class="ntm-header"><span class="ntm-title">Rename Track</span></div>
+    <div class="ntm-body">
+      <div class="ntm-fg">
+        <label class="ntm-lbl" for="trk-rename-full">Full Name</label>
+        <div class="ntm-iw">
+          <input class="ntm-inp" id="trk-rename-full" maxlength="40" autocomplete="off"
+            onkeydown="if(event.key==='Enter')trkRenameConfirm();if(event.key==='Escape')trkRenameClose();">
+        </div>
+        <span class="ntm-hint">Used in headings, inspector, and alerts.</span>
+      </div>
+      <div class="ntm-fg">
+        <label class="ntm-lbl" for="trk-rename-short">Short Name</label>
+        <div class="ntm-iw">
+          <input class="ntm-inp" id="trk-rename-short" maxlength="3" autocomplete="off"
+            style="font-family:var(--mono);letter-spacing:.06em;"
+            onkeydown="if(event.key==='Enter')trkRenameConfirm();if(event.key==='Escape')trkRenameClose();">
+        </div>
+        <span class="ntm-hint">Max 3 chars — shown in timeline badge.</span>
+      </div>
     </div>
-    <div class="modal-actions" style="border-top:1px solid var(--border);padding-top:12px;">
-      <button class="mbtn" onclick="closeModal('track-type-modal')">Cancel</button>
+    <div class="ntm-footer">
+      <button class="ntm-btn" onclick="trkRenameClose()">Cancel</button>
+      <button class="ntm-btn primary" onclick="trkRenameConfirm()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Track modal — create normal or camera track -->
+<div id="new-track-modal" class="ntm-bg" role="dialog" aria-modal="true">
+  <div class="ntm-box">
+    <!-- Header -->
+    <div class="ntm-header">
+      <span class="ntm-title">New Track</span>
+    </div>
+    <!-- Type toggle: Primary/Secondary button pair per UI Kit -->
+    <div class="ntm-type-row">
+      <button class="ntm-type-btn active" id="ntm-btn-normal" onclick="ntmSetType('normal')">Normal</button>
+      <button class="ntm-type-btn" id="ntm-btn-camera" onclick="ntmSetType('camera')">Camera</button>
+    </div>
+    <!-- Body -->
+    <div class="ntm-body">
+      <!-- Full Name + Short Name (hidden for camera type) -->
+      <div id="ntm-name-rows">
+        <!-- Full Name -->
+        <div class="ntm-fg">
+          <label class="ntm-lbl" for="ntm-fullname">Full Name</label>
+          <div class="ntm-iw">
+            <input class="ntm-inp" id="ntm-fullname" placeholder="e.g. Lighting" maxlength="40" autocomplete="off"
+              oninput="ntmUpdatePreview()">
+            <span class="ntm-cnt" id="ntm-fullname-cnt">0/40</span>
+          </div>
+          <span class="ntm-hint">Used in headings, inspector, alerts.</span>
+        </div>
+        <!-- Short Name -->
+        <div class="ntm-fg">
+          <label class="ntm-lbl" for="ntm-shortname">Short Name</label>
+          <div class="ntm-iw">
+            <input class="ntm-inp" id="ntm-shortname" placeholder="e.g. LX" maxlength="3" autocomplete="off"
+              oninput="ntmUpdatePreview()" style="font-family:var(--mono);letter-spacing:.06em;">
+            <span class="ntm-cnt" id="ntm-shortname-cnt">0/3</span>
+          </div>
+          <span class="ntm-hint">Used in timeline lane heads and sequence list. Max 3 chars.</span>
+        </div>
+      </div>
+      <!-- Preview: full name + square badge (normal) OR camera number badges (camera) -->
+      <div class="ntm-preview">
+        <div class="ntm-prev-head">Preview · How the label appears</div>
+        <div class="ntm-prev-cols" id="ntm-prev-normal">
+          <div class="ntm-prev-col" style="flex:1;">
+            <span class="ntm-prev-col-lbl">Full Name</span>
+            <span class="ntm-prev-lg" id="ntm-prev-lg">—</span>
+          </div>
+          <div class="ntm-prev-col">
+            <span class="ntm-prev-col-lbl">Badge</span>
+            <span class="ntm-prev-chip" id="ntm-prev-sm">—</span>
+          </div>
+        </div>
+        <div id="ntm-prev-cams" style="display:none;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+      <!-- Camera count (camera type only) -->
+      <div class="ntm-fg" id="ntm-cam-row" style="display:none;">
+        <label class="ntm-lbl">Cameras</label>
+        <div class="ntm-cam-stepper">
+          <button class="ntm-step-btn" onclick="ntmStepCam(-1)">−</button>
+          <span class="ntm-step-val" id="ntm-cam-val">4</span>
+          <button class="ntm-step-btn" onclick="ntmStepCam(1)">+</button>
+          <span class="ntm-hint" style="margin:0;">You can add more later</span>
+        </div>
+      </div>
+      <!-- Camera-exists warning (shown only when camera tab active + track exists) -->
+      <div id="ntm-cam-warn" style="display:none;padding:10px 14px;background:rgba(255,40,72,.08);border:1px solid rgba(255,40,72,.25);font-size:11px;color:var(--red);font-family:var(--cond);letter-spacing:.04em;">
+        A camera track already exists. Only one is allowed per project.
+      </div>
+    </div>
+    <!-- Footer -->
+    <div class="ntm-footer">
+      <button class="ntm-btn" onclick="ntmClose()">Cancel</button>
+      <button class="ntm-btn primary" id="ntm-create-btn" onclick="ntmCreate()">Create Track</button>
     </div>
   </div>
 </div>
 
 <!-- Camera Track creation/edit modal -->
-<div id="camera-track-modal" class="modal-bg" role="dialog" aria-modal="true" aria-labelledby="cam-track-modal-title">
-  <div class="modal-box" style="min-width:320px;max-width:420px;">
-    <div class="modal-title" id="cam-track-modal-title">Add Camera Track</div>
-    <div class="mrow"><label class="mlabel" for="cam-track-name-inp">Track name</label><input class="minp" id="cam-track-name-inp" placeholder="e.g. Cameras" style="margin:0;flex:1;"></div>
-    <div id="cam-track-count-row" class="mrow"><label class="mlabel" for="cam-track-count">Cameras</label>
-      <div style="display:flex;align-items:center;gap:8px;flex:1;">
-        <input type="number" class="minp" id="cam-track-count" value="4" min="1" max="16" style="margin:0;width:60px;text-align:center;">
-        <span style="font-size:11px;color:var(--text3);">cameras (you can add more later)</span>
-      </div>
+<div id="camera-track-modal" class="ntm-bg" role="dialog" aria-modal="true">
+  <div class="ntm-box" style="width:480px;">
+    <div class="ntm-header">
+      <span class="ntm-title" id="cam-track-modal-title">Camera Track</span>
     </div>
-    <div id="cam-track-cameras-list" style="display:none;padding:0 20px 8px;max-height:260px;overflow-y:auto;"></div>
-    <div class="modal-actions">
-      <button class="mbtn" onclick="closeModal('camera-track-modal')">Cancel</button>
-      <button id="cam-track-del-btn" class="mbtn danger" style="display:none;" onclick="deleteCameraTrack()">Delete Track</button>
-      <button class="mbtn primary" id="cam-track-save-btn" onclick="saveCameraTrack()">Create</button>
+    <div class="ntm-body">
+      <!-- Track name -->
+      <div class="ntm-fg">
+        <label class="ntm-lbl" for="cam-track-name-inp">Track Name</label>
+        <div class="ntm-iw">
+          <input class="ntm-inp" id="cam-track-name-inp" placeholder="e.g. Cameras" maxlength="40" autocomplete="off"
+            onkeydown="if(event.key==='Enter')saveCameraTrack();">
+        </div>
+      </div>
+      <!-- Create mode: camera count stepper -->
+      <div class="ntm-fg" id="cam-track-count-row" style="display:none;">
+        <label class="ntm-lbl">Cameras</label>
+        <div class="ntm-cam-stepper">
+          <button class="ntm-step-btn" onclick="camTrkStepCount(-1)">−</button>
+          <span class="ntm-step-val" id="cam-track-count-val">4</span>
+          <button class="ntm-step-btn" onclick="camTrkStepCount(1)">+</button>
+          <span class="ntm-hint" style="margin:0;">You can add more cameras later</span>
+        </div>
+      </div>
+      <!-- Edit mode: camera list -->
+      <div id="cam-track-cameras-list" style="display:none;max-height:340px;overflow-y:auto;"></div>
+    </div>
+    <div class="ntm-footer" style="justify-content:space-between;">
+      <button id="cam-track-del-btn" class="ntm-btn" onclick="deleteCameraTrack()" style="display:none;border-color:var(--red);color:var(--red);">Delete Track</button>
+      <div style="display:flex;gap:8px;">
+        <button class="ntm-btn" onclick="closeModal('camera-track-modal')">Cancel</button>
+        <button class="ntm-btn primary" id="cam-track-save-btn" onclick="saveCameraTrack()">Save</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2774,12 +2983,13 @@ function renderCueFilterBar(){
   });
 }
 
-// ─── STREAM MODAL ───
+// ─── STREAM MODAL (edit only — new tracks use openNewTrackModal) ───
 let editingStreamId=null;
 function openStreamModal(streamId){
+  if(!streamId){openNewTrackModal();return;} // redirect null to new-track modal
   editingStreamId=streamId;
   const stream=state.streams.find(s=>s.id===streamId);
-  document.getElementById('stream-modal-title').textContent=stream?'Edit stream':'Add stream';
+  document.getElementById('stream-modal-title').textContent=stream?'Edit track':'Edit track';
   document.getElementById('stream-name-inp').value=stream?.name||'';
   const snInp=document.getElementById('stream-shortname-inp');
   if(snInp)snInp.value=stream?.shortName||'';
@@ -2798,7 +3008,7 @@ function openStreamModal(streamId){
 }
 function saveStream(){
   const name=document.getElementById('stream-name-inp').value.trim();if(!name)return;
-  const shortName=(document.getElementById('stream-shortname-inp')?.value||'').trim().slice(0,4).toUpperCase()||name.slice(0,4).toUpperCase();
+  const shortName=(document.getElementById('stream-shortname-inp')?.value||'').trim().slice(0,3).toUpperCase()||name.slice(0,3).toUpperCase();
   const colorId=document.querySelector('#stream-color-swatches .color-swatch.selected')?.title||'blue';
   snapshot();
   if(editingStreamId){
@@ -2825,7 +3035,7 @@ function deleteCurrentStream(){
   document.getElementById('stream-move-count').textContent=
     cueCount===0?'No':cueCount+' cue'+(cueCount===1?'':'s');
   closeModal('stream-modal');
-  document.getElementById('stream-move-modal').style.display='flex';
+  document.getElementById('stream-move-modal').classList.add('show');
 }
 function confirmDeleteStream(){
   if(!editingStreamId)return;
@@ -2848,13 +3058,114 @@ function confirmDeleteStream(){
 // ─── CAMERA TRACK ───
 let _camTrackEditing=false; // false = creating, true = editing
 
+// ─── NEW TRACK MODAL (ntm) ───────────────────────────────
+let _ntmType='normal'; // 'normal' | 'camera'
+let _ntmCamCount=4;
+
 function openNewTrackModal(){
-  const camBtn=document.getElementById('track-type-camera-btn');
-  if(camBtn)camBtn.disabled=!!state.cameraTrack;
-  if(camBtn)camBtn.title=state.cameraTrack?'Only one Camera Track allowed per project':'';
-  document.getElementById('track-type-modal').classList.add('show');
+  _ntmType='normal'; _ntmCamCount=4;
+  const m=document.getElementById('new-track-modal'); if(!m) return;
+  // Reset fields
+  document.getElementById('ntm-fullname').value='';
+  document.getElementById('ntm-shortname').value='';
+  document.getElementById('ntm-fullname-cnt').textContent='0/40';
+  document.getElementById('ntm-shortname-cnt').textContent='0/3';
+  document.getElementById('ntm-prev-lg').textContent='—';
+  document.getElementById('ntm-prev-sm').textContent='—';
+  document.getElementById('ntm-cam-val').textContent='4';
+  const cp=document.getElementById('ntm-prev-cams'); if(cp) cp.innerHTML='';
+  // Start in normal mode
+  ntmSetType('normal');
+  m.classList.add('show');
+  setTimeout(()=>document.getElementById('ntm-fullname').focus(),50);
 }
 
+function ntmSetType(type){
+  _ntmType=type;
+  document.getElementById('ntm-btn-normal').classList.toggle('active', type==='normal');
+  document.getElementById('ntm-btn-camera').classList.toggle('active', type==='camera');
+  const hasCamTrack=!!state.cameraTrack;
+  // Name fields hidden for camera (fixed name 'CAMERA', no short name)
+  const nameRows=document.getElementById('ntm-name-rows');
+  if(nameRows) nameRows.style.display=(type==='camera')?'none':'';
+  // Camera-specific rows
+  document.getElementById('ntm-cam-row').style.display=(type==='camera'&&!hasCamTrack)?'':'none';
+  document.getElementById('ntm-cam-warn').style.display=(type==='camera'&&hasCamTrack)?'':'none';
+  // Create button disabled if camera already exists
+  const createBtn=document.getElementById('ntm-create-btn');
+  if(createBtn) createBtn.disabled=(type==='camera'&&hasCamTrack);
+  ntmUpdatePreview();
+}
+
+function ntmUpdatePreview(){
+  const normalPrev=document.getElementById('ntm-prev-normal');
+  const camPrev=document.getElementById('ntm-prev-cams');
+  if(_ntmType==='camera'){
+    if(normalPrev) normalPrev.style.display='none';
+    if(camPrev){
+      camPrev.style.display='flex';
+      let html='';
+      for(let i=1;i<=_ntmCamCount;i++) html+='<span class="ntm-cam-badge">'+i+'</span>';
+      camPrev.innerHTML=html;
+    }
+  } else {
+    if(normalPrev) normalPrev.style.display='';
+    if(camPrev) camPrev.style.display='none';
+    const full=document.getElementById('ntm-fullname').value||'';
+    const short=(document.getElementById('ntm-shortname').value||'').toUpperCase()||full.slice(0,3).toUpperCase()||'—';
+    document.getElementById('ntm-fullname-cnt').textContent=full.length+'/40';
+    document.getElementById('ntm-shortname-cnt').textContent=document.getElementById('ntm-shortname').value.length+'/3';
+    document.getElementById('ntm-prev-lg').textContent=full||'—';
+    document.getElementById('ntm-prev-sm').textContent=short;
+  }
+}
+
+function ntmStepCam(delta){
+  _ntmCamCount=Math.max(1,Math.min(16,_ntmCamCount+delta));
+  document.getElementById('ntm-cam-val').textContent=_ntmCamCount;
+  ntmUpdatePreview();
+}
+
+function ntmClose(){
+  const m=document.getElementById('new-track-modal'); if(m) m.classList.remove('show');
+}
+
+function ntmCreate(){
+  let fullName, shortName;
+  if(_ntmType==='camera'){
+    fullName='CAMERA'; shortName='';
+  } else {
+    fullName=document.getElementById('ntm-fullname').value.trim(); if(!fullName) return;
+    const rawShort=document.getElementById('ntm-shortname').value.trim();
+    shortName=(rawShort||fullName.slice(0,3)).toUpperCase().slice(0,3);
+  }
+  // Auto-assign color — pick first unused, then cycle
+  const usedColors=state.streams.map(s=>s.colorId);
+  let autoColor=STREAM_COLORS.find(c=>!usedColors.includes(c.id))?.id||STREAM_COLORS[state.streams.length%STREAM_COLORS.length]?.id||'blue';
+  snapshot();
+  if(_ntmType==='camera'){
+    if(state.cameraTrack){ntmClose();return;}
+    const cameras=[];
+    for(let i=1;i<=_ntmCamCount;i++){
+      cameras.push({id:uid(),number:i,label:'',colorIdx:(i-1)%CAMERA_COLORS.length});
+    }
+    state.cameraTrack={id:uid(),name:fullName,shortName,cameras};
+    persist();renderStreamsBar();renderCueList();updateStreamDots();if(typeof updateCamTrackBar==='function')updateCamTrackBar();
+  } else {
+    const ns={id:uid(),name:fullName,shortName,colorId:autoColor};
+    state.streams.push(ns);state.activeStreamId=ns.id;state.visibleStreamIds.push(ns.id);
+    persist();renderStreamsBar();renderCueList();updateStreamDots();
+  }
+  if(window._sbRender&&window._sbPanel==='tracks') _sbRender('tracks');
+  ntmClose();
+}
+
+let _camTrackCount=4;
+function camTrkStepCount(delta){
+  _camTrackCount=Math.max(1,Math.min(16,_camTrackCount+delta));
+  const el=document.getElementById('cam-track-count-val');
+  if(el) el.textContent=_camTrackCount;
+}
 function openCameraTrackModal(){
   _camTrackEditing=!!state.cameraTrack;
   const titleEl=document.getElementById('cam-track-modal-title');
@@ -2865,18 +3176,20 @@ function openCameraTrackModal(){
   if(_camTrackEditing){
     if(titleEl)titleEl.textContent='Edit Camera Track';
     if(saveBtn)saveBtn.textContent='Save';
-    if(delBtn)delBtn.style.display='inline-flex';
+    if(delBtn)delBtn.style.display='';
     if(countRow)countRow.style.display='none';
     if(listEl){listEl.style.display='block';_renderCamTrackCameraList(listEl);}
     document.getElementById('cam-track-name-inp').value=state.cameraTrack.name||'Cameras';
   } else {
+    _camTrackCount=4;
     if(titleEl)titleEl.textContent='Add Camera Track';
     if(saveBtn)saveBtn.textContent='Create';
     if(delBtn)delBtn.style.display='none';
-    if(countRow)countRow.style.display='flex';
+    if(countRow)countRow.style.display='';
+    const cv=document.getElementById('cam-track-count-val');
+    if(cv)cv.textContent='4';
     if(listEl)listEl.style.display='none';
     document.getElementById('cam-track-name-inp').value='Cameras';
-    document.getElementById('cam-track-count').value='4';
   }
   document.getElementById('camera-track-modal').classList.add('show');
   setTimeout(()=>document.getElementById('cam-track-name-inp').focus(),60);
@@ -2885,19 +3198,21 @@ function openCameraTrackModal(){
 function _renderCamTrackCameraList(el){
   el.innerHTML='';
   if(!state.cameraTrack)return;
+  const _trashSvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
   state.cameraTrack.cameras.forEach((cam,i)=>{
-    const hex=getCameraColor(cam.colorIdx||i);
+    const hex=getCameraColor(cam.colorIdx!=null?cam.colorIdx:i);
     const row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);';
-    row.innerHTML=`<div style="width:10px;height:10px;border-radius:50%;background:${hex};flex-shrink:0;"></div>
-      <span style="font-family:var(--mono);font-size:11px;color:var(--text3);flex-shrink:0;min-width:24px;">${cam.number}</span>
-      <input style="flex:1;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-size:12px;padding:3px 8px;outline:none;" value="${escH(cam.label||'')}" placeholder="Camera label (optional)" data-camid="${cam.id}"
+    row.style.cssText='display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--hair);';
+    row.innerHTML=`<div class="cam-badge sm" style="background:${hex};color:#06060a;flex-shrink:0;">${cam.number}</div>
+      <input class="ntm-inp" style="flex:1;font-size:14px;padding:9px 12px;" value="${escH(cam.label||'')}" placeholder="Label (optional)" maxlength="30" data-camid="${cam.id}"
         onchange="if(state.cameraTrack){const c=state.cameraTrack.cameras.find(x=>x.id===this.dataset.camid);if(c)c.label=this.value.trim();}">
-      <button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 5px;" title="Remove camera" data-camid="${cam.id}" onclick="removeCameraFromTrack(this.dataset.camid)">✕</button>`;
+      <button class="sbp-trk2-btn del" title="Remove camera" data-camid="${cam.id}"
+        onclick="removeCameraFromTrack(this.dataset.camid)">${_trashSvg}</button>`;
     el.appendChild(row);
   });
   const addBtn=document.createElement('button');
-  addBtn.className='mbtn';addBtn.style.cssText='margin-top:8px;width:100%;';
+  addBtn.className='ntm-btn';
+  addBtn.style.cssText='width:100%;margin-top:12px;justify-content:center;display:flex;align-items:center;';
   addBtn.textContent='+ Add Camera';
   addBtn.onclick=()=>{
     if(!state.cameraTrack)return;
@@ -2926,7 +3241,7 @@ function saveCameraTrack(){
   if(_camTrackEditing&&state.cameraTrack){
     state.cameraTrack.name=name;
   } else {
-    const count=Math.max(1,Math.min(16,parseInt(document.getElementById('cam-track-count').value)||4));
+    const count=Math.max(1,Math.min(16,_camTrackCount||4));
     const cameras=[];
     for(let i=0;i<count;i++){
       cameras.push({id:uid(),number:i+1,label:'',colorIdx:i%CAMERA_COLORS.length});
@@ -3836,7 +4151,11 @@ function renderTimeline(target,frames,allCues,curIdx){
     cell.style.cssText=`height:${dynTrackH}px;display:flex;align-items:center;padding:0 6px;border-bottom:1px solid var(--border);overflow:hidden;`;
     const lbl=document.createElement('div');
     lbl.style.cssText=`font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:${col.hex};opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;`;
-    lbl.textContent=streamName(sid);cell.appendChild(lbl);labelStrip.appendChild(cell);
+    const _s=state.streams.find(x=>x.id===sid);
+    const _short=((_s?.shortName)||streamName(sid).slice(0,3)).toUpperCase();
+    lbl.style.cssText='display:inline-flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txt);background:transparent;border:1px solid var(--hair3);flex-shrink:0;width:32px;height:32px;';
+    lbl.textContent=_short;
+    cell.appendChild(lbl);labelStrip.appendChild(cell);
   });
   tl.appendChild(labelStrip);
 
@@ -3871,10 +4190,10 @@ function renderTimeline(target,frames,allCues,curIdx){
   if(state.cameraTrack&&state.cameraTrackVisible!==false){
     // Label
     const camCell=document.createElement('div');
-    camCell.style.cssText=`height:${dynTrackH}px;display:flex;align-items:center;padding:0 6px;border-bottom:1px solid var(--border);overflow:hidden;gap:3px;`;
+    camCell.style.cssText=`height:${dynTrackH}px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);overflow:hidden;`;
     const camLbl=document.createElement('div');
-    camLbl.style.cssText=`font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
-    camLbl.textContent=state.cameraTrack.name||'Cameras';
+    camLbl.style.cssText='display:inline-flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txt);background:transparent;border:1px solid var(--hair3);flex-shrink:0;width:32px;height:32px;';
+    camLbl.textContent='CAM';
     camCell.appendChild(camLbl);labelStrip.appendChild(camCell);
     // Single track body — all camera cues interleaved, colored per camera
     const camTrack=document.createElement('div');
@@ -5163,34 +5482,124 @@ function init(){
 }
 
 // ── ADD SEQUENCE POP-UP ──
+function parseDurationStr(s){
+  if(!s||!s.trim()) return 0;
+  const parts=(s.trim()).split(':').map(Number);
+  if(parts.length===3) return (parts[0]||0)*3600+(parts[1]||0)*60+(parts[2]||0);
+  if(parts.length===2) return (parts[0]||0)*60+(parts[1]||0);
+  return Number(parts[0])||0;
+}
+function asmUpdateCount(){
+  const v=document.getElementById('add-seq-name').value||'';
+  const el=document.getElementById('asm-name-cnt');
+  if(el) el.textContent=v.length+'/40';
+}
+function asmUpdateSeqNum(){
+  const sel=document.getElementById('add-seq-after');
+  const songs=getActivePlaylistSongs();
+  let num;
+  if(!sel||!sel.value){
+    num=1;
+  } else {
+    const idx=songs.findIndex(s=>s.id===sel.value);
+    num=idx>=0?idx+2:songs.length+1;
+  }
+  const el=document.getElementById('asm-seq-num');
+  if(el) el.textContent='Sequence will be #'+num;
+}
+function asmHandleAudio(e){
+  const f=e.target.files[0]; if(!f) return;
+  _pendingAudioFile=f;
+  const nm=document.getElementById('asm-audio-name');
+  if(nm) nm.textContent=f.name.length>34?f.name.substring(0,32)+'…':f.name;
+  const meta=document.getElementById('asm-audio-meta');
+  if(meta) meta.textContent='Audio file attached';
+  const row=document.getElementById('asm-audio-row');
+  if(row) row.style.display='flex';
+  const empty=document.getElementById('asm-audio-empty');
+  if(empty) empty.style.display='none';
+  if(e.target&&e.target.value!==undefined) e.target.value='';
+}
+function asmClearAudio(){
+  _pendingAudioFile=null;
+  const row=document.getElementById('asm-audio-row');
+  if(row) row.style.display='none';
+  const empty=document.getElementById('asm-audio-empty');
+  if(empty) empty.style.display='';
+}
 function openAddSeqModal(){
+  _pendingAudioFile=null;
+  // Reset name + counter
   document.getElementById('add-seq-name').value='';
-  document.getElementById('add-seq-tc').value='01:00:00:00';
-  clearAudioAttach();
+  document.getElementById('add-seq-dur').value='';
+  const cntEl=document.getElementById('asm-name-cnt');
+  if(cntEl) cntEl.textContent='0/40';
+  // Context line
+  const pl=getActivePlaylist();
+  const plEl=document.getElementById('asm-ctx-pl');
+  if(plEl) plEl.textContent=(pl?.name||state.name||'').toUpperCase();
+  const prEl=document.getElementById('asm-ctx-proj');
+  if(prEl) prEl.textContent=(state.name||'').toUpperCase();
+  // Populate Insert After
+  const sel=document.getElementById('add-seq-after');
+  const songs=getActivePlaylistSongs();
+  sel.innerHTML='<option value="">— Beginning —</option>';
+  songs.forEach((s,i)=>{
+    const opt=document.createElement('option');
+    opt.value=s.id;
+    opt.textContent=(i+1)+' · '+s.name;
+    sel.appendChild(opt);
+  });
+  if(songs.length>0) sel.value=songs[songs.length-1].id;
+  // Sequence number
+  asmUpdateSeqNum();
+  // Reset audio
+  asmClearAudio();
+  // Open
   document.getElementById('add-seq-modal').classList.add('show');
   setTimeout(()=>document.getElementById('add-seq-name').focus(),60);
 }
 function confirmAddSeq(){
   const name=document.getElementById('add-seq-name').value.trim()||'New sequence';
-  const rawTc=document.getElementById('add-seq-tc').value.trim()||'01:00:00:00';
-  const startTc=normalizeTcInput(rawTc);
-  if(!validateTc(startTc)){
-    const inp=document.getElementById('add-seq-tc');
-    inp.style.outline='1px solid var(--red)';inp.focus();return;
+  const durStr=document.getElementById('add-seq-dur').value.trim();
+  const afterId=document.getElementById('add-seq-after').value;
+  // Compute startTc from "insert after" sequence
+  let startTc='01:00:00:00';
+  if(afterId){
+    const afterSong=state.songs.find(x=>x.id===afterId);
+    if(afterSong){
+      const baseF=tcF(afterSong.startTc);
+      let durF=0;
+      if(afterSong.targetDuration) durF=Math.round(parseDurationStr(afterSong.targetDuration)*(state.fps||25));
+      const sortedCues=getSortedCues(afterSong.id,false);
+      if(sortedCues.length) durF=Math.max(durF,sortedCues[sortedCues.length-1]._f-baseF+(state.fps||25)*5);
+      const candidate=fTC(Math.max(0,baseF+durF));
+      if(validateTc(candidate)) startTc=candidate;
+    }
   }
   const s={id:uid(),name,description:'',startTc,cues:[],chapters:[]};
-  if(_pendingAudioFile){s.audioFilename=_pendingAudioFile.name;}
-  // Auto-create Start marker (chapter) at sequence start TC — shown as a marker, not a cue
+  if(durStr) s.targetDuration=durStr;
+  if(_pendingAudioFile) s.audioFilename=_pendingAudioFile.name;
   s.chapters.push({id:uid(),tc:startTc,name:'Start'});
-  state.songs.push(s);state.activeSongId=s.id;
-  const _apl=getActivePlaylist();if(_apl)_apl.songIds.push(s.id);
+  state.songs.push(s);
+  state.activeSongId=s.id;
+  // Insert at correct position in playlist
+  const _apl=getActivePlaylist();
+  if(_apl){
+    if(afterId){
+      const idx=_apl.songIds.indexOf(afterId);
+      if(idx>=0) _apl.songIds.splice(idx+1,0,s.id);
+      else _apl.songIds.push(s.id);
+    } else {
+      _apl.songIds.unshift(s.id);
+    }
+  }
   persist();renderSongList();renderCueList();
   if(_pendingAudioFile){
     loadAudioForSong(s.id,_pendingAudioFile);
     showAudioLoading(_pendingAudioFile.name);
   }
-  clearAudioAttach();
-  // Check for overlaps
+  asmClearAudio();
   const overlaps=getOverlappingSongs();
   if(overlaps.length){
     const msg=overlaps.map(o=>`"${o.songA}" and "${o.songB}"`).join(', ');
@@ -5878,8 +6287,38 @@ function _sbRender(name){
   const body = document.getElementById('cf-panel-body');
   const title = document.getElementById('cf-panel-title');
   if(!body) return;
-  const labels = {save:'Projects', playlists:'Playlists', seqs:'Sequences', tracks:'Tracks', settings:'Settings'};
+  // Reset body layout (seqs sets flex; other panels use block/auto)
+  body.style.display=''; body.style.flexDirection=''; body.style.padding='';
+  const labels = {save:'Projects', playlists:'Playlists', seqs:'Sequences', tracks:'Tracks', settings:'Settings', online:'Online'};
   if(title) title.textContent = labels[name]||name;
+  // Update header count + action button
+  const _hSep = document.getElementById('cf-panel-sep');
+  const _hCnt = document.getElementById('cf-panel-count');
+  const _hAct = document.getElementById('cf-panel-action');
+  const _counts = {
+    seqs: (state.songs||[]).length,
+    playlists: (state.playlists||[]).length,
+    tracks: (state.streams||[]).length
+  };
+  const _actions = {
+    seqs: {label:'+ ADD', fn:'openAddSeqModal()'},
+    tracks: {label:'+ ADD', fn:'openNewTrackModal()'},
+    playlists: {label:'+ NEW', fn:'CF.createPlaylist()'}
+  };
+  if(_hCnt && name in _counts){
+    if(_hSep) _hSep.style.display='';
+    _hCnt.textContent = _counts[name];
+  } else {
+    if(_hSep) _hSep.style.display='none';
+    if(_hCnt) _hCnt.textContent='';
+  }
+  if(_hAct && name in _actions){
+    _hAct.textContent = _actions[name].label;
+    _hAct.setAttribute('onclick', _actions[name].fn);
+    _hAct.style.display='';
+  } else if(_hAct){
+    _hAct.style.display='none';
+  }
   let html = '';
   if(name === 'save'){
     // Full project management inline
@@ -5904,67 +6343,50 @@ function _sbRender(name){
   } else if(name === 'playlists'){
     html = ''; // Block 2 override handles full render
   } else if(name === 'seqs'){
-    html += `<div id="sbp-seq-list">`;
-    (state.songs||[]).forEach((s,i)=>{
-      const isA = s.id === state.activeSongId;
-      html += `<div class="sbp-seq${isA?' active':''}" draggable="true" data-sid="${s.id}" data-idx="${i}"
-        ondragstart="sbSeqDragStart(event,${i})" ondragover="sbSeqDragOver(event)" ondrop="sbSeqDrop(event,${i})"
-        onclick="selectSong('${s.id}');sbClose()">
-        <span class="sbp-seq-drag">⠿</span>
-        <span class="sbp-seq-n">${i+1}</span>
-        <span class="sbp-seq-nm">${escH(s.name)}</span>
-      </div>`;
-    });
-    html += `</div>`;
+    html = ''; // Block 2 override handles full render
   } else if(name === 'tracks'){
+    // SVG icon helpers
+    const _eyeOpen='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+    const _eyeOff='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+    const _pencil='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+    const _trash='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
     (state.streams||[]).forEach(s=>{
-      const col = getStreamColor(s.id);
       const isVis = state.visibleStreamIds.includes(s.id);
-      // Color swatches inline
-      const swatches = STREAM_COLORS.map(c=>
-        `<span class="sbp-swatch${c.id===s.colorId?' sel':''}"
-          style="background:${c.hex};" data-cid="${c.id}" data-sid="${s.id}"
-          onclick="sbTrkColor('${s.id}','${c.id}')" title="${c.id}"></span>`
-      ).join('');
-      html += `<div class="sbp-trk">
-        <div class="sbp-trk-dot" style="background:${col.hex};" title="Color"></div>
-        <input class="sbp-trk-name" value="${escH(s.name)}" data-sid="${s.id}"
-          onchange="sbTrkRename(this.dataset.sid,this.value)"
-          onblur="sbTrkRename(this.dataset.sid,this.value)">
-        <button class="sbp-trk-vis" onclick="sbTrkVis('${s.id}')" title="${isVis?'Hide':'Show'}">${isVis?'●':'○'}</button>
-        <button class="sbp-trk-del" onclick="sbTrkDel('${s.id}')" title="Delete">✕</button>
-      </div>
-      <div class="sbp-swatches" style="margin-bottom:8px;">${swatches}</div>`;
+      const short = ((s.shortName||s.name||'?').slice(0,3).toUpperCase());
+      const canDel = state.streams.length > 1;
+      html += `<div class="sbp-trk2" data-sid="${s.id}">
+        <div class="sbp-trk2-badge${isVis?'':' dim'}">${escH(short)}</div>
+        <div class="sbp-trk2-info">
+          <span class="sbp-trk2-full${isVis?'':' dim'}">${escH(s.name)}</span>
+        </div>
+        <div class="sbp-trk2-actions">
+          <button class="sbp-trk2-btn${isVis?'':' dim'}" onclick="sbTrkVis('${s.id}')" title="${isVis?'Hide track':'Show track'}" style="color:${isVis?'var(--txt-mid)':'var(--txt-low)'};opacity:${isVis?1:.4};">${isVis?_eyeOpen:_eyeOff}</button>
+          <button class="sbp-trk2-btn" onclick="trkRenameOpen('${s.id}')" title="Rename track">${_pencil}</button>
+          ${canDel?`<button class="sbp-trk2-btn del" onclick="sbTrkOpenDel('${s.id}')" title="Delete track">${_trash}</button>`:'<div style="width:28px;"></div>'}
+        </div>
+      </div>`;
     });
     if(state.cameraTrack){
       const isCamVis = state.cameraTrackVisible!==false;
-      html += `<div class="sbp-trk" style="margin-bottom:4px;">
-        <div class="sbp-trk-dot" style="background:${getCameraColor(0)};" title="Camera track"></div>
-        <span class="sbp-trk-name" style="cursor:pointer;" onclick="openCameraTrackModal()">${escH(state.cameraTrack.name)}</span>
-        <span style="font-size:10px;color:var(--text3);flex-shrink:0;margin-right:4px;">${state.cameraTrack.cameras.length} cams</span>
-        <button class="sbp-trk-vis" onclick="sbCamVis()" title="${isCamVis?'Hide camera track':'Show camera track'}">${isCamVis?'●':'○'}</button>
-        <button class="sbp-trk-del" onclick="openCameraTrackModal()" title="Edit camera track" style="font-size:11px;">✎</button>
+      const camCount = state.cameraTrack.cameras.length;
+      html += `<div class="sbp-trk2">
+        <div class="sbp-trk2-badge${isCamVis?'':' dim'}">CAM</div>
+        <div class="sbp-trk2-info">
+          <span class="sbp-trk2-full${isCamVis?'':' dim'}">${escH(state.cameraTrack.name||'CAMERA')}</span>
+          <span class="sbp-trk2-sub">${camCount} camera${camCount!==1?'s':''}</span>
+        </div>
+        <div class="sbp-trk2-actions">
+          <button class="sbp-trk2-btn${isCamVis?'':' dim'}" onclick="sbCamVis()" title="${isCamVis?'Hide camera track':'Show camera track'}" style="color:${isCamVis?'var(--txt-mid)':'var(--txt-low)'};opacity:${isCamVis?1:.4};">${isCamVis?_eyeOpen:_eyeOff}</button>
+          <button class="sbp-trk2-btn" onclick="openCameraTrackModal()" title="Edit camera track">${_pencil}</button>
+          <div style="width:28px;"></div>
+        </div>
       </div>`;
     }
-    html += `<button class="sbp-add" onclick="openNewTrackModal()">+ New track</button>`;
   } else if(name === 'online'){
     html = window.CF && CF._buildRolesPanel ? CF._buildRolesPanel() : '';
   }
-  // Remove any existing sticky footer first
-  const _oldFooter=document.getElementById('sbp-seq-add');if(_oldFooter)_oldFooter.remove();
   body.innerHTML = html;
   if(name==='online' && window.CF && CF._afterRolesRender) setTimeout(CF._afterRolesRender,100);
-  // Sticky add-sequence button for seqs panel — inject AFTER body so it's outside scroll
-  if(name==='seqs'){
-    const panel=document.getElementById('cf-panel');if(!panel)return;
-    // Make panel flex-column so footer sticks to bottom
-    panel.style.display='flex';panel.style.flexDirection='column';
-    body.style.flex='1';body.style.minHeight='0';
-    const footer=document.createElement('div');
-    footer.id='sbp-seq-add';
-    footer.innerHTML='<button class="sbp-add" onclick="openAddSeqModal()" style="width:100%;margin:0;">+ New sequence</button>';
-    panel.appendChild(footer);
-  }
 }
 function sbTrkRename(sid, name){
   const s = state.streams.find(x=>x.id===sid);
@@ -6005,6 +6427,49 @@ function sbTrkDel(sid){
   persist(); renderStreamsBar(); renderCueList();
   if(ETL.visible) renderEditTimeline();
   _sbRender('tracks');
+}
+function sbTrkOpenDel(sid){
+  if(state.streams.length<=1) return;
+  editingStreamId=sid;
+  let cueCount=0;
+  state.songs.forEach(sg=>sg.cues.forEach(c=>{if(c.streamId===sid) cueCount++;}));
+  const sel=document.getElementById('stream-move-target');
+  sel.innerHTML='<option value="">— Delete all cues in this track —</option>';
+  state.streams.filter(s=>s.id!==sid).forEach(s=>{
+    sel.innerHTML+=`<option value="${s.id}">${escH(s.name)}</option>`;
+  });
+  const cntEl=document.getElementById('stream-move-count');
+  if(cntEl) cntEl.textContent=cueCount;
+  const nm=state.streams.find(s=>s.id===sid)?.name||'this track';
+  const nmEl=document.getElementById('stream-move-name');
+  if(nmEl) nmEl.textContent=nm;
+  const m=document.getElementById('stream-move-modal');
+  if(m) m.classList.add('show');
+}
+// ─── TRACK RENAME MODAL ───────────────────────────────────
+let _trkRenameSid=null;
+function trkRenameOpen(sid){
+  const s=state.streams.find(x=>x.id===sid); if(!s) return;
+  _trkRenameSid=sid;
+  document.getElementById('trk-rename-full').value=s.name||'';
+  document.getElementById('trk-rename-short').value=s.shortName||'';
+  document.getElementById('trk-rename-modal').classList.add('show');
+  setTimeout(()=>document.getElementById('trk-rename-full').focus(),50);
+}
+function trkRenameClose(){
+  const m=document.getElementById('trk-rename-modal'); if(m) m.classList.remove('show');
+  _trkRenameSid=null;
+}
+function trkRenameConfirm(){
+  if(!_trkRenameSid) return;
+  const full=document.getElementById('trk-rename-full').value.trim(); if(!full) return;
+  const rawShort=document.getElementById('trk-rename-short').value.trim();
+  const short=(rawShort.slice(0,3).toUpperCase())||full.slice(0,3).toUpperCase();
+  const s=state.streams.find(x=>x.id===_trkRenameSid); if(!s) return;
+  s.name=full; s.shortName=short;
+  persist(); renderStreamsBar(); if(ETL.visible) renderEditTimeline();
+  _sbRender('tracks');
+  trkRenameClose();
 }
 
 // ══════════════════════════════════════════════════════
@@ -7158,14 +7623,14 @@ function renderEditTimeline(){
     const isActiveSid=sid===state.activeStreamId;
     const myH=trackH; // no expansion
     const st=state.streams.find(s=>s.id===sid);
-    const short=(st?.shortName||st?.name||'?').slice(0,4).toUpperCase();
+    const short=(st?.shortName||st?.name||'?').slice(0,3).toUpperCase();
     const cell=document.createElement('div');
     cell.className='etl-stream-cell'+(isActiveSid?' sel-stream':'');
-    cell.style.cssText=`height:${myH}px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid rgba(255,255,255,.05);overflow:hidden;cursor:pointer;position:relative;${isActiveSid?`background:${col.hex}18;border-left:3px solid ${col.hex};`:'border-left:3px solid transparent;'}`;
+    cell.style.cssText=`height:${myH}px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid rgba(255,255,255,.05);overflow:hidden;cursor:pointer;position:relative;${isActiveSid?'border-left:3px solid var(--amber);':'border-left:3px solid transparent;'}`;
     cell.title=streamName(sid)+' — click to select';
     cell.onclick=()=>{state.activeStreamId=sid;renderStreamsBar();requestAnimationFrame(renderEditTimeline);};
     const lbl=document.createElement('div');
-    lbl.style.cssText=`font-family:var(--cond);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:${isActiveSid?col.hex:'rgba(255,255,255,.4)'};`;
+    lbl.style.cssText='display:inline-flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txt);background:transparent;border:1px solid var(--hair3);flex-shrink:0;width:32px;height:32px;';
     lbl.textContent=short;cell.appendChild(lbl);lblStrip.appendChild(cell);
   });
   container.appendChild(lblStrip);
@@ -7207,7 +7672,7 @@ function renderEditTimeline(){
     const isSel=sid===state.activeStreamId;
     const myTrackH=trackH; // uniform height — no expansion
     const track=document.createElement('div');
-    track.style.cssText=`position:relative;height:${myTrackH}px;border-bottom:1px solid rgba(255,255,255,.05);${isSel?`background:${col.hex}08;`:''}`;
+    track.style.cssText=`position:relative;height:${myTrackH}px;border-bottom:1px solid rgba(255,255,255,.05);${isSel?'background:rgba(255,255,255,.03);':''}`;
 
     const streamCues=songCues.filter(c=>c.streamId===sid);
     streamCues.forEach((cue,ci)=>{
@@ -7258,20 +7723,13 @@ function renderEditTimeline(){
     // Camera label cell
     const camCell=document.createElement('div');
     camCell.className='etl-stream-cell'+(isCamSel?' sel-stream':'');
-    camCell.style.cssText=`height:${camH}px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-bottom:1px solid rgba(255,255,255,.05);overflow:hidden;cursor:pointer;${isCamSel?`background:rgba(255,255,255,.07);border-left:3px solid rgba(255,255,255,.4);`:'border-left:3px solid transparent;'}`;
+    camCell.style.cssText=`height:${camH}px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid rgba(255,255,255,.05);overflow:hidden;cursor:pointer;position:relative;${isCamSel?'border-left:3px solid var(--amber);':'border-left:3px solid transparent;'}`;
     camCell.title='Click to select camera track';
     camCell.onclick=()=>{state.activeStreamId='CAMERA';renderStreamsBar();updateCamTrackBar();renderEditTimeline();};
-    // Camera SVG icon
-    const camIcon=document.createElement('div');
-    camIcon.innerHTML=`<svg width="16" height="12" viewBox="0 0 20 14" fill="none" stroke="${isCamSel?'rgba(255,255,255,.8)':'rgba(255,255,255,.3)'}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2" width="13" height="10" rx="2"/><path d="M14 5l5-2v8l-5-2V5z"/></svg>`;
-    camCell.appendChild(camIcon);
-    // Cam count badge
-    if(state.cameraTrack.cameras.length>0){
-      const cnt=document.createElement('div');
-      cnt.style.cssText=`font-family:var(--cond);font-size:9px;font-weight:700;color:${isCamSel?'rgba(255,255,255,.7)':'rgba(255,255,255,.25)'};letter-spacing:.05em;`;
-      cnt.textContent='×'+state.cameraTrack.cameras.length;
-      camCell.appendChild(cnt);
-    }
+    const camLblE=document.createElement('div');
+    camLblE.style.cssText='display:inline-flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txt);background:transparent;border:1px solid var(--hair3);flex-shrink:0;width:32px;height:32px;';
+    camLblE.textContent='CAM';
+    camCell.appendChild(camLblE);
     lblStrip.appendChild(camCell);
 
     // Camera track body
@@ -8155,24 +8613,83 @@ init();
 </script>
 
 <!-- ADD SEQUENCE MODAL -->
-<div id="add-seq-modal" class="modal-bg" role="dialog" aria-modal="true" aria-labelledby="add-seq-modal-title"><div class="modal-box" style="max-width:380px;">
-  <div class="modal-title" id="add-seq-modal-title">Add sequence</div>
-  <div class="mrow"><label class="mlabel" for="add-seq-name">Name</label><input class="minp" id="add-seq-name" placeholder="Sequence name…" style="margin:0;flex:1;"></div>
-  <div class="mrow"><label class="mlabel" for="add-seq-tc">Start TC</label><input class="minp" id="add-seq-tc" placeholder="01:00:00:00" style="margin:0;flex:1;font-family:var(--mono);" onblur="const n=normalizeTcInput(this.value);if(validateTc(n)){this.value=n;this.style.outline='';}else{this.style.outline='1px solid var(--red)';}"></div>
-  <div style="margin-bottom:9px;">
-    <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;">Audio file <span style="font-weight:400;color:var(--text3);">(optional — .mp3 or .wav)</span></div>
-    <div class="audio-attach-row" id="audio-attach-row" onclick="document.getElementById('audio-file-in').click()">
-      <span class="audio-attach-icon">♫</span>
-      <span class="audio-attach-label" id="audio-attach-label">Click to attach audio file</span>
-      <button class="audio-attach-clear" id="audio-attach-clear" style="display:none;" onclick="event.stopPropagation();clearAudioAttach()">✕</button>
-      <input type="file" id="audio-file-in" accept=".mp3,.wav,audio/mpeg,audio/wav" style="display:none" onchange="handleAudioAttach(event)">
+<!-- Add Sequence modal -->
+<div id="add-seq-modal" class="ntm-bg" role="dialog" aria-modal="true"
+  ondragover="event.preventDefault();" ondrop="event.preventDefault();const f=event.dataTransfer.files[0];if(f&&/\.(wav|aif|aiff)$/i.test(f.name)){const fe={target:{files:[f],value:''}};asmHandleAudio(fe);}">
+  <div class="asm-box">
+    <!-- Header -->
+    <div class="asm-header">
+      <div>
+        <div class="asm-ctx">Adding to · <span id="asm-ctx-pl"></span> · <span id="asm-ctx-proj"></span></div>
+        <div class="asm-title">New Sequence</div>
+      </div>
+      <div class="asm-close-row">
+        <button class="asm-esc-btn" onclick="closeModal('add-seq-modal')">ESC</button>
+        <button class="asm-x-btn" onclick="closeModal('add-seq-modal')">✕</button>
+      </div>
+    </div>
+    <div class="asm-divider"></div>
+    <!-- Body -->
+    <div class="asm-body">
+      <!-- Name -->
+      <div class="asm-field">
+        <label class="asm-lbl" for="add-seq-name">Name</label>
+        <div class="ntm-iw">
+          <input class="asm-name-inp" id="add-seq-name" placeholder="Enter sequence name…" maxlength="40" autocomplete="off"
+            oninput="asmUpdateCount()" onkeydown="if(event.key==='Enter')confirmAddSeq();if(event.key==='Escape')closeModal('add-seq-modal');">
+          <span class="ntm-cnt" id="asm-name-cnt">0/40</span>
+        </div>
+      </div>
+      <!-- Duration + Insert After -->
+      <div class="asm-row2">
+        <div class="asm-field">
+          <label class="asm-lbl" for="add-seq-dur">Target Duration</label>
+          <div class="asm-dur-wrap">
+            <input class="asm-dur-inp" id="add-seq-dur" placeholder="00:00:00" maxlength="8" autocomplete="off"
+              onkeydown="if(event.key==='Enter')confirmAddSeq();if(event.key==='Escape')closeModal('add-seq-modal');">
+            <span class="asm-dur-hint">H:MM:SS</span>
+          </div>
+        </div>
+        <div class="asm-field">
+          <label class="asm-lbl" for="add-seq-after">Insert After</label>
+          <select class="asm-select" id="add-seq-after" onchange="asmUpdateSeqNum()"></select>
+        </div>
+      </div>
+      <!-- Audio Bed -->
+      <div class="asm-field">
+        <div class="asm-audio-head">
+          <span class="asm-lbl">Audio Bed</span>
+          <span class="asm-optional">Optional</span>
+        </div>
+        <!-- File attached -->
+        <div class="asm-audio-row" id="asm-audio-row" style="display:none;">
+          <div class="asm-audio-icon">♫</div>
+          <div class="asm-audio-info">
+            <span class="asm-audio-name" id="asm-audio-name"></span>
+            <span class="asm-audio-meta" id="asm-audio-meta"></span>
+          </div>
+          <button class="asm-audio-btn" onclick="document.getElementById('asm-file-in').click()">Choose File…</button>
+          <button class="asm-audio-btn clr" onclick="asmClearAudio()">Clear</button>
+        </div>
+        <!-- Empty state -->
+        <div class="asm-audio-empty" id="asm-audio-empty" onclick="document.getElementById('asm-file-in').click()">
+          <span class="asm-audio-choose">Choose File…</span>
+        </div>
+        <input type="file" id="asm-file-in" accept=".wav,.aif,.aiff,audio/wav" style="display:none" onchange="asmHandleAudio(event)">
+        <span class="asm-audio-hint">Or drop a .wav / .aif onto the modal.</span>
+      </div>
+    </div>
+    <div class="asm-divider"></div>
+    <!-- Footer -->
+    <div class="asm-footer">
+      <span class="asm-foot-info" id="asm-seq-num">Sequence will be #1</span>
+      <div style="display:flex;gap:8px;">
+        <button class="ntm-btn" onclick="closeModal('add-seq-modal')">Cancel</button>
+        <button class="ntm-btn primary" onclick="confirmAddSeq()">Create Sequence</button>
+      </div>
     </div>
   </div>
-  <div class="modal-actions">
-    <button class="mbtn" onclick="closeModal('add-seq-modal')">Cancel</button>
-    <button class="mbtn primary" onclick="confirmAddSeq()">Add sequence</button>
-  </div>
-</div></div>
+</div>
 
 <!-- TC SETTINGS MODAL -->
 <div id="settings-modal" class="modal-bg" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
@@ -9858,6 +10375,8 @@ document.addEventListener('keydown',function(e){
   if(e.key!=='Escape') return;
   var cm=document.getElementById('cf-conflict-modal');
   if(cm&&cm.style.display!=='none') cm.style.display='none';
+  var ntm=document.getElementById('new-track-modal');
+  if(ntm&&ntm.classList.contains('show')) ntm.classList.remove('show');
   ['confirm-modal','rename-modal','cf-auth-modal'].forEach(function(id){
     var el=document.getElementById(id);
     if(el&&el.classList.contains('show')) el.classList.remove('show');
@@ -9865,8 +10384,8 @@ document.addEventListener('keydown',function(e){
 });
 /* ── Click modal backdrop to close ─────────────────────── */
 document.addEventListener('click',function(e){
-  if(!e.target.classList.contains('modal-bg')) return;
-  e.target.classList.remove('show');
+  if(e.target.classList.contains('modal-bg')) { e.target.classList.remove('show'); return; }
+  if(e.target.classList.contains('ntm-bg')) { e.target.classList.remove('show'); return; }
 });
 
 /* ══════════════════════════════════════════════════════════
@@ -10500,128 +11019,151 @@ CF._plDrop=function(toIdx){
 (function(){
   var _orig=window._sbRender;
   if(!_orig) return;
+
+  /* Compute M:SS duration between two sequences using startTc */
+  function _seqDur(songs, i){
+    var s=songs[i], next=songs[i+1];
+    if(!s||!next||!s.startTc||!next.startTc) return '';
+    var fps=state.fps||25;
+    var dur=(window.tcF?tcF(next.startTc):0)-(window.tcF?tcF(s.startTc):0);
+    if(dur<=0) return '';
+    var totalSec=Math.floor(dur/fps);
+    var m=Math.floor(totalSec/60), sec=totalSec%60;
+    return m+':'+(sec<10?'0':'')+sec;
+  }
+
   window._sbRender=function(name){
     _orig(name);
     var body=document.getElementById('cf-panel-body');
     if(!body) return;
+
+    /* ── Save / Projects panel ──────────────────────── */
     if(name==='save'){
-      body.innerHTML=CF._buildProjectsPanel();
+      body.innerHTML='<div style="padding:8px;">'+CF._buildProjectsPanel()+'</div>';
       setTimeout(CF._afterProjectsRender,100);
     }
+
+    /* ── Online / Roles panel ───────────────────────── */
     if(name==='online'){
-      body.innerHTML=CF._buildRolesPanel();
+      body.innerHTML='<div style="padding:8px;">'+CF._buildRolesPanel()+'</div>';
       setTimeout(CF._afterRolesRender,100);
     }
+
+    /* ── Playlists panel ────────────────────────────── */
     if(name==='playlists'){
-      var svgEdit='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-      var svgCopy='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
-      var svgTrash='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
-      var iconBtn='display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:transparent;border:1px solid var(--border2);border-radius:4px;cursor:pointer;flex-shrink:0;';
-      var h='<div style="display:flex;flex-direction:column;height:100%;overflow:hidden;">';
-      h+='<div style="padding:8px 10px;border-bottom:1px solid var(--border);flex-shrink:0;">';
-      h+='<button onclick="CF.createPlaylist()" style="width:100%;padding:7px;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;color:var(--text2);cursor:pointer;font-size:11px;font-weight:500;">+ New Playlist</button>';
-      h+='</div>';
-      h+='<div style="flex:1;overflow-y:auto;padding:4px 6px;">';
+      /* Update header count */
+      var _hCntPl=document.getElementById('cf-panel-count');
+      if(_hCntPl) _hCntPl.textContent=(state.playlists||[]).length;
+      var svgEdit='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+      var svgCopy='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+      var svgTrash='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
+      var h='';
       (state.playlists||[]).forEach(function(p){
         var isAct=p.id===state.activePlaylistId;
         var cnt=p.songIds?p.songIds.length:0;
-        var bg=isAct?'background:var(--mode-accent-bg);border:1px solid var(--mode-accent);':'border:1px solid transparent;';
-        var textCol=isAct?'var(--mode-accent-text)':'var(--text)';
-        var subCol=isAct?'var(--mode-accent-text)':'var(--text3)';
-        var iconCol=isAct?'var(--mode-accent-text)':'var(--text2)';
-        h+='<div style="display:flex;align-items:center;gap:5px;padding:7px 6px;border-radius:5px;margin-bottom:2px;'+bg+'">';
-        h+='<button onclick="CF.switchPlaylist(\''+escH(p.id)+'\')" style="flex:1;font-size:12px;font-weight:600;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:'+textCol+';background:none;border:none;text-align:left;padding:0;" title="'+escH(p.name)+'">'+escH(p.name)+'</button>';
-        h+='<span style="font-size:10px;color:'+subCol+';flex-shrink:0;min-width:20px;text-align:right;">'+cnt+'</span>';
-        h+='<button onclick="CF.renamePlaylist(\''+escH(p.id)+'\')" title="Rename" style="'+iconBtn+'color:'+iconCol+';">'+svgEdit+'</button>';
-        h+='<button onclick="CF.duplicatePlaylist(\''+escH(p.id)+'\')" title="Duplicate" style="'+iconBtn+'color:'+iconCol+';">'+svgCopy+'</button>';
-        if((state.playlists||[]).length>1 && !(window.CF&&(CF.role==='editor'||CF.role==='track-editor')))
-          h+='<button onclick="CF.deletePlaylist(\''+escH(p.id)+'\')" title="Delete" style="'+iconBtn+'color:var(--red);">'+svgTrash+'</button>';
+        var canDel=(state.playlists||[]).length>1&&!(window.CF&&(CF.role==='editor'||CF.role==='track-editor'));
+        h+='<div class="sbp-pl'+(isAct?' active':'')+'" onclick="CF.switchPlaylist(\''+escH(p.id)+'\')" title="'+escH(p.name)+'">';
+        h+='<span class="sbp-pl-nm">'+escH(p.name)+'</span>';
+        h+='<span class="sbp-pl-cnt">'+cnt+'</span>';
+        h+='<span class="sbp-pl-acts" onclick="event.stopPropagation();">';
+        h+='<button class="sbp-pl-act" onclick="CF.renamePlaylist(\''+escH(p.id)+'\')" title="Rename">'+svgEdit+'</button>';
+        h+='<button class="sbp-pl-act" onclick="CF.duplicatePlaylist(\''+escH(p.id)+'\')" title="Duplicate">'+svgCopy+'</button>';
+        if(canDel) h+='<button class="sbp-pl-act danger" onclick="CF.deletePlaylist(\''+escH(p.id)+'\')" title="Delete">'+svgTrash+'</button>';
+        h+='</span>';
         h+='</div>';
       });
-      h+='</div></div>';
       body.innerHTML=h;
     }
+
+    /* ── Sequences panel ────────────────────────────── */
     if(name==='seqs'){
-      var oldFoot=document.getElementById('sbp-seq-add');if(oldFoot)oldFoot.remove();
       var pl=window.getActivePlaylist?getActivePlaylist():null;
       var songs=window.getActivePlaylistSongs?getActivePlaylistSongs():state.songs;
       var selMode=CF._seqSelectMode;
       var selSet=CF._selSeqs;
-      var h='<div style="display:flex;flex-direction:column;height:100%;overflow:hidden;">';
-      /* Playlist context label */
-      if(pl){
-        h+='<div style="padding:5px 10px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:6px;">';
-        h+='<span style="font-size:10px;color:var(--text4);text-transform:uppercase;letter-spacing:.05em;">Playlist</span>';
-        h+='<span style="font-size:11px;color:var(--text2);font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escH(pl.name)+'</span>';
-        if(selMode) h+='<span style="font-size:10px;color:var(--text3);">'+selSet.length+' selected</span>';
-        h+='</div>';
+
+      /* Update header count to reflect active-playlist songs */
+      var _hCnt2=document.getElementById('cf-panel-count');
+      if(_hCnt2) _hCnt2.textContent=songs.length;
+
+      /* Find active index for up-next detection */
+      var actIdx=-1;
+      for(var ai=0;ai<songs.length;ai++){ if(songs[ai].id===state.activeSongId){actIdx=ai;break;} }
+      var upnextId=actIdx>=0&&actIdx+1<songs.length?songs[actIdx+1].id:null;
+
+      /* Playlist context sub-label in header if multiple playlists */
+      var plCtx='';
+      if(pl&&(state.playlists||[]).length>1){
+        plCtx='<div style="padding:5px 16px;border-bottom:1px solid var(--hair);flex-shrink:0;display:flex;align-items:center;gap:6px;">'
+          +'<span style="font-size:9px;color:var(--txt-low);text-transform:uppercase;letter-spacing:.08em;font-family:var(--cond);">Playlist</span>'
+          +'<span style="font-size:10px;color:var(--txt-mid);font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--cond);">'+escH(pl.name)+'</span>'
+          +(selMode?'<span style="font-size:10px;color:var(--amber);font-family:var(--mono);">'+selSet.length+' sel</span>':'')
+          +'</div>';
       }
-      /* Sequence list */
-      h+='<div style="flex:1;overflow-y:auto;padding:4px 0;">';
+
+      /* Sequence rows */
+      var rows='';
       songs.forEach(function(song,i){
         var isAct=song.id===state.activeSongId;
+        var isUp=!isAct&&song.id===upnextId;
         var isSel=selMode&&selSet.indexOf(song.id)>=0;
-        var bg=isAct&&!selMode?'background:var(--mode-accent-bg);border:1px solid var(--mode-accent);'
-               :isSel?'background:var(--blue-bg);border:1px solid rgba(59,123,221,.4);'
-               :'border:1px solid transparent;';
-        var textCol=isAct&&!selMode?'var(--mode-accent-text)':isSel?'var(--text)':'var(--text)';
-        var numCol=isAct&&!selMode?'var(--mode-accent-text)':'var(--text3)';
-        var gripCol=isAct&&!selMode?'var(--mode-accent-text)':'var(--text4)';
+        var n=i+1; var numStr=(n<10?'0':'')+n;
+        var cls='sbp-seq'+(isAct?' active':isUp?' upnext':'')+(isSel?' selected':'');
         var clickAct=selMode
           ?'onclick="event.stopPropagation();CF._toggleSel(\''+escH(song.id)+'\')"'
           :'onclick="selectSong(\''+escH(song.id)+'\');_sbRender(\'seqs\')"';
-        h+='<div draggable="'+(!selMode)+'"'
+        rows+='<div class="'+cls+'" draggable="'+(!selMode)+'"'
           +(!selMode?' ondragstart="CF._plDragIdx='+i+';event.dataTransfer.effectAllowed=\'move\';this.classList.add(\'dragging\')"':'')
           +' ondragend="this.classList.remove(\'dragging\')"'
           +' ondragover="event.preventDefault();this.classList.add(\'drag-over\')"'
           +' ondragleave="this.classList.remove(\'drag-over\')"'
           +' ondrop="event.preventDefault();this.classList.remove(\'drag-over\');CF._plDrop('+i+')"'
-          +' '+clickAct
-          +' style="display:flex;align-items:center;gap:7px;padding:6px 8px 6px 6px;cursor:pointer;margin:1px 4px;border-radius:5px;'+bg+'">';
+          +' '+clickAct+'>';
         if(selMode){
-          h+='<span style="font-size:14px;color:'+(isSel?'var(--blue)':'var(--text4)')+';flex-shrink:0;line-height:1;">'+( isSel?'☑':'☐')+'</span>';
+          rows+='<span class="sbp-seq-cb" style="color:'+(isSel?'var(--amber)':'var(--txt-low)')+';">'+(isSel?'☑':'☐')+'</span>';
         } else {
-          h+='<span style="cursor:grab;color:'+gripCol+';opacity:.45;font-size:13px;flex-shrink:0;line-height:1;" title="Drag to reorder">⠿</span>';
+          rows+='<span class="sbp-seq-grip">⠿</span>';
         }
-        h+='<span style="color:'+numCol+';font-size:10px;min-width:16px;text-align:right;flex-shrink:0;">'+(i+1)+'</span>';
-        h+='<span style="flex:1;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:'+textCol+';" title="'+escH(song.name)+'">'+escH(song.name)+'</span>';
-        h+='</div>';
+        rows+='<span class="sbp-seq-n">'+numStr+'</span>';
+        rows+='<span class="sbp-seq-nm" title="'+escH(song.name)+'">'+escH(song.name)+'</span>';
+        rows+='</div>';
       });
-      h+='</div>';
+
       /* Footer */
+      var svgCopy='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+      var svgTrash='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
+      var svgClip='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>';
+      var foot='';
       if(selMode){
-        /* Select mode footer */
-        h+='<div style="padding:7px 8px;border-top:1px solid var(--border);flex-shrink:0;">';
-        h+='<div style="display:flex;gap:5px;margin-bottom:5px;">';
-        h+='<button onclick="CF._selectAll()" style="flex:1;padding:5px 4px;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;color:var(--text2);cursor:pointer;font-size:10px;">Select All</button>';
-        h+='<button onclick="CF._exitSelectMode()" style="flex:1;padding:5px 4px;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;color:var(--text3);cursor:pointer;font-size:10px;">Cancel</button>';
-        h+='</div>';
-        if(selSet.length>0){
-          h+='<div style="display:flex;gap:5px;">';
-          var otherPls=(state.playlists||[]).filter(function(p){return p.id!==state.activePlaylistId;});
-          if(otherPls.length){
-            h+='<select onchange="CF._moveSelected(this.value);this.value=\'\'" style="flex:1;min-width:0;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;color:var(--text2);font-size:10px;padding:5px 4px;cursor:pointer;">';
-            h+='<option value="" disabled selected>Move to…</option>';
-            otherPls.forEach(function(p){h+='<option value="'+escH(p.id)+'">'+escH(p.name)+'</option>';});
-            h+='</select>';
-          }
-          h+='<button onclick="CF._copySelected()" title="Copy selected" style="padding:5px 8px;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;color:var(--text2);cursor:pointer;font-size:10px;flex-shrink:0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> '+selSet.length+'</button>';
-          if(!(window.CF&&(CF.role==='editor'||CF.role==='track-editor')))
-            h+='<button onclick="CF._deleteSelected()" title="Delete selected" style="padding:5px 8px;background:transparent;border:1px solid var(--red);border-radius:4px;color:var(--red);cursor:pointer;font-size:10px;flex-shrink:0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg> '+selSet.length+'</button>';
-          h+='</div>';
+        /* Select mode — show count + actions */
+        var otherPls=(state.playlists||[]).filter(function(p){return p.id!==state.activePlaylistId;});
+        foot='<div class="sbp-foot" style="flex-wrap:wrap;">';
+        foot+='<button class="sbp-foot-btn" onclick="CF._selectAll()">All</button>';
+        if(otherPls.length&&selSet.length>0){
+          foot+='<select onchange="CF._moveSelected(this.value);this.value=\'\'" style="flex:1;min-width:80px;height:36px;background:none;border:none;border-right:1px solid var(--hair);color:var(--txt-mid);font-size:10px;padding:0 8px;cursor:pointer;font-family:var(--cond);letter-spacing:.08em;text-transform:uppercase;outline:none;">';
+          foot+='<option value="" disabled selected>Move to…</option>';
+          otherPls.forEach(function(p){foot+='<option value="'+escH(p.id)+'">'+escH(p.name)+'</option>';});
+          foot+='</select>';
         }
-        h+='</div>';
+        if(selSet.length>0){
+          foot+='<button class="sbp-foot-icon" onclick="CF._copySelected()" title="Copy selected">'+svgCopy+'</button>';
+          if(!(window.CF&&(CF.role==='editor'||CF.role==='track-editor')))
+            foot+='<button class="sbp-foot-icon" onclick="CF._deleteSelected()" title="Delete selected" style="color:var(--red);">'+svgTrash+'</button>';
+        }
+        foot+='<button class="sbp-foot-btn" onclick="CF._exitSelectMode()">Done</button>';
+        foot+='</div>';
       } else {
-        /* Normal footer */
-        h+='<div style="padding:7px 8px;border-top:1px solid var(--border);display:flex;gap:5px;flex-shrink:0;">';
-        h+='<button onclick="CF._enterSelectMode()" title="Select sequences" style="padding:7px 8px;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;color:var(--text2);cursor:pointer;font-size:11px;flex-shrink:0;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>';
-        h+='<button onclick="openAddSeqModal()" style="flex:1;padding:7px 4px;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;color:var(--text2);cursor:pointer;font-size:11px;">+ Add</button>';
+        /* Normal mode — select toggle + optional paste */
+        foot='<div class="sbp-foot">';
+        foot+='<button class="sbp-foot-btn" onclick="CF._enterSelectMode()" title="Select multiple">Select</button>';
         if(CF._seqClipboard)
-          h+='<button onclick="CF.pasteSeq()" title="Paste: '+escH(CF._seqClipboard.name)+'" style="padding:7px 8px;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;color:var(--text2);cursor:pointer;font-size:11px;flex-shrink:0;">📋</button>';
-        h+='</div>';
+          foot+='<button class="sbp-foot-icon" onclick="CF.pasteSeq()" title="Paste: '+escH(CF._seqClipboard.name)+'">'+svgClip+'</button>';
+        foot+='</div>';
       }
-      h+='</div>';
-      body.innerHTML=h;
+
+      body.innerHTML=plCtx+'<div style="flex:1;overflow-y:auto;">'+rows+'</div>'+foot;
+      /* Make body a flex column so footer sticks */
+      body.style.display='flex';body.style.flexDirection='column';body.style.padding='0';
     }
   };
 })();
@@ -10665,21 +11207,34 @@ boot();
 </script>
 
 <!-- Stream move/delete modal -->
-<div id="stream-move-modal" class="modal-backdrop" style="display:none;z-index:10001;">
-  <div class="modal" style="max-width:400px;">
-    <div class="modal-header"><span class="modal-title">Delete Track</span><button class="modal-close" onclick="closeModal('stream-move-modal')">✕</button></div>
-    <div style="padding:16px 20px;">
-      <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">⚠ <strong id="stream-move-count"></strong> cues will be removed from this track.</div>
-      <div id="stream-move-target-wrap" style="margin-bottom:16px;">
-        <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:6px;">Move cues to another track first (optional):</label>
-        <select id="stream-move-target" style="width:100%;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-size:12px;padding:8px;">
-          <option value="">— Delete cues too —</option>
+<!-- Track delete modal — UI Kit styled -->
+<div id="stream-move-modal" class="ntm-bg" role="dialog" aria-modal="true" style="z-index:10001;">
+  <div class="ntm-box" style="width:440px;">
+    <div class="ntm-header">
+      <span class="ntm-title">Delete Track</span>
+      <button onclick="closeModal('stream-move-modal')" style="background:none;border:none;color:var(--txt-low);cursor:pointer;font-size:16px;padding:2px 4px;line-height:1;">✕</button>
+    </div>
+    <div class="ntm-body" style="gap:20px;">
+      <!-- Warning -->
+      <div style="display:flex;gap:10px;align-items:flex-start;padding:12px 14px;background:rgba(255,40,72,.07);border:1px solid rgba(255,40,72,.22);">
+        <span style="font-size:16px;flex-shrink:0;line-height:1;margin-top:1px;">⚠</span>
+        <div>
+          <div style="font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:4px;">This cannot be undone</div>
+          <div style="font-size:12px;color:var(--txt-mid);line-height:1.5;">You are deleting <strong id="stream-move-name" style="color:var(--txt-hi);"></strong>. <strong id="stream-move-count" style="color:var(--txt-hi);">0</strong> cues belong to this track.</div>
+        </div>
+      </div>
+      <!-- Handle cues -->
+      <div class="ntm-fg">
+        <label class="ntm-lbl" for="stream-move-target">Handle cues</label>
+        <select id="stream-move-target" class="ntm-inp" style="cursor:pointer;">
+          <option value="">— Delete all cues in this track —</option>
         </select>
+        <span class="ntm-hint">Select a track to move this track's cues to, or leave blank to delete them all.</span>
       </div>
-      <div style="display:flex;gap:8px;justify-content:flex-end;">
-        <button class="mbtn" onclick="closeModal('stream-move-modal')">Cancel</button>
-        <button class="mbtn danger" onclick="confirmDeleteStream()">Delete track</button>
-      </div>
+    </div>
+    <div class="ntm-footer">
+      <button class="ntm-btn" onclick="closeModal('stream-move-modal')">Cancel</button>
+      <button class="ntm-btn" onclick="confirmDeleteStream()" style="background:var(--red);border-color:var(--red);color:#fff;">Delete Track</button>
     </div>
   </div>
 </div>
