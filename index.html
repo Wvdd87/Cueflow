@@ -1634,9 +1634,62 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 /* Add link button in sharing panel */
 .sbp-add-link-btn { display:flex; align-items:center; justify-content:center; gap:6px; width:calc(100% - 28px); margin:12px 14px; height:36px; background:none; border:1px dashed var(--hair3); color:var(--txt-mid); cursor:pointer; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; transition:color .12s, border-color .12s; }
 .sbp-add-link-btn:hover { color:var(--primary); border-color:var(--primary); }
-/* Camera select in viewer topbar */
-.vw-cam-select { background:var(--surface2); border:1px solid var(--hair2); color:var(--txt-hi); font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.05em; padding:2px 8px; outline:none; cursor:pointer; height:24px; appearance:none; -webkit-appearance:none; padding-right:22px; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 6px center; }
-.vw-cam-select:focus { border-color:var(--primary); }
+/* Camera select in viewer topbar — now uses cf-sel.compact */
+.vw-cam-select { display:none; } /* hidden; custom cf-sel renders in its place */
+
+/* ═══════════════════════════════════════════
+   CUSTOM SELECT / DROPDOWN  (cf-sel)
+   Drop-in replacement for every <select>
+   ═══════════════════════════════════════════ */
+.cf-sel { position:relative; display:inline-block; width:100%; }
+.cf-sel-trigger {
+  display:flex; align-items:center; gap:8px; width:100%;
+  background:var(--surface2); border:1px solid var(--hair2);
+  color:var(--txt); font-family:var(--cond); font-size:12px; font-weight:600;
+  letter-spacing:.04em; text-transform:uppercase;
+  padding:7px 10px; cursor:pointer; user-select:none; outline:none;
+  text-align:left; transition:border-color .12s,color .12s;
+}
+.cf-sel-trigger:hover { border-color:var(--hair3); color:var(--txt-hi); }
+.cf-sel.open > .cf-sel-trigger { border-color:var(--primary); color:var(--txt-hi); }
+.cf-sel-val { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.cf-sel-chev { flex-shrink:0; color:var(--txt-low); transition:transform .15s; display:flex; align-items:center; }
+.cf-sel.open .cf-sel-chev { transform:rotate(180deg); }
+.cf-sel-panel {
+  position:absolute; left:0; right:0; top:calc(100% + 2px); z-index:9500;
+  background:var(--surface); border:1px solid var(--primary);
+  max-height:220px; overflow-y:auto;
+  box-shadow:0 8px 24px rgba(0,0,0,.55); display:none; min-width:100%;
+}
+.cf-sel-panel.up { top:auto; bottom:calc(100% + 2px); }
+.cf-sel.open .cf-sel-panel { display:block; }
+.cf-sel-opt {
+  padding:8px 10px; font-family:var(--cond); font-size:12px; font-weight:600;
+  letter-spacing:.04em; text-transform:uppercase; color:var(--txt-mid);
+  cursor:pointer; border-bottom:1px solid var(--hair);
+  transition:background .07s,color .07s;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; user-select:none;
+}
+.cf-sel-opt:last-child { border-bottom:none; }
+.cf-sel-opt:hover, .cf-sel-opt.focused { background:var(--surface2); color:var(--txt-hi); }
+.cf-sel-opt.selected { color:var(--primary); background:var(--primary-bg); }
+.cf-sel-opt.disabled { opacity:.35; cursor:not-allowed; pointer-events:none; }
+/* Compact — topbar / 24-px-height inline */
+.cf-sel.compact .cf-sel-trigger { padding:2px 8px; font-size:11px; height:24px; }
+.cf-sel.compact .cf-sel-opt   { padding:5px 8px;  font-size:11px; }
+/* Auto-width — overrides default width:100% for flex/topbar contexts */
+.cf-sel.auto { width:auto; min-width:80px; }
+/* Ghost-action — borderless flex filler (sbp footer "Move to…") */
+.cf-sel.ghost .cf-sel-trigger {
+  background:none; border:none; border-right:1px solid var(--hair);
+  font-size:10px; font-weight:600; letter-spacing:.08em;
+  color:var(--txt-mid); height:36px; padding:0 8px; flex:1;
+}
+.cf-sel.ghost.open > .cf-sel-trigger { color:var(--primary); background:var(--primary-bg); }
+.cf-sel.ghost .cf-sel-opt { font-size:11px; }
+/* Larger variant for add-seq modal */
+.cf-sel.lg .cf-sel-trigger { padding:11px 14px; font-size:13px; font-weight:500; letter-spacing:.02em; }
+.cf-sel.lg .cf-sel-opt { padding:10px 14px; font-size:13px; font-weight:500; letter-spacing:.02em; }
 .sbp-cl-section { padding:14px; border-bottom:1px solid var(--hair); }
 .sbp-cl-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); margin-bottom:10px; }
 .sbp-cl-inp { width:100%; box-sizing:border-box; padding:8px 10px; background:var(--surface2); border:1.5px solid var(--hair2); color:var(--txt-hi); font-size:12px; outline:none; margin-bottom:8px; transition:border-color .15s; }
@@ -1722,10 +1775,9 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 
   <!-- ── Viewer topbar ── -->
   <div class="vw-topbar">
-    <!-- TC status + source (also doubles as online indicator in camera mode) -->
+    <!-- TC status (pip only — no source label) -->
     <div class="vw-cell" id="vw-tc-cell">
       <div class="tc-pip idle" id="cf-v-dot"></div>
-      <span class="vw-tc-src" id="vw-tc-src">—</span>
       <span class="vw-lock" id="vw-tc-lock"></span>
     </div>
     <!-- Timecode value -->
@@ -1904,13 +1956,10 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 <!-- ── Camera Edit Notes screen ── -->
 <div id="cf-cam-notes-screen" role="main" aria-label="Edit Notes">
   <div class="cn-topbar">
-    <button class="cn-back-btn" onclick="closeCamNotesScreen()">
-      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M7 1L2 5l5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Back to Cockpit
-    </button>
     <span class="cn-topbar-title">Edit Notes</span>
     <span class="cn-topbar-cam" id="cn-topbar-cam"></span>
     <div style="flex:1;"></div>
+    <button class="live-toggle" onclick="closeCamNotesScreen()">Back to Cockpit</button>
   </div>
   <div class="cn-mode-banner"></div>
   <div class="cn-hint-bar">
@@ -4237,17 +4286,19 @@ function _updateCamCockpit(frames){
   const selCamId=CF.cameraIds[0];
   const fps=state.fps||25;
   const WARN_SEC=10,URGENCY_SEC=20;
-  // Collect all camera cues (temporarily override state so getSortedCues returns ALL camera cues
-  // regardless of what the editor has set for cameraTrackVisible / visibleStreamIds)
-  const _prev=CF.cameraIds;CF.cameraIds=null;
-  const _prevCtv=state.cameraTrackVisible;state.cameraTrackVisible=true;
-  const _prevVsi=state.visibleStreamIds;state.visibleStreamIds=[];
-  const allCues=getAllCues(true);
-  CF.cameraIds=_prev;
-  state.cameraTrackVisible=_prevCtv;
-  state.visibleStreamIds=_prevVsi;
-  const myCues=allCues.filter(c=>c.cameraId===selCamId);
-  const allCamCues=allCues.filter(c=>c.cameraId&&state.cameraTrack);
+  // Collect camera cues by direct scan — completely bypasses getSortedCues visibility
+  // filters (cameraTrackVisible, visibleStreamIds, state.cameraTrack) which can all
+  // be wrong for a remote viewer. Only requirement: the cue has a cameraId.
+  const allCamCues=[];
+  getActivePlaylistSongs().forEach(function(song){
+    (song.cues||[]).forEach(function(cue){
+      if(cue.cameraId){
+        allCamCues.push(Object.assign({},cue,{_f:tcF(cue.tc),songId:song.id}));
+      }
+    });
+  });
+  allCamCues.sort((a,b)=>a._f-b._f);
+  const myCues=allCamCues.filter(c=>c.cameraId===selCamId);
   // Current cue for my camera
   let myCurIdx=-1;
   for(let i=myCues.length-1;i>=0;i--){if(frames>=myCues[i]._f){myCurIdx=i;break;}}
@@ -4409,7 +4460,9 @@ function _activateCamCockpit(){
   const crumbPl=document.getElementById('vw-cam-crumb-pl');
   const crumbSq=document.getElementById('vw-cam-crumb-sq');
   if(crumbPl)crumbPl.textContent=pl?pl.name:'—';
-  if(crumbSq)crumbSq.textContent='—'; // updated by _updateCamCockpit
+  // Seed seq crumb with active song name; _updateCamCockpit will track it live
+  const seedSong=window.getActiveSong?getActiveSong():null;
+  if(crumbSq)crumbSq.textContent=seedSong?seedSong.name:'—';
   _show('vw-cam-crumb-cell');
 
   // Following + badge + select
@@ -9356,6 +9409,206 @@ function closeIoMenu(){
 
 window.addEventListener('resize',()=>redrawActive());
 init();
+
+/* ═══════════════════════════════════════════════════════════
+   CfSelect — custom dropdown engine
+   Hides every native <select> and renders a keyboard-navigable
+   custom panel in its place. Syncs back to the native element
+   so all existing onchange handlers fire unchanged.
+   ═══════════════════════════════════════════════════════════ */
+window.CfSelect=(function(){
+  'use strict';
+  var _openWrap=null;
+  var CHEV='<svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  /* ── Close current open dropdown ── */
+  function _close(){
+    if(_openWrap){_openWrap.classList.remove('open');_openWrap=null;}
+  }
+
+  /* ── Global outside-click + Escape ── */
+  document.addEventListener('mousedown',function(e){
+    if(_openWrap&&!_openWrap.contains(e.target))_close();
+  },true);
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&_openWrap)_close();
+  },true);
+
+  /* ── Core init ── */
+  function init(el,opts){
+    if(!el||el.__cfSel)return el?el.__cfSel:null;
+    opts=opts||{};
+
+    /* Build wrapper */
+    var wrap=document.createElement('div');
+    wrap.className='cf-sel'+(opts.cls?' '+opts.cls:'');
+    if(opts.style)wrap.setAttribute('style',opts.style);
+
+    /* Trigger button */
+    var trigger=document.createElement('button');
+    trigger.type='button';
+    trigger.className='cf-sel-trigger';
+
+    var valEl=document.createElement('span');
+    valEl.className='cf-sel-val';
+
+    var chevEl=document.createElement('span');
+    chevEl.className='cf-sel-chev';
+    chevEl.innerHTML=CHEV;
+
+    trigger.appendChild(valEl);
+    trigger.appendChild(chevEl);
+
+    /* Options panel */
+    var panel=document.createElement('div');
+    panel.className='cf-sel-panel';
+
+    wrap.appendChild(trigger);
+    wrap.appendChild(panel);
+
+    /* Insert custom UI immediately after the native select */
+    el.style.display='none';
+    if(el.parentNode)el.parentNode.insertBefore(wrap,el.nextSibling);
+
+    /* ── Build option list from native select ── */
+    function buildOpts(){
+      panel.innerHTML='';
+      var cv=el.value;
+      Array.from(el.options).forEach(function(opt){
+        if(opt.hidden)return;
+        var item=document.createElement('div');
+        item.className='cf-sel-opt'
+          +(opt.value===cv?' selected':'')
+          +(opt.disabled?' disabled':'');
+        item.dataset.value=opt.value;
+        item.textContent=opt.text;
+        if(!opt.disabled){
+          item.addEventListener('mousedown',function(e){
+            e.preventDefault();
+            el.value=opt.value;
+            el.dispatchEvent(new Event('change',{bubbles:true}));
+            _syncVal();
+            _close();
+          });
+        }
+        panel.appendChild(item);
+      });
+      _syncVal();
+    }
+
+    /* ── Sync displayed label from native select's current value ── */
+    function _syncVal(){
+      var so=el.options[el.selectedIndex];
+      valEl.textContent=so?so.text:(opts.placeholder||'—');
+      panel.querySelectorAll('.cf-sel-opt').forEach(function(item){
+        item.classList.toggle('selected',item.dataset.value===el.value);
+      });
+    }
+
+    /* ── Intercept programmatic .value = ... assignments ── */
+    try{
+      var origDesc=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value');
+      Object.defineProperty(el,'value',{
+        get:function(){return origDesc.get.call(el);},
+        set:function(v){origDesc.set.call(el,v);_syncVal();},
+        configurable:true,enumerable:true
+      });
+    }catch(e){}
+
+    /* ── Watch option changes (innerHTML rebuilds) ── */
+    var _moT=null;
+    var mo=new MutationObserver(function(){
+      clearTimeout(_moT);
+      _moT=setTimeout(buildOpts,0);
+    });
+    mo.observe(el,{childList:true,subtree:true,attributes:true,attributeFilter:['selected','disabled','value']});
+
+    /* ── Open / close logic ── */
+    function _open(){
+      if(_openWrap&&_openWrap!==wrap)_close();
+      _openWrap=wrap;
+      wrap.classList.add('open');
+      /* Flip panel above trigger if near bottom of viewport */
+      panel.classList.remove('up');
+      var rect=wrap.getBoundingClientRect();
+      var spBelow=window.innerHeight-rect.bottom;
+      if(spBelow<180&&rect.top>spBelow)panel.classList.add('up');
+      /* Scroll selected option into view */
+      var sel=panel.querySelector('.cf-sel-opt.selected');
+      if(sel)sel.scrollIntoView({block:'nearest'});
+    }
+
+    trigger.addEventListener('click',function(e){
+      e.stopPropagation();
+      wrap.classList.contains('open')?_close():_open();
+    });
+
+    /* ── Keyboard navigation ── */
+    trigger.addEventListener('keydown',function(e){
+      var items=Array.from(panel.querySelectorAll('.cf-sel-opt:not(.disabled)'));
+      var focused=panel.querySelector('.cf-sel-opt.focused');
+      var idx=focused?items.indexOf(focused):-1;
+      if(e.key==='ArrowDown'){
+        e.preventDefault();
+        if(!wrap.classList.contains('open')){_open();return;}
+        var nxt=items[Math.min(idx+1,items.length-1)];
+        if(nxt){if(focused)focused.classList.remove('focused');nxt.classList.add('focused');nxt.scrollIntoView({block:'nearest'});}
+      }else if(e.key==='ArrowUp'){
+        e.preventDefault();
+        var prv=items[Math.max(idx-1,0)];
+        if(prv){if(focused)focused.classList.remove('focused');prv.classList.add('focused');prv.scrollIntoView({block:'nearest'});}
+      }else if(e.key==='Enter'||e.key===' '){
+        e.preventDefault();
+        if(wrap.classList.contains('open')){
+          var f=panel.querySelector('.cf-sel-opt.focused');
+          if(f)f.dispatchEvent(new MouseEvent('mousedown',{bubbles:false}));
+          else _close();
+        }else _open();
+      }
+    });
+
+    var ctrl={wrap:wrap,buildOpts:buildOpts,syncVal:_syncVal,el:el};
+    el.__cfSel=ctrl;
+    buildOpts();
+    return ctrl;
+  }
+
+  /* ── Init by element ID ── */
+  function byId(id,opts){
+    var el=document.getElementById(id);
+    return init(el,opts);
+  }
+
+  /* ── Init all <select> elements in a container (or whole doc) ── */
+  function initIn(root,opts){
+    (root||document).querySelectorAll('select:not([data-cf-skip])').forEach(function(sel){
+      if(!sel.__cfSel)init(sel,opts);
+    });
+  }
+
+  /* ── Boot: init all visible selects on DOMContentLoaded ── */
+  document.addEventListener('DOMContentLoaded',function(){
+    /* Camera dropdown — compact topbar, auto-width so it fits in flex cell */
+    byId('vw-cam-select',{cls:'compact auto'});
+    /* Add-seq modal insert-after */
+    byId('add-seq-after',{cls:'lg'});
+    /* Camera cue editor */
+    byId('cam-cue-camera-sel',{});
+    /* Add-pin modal role selector */
+    byId('cf-pin-role',{});
+    /* Stream move target */
+    byId('stream-move-target',{});
+    /* Batch-move track selector */
+    byId('batch-track-sel',{cls:'ghost',style:'flex:1;min-width:80px;'});
+    /* Settings modal: LTC device, signal-loss */
+    byId('settings-ltc-device',{});
+    byId('settings-signal-loss',{});
+    /* Project settings: FPS */
+    byId('pset-fps',{});
+  });
+
+  return{init:init,byId:byId,initIn:initIn};
+})();
 </script>
 
 <!-- ADD SEQUENCE MODAL -->
@@ -12034,6 +12287,8 @@ CF._plDrop=function(toIdx){
       body.innerHTML=plCtx+'<div style="flex:1;overflow-y:auto;">'+rows+'</div>'+foot;
       /* Make body a flex column so footer sticks */
       body.style.display='flex';body.style.flexDirection='column';body.style.padding='0';
+      /* Init any native selects injected into the footer (e.g. "Move to…") */
+      if(window.CfSelect){body.querySelectorAll('select:not([data-cf-skip])').forEach(function(s){CfSelect.init(s,{cls:'ghost',style:'flex:1;min-width:80px;'});});}
     }
   };
 })();
