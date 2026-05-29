@@ -1147,6 +1147,11 @@ body.mode-live #edit-topbar { display: none; }
 /* Camera picker modal buttons */
 .cam-picker-btn:hover { opacity:.85; }
 .cam-picker-btn:active { opacity:.7; }
+/* All-cameras live-now row */
+.cam-live-row { display:flex; align-items:center; gap:10px; padding:9px 16px; background:rgba(255,40,72,.05); border-bottom:2px solid rgba(255,40,72,.16); flex-shrink:0; }
+.cam-live-row-dot { width:6px; height:6px; border-radius:50%; background:var(--red); flex-shrink:0; animation:livePulse 1.2s ease-in-out infinite; }
+.cam-live-row-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--red); flex-shrink:0; margin-left:auto; }
+@keyframes livePulse { 0%,100%{opacity:1}50%{opacity:.35} }
 
 /* ── Camera view: topbar cells ── */
 .vw-cam-status { display:none; align-items:center; gap:6px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); flex-shrink:0; white-space:nowrap; }
@@ -1163,6 +1168,7 @@ body.mode-live #edit-topbar { display: none; }
 .cam-panel-toggle:hover { color:var(--txt-hi); border-color:var(--hair3); }
 .cam-panel.collapsed .cam-panel-sub,
 .cam-panel.collapsed .cam-shot-rows { display:none; }
+#cam-panel-all.hidden { display:none; }
 
 /* ── Edit Notes screen (cam-viewer) ── */
 #cf-cam-notes-screen { display:none; position:fixed; inset:0; z-index:9997; background:var(--bg); flex-direction:column; overflow:hidden; }
@@ -1925,7 +1931,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
             <span class="cam-panel-title" id="cam-panel-my-title">MY NEXT SHOTS</span>
           </div>
           <button class="cam-panel-toggle" id="cam-panel-my-toggle" onclick="toggleCamPanel()" title="Collapse / expand panel">
-            <svg id="cam-panel-toggle-icon" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 4l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg id="cam-panel-toggle-icon" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M7 2l-4 3 4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
         <div class="cam-panel-sub" id="cam-panel-my-sub"></div>
@@ -1933,7 +1939,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       </div>
 
       <!-- Right: All cameras upcoming -->
-      <div class="cam-panel">
+      <div class="cam-panel" id="cam-panel-all">
         <div class="cam-panel-head">
           <span class="cam-panel-title">ALL CAMERAS · UPCOMING</span>
           <span class="cam-panel-sub" style="border:none;padding:0;font-size:10px;" id="cam-panel-all-sub"></span>
@@ -1959,7 +1965,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <span class="cn-topbar-title">Edit Notes</span>
     <span class="cn-topbar-cam" id="cn-topbar-cam"></span>
     <div style="flex:1;"></div>
-    <button class="live-toggle" onclick="closeCamNotesScreen()">Back to Cockpit</button>
+    <button class="live-toggle" onclick="closeCamNotesScreen()">RETURN TO LIVE</button>
   </div>
   <div class="cn-mode-banner"></div>
   <div class="cn-hint-bar">
@@ -4310,26 +4316,48 @@ function _updateCamCockpit(frames){
   const hero=_e('cam-hero');if(!hero)return;
   // ── Hero ──
   if(myCurCue){
-    // ON CAMERA: stay red until next cam cue for this camera
-    hero.className='cam-hero oncam';
-    const pip=_e('cam-hero-pip');if(pip)pip.style.display='';
-    const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent='ON CAMERA';
-    const hb=_e('cam-hero-badge');
-    if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#fff;">${cam?.number||'?'}</div>`;
-    const hn=_e('cam-hero-name');if(hn)hn.textContent=myCurCue.name||'—';
-    const hd=_e('cam-hero-desc');if(hd)hd.textContent=myCurCue.desc||'';
-    // Countdown to end = start of next cam cue for this camera
-    const endCue=myCues.find(c=>c._f>myCurCue._f);
-    const endF=endCue?endCue._f:myCurCue._f+fps*600;
-    const remF=Math.max(0,endF-frames);
-    const remSec=remF/fps;
-    const rm=Math.floor(remSec/60),rs=Math.floor(remSec%60);
-    const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=remF>0?(rm>0?rm+':'+String(rs).padStart(2,'0'):'0:'+String(rs).padStart(2,'0')):'0:00';
-    const cl=_e('cam-hero-cd-lbl');if(cl)cl.textContent='UNTIL END';
-    // Red progress bar over full duration
-    const durF=endF-myCurCue._f;
-    const prog=durF>0?Math.min(100,((frames-myCurCue._f)/durF)*100):100;
-    const bf=_e('cam-hero-bar-fill');if(bf)bf.style.width=prog.toFixed(1)+'%';
+    // Find the next cue from ANY camera after this camera's current cue fired.
+    // When a different camera fires, this camera is no longer on air.
+    const nextAnyCue=allCamCues.find(c=>c._f>myCurCue._f);
+    const anotherCamActive=nextAnyCue&&frames>=nextAnyCue._f&&nextAnyCue.cameraId!==selCamId;
+    if(anotherCamActive){
+      // Another camera has taken over — this camera is now waiting for its next shot.
+      // Fall through to NEXT rendering using myNextCue.
+      const cdF=myNextCue?Math.max(0,myNextCue._f-frames):0;
+      const cdSec=cdF/fps;
+      const isWarn=cdSec<=WARN_SEC;
+      hero.className='cam-hero'+(isWarn?' warn':'');
+      const pip=_e('cam-hero-pip');if(pip)pip.style.display='none';
+      const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent=myNextCue?'NEXT':'NO UPCOMING SHOT';
+      const hb=_e('cam-hero-badge');
+      if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#fff;${myNextCue?'':'opacity:.35;'}">${cam?.number||'?'}</div>`;
+      const hn=_e('cam-hero-name');if(hn)hn.textContent=myNextCue?myNextCue.name||'—':'—';
+      const hd=_e('cam-hero-desc');if(hd)hd.textContent=myNextCue?myNextCue.desc||'':'';
+      const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=myNextCue?(cdF>0?fmtCD(cdF):'GO'):'—';
+      const cl=_e('cam-hero-cd-lbl');if(cl)cl.textContent='UNTIL CUE';
+      const bf=_e('cam-hero-bar-fill');
+      if(bf)bf.style.width=myNextCue&&isWarn?Math.min(100,(1-cdSec/WARN_SEC)*100).toFixed(1)+'%':'0%';
+    } else {
+      // ON CAMERA: countdown ends when the next ANY-camera cue fires (not just mine).
+      hero.className='cam-hero oncam';
+      const pip=_e('cam-hero-pip');if(pip)pip.style.display='';
+      const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent='ON CAMERA';
+      const hb=_e('cam-hero-badge');
+      if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#fff;">${cam?.number||'?'}</div>`;
+      const hn=_e('cam-hero-name');if(hn)hn.textContent=myCurCue.name||'—';
+      const hd=_e('cam-hero-desc');if(hd)hd.textContent=myCurCue.desc||'';
+      // End = when ANY next camera cue fires (that's when the cut happens)
+      const endF=nextAnyCue?nextAnyCue._f:myCurCue._f+fps*600;
+      const remF=Math.max(0,endF-frames);
+      const remSec=remF/fps;
+      const rm=Math.floor(remSec/60),rs=Math.floor(remSec%60);
+      const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=remF>0?(rm>0?rm+':'+String(rs).padStart(2,'0'):'0:'+String(rs).padStart(2,'0')):'0:00';
+      const cl=_e('cam-hero-cd-lbl');if(cl)cl.textContent='UNTIL CUT';
+      // Red progress bar over full duration (from this cue to next cut)
+      const durF=endF-myCurCue._f;
+      const prog=durF>0?Math.min(100,((frames-myCurCue._f)/durF)*100):100;
+      const bf=_e('cam-hero-bar-fill');if(bf)bf.style.width=prog.toFixed(1)+'%';
+    }
   } else if(myNextCue){
     // NEXT: white bar within 10s
     const cdF=Math.max(0,myNextCue._f-frames),cdSec=cdF/fps;
@@ -4393,7 +4421,25 @@ function _updateCamCockpit(frames){
   const allRows=_e('cam-all-rows');
   if(allRows){
     allRows.innerHTML='';
-    const upAll=allCamCues.filter(c=>c._f>frames-fps*2).sort((a,b)=>a._f-b._f).slice(0,14);
+    // Find the currently live camera cue (most recent any-cam cue that has fired)
+    let _liveCamIdx=-1;
+    for(let i=allCamCues.length-1;i>=0;i--){if(frames>=allCamCues[i]._f){_liveCamIdx=i;break;}}
+    const liveCamCue=_liveCamIdx>=0?allCamCues[_liveCamIdx]:null;
+    // Prepend LIVE NOW row
+    if(liveCamCue){
+      const lc=getCameraById(liveCamCue.cameraId);
+      const lh=getCameraColor(lc?.colorIdx||0);
+      const liveDiv=document.createElement('div');
+      liveDiv.className='cam-live-row';
+      liveDiv.innerHTML=
+        `<div class="cam-live-row-dot"></div>`+
+        `<div class="cam-shot-badge"><div class="cam-badge sm" style="background:${lh};color:#fff;">${lc?.number||'?'}</div></div>`+
+        `<div class="cam-shot-info"><div class="cam-shot-name" style="color:var(--txt-hi);">${escH(liveCamCue.name||'—')}</div></div>`+
+        `<span class="cam-live-row-lbl">ON AIR</span>`;
+      allRows.appendChild(liveDiv);
+    }
+    // Upcoming cues (strictly after current frame)
+    const upAll=allCamCues.filter(c=>c._f>frames).sort((a,b)=>a._f-b._f).slice(0,14);
     if(upAll.length){
       upAll.forEach((cue,i)=>{
         const cdF=Math.max(0,cue._f-frames),cdSec=cdF/fps;
@@ -4409,14 +4455,8 @@ function _updateCamCockpit(frames){
           `<div class="cam-shot-tc">${escH(cue.tc||'')}</div>`+
           `<div class="${cdCls}">${cdF>0?fmtCD(cdF):'GO'}</div>`;
         allRows.appendChild(div);
-        if(cdSec<=URGENCY_SEC){
-          const urg=document.createElement('div');
-          urg.className='cam-shot-urg'+(isUrgent?' urgent':'');
-          urg.innerHTML=`<div class="cam-shot-urg-fill" style="width:${Math.min(100,(1-cdSec/URGENCY_SEC)*100).toFixed(1)}%"></div>`;
-          allRows.appendChild(urg);
-        }
       });
-    } else {
+    } else if(!liveCamCue){
       allRows.innerHTML='<div style="padding:20px 16px;font-size:11px;color:var(--txt-low);">No upcoming camera cues</div>';
     }
     const sub=_e('cam-panel-all-sub');
@@ -4495,19 +4535,19 @@ function _activateCamCockpit(){
   const mt=document.getElementById('cam-panel-my-title');
   if(mt)mt.textContent='MY NEXT SHOTS';
 
-  buildTrackPills();
+  if(window.buildTrackPills)buildTrackPills();
 }
 
 function toggleCamPanel(){
-  const panel=document.getElementById('cam-panel-my');
+  const allPanel=document.getElementById('cam-panel-all');
   const icon=document.getElementById('cam-panel-toggle-icon');
-  if(!panel)return;
-  const collapsed=panel.classList.toggle('collapsed');
+  if(!allPanel)return;
+  const hidden=allPanel.classList.toggle('hidden');
   if(icon){
-    // Arrow up when collapsed, arrow down when expanded
-    icon.innerHTML=collapsed
-      ?'<path d="M2 6l3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
-      :'<path d="M2 4l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    // Chevron → when all-cameras is visible (click to hide), ← when hidden (click to show)
+    icon.innerHTML=hidden
+      ?'<path d="M3 2l4 3-4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
+      :'<path d="M7 2l-4 3 4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
   }
 }
 
@@ -10882,10 +10922,6 @@ function cfJoin(){
 }
 
 /* ── CAMERA PICKER MODAL (cam:select links) ──────────────── */
-function hexToRgb(hex){
-  var r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return r?parseInt(r[1],16)+','+parseInt(r[2],16)+','+parseInt(r[3],16):'0,0,0';
-}
 function showCameraPickerModal(show, onPick){
   var existing=document.getElementById('cf-cam-picker-modal');
   if(existing) existing.remove();
@@ -10921,7 +10957,7 @@ function showCameraPickerModal(show, onPick){
 
   var grid=document.createElement('div');
   grid.id='cf-cam-picker-grid';
-  grid.style.cssText='display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;justify-content:flex-start;';
+  grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;margin-top:20px;';
 
   cameras.forEach(function(cam){
     var hex=typeof getCameraColor==='function'?getCameraColor(cam.colorIdx||0):'#06b6d4';
@@ -10929,15 +10965,14 @@ function showCameraPickerModal(show, onPick){
     var btn=document.createElement('button');
     btn.className='cam-picker-btn';
     btn.style.cssText=
-      'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;'+
-      'padding:16px 12px;background:none;border:1px solid '+(isSelected?hex:'var(--hair2)')+';'+
-      'cursor:pointer;transition:border-color .12s,background .12s;flex:1;min-width:0;'+
-      (isSelected?'background:rgba('+hexToRgb(hex)+',.08);':'');
+      'display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;'+
+      'padding:12px 8px 10px;background:'+(isSelected?'var(--surface2)':'none')+';border:none;outline:none;'+
+      'cursor:pointer;transition:background .12s;border-radius:2px;';
     btn.innerHTML=
-      '<div class="cam-badge lg" style="background:'+hex+';color:#fff;">'+(isSelected?cam.number:'<span style="opacity:.7;">'+cam.number+'</span>')+'</div>'+
-      (cam.label?'<span style="font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--txt-mid);">'+escH(cam.label)+'</span>':'');
-    btn.onmouseover=function(){if(!isSelected)btn.style.borderColor=hex;};
-    btn.onmouseout=function(){if(!isSelected)btn.style.borderColor='var(--hair2)';};
+      '<div class="cam-badge md" style="background:'+hex+';color:#fff;opacity:'+(isSelected?'1':'.7')+';flex-shrink:0;">'+cam.number+'</div>'+
+      '<span style="font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center;'+(cam.label?'':'visibility:hidden;')+'">'+escH(cam.label||'x')+'</span>';
+    btn.onmouseover=function(){if(!isSelected)btn.style.background='var(--surface2)';};
+    btn.onmouseout=function(){if(!isSelected)btn.style.background='none';};
     btn.onclick=function(){
       CF.cameraIds=[cam.id];
       state.cameraTrackVisible=true;
@@ -11374,6 +11409,7 @@ function buildTrackPills(){
     c.appendChild(p);
   });
 }
+window.buildTrackPills = buildTrackPills; /* expose for Block 1 (_activateCamCockpit) */
 
 /* ── EDITOR APP ──────────────────────────────────────────── */
 function _editorEnterFollowMode(){
