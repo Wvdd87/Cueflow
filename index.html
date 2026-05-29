@@ -197,8 +197,6 @@ input, select, textarea { font-family: inherit; }
 .save-indicator.show { opacity: 1; }
 
 /* ── TC Settings Modal ── */
-.tcs-box { max-width:520px; padding:0; overflow:hidden; background:var(--surface); border:1px solid var(--hair2); }
-.tcs-header { padding:20px 20px 12px; border-bottom:1px solid var(--hair); }
 .tcs-status-line { display:flex; align-items:center; gap:7px; margin-bottom:8px; }
 .tcs-status-pip { width:8px; height:8px; border-radius:50%; background:var(--txt-low); flex-shrink:0; }
 .tcs-status-pip.ok { background:var(--green); box-shadow:0 0 8px rgba(24,217,134,.6); }
@@ -207,7 +205,7 @@ input, select, textarea { font-family: inherit; }
 #tcs-status-text.ok { color:var(--green); }
 #tcs-status-text.warn { color:var(--amber); }
 .tcs-title { font-family:var(--cond); font-size:15px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-hi); flex:1; }
-.tcs-close { background:none; border:1px solid var(--hair2); color:var(--txt-mid); width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; border-radius:var(--radius); }
+.tcs-close { background:none; border:1px solid var(--hair2); color:var(--txt-mid); width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; }
 .tcs-close:hover { background:var(--surface2); color:var(--txt-hi); }
 .tcs-tabs { display:flex; border-bottom:1px solid var(--hair); }
 .tcs-tab { flex:1; padding:12px 0; background:none; border:none; border-bottom:2px solid transparent; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; transition:color .12s,border-color .12s; }
@@ -217,16 +215,16 @@ input, select, textarea { font-family: inherit; }
 .tcs-row { display:flex; gap:16px; margin-bottom:12px; }
 .tcs-field-group { display:flex; flex-direction:column; gap:5px; }
 .tcs-field-label { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-low); }
-.tcs-select { background:var(--surface2); border:1px solid var(--hair2); color:var(--txt); font-family:inherit; font-size:12px; padding:7px 10px; outline:none; border-radius:var(--radius); width:100%; }
+.tcs-select { background:var(--surface2); border:1px solid var(--hair2); color:var(--txt); font-family:inherit; font-size:12px; padding:7px 10px; outline:none; width:100%; }
 .tcs-select:focus { border-color:var(--amber); }
-.tcs-icon-btn { background:var(--surface2); border:1px solid var(--hair2); color:var(--txt-mid); width:32px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; border-radius:var(--radius); flex-shrink:0; }
+.tcs-icon-btn { background:var(--surface2); border:1px solid var(--hair2); color:var(--txt-mid); width:32px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; flex-shrink:0; }
 .tcs-icon-btn:hover { color:var(--txt-hi); border-color:var(--hair3); }
-.tcs-fps-display { display:flex; align-items:center; gap:7px; padding:7px 10px; background:var(--surface2); border:1px solid var(--hair2); border-radius:var(--radius); min-height:34px; }
+.tcs-fps-display { display:flex; align-items:center; gap:7px; padding:7px 10px; background:var(--surface2); border:1px solid var(--hair2); min-height:34px; }
 .tcs-fps-display span:first-child { font-family:var(--mono); font-size:13px; font-weight:600; color:var(--txt-hi); }
 .tcs-fps-badge { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:2px 6px; border-radius:2px; }
 .tcs-fps-badge.ok { background:rgba(24,217,134,.15); color:var(--green); border:1px solid rgba(24,217,134,.3); }
 .tcs-fps-badge.warn { background:var(--amber-bg); color:var(--amber); border:1px solid rgba(240,168,56,.3); }
-.tcs-card { background:var(--canvas); border:1px solid var(--hair2); border-radius:var(--radius); padding:12px 14px; margin-bottom:12px; }
+.tcs-card { background:var(--canvas); border:1px solid var(--hair2); padding:12px 14px; margin-bottom:12px; }
 .tcs-card-status { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
 .tcs-card-pip { width:8px; height:8px; border-radius:50%; background:var(--txt-low); flex-shrink:0; }
 .tcs-card-pip.ok { background:var(--green); box-shadow:0 0 8px rgba(24,217,134,.6); }
@@ -241,7 +239,7 @@ input, select, textarea { font-family: inherit; }
 .tcs-waveform { width:100%; display:block; background:transparent; }
 .tcs-midi-status { width:8px; height:8px; border-radius:50%; background:var(--txt-low); flex-shrink:0; }
 .tcs-midi-status.ok { background:var(--green); }
-.tcs-btn-outline { background:none; border:1px solid var(--hair2); color:var(--txt-mid); font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:5px 10px; cursor:pointer; border-radius:var(--radius); }
+.tcs-btn-outline { background:none; border:1px solid var(--hair2); color:var(--txt-mid); font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:5px 10px; cursor:pointer; }
 .tcs-btn-outline:hover { border-color:var(--hair3); color:var(--txt-hi); }
 .tcs-shared { padding:0 20px; }
 /* Outer tabs (TIMECODE / SHOW SETTINGS) — slightly more prominent */
@@ -265,12 +263,7 @@ input, select, textarea { font-family: inherit; }
 .tcs-checks { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
 .tcs-check-row { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--txt); cursor:pointer; }
 .tcs-check-row input[type=checkbox] { width:15px; height:15px; accent-color:var(--amber); cursor:pointer; }
-.tcs-footer { display:flex; align-items:center; justify-content:space-between; padding:12px 20px; background:var(--surface2); border-top:1px solid var(--hair); }
 .tcs-footer-status { display:flex; align-items:center; gap:7px; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); }
-.tcs-btn-cancel { background:none; border:1px solid var(--hair2); color:var(--txt-mid); font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:8px 16px; cursor:pointer; border-radius:var(--radius); }
-.tcs-btn-cancel:hover { color:var(--txt-hi); border-color:var(--hair3); }
-.tcs-btn-connect { background:var(--green); color:#000; border:none; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:8px 20px; cursor:pointer; border-radius:var(--radius); }
-.tcs-btn-connect:hover { background:#20f09a; }
 
 /* ── Project Settings Modal ── */
 .pset-box { max-width:400px; padding:0; overflow:hidden; background:var(--surface); border:1px solid var(--hair2); }
@@ -1068,13 +1061,62 @@ body.mode-live #edit-topbar { display: none; }
   font-variant-numeric: tabular-nums;
 }
 .cam-badge.xs, .cam-badge-sq.xs { width: 24px; height: 24px; font-size: 12px; font-weight: 700; }
-.cam-badge.sm, .cam-badge-sq.sm { width: 32px; height: 32px; font-size: 16px; font-weight: 700; }
+.cam-badge.sm, .cam-badge-sq.sm { width: 32px; height: 32px; border:none; font-size: 16px; font-weight: 700; }
 .cam-badge.md, .cam-badge-sq.md { width: 52px; height: 52px; font-size: 28px; }
 .cam-badge.lg, .cam-badge-sq.lg { width: 96px; height: 96px; font-size: 64px; }
 .cam-badge.xl { width: 144px; height: 144px; font-size: 104px; }
 .cam-badge.outline { background: transparent; border: 1.5px solid currentColor; }
 .cam-wrap { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 5px; }
 .cam-wrap .cam-lbl { font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--txt-mid); }
+
+/* ── Camera Cockpit (cam-viewer mode) ── */
+#cam-cockpit { flex:1; overflow:hidden; display:flex; flex-direction:column; }
+.cam-hero { position:relative; padding:24px 32px 0; flex-shrink:0; border-bottom:1px solid var(--hair); background:transparent; transition:background .2s; }
+.cam-hero.oncam { background:rgba(255,40,72,.06); }
+.cam-hero-eyebrow { display:flex; align-items:center; gap:8px; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; color:var(--txt-low); margin-bottom:14px; }
+.cam-hero.oncam .cam-hero-eyebrow { color:var(--red); }
+.cam-hero-body { display:flex; align-items:center; gap:24px; margin-bottom:20px; min-height:80px; }
+.cam-hero-badge-wrap { flex-shrink:0; }
+.cam-hero-info { flex:1; min-width:0; }
+.cam-hero-name { font-family:var(--cond); font-size:clamp(22px,4vw,44px); font-weight:800; letter-spacing:.02em; text-transform:uppercase; color:var(--txt-hi); line-height:1.05; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cam-hero-desc { font-size:13px; color:var(--txt-mid); line-height:1.5; }
+.cam-hero-cd { text-align:right; flex-shrink:0; }
+.cam-hero-cd-val { font-family:var(--mono); font-size:clamp(36px,6vw,72px); font-weight:700; color:var(--txt-hi); line-height:1; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+.cam-hero.oncam .cam-hero-cd-val { color:var(--red); }
+.cam-hero-cd-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--txt-low); margin-top:5px; }
+.cam-hero-bar { height:4px; background:var(--hair2); overflow:hidden; }
+.cam-hero-bar-fill { height:100%; background:var(--txt-hi); transition:width .15s linear; }
+.cam-hero.oncam .cam-hero-bar-fill { background:var(--red); }
+.cam-hero.warn:not(.oncam) .cam-hero-bar { height:6px; }
+.cam-hero.warn:not(.oncam) .cam-hero-bar-fill { background:var(--amber); box-shadow:0 0 8px rgba(240,168,56,.5); }
+/* Split panel */
+.cam-split { flex:1; display:flex; min-height:0; overflow:hidden; }
+.cam-panel { flex:1; display:flex; flex-direction:column; overflow:hidden; border-right:1px solid var(--hair); }
+.cam-panel:last-child { border-right:none; }
+.cam-panel-head { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; border-bottom:1px solid var(--hair); flex-shrink:0; gap:8px; }
+.cam-panel-head-left { display:flex; align-items:center; gap:7px; }
+.cam-panel-title { font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--txt-low); }
+.cam-panel-sub { font-size:10px; color:var(--txt-low); padding:6px 16px; flex-shrink:0; border-bottom:1px solid var(--hair); }
+.cam-switch-btn { background:none; border:1px solid var(--hair2); color:var(--txt-mid); font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:4px 10px; cursor:pointer; white-space:nowrap; transition:color .12s,border-color .12s; }
+.cam-switch-btn:hover { border-color:var(--hair3); color:var(--txt-hi); }
+.cam-shot-rows { flex:1; overflow-y:auto; }
+.cam-shot-row { display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid var(--hair); }
+.cam-shot-row.my-next-urgent { border-left:3px solid var(--amber); padding-left:13px; }
+.cam-shot-ix { font-family:var(--mono); font-size:10px; font-weight:600; color:var(--txt-low); width:22px; text-align:right; flex-shrink:0; }
+.cam-shot-badge { flex-shrink:0; }
+.cam-shot-info { flex:1; min-width:0; }
+.cam-shot-name { font-family:var(--cond); font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.01em; color:var(--txt-hi); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cam-shot-desc { font-size:10px; color:var(--txt-mid); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+.cam-shot-tc { font-family:var(--mono); font-size:10px; color:var(--txt-low); flex-shrink:0; }
+.cam-shot-cd { font-family:var(--mono); font-size:14px; font-weight:700; color:var(--txt); flex-shrink:0; min-width:44px; text-align:right; font-variant-numeric:tabular-nums; }
+.cam-shot-cd.warn { color:var(--amber); }
+.cam-shot-cd.urgent { color:var(--red); }
+.cam-shot-urg { height:2px; background:transparent; margin-top:-1px; }
+.cam-shot-urg-fill { height:100%; background:var(--amber); transition:width .15s; }
+.cam-shot-urg.urgent .cam-shot-urg-fill { background:var(--red); }
+/* Camera picker modal buttons */
+.cam-picker-btn:hover { opacity:.85; }
+.cam-picker-btn:active { opacity:.7; }
 
 .trk-glyph, .track-glyph {
   display: inline-flex; align-items: center; justify-content: center;
@@ -1366,20 +1408,25 @@ input.minp:focus { border-color: var(--amber); }
 .btn.danger:hover { border-color: var(--red); color: var(--red); }
 
 /* ── SHORTCUTS OVERLAY ── */
-#shortcuts-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 1050; display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+#shortcuts-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.78); z-index: 1050; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
 #shortcuts-overlay.open { display: flex; }
-#shortcuts-card { background: var(--surface2); border: 1px solid var(--hair2); padding: 24px 28px; max-width: 540px; width: 90%; box-shadow: 0 24px 60px rgba(0,0,0,.7); position: relative; max-height: 88vh; overflow-y: auto; }
-.sc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
-.sc-title { font-size: 15px; font-weight: 700; color: var(--txt-hi); font-family: var(--cond); letter-spacing: .04em; text-transform: uppercase; }
-.sc-close { background: none; border: none; color: var(--txt-mid); cursor: pointer; font-size: 18px; padding: 4px 8px; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center; }
-.sc-close:hover { color: var(--txt-hi); }
-.sc-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
-.sc-section { margin-bottom: 16px; }
-.sc-section-title { font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--txt-mid); margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid var(--hair); font-family: var(--cond); }
-.sc-row { display: flex; align-items: center; justify-content: space-between; padding: 3px 0; gap: 12px; }
+#shortcuts-card { background: var(--surface); border: 1px solid var(--hair2); max-width: 980px; width: 94%; box-shadow: 0 32px 80px rgba(0,0,0,.9); display: flex; flex-direction: column; max-height: 92vh; overflow: hidden; }
+.sc-header { padding: 20px 28px 18px; border-bottom: 1px solid var(--hair); flex-shrink: 0; }
+.sc-title { font-family: var(--cond); font-size: 16px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--txt-hi); }
+.sc-body { flex: 1; overflow-y: auto; padding: 24px 28px 8px; }
+.sc-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 56px; }
+.sc-section { margin-bottom: 28px; }
+.sc-section-title { font-family: var(--cond); font-size: 9px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--txt-low); margin-bottom: 10px; }
+.sc-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--hair); gap: 16px; }
+.sc-row:last-child { border-bottom: none; }
 .sc-desc { font-size: 12px; color: var(--txt); }
-.sc-keys { display: flex; gap: 3px; flex-shrink: 0; }
-.sc-key { font-family: var(--mono); font-size: 10px; font-weight: 700; background: var(--surface3); border: 1px solid var(--hair2); border-bottom: 2px solid var(--hair3); padding: 2px 6px; color: var(--txt-hi); white-space: nowrap; }
+.sc-keys { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
+.sc-key { font-family: var(--mono); font-size: 11px; font-weight: 700; background: var(--surface2); border: 1px solid var(--hair2); padding: 0; color: var(--txt-hi); white-space: nowrap; min-width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; padding: 0 6px; box-sizing: border-box; }
+.sc-sep { font-size: 10px; color: var(--txt-low); padding: 0 4px; }
+.sc-footer { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; border-top: 1px solid var(--hair); flex-shrink: 0; background: var(--surface2); }
+.sc-footer-hint { display: flex; align-items: center; gap: 10px; font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--txt-low); }
+.sc-footer-close { background: none; border: 1px solid var(--hair2); color: var(--txt-mid); font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: 7px 20px; cursor: pointer; transition: color .12s, border-color .12s; }
+.sc-footer-close:hover { color: var(--txt-hi); border-color: var(--hair3); }
 
 /* ── SEQUENCE SETTINGS SLIDE-OVER ── */
 #seq-settings-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 799; display: none; }
@@ -1427,8 +1474,8 @@ input.minp:focus { border-color: var(--amber); }
 .transport-btn:active { transform: scale(.93); }
 .info-btn { background: none; border: none; color: var(--txt-mid); font-size: 15px; cursor: pointer; padding: 4px 6px; opacity: .55; transition: opacity .15s; line-height: 1; flex-shrink: 0; }
 .info-btn:hover { opacity: 1; }
-.shortcuts-btn { width: 24px; height: 24px; border-radius: 50%; background: var(--surface3); border: 1px solid var(--hair2); color: var(--txt-mid); font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .12s; flex-shrink: 0; }
-.shortcuts-btn:hover { background: var(--surface4); color: var(--txt-hi); border-color: var(--hair3); }
+.shortcuts-btn { width: 24px; height: 24px; background: var(--surface2); border: 1px solid var(--hair2); color: var(--txt-mid); font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .12s, color .12s, border-color .12s; flex-shrink: 0; font-family: var(--mono); }
+.shortcuts-btn:hover { background: var(--surface3); color: var(--txt-hi); border-color: var(--hair3); }
 .seq-settings-btn { background: var(--surface3) !important; border-color: var(--hair2) !important; color: var(--txt) !important; }
 .seq-settings-btn:hover { background: var(--amber-bg) !important; border-color: var(--amber) !important; color: var(--amber) !important; }
 .io-item { padding: 6px 10px; font-size: 12px; font-weight: 500; color: var(--txt); cursor: pointer; display: block; white-space: nowrap; width: 100%; text-align: left; background: none; border: none; }
@@ -1440,6 +1487,75 @@ input.minp:focus { border-color: var(--amber); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* ── ntm-btn danger variant ── */
+.ntm-btn.danger { border-color:rgba(255,40,72,.4); color:var(--red); }
+.ntm-btn.danger:hover { background:var(--red-bg); border-color:var(--red); }
+
+/* ── Sidebar Projects panel ── */
+.sbp-proj-row { display:flex; align-items:center; height:44px; padding:0 10px 0 0; border-bottom:1px solid var(--hair); border-left:3px solid transparent; cursor:pointer; transition:background .1s; }
+.sbp-proj-row:hover { background:var(--surface2); }
+.sbp-proj-row.active { border-left-color:var(--amber); }
+.sbp-proj-nm { flex:1; font-size:12px; font-weight:700; color:var(--txt); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:var(--cond); letter-spacing:.01em; padding-left:13px; min-width:0; }
+.sbp-proj-row.active .sbp-proj-nm { color:var(--txt-hi); padding-left:10px; }
+.sbp-proj-acts { display:flex; gap:0; flex-shrink:0; opacity:0; transition:opacity .12s; }
+.sbp-proj-row:hover .sbp-proj-acts { opacity:1; }
+.sbp-proj-act { background:none; border:none; color:var(--txt-mid); cursor:pointer; width:28px; height:28px; display:flex; align-items:center; justify-content:center; transition:color .12s; padding:0; }
+.sbp-proj-act:hover { color:var(--txt-hi); }
+.sbp-proj-act.danger:hover { color:var(--red); }
+.sbp-auth-row { display:flex; align-items:center; height:44px; padding:0 14px; border-bottom:1px solid var(--hair); gap:8px; }
+.sbp-auth-icon { flex-shrink:0; color:var(--amber); display:flex; align-items:center; }
+.sbp-auth-name { flex:1; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--amber); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sbp-auth-signout { height:26px; padding:0 10px; background:none; border:1px solid var(--hair2); color:var(--txt-low); cursor:pointer; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; flex-shrink:0; transition:color .12s, border-color .12s; }
+.sbp-auth-signout:hover { color:var(--txt-hi); border-color:var(--hair3); }
+.sbp-signin-section { padding:14px; border-bottom:1px solid var(--hair); display:flex; flex-direction:column; gap:8px; }
+.sbp-signin-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); }
+.sbp-auth-inp { width:100%; box-sizing:border-box; padding:8px 10px; background:var(--surface2); border:1.5px solid var(--hair2); color:var(--txt-hi); font-size:12px; outline:none; transition:border-color .15s; }
+.sbp-auth-inp:focus { border-color:var(--amber); }
+.sbp-auth-err { font-size:10px; color:var(--red); display:none; }
+.sbp-auth-btns { display:flex; gap:8px; }
+.sbp-auth-submit { flex:1; height:32px; background:var(--amber); border:1px solid var(--amber); color:#000; cursor:pointer; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; transition:filter .12s; }
+.sbp-auth-submit:hover { filter:brightness(1.1); }
+.sbp-auth-alt { flex:1; height:32px; background:none; border:1px solid var(--hair2); color:var(--txt-low); cursor:pointer; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; transition:color .12s, border-color .12s; }
+.sbp-auth-alt:hover { color:var(--txt-hi); border-color:var(--hair3); }
+.sbp-empty { padding:12px 16px; font-family:var(--cond); font-size:10px; color:var(--txt-low); letter-spacing:.04em; border-bottom:1px solid var(--hair); }
+.sbp-section-head { padding:9px 14px 7px; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); border-bottom:1px solid var(--hair); }
+
+/* ── Sidebar Sharing panel ── */
+.sbp-sync-row { display:flex; align-items:center; height:44px; padding:0 14px; border-bottom:1px solid var(--hair); gap:10px; }
+.sbp-sync-state { flex:1; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+.sbp-sync-state.dirty { color:var(--amber); }
+.sbp-sync-state.clean { color:var(--txt-low); }
+.sbp-sync-btn { height:28px; padding:0 14px; cursor:pointer; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; flex-shrink:0; transition:filter .12s; }
+.sbp-sync-btn.dirty { background:var(--amber); border:none; color:#000; }
+.sbp-sync-btn.clean { background:var(--surface2); border:1px solid var(--hair2); color:var(--txt-low); cursor:not-allowed; opacity:.45; }
+.sbp-share-url-block { padding:10px 14px 12px; border-bottom:1px solid var(--hair); }
+.sbp-share-url-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); margin-bottom:5px; }
+.sbp-share-url-val { font-family:var(--mono); font-size:9px; color:var(--txt-mid); word-break:break-all; line-height:1.5; }
+.sbp-pin-row { display:flex; align-items:center; min-height:44px; padding:6px 10px 6px 14px; border-bottom:1px solid var(--hair); gap:8px; }
+.sbp-pin-lbl { flex:1; font-family:var(--cond); font-size:12px; font-weight:700; letter-spacing:.02em; text-transform:uppercase; color:var(--txt-hi); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.sbp-pin-role { font-family:var(--cond); font-size:8px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-mid); padding:2px 6px; border:1px solid var(--hair2); flex-shrink:0; }
+.sbp-pin-code { font-family:var(--mono); font-size:10px; font-weight:700; color:var(--txt-low); letter-spacing:.06em; flex-shrink:0; }
+.sbp-pin-copy { height:26px; padding:0 9px; background:none; border:1px solid var(--hair2); color:var(--txt-low); cursor:pointer; font-family:var(--cond); font-size:8px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; flex-shrink:0; transition:color .12s, border-color .12s; }
+.sbp-pin-copy:hover { color:var(--amber); border-color:var(--amber); }
+.sbp-pin-del { width:28px; height:28px; background:none; border:none; color:var(--txt-low); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:color .12s; padding:0; }
+.sbp-pin-del:hover { color:var(--red); }
+.sbp-pin-tracks { padding:0 14px 8px; font-family:var(--cond); font-size:9px; color:var(--txt-low); letter-spacing:.04em; }
+.sbp-pin-trk-expand { padding:8px 14px; border-top:1px solid var(--hair); background:var(--surface); display:none; }
+.sbp-pin-trk-expand.open { display:block; }
+.sbp-cl-section { padding:14px; border-bottom:1px solid var(--hair); }
+.sbp-cl-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); margin-bottom:10px; }
+.sbp-cl-inp { width:100%; box-sizing:border-box; padding:8px 10px; background:var(--surface2); border:1.5px solid var(--hair2); color:var(--txt-hi); font-size:12px; outline:none; margin-bottom:8px; transition:border-color .15s; }
+.sbp-cl-inp:focus { border-color:var(--amber); }
+.sbp-cl-select { width:100%; box-sizing:border-box; padding:7px 28px 7px 10px; background:var(--surface2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center; border:1.5px solid var(--hair2); color:var(--txt-hi); font-size:12px; outline:none; appearance:none; -webkit-appearance:none; cursor:pointer; margin-bottom:8px; transition:border-color .15s; }
+.sbp-cl-select:focus { border-color:var(--amber); }
+.sbp-cl-tracks-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); margin-bottom:6px; }
+.sbp-cl-chk-row { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--txt); cursor:pointer; margin-bottom:4px; font-family:var(--cond); letter-spacing:.03em; }
+.sbp-cl-btn { width:100%; height:34px; background:var(--surface2); border:1px solid var(--hair2); color:var(--txt-mid); cursor:pointer; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; transition:color .12s, border-color .12s; margin-top:4px; }
+.sbp-cl-btn:hover { color:var(--amber); border-color:var(--amber); }
+.sbp-no-project { padding:24px 16px; font-family:var(--cond); font-size:11px; color:var(--txt-low); letter-spacing:.04em; text-align:center; line-height:1.6; }
+.sbp-camhint { padding:8px 14px; font-family:var(--cond); font-size:10px; color:var(--txt-low); letter-spacing:.03em; border-bottom:1px solid var(--hair); display:none; }
+.sbp-camhint.show { display:block; }
 
 
 </style>
@@ -1530,7 +1646,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     </div>
     <!-- Track badge(s) -->
     <div class="vw-cell" id="vw-track-cell" style="display:none;">
-      TRACK
+      <span id="vw-track-lbl">TRACK</span>
       <span id="vw-track-badge-inner"></span>
     </div>
     <!-- Sequence crumb (grows) -->
@@ -1607,6 +1723,57 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     </div>
 
   </div><!-- /live-body -->
+
+  <!-- Camera Cockpit (shown for cam-viewer role) -->
+  <div id="cam-cockpit" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
+
+    <!-- Hero: current/next shot for this camera -->
+    <div class="cam-hero" id="cam-hero">
+      <div class="cam-hero-eyebrow">
+        <div class="tc-pip live pulse" id="cam-hero-pip" style="display:none;"></div>
+        <span id="cam-hero-eyebrow-txt">NEXT</span>
+      </div>
+      <div class="cam-hero-body">
+        <div class="cam-hero-badge-wrap" id="cam-hero-badge"></div>
+        <div class="cam-hero-info">
+          <div class="cam-hero-name" id="cam-hero-name">—</div>
+          <div class="cam-hero-desc" id="cam-hero-desc"></div>
+        </div>
+        <div class="cam-hero-cd">
+          <div class="cam-hero-cd-val" id="cam-hero-cd-val">—</div>
+          <div class="cam-hero-cd-lbl" id="cam-hero-cd-lbl">UNTIL CUE</div>
+        </div>
+      </div>
+      <div class="cam-hero-bar"><div class="cam-hero-bar-fill" id="cam-hero-bar-fill" style="width:0%"></div></div>
+    </div>
+
+    <!-- Split panel -->
+    <div class="cam-split">
+
+      <!-- Left: My next shots -->
+      <div class="cam-panel">
+        <div class="cam-panel-head">
+          <div class="cam-panel-head-left">
+            <div class="tc-pip live pulse"></div>
+            <span class="cam-panel-title" id="cam-panel-my-title">MY NEXT SHOTS</span>
+          </div>
+          <button class="cam-switch-btn" id="cam-switch-btn" onclick="openCameraSwitcher()">SWITCH CAM</button>
+        </div>
+        <div class="cam-panel-sub" id="cam-panel-my-sub"></div>
+        <div class="cam-shot-rows" id="cam-shot-rows"></div>
+      </div>
+
+      <!-- Right: All cameras upcoming -->
+      <div class="cam-panel">
+        <div class="cam-panel-head">
+          <span class="cam-panel-title">ALL CAMERAS · UPCOMING</span>
+          <span class="cam-panel-sub" style="border:none;padding:0;font-size:10px;" id="cam-panel-all-sub"></span>
+        </div>
+        <div class="cam-shot-rows" id="cam-all-rows"></div>
+      </div>
+
+    </div>
+  </div><!-- /cam-cockpit -->
 
   <!-- Hidden compat elements still referenced by Block 2 -->
   <div style="display:none;">
@@ -1844,14 +2011,14 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   <!-- TIMELINE: always at bottom, toggle visibility -->
   <div id="edit-tl-section" style="flex-shrink:0;background:#08080b;border-top:1px solid var(--border2);display:flex;flex-direction:column;">
     <!-- Camera track bar: shown when camera track is selected -->
-    <div id="cam-track-bar" style="display:none;align-items:center;padding:4px 10px;gap:6px;flex-wrap:wrap;background:var(--surface2);border-bottom:1px solid var(--border2);flex-shrink:0;min-height:36px;"></div>
+    <div id="cam-track-bar" style="display:none;align-items:center;padding:4px 10px;gap:6px;flex-wrap:wrap;background:var(--surface2);border-bottom:1px solid var(--hair);flex-shrink:0;min-height:40px;"></div>
     <!-- Timeline toolbar -->
     <div id="tl-toolbar">
       <!-- Transport -->
       <div class="tl-transport">
         <button class="tl-tbtn-transport" id="tl-prev-btn" onclick="simPrev()" title="Restart (R)" aria-label="Restart">⏮</button>
         <button class="tl-tbtn-transport" id="tl-play-btn" onclick="simTogglePlay()" title="Play/Stop (Space)" aria-label="Play">▶</button>
-        <button class="tl-tbtn-transport" onclick="simStop()" title="Stop" aria-label="Stop" style="font-size:11px;">■</button>
+      
       </div>
       <!-- TC + seq info -->
       <span id="tl-tc-disp" style="font-family:var(--mono);font-size:26px;font-weight:700;color:var(--text);letter-spacing:.02em;font-variant-numeric:tabular-nums;cursor:default;flex-shrink:0;">00:00:00:00</span>
@@ -1861,6 +2028,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;margin-left:12px;">
         <button class="tl-tbtn accent" onclick="openTlCreateFromBtn()" title="Add cue (timeline click or this btn)" aria-label="Add cue">+ CUE</button>
         <button class="tl-tbtn accent" onclick="openTlCreateMarkerBtn()" title="Add chapter marker" aria-label="Add marker">+ MARKER</button>
+        <span class="tl-sep">|</span>
         <button class="tl-tbtn" onclick="tlZoomOut()" title="Zoom out (-)" aria-label="Zoom out" style="padding:3px 8px;">−</button>
         <button class="tl-tbtn" onclick="tlZoomIn()" title="Zoom in (+)" aria-label="Zoom in" style="padding:3px 8px;">+</button>
         <button class="tl-tbtn" id="tl-snap-btn" onclick="tlToggleSnap()" title="Snap (S)" aria-label="Toggle snap">SNAP</button>
@@ -2468,11 +2636,19 @@ function cancelExitLive(){
   if(banner) banner.style.display='none';
 }
 
+let _skipLiveGuard=false;
+function _doSwitchLive(){
+  _skipLiveGuard=true;
+  closeModal('prelive-modal');
+  switchMode('live');
+  _skipLiveGuard=false;
+}
+
 function switchMode(mode){
   // "Open modal before live" guard
-  if(mode==='live'&&state.openModalBeforeLive){
+  if(mode==='live'&&state.openModalBeforeLive&&!_skipLiveGuard){
     const hasTC=tcListening&&(mtc.locked||ltc.locked);
-    if(!hasTC){openSettingsModal();return;}
+    if(!hasTC){document.getElementById('prelive-modal').classList.add('show');return;}
   }
   // Update all tab instances (3 topbars each with edit/test/live)
   ['edit','test','live'].forEach(m=>{
@@ -2944,14 +3120,14 @@ function updateCamTrackBar(){
   if(!show)return;
   bar.innerHTML='';
   const lbl=document.createElement('span');
-  lbl.style.cssText='font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);flex-shrink:0;margin-right:4px;';
+  lbl.style.cssText='font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--txt-low);flex-shrink:0;margin-right:6px;';
   lbl.textContent=state.cameraTrack.name+':';
   bar.appendChild(lbl);
   state.cameraTrack.cameras.forEach(cam=>{
-    const hex=getCameraColor(cam.colorIdx||0);
+    const hex=getCameraColor(cam.colorIdx!=null?cam.colorIdx:0);
     const btn=document.createElement('button');
-    btn.className='tl-tbtn';
-    btn.style.cssText=`background:${hex}18;border-color:${hex};color:${hex};font-weight:900;font-family:var(--mono);font-size:13px;padding:3px 10px;min-width:32px;`;
+    btn.className='cam-badge sm';
+    btn.style.cssText=`background:${hex};color:#06060a;cursor:pointer;flex-shrink:0;`;
     btn.textContent=cam.number;
     btn.title=cam.label||`CAM ${cam.number}`;
     btn.onclick=()=>openCameraCueModal(cam.id);
@@ -3773,6 +3949,11 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId){
 function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
   const vs=document.getElementById('cf-viewer-screen');
   if(!vs||vs.style.display==='none')return;
+  // Camera viewer: use dedicated cockpit instead
+  if(window.CF&&CF.cameraIds&&CF.cameraIds.length===1){
+    _updateCamCockpit(frames);
+    return;
+  }
   const _e=id=>document.getElementById(id);
   const WARN_SEC=state.warnSec||10,URGENCY_SEC=20;
 
@@ -3856,6 +4037,173 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
   if(fps)fps.textContent=(state.fps||25).toFixed((state.fps||25)%1?3:0);
   const sc=_e('vw-seq-crumb');
   if(sc){const liveSongId=curIdx>=0?allCues[curIdx]?.songId:null;const ls=liveSongId?state.songs.find(s=>s.id===liveSongId):null;sc.textContent=ls?ls.name:'—';}
+}
+
+/* ── Camera Cockpit updater ── */
+function _updateCamCockpit(frames){
+  const vs=document.getElementById('cf-viewer-screen');
+  if(!vs||vs.style.display==='none')return;
+  const isCamViewer=window.CF&&CF.cameraIds&&CF.cameraIds.length===1;
+  if(!isCamViewer)return;
+  const selCamId=CF.cameraIds[0];
+  const fps=state.fps||25;
+  const WARN_SEC=10,URGENCY_SEC=20;
+  // Collect all camera cues (temporarily disable camera filter)
+  const _prev=CF.cameraIds;CF.cameraIds=null;
+  const allCues=getAllCues(true);
+  CF.cameraIds=_prev;
+  const myCues=allCues.filter(c=>c.cameraId===selCamId);
+  const allCamCues=allCues.filter(c=>c.cameraId&&state.cameraTrack);
+  // Current cue for my camera
+  let myCurIdx=-1;
+  for(let i=myCues.length-1;i>=0;i--){if(frames>=myCues[i]._f){myCurIdx=i;break;}}
+  const myCurCue=myCurIdx>=0?myCues[myCurIdx]:null;
+  const myNextCue=myCues.find(c=>c._f>frames)||null;
+  const cam=getCameraById(selCamId);
+  const hex=getCameraColor(cam?.colorIdx||0);
+  const _e=id=>document.getElementById(id);
+  const hero=_e('cam-hero');if(!hero)return;
+  // ── Hero ──
+  if(myCurCue){
+    // ON CAMERA: stay red until next cam cue for this camera
+    hero.className='cam-hero oncam';
+    const pip=_e('cam-hero-pip');if(pip)pip.style.display='';
+    const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent='ON CAMERA';
+    const hb=_e('cam-hero-badge');
+    if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#fff;">${cam?.number||'?'}</div>`;
+    const hn=_e('cam-hero-name');if(hn)hn.textContent=myCurCue.name||'—';
+    const hd=_e('cam-hero-desc');if(hd)hd.textContent=myCurCue.desc||'';
+    // Countdown to end = start of next cam cue for this camera
+    const endCue=myCues.find(c=>c._f>myCurCue._f);
+    const endF=endCue?endCue._f:myCurCue._f+fps*600;
+    const remF=Math.max(0,endF-frames);
+    const remSec=remF/fps;
+    const rm=Math.floor(remSec/60),rs=Math.floor(remSec%60);
+    const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=remF>0?(rm>0?rm+':'+String(rs).padStart(2,'0'):'0:'+String(rs).padStart(2,'0')):'0:00';
+    const cl=_e('cam-hero-cd-lbl');if(cl)cl.textContent='UNTIL END';
+    // Red progress bar over full duration
+    const durF=endF-myCurCue._f;
+    const prog=durF>0?Math.min(100,((frames-myCurCue._f)/durF)*100):100;
+    const bf=_e('cam-hero-bar-fill');if(bf)bf.style.width=prog.toFixed(1)+'%';
+  } else if(myNextCue){
+    // NEXT: white bar within 10s
+    const cdF=Math.max(0,myNextCue._f-frames),cdSec=cdF/fps;
+    const isWarn=cdSec<=WARN_SEC;
+    hero.className='cam-hero'+(isWarn?' warn':'');
+    const pip=_e('cam-hero-pip');if(pip)pip.style.display='none';
+    const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent='NEXT';
+    const hb=_e('cam-hero-badge');
+    if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#fff;">${cam?.number||'?'}</div>`;
+    const hn=_e('cam-hero-name');if(hn)hn.textContent=myNextCue.name||'—';
+    const hd=_e('cam-hero-desc');if(hd)hd.textContent=myNextCue.desc||'';
+    const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=cdF>0?fmtCD(cdF):'GO';
+    const cl=_e('cam-hero-cd-lbl');if(cl)cl.textContent='UNTIL CUE';
+    const bf=_e('cam-hero-bar-fill');
+    if(bf)bf.style.width=isWarn?Math.min(100,(1-cdSec/WARN_SEC)*100).toFixed(1)+'%':'0%';
+  } else {
+    hero.className='cam-hero';
+    const pip=_e('cam-hero-pip');if(pip)pip.style.display='none';
+    const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent='NO UPCOMING SHOT';
+    const hb=_e('cam-hero-badge');
+    if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#fff;opacity:.35;">${cam?.number||'?'}</div>`;
+    const hn=_e('cam-hero-name');if(hn)hn.textContent='—';
+    const hd=_e('cam-hero-desc');if(hd)hd.textContent='';
+    const cv=_e('cam-hero-cd-val');if(cv)cv.textContent='—';
+    const cl=_e('cam-hero-cd-lbl');if(cl)cl.textContent='UNTIL CUE';
+    const bf=_e('cam-hero-bar-fill');if(bf)bf.style.width='0%';
+  }
+  // ── My next shots panel ──
+  const shotRows=_e('cam-shot-rows');
+  if(shotRows){
+    shotRows.innerHTML='';
+    const upcoming=myCues.filter(c=>c._f>frames).slice(0,8);
+    if(upcoming.length){
+      upcoming.forEach((cue,i)=>{
+        const cdF=Math.max(0,cue._f-frames),cdSec=cdF/fps;
+        const isWarn=cdSec<=WARN_SEC,isUrgent=cdSec<=5;
+        const cdCls='cam-shot-cd'+(isUrgent?' urgent':isWarn?' warn':'');
+        const showUrg=cdSec<=URGENCY_SEC;
+        const div=document.createElement('div');
+        div.className='cam-shot-row'+(isWarn&&!isUrgent?' my-next-urgent':'');
+        div.innerHTML=`<div class="cam-shot-ix">+${i+1}</div>`+
+          `<div class="cam-shot-badge"><div class="cam-badge sm" style="background:${hex};color:#fff;">${cam?.number||'?'}</div></div>`+
+          `<div class="cam-shot-info"><div class="cam-shot-name">${escH(cue.name||'—')}</div>${cue.desc?`<div class="cam-shot-desc">${escH(cue.desc)}</div>`:''}</div>`+
+          `<div class="cam-shot-tc">${escH(cue.tc||'')}</div>`+
+          `<div class="${cdCls}">${cdF>0?fmtCD(cdF):'GO'}</div>`;
+        shotRows.appendChild(div);
+        if(showUrg){
+          const urg=document.createElement('div');
+          urg.className='cam-shot-urg'+(isUrgent?' urgent':'');
+          urg.innerHTML=`<div class="cam-shot-urg-fill" style="width:${Math.min(100,(1-cdSec/URGENCY_SEC)*100).toFixed(1)}%"></div>`;
+          shotRows.appendChild(urg);
+        }
+      });
+    } else {
+      shotRows.innerHTML='<div style="padding:20px 16px;font-size:11px;color:var(--txt-low);">No more shots in this sequence</div>';
+    }
+    const sub=_e('cam-panel-my-sub');
+    if(sub){const rem=myCues.filter(c=>c._f>frames).length;sub.textContent=rem+' upcoming shot'+(rem!==1?'s':'');}
+  }
+  // ── All cameras panel ──
+  const allRows=_e('cam-all-rows');
+  if(allRows){
+    allRows.innerHTML='';
+    const upAll=allCamCues.filter(c=>c._f>frames-fps*2).sort((a,b)=>a._f-b._f).slice(0,14);
+    if(upAll.length){
+      upAll.forEach((cue,i)=>{
+        const cdF=Math.max(0,cue._f-frames),cdSec=cdF/fps;
+        const isWarn=cdSec<=WARN_SEC,isUrgent=cdSec<=5;
+        const cdCls='cam-shot-cd'+(isUrgent?' urgent':isWarn?' warn':'');
+        const c=getCameraById(cue.cameraId);
+        const h=getCameraColor(c?.colorIdx||0);
+        const div=document.createElement('div');
+        div.className='cam-shot-row';
+        div.innerHTML=`<div class="cam-shot-ix">+${i+1}</div>`+
+          `<div class="cam-shot-badge"><div class="cam-badge sm" style="background:${h};color:#fff;">${c?.number||'?'}</div></div>`+
+          `<div class="cam-shot-info"><div class="cam-shot-name">${escH(cue.name||'—')}</div></div>`+
+          `<div class="cam-shot-tc">${escH(cue.tc||'')}</div>`+
+          `<div class="${cdCls}">${cdF>0?fmtCD(cdF):'GO'}</div>`;
+        allRows.appendChild(div);
+        if(cdSec<=URGENCY_SEC){
+          const urg=document.createElement('div');
+          urg.className='cam-shot-urg'+(isUrgent?' urgent':'');
+          urg.innerHTML=`<div class="cam-shot-urg-fill" style="width:${Math.min(100,(1-cdSec/URGENCY_SEC)*100).toFixed(1)}%"></div>`;
+          allRows.appendChild(urg);
+        }
+      });
+    } else {
+      allRows.innerHTML='<div style="padding:20px 16px;font-size:11px;color:var(--txt-low);">No upcoming camera cues</div>';
+    }
+    const sub=_e('cam-panel-all-sub');
+    if(sub){const cams=new Set(upAll.map(c=>c.cameraId)).size;sub.textContent=upAll.length?upAll.length+' cut'+(upAll.length!==1?'s':'')+(cams>1?' across '+cams+' cams':''):''; }
+  }
+  // ── Topbar: seq crumb, fps ──
+  const fps2=_e('vw-fps-val');
+  if(fps2)fps2.textContent=(state.fps||25).toFixed((state.fps||25)%1?3:0);
+  const sc=_e('vw-seq-crumb');
+  if(sc){
+    const liveCue=myCurCue||myNextCue;
+    const ls=liveCue?state.songs.find(s=>s.id===liveCue.songId):null;
+    sc.textContent=ls?ls.name:'—';
+  }
+}
+
+/* Activate/deactivate camera cockpit layout */
+function _activateCamCockpit(){
+  const livBody=document.querySelector('#cf-viewer-screen .live-body');
+  const camCock=document.getElementById('cam-cockpit');
+  if(livBody)livBody.style.display='none';
+  if(camCock){camCock.style.display='flex';camCock.style.flexDirection='column';}
+  // Topbar label
+  const lbl=document.getElementById('vw-track-lbl');if(lbl)lbl.textContent='FOLLOWING';
+  const vtc=document.getElementById('vw-track-cell');if(vtc)vtc.style.display='flex';
+  // Panel title + switch button
+  const cam=window.CF&&CF.cameraIds&&CF.cameraIds.length?getCameraById(CF.cameraIds[0]):null;
+  const mt=document.getElementById('cam-panel-my-title');
+  if(mt)mt.textContent='MY NEXT SHOTS'+(cam?' · CAM '+cam.number:'');
+  const sb=document.getElementById('cam-switch-btn');
+  if(sb&&cam)sb.textContent='CAM '+cam.number+' ▾';
+  buildTrackPills();
 }
 
 function renderMiniSongs(target,liveSongId,upNextId){
@@ -5441,7 +5789,7 @@ function renderProjectList(){
       const d=loadProjectData(p.id);
       if(d){
         openConfirmModal('Switch to "'+d.name+'"? Your current project is auto-saved.',
-          ()=>{applyProject(d);closeModal('proj-modal');},null,'Switch now','primary');
+          ()=>{applyProject(d);closeModal('proj-modal');},null,'Switch now','primary','Switch Project');
       }
     });
     div.querySelector('.proj-entry-del').addEventListener('click',e=>{e.stopPropagation();if(!confirm('Delete "'+p.name+'"?'))return;deleteProjectData(p.id);renderProjectList();});
@@ -5674,6 +6022,7 @@ function _populateShowSettings(){
   }
   document.getElementById('pset-cue-flash').checked=state.cueFlash!==false;
   document.getElementById('pset-show-clock').checked=!!state.showClock;
+  document.getElementById('pset-open-modal-before-live').checked=!!state.openModalBeforeLive;
 }
 
 function openSettingsModal(tab){
@@ -5683,7 +6032,6 @@ function openSettingsModal(tab){
   document.getElementById('settings-tc-offset').value=state.tcOffset||0;
   document.getElementById('settings-signal-loss').value=state.signalLoss||'freerun';
   document.getElementById('tcs-auto-reconnect').checked=state.autoReconnect!==false;
-  document.getElementById('tcs-open-modal-before-live').checked=!!state.openModalBeforeLive;
   // Tab init
   document.getElementById('tcs-tab-ltc').classList.toggle('active',_tcsTab==='ltc');
   document.getElementById('tcs-tab-mtc').classList.toggle('active',_tcsTab==='mtc');
@@ -5737,7 +6085,6 @@ function saveSettings(){
   state.tcOffset=parseInt(document.getElementById('settings-tc-offset').value)||0;
   state.signalLoss=document.getElementById('settings-signal-loss').value||'freerun';
   state.autoReconnect=document.getElementById('tcs-auto-reconnect').checked;
-  state.openModalBeforeLive=document.getElementById('tcs-open-modal-before-live').checked;
   // sync setup panel inputs (legacy compat)
   const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=String(v);};
   sv('fps-sel',state.fps);
@@ -5930,6 +6277,7 @@ function saveProjectSettings(){
   state.fps=fpsMap[fpsVal]||25;
   state.cueFlash=document.getElementById('pset-cue-flash').checked;
   state.showClock=document.getElementById('pset-show-clock').checked;
+  state.openModalBeforeLive=document.getElementById('pset-open-modal-before-live').checked;
   // Update hidden fps-sel for compat
   const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=String(v);};
   sv('fps-sel',state.fps);
@@ -5965,11 +6313,14 @@ function notesRteCmd(cmd,val){document.execCommand(cmd,false,val||null);}
 
 // ── CONFIRM MODAL ──
 let _confirmCb=null,_cancelCb=null;
-function openConfirmModal(msg,onConfirm,onCancel,okLabel,okClass){
+function openConfirmModal(msg,onConfirm,onCancel,okLabel,okClass,title){
   document.getElementById('confirm-msg').textContent=msg;
   _confirmCb=onConfirm;_cancelCb=onCancel;
   const okBtn=document.getElementById('confirm-ok-btn');
-  if(okBtn){okBtn.textContent=okLabel||'Confirm';okBtn.className='mbtn '+(okClass||'danger');}
+  const cls=okClass||'danger';
+  if(okBtn){okBtn.textContent=okLabel||'Confirm';okBtn.className='ntm-btn '+(cls==='primary'?'primary':'danger');}
+  const titleEl=document.getElementById('confirm-title');
+  if(titleEl) titleEl.textContent=title||'Confirm';
   document.getElementById('confirm-modal').classList.add('show');
 }
 function doConfirm(){closeModal('confirm-modal');if(_confirmCb)_confirmCb();}
@@ -6263,7 +6614,7 @@ function sbLoadProject(id){
   const d=loadProjectData(id);
   if(d){
     openConfirmModal('Switch to "'+d.name+'"? Your current project is auto-saved.',
-      ()=>{applyProject(d);sbClose();},null,'Switch now','primary');
+      ()=>{applyProject(d);sbClose();},null,'Switch now','primary','Switch Project');
   }
 }
 function sbDeleteProject(id){
@@ -6289,7 +6640,7 @@ function _sbRender(name){
   if(!body) return;
   // Reset body layout (seqs sets flex; other panels use block/auto)
   body.style.display=''; body.style.flexDirection=''; body.style.padding='';
-  const labels = {save:'Projects', playlists:'Playlists', seqs:'Sequences', tracks:'Tracks', settings:'Settings', online:'Online'};
+  const labels = {save:'Projects', playlists:'Playlists', seqs:'Sequences', tracks:'Tracks', settings:'Settings', online:'Sharing'};
   if(title) title.textContent = labels[name]||name;
   // Update header count + action button
   const _hSep = document.getElementById('cf-panel-sep');
@@ -8692,18 +9043,18 @@ init();
 </div>
 
 <!-- TC SETTINGS MODAL -->
-<div id="settings-modal" class="modal-bg" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
-<div class="modal-box tcs-box">
+<div id="settings-modal" class="ntm-bg" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+<div class="ntm-box" style="max-width:560px;overflow:hidden;">
   <!-- Header -->
-  <div class="tcs-header">
-    <div class="tcs-status-line" id="tcs-status-line">
-      <span class="tcs-status-pip" id="tcs-status-pip"></span>
-      <span id="tcs-status-text">No signal</span>
+  <div class="ntm-header">
+    <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+      <div class="tcs-status-line" id="tcs-status-line">
+        <span class="tcs-status-pip" id="tcs-status-pip"></span>
+        <span id="tcs-status-text">No signal</span>
+      </div>
+      <span class="ntm-title" id="settings-modal-title">SETTINGS</span>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <div class="tcs-title" id="settings-modal-title">SETTINGS</div>
-      <button class="tcs-close" onclick="stopSettingsTCReadout();closeModal('settings-modal')" aria-label="Close">✕</button>
-    </div>
+    <button class="tcs-close" onclick="stopSettingsTCReadout();closeModal('settings-modal')" aria-label="Close">✕</button>
   </div>
   <!-- Outer tabs: TIMECODE | SHOW SETTINGS -->
   <div class="tcs-tabs tcs-outer-tabs" style="display:flex;">
@@ -8810,21 +9161,17 @@ init();
           <input type="checkbox" id="tcs-auto-reconnect">
           <span>Auto-reconnect</span>
         </label>
-        <label class="tcs-check-row">
-          <input type="checkbox" id="tcs-open-modal-before-live">
-          <span>Open modal before live <span style="color:var(--txt-low);font-size:10px;">(if no TC connected)</span></span>
-        </label>
       </div>
     </div>
     <!-- TC Footer -->
-    <div class="tcs-footer">
+    <div class="ntm-footer" style="justify-content:space-between;">
       <div class="tcs-footer-status">
         <span class="tcs-status-pip" id="tcs-footer-pip"></span>
         <span id="tcs-footer-text">—</span>
       </div>
       <div style="display:flex;gap:8px;">
-        <button class="tcs-btn-cancel" onclick="stopSettingsTCReadout();closeModal('settings-modal')">CANCEL</button>
-        <button class="tcs-btn-connect" id="tcs-connect-btn" onclick="tcsConnect()">CONNECT</button>
+        <button class="ntm-btn" onclick="stopSettingsTCReadout();closeModal('settings-modal')">CANCEL</button>
+        <button class="ntm-btn primary" id="tcs-connect-btn" onclick="tcsConnect()">CONNECT</button>
       </div>
     </div>
   </div><!-- /sett-tc-section -->
@@ -8871,20 +9218,43 @@ init();
           <span class="tcs-show-toggle-slider"></span>
         </label>
       </div>
+      <div class="tcs-show-toggle-row">
+        <div class="tcs-show-toggle-info">
+          <div class="tcs-show-toggle-name">Prompt before going live</div>
+          <div class="tcs-show-toggle-desc">Show a warning when switching to live without a connected TC source</div>
+        </div>
+        <label class="tcs-show-toggle">
+          <input type="checkbox" id="pset-open-modal-before-live">
+          <span class="tcs-show-toggle-slider"></span>
+        </label>
+      </div>
     </div>
     <!-- Show Footer -->
-    <div class="tcs-footer">
-      <div></div>
-      <div style="display:flex;gap:8px;">
-        <button class="tcs-btn-cancel" onclick="closeModal('settings-modal')">CANCEL</button>
-        <button class="tcs-btn-connect" onclick="saveProjectSettings()">SAVE</button>
-      </div>
+    <div class="ntm-footer">
+      <button class="ntm-btn" onclick="closeModal('settings-modal')">CANCEL</button>
+      <button class="ntm-btn primary" onclick="saveProjectSettings()">SAVE</button>
     </div>
   </div><!-- /sett-show-section -->
 
 </div>
 </div>
 
+<!-- PRE-LIVE MODAL -->
+<div id="prelive-modal" class="ntm-bg" role="dialog" aria-modal="true">
+<div class="ntm-box" style="max-width:400px;">
+  <div class="ntm-header">
+    <span class="ntm-title">Going Live</span>
+  </div>
+  <div class="ntm-body">
+    <div style="font-size:13px;color:var(--txt);line-height:1.65;">No timecode source is connected. You can still go live and run in free-run mode, or connect a TC source first via Settings.</div>
+  </div>
+  <div class="ntm-footer">
+    <button class="ntm-btn" onclick="closeModal('prelive-modal')">Cancel</button>
+    <button class="ntm-btn" onclick="stopSettingsTCReadout();closeModal('prelive-modal');openSettingsModal()" style="border-color:var(--hair3);color:var(--txt);">Open Settings</button>
+    <button class="ntm-btn primary" onclick="_doSwitchLive()">Go Live</button>
+  </div>
+</div>
+</div>
 
 <!-- HELP MODAL -->
 <div id="help-modal" class="modal-bg" role="dialog" aria-modal="true" aria-labelledby="help-modal-title"><div class="modal-box" style="max-width:560px;max-height:80vh;display:flex;flex-direction:column;">
@@ -8964,14 +9334,20 @@ init();
 </div></div>
 
 <!-- CONFIRM MODAL -->
-<div id="confirm-modal" class="modal-bg"><div class="modal-box" style="max-width:380px;">
-  <div class="modal-title">Confirm</div>
-  <div class="modal-body" id="confirm-msg"></div>
-  <div class="modal-actions">
-    <button class="mbtn" onclick="doCancel()">Cancel</button>
-    <button class="mbtn danger" id="confirm-ok-btn" onclick="doConfirm()">Confirm</button>
+<div id="confirm-modal" class="ntm-bg">
+  <div class="ntm-box" style="width:400px;">
+    <div class="ntm-header">
+      <span class="ntm-title" id="confirm-title">Confirm</span>
+    </div>
+    <div class="ntm-body">
+      <div style="font-size:13px;color:var(--txt);line-height:1.65;" id="confirm-msg"></div>
+    </div>
+    <div class="ntm-footer">
+      <button class="ntm-btn" onclick="doCancel()">Cancel</button>
+      <button class="ntm-btn danger" id="confirm-ok-btn" onclick="doConfirm()">Confirm</button>
+    </div>
   </div>
-</div></div>
+</div>
 
 <div id="rename-modal" class="modal-bg"><div class="modal-box" style="max-width:340px;">
   <div class="modal-title">Rename Project</div>
@@ -8988,40 +9364,93 @@ init();
 <div id="shortcuts-overlay" onclick="if(event.target.id==='shortcuts-overlay')closeShortcutsOverlay()" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
   <div id="shortcuts-card">
     <div class="sc-header">
-      <span class="sc-title">Keyboard shortcuts</span>
-      <button class="sc-close" onclick="closeShortcutsOverlay()" aria-label="Close">✕</button>
+      <span class="sc-title">Keyboard Shortcuts</span>
     </div>
-    <div class="sc-cols">
-      <div>
-        <div class="sc-section">
-          <div class="sc-section-title">Playback</div>
-          <div class="sc-row"><span class="sc-desc">Play / Pause</span><span class="sc-keys"><span class="sc-key">Space</span></span></div>
-          <div class="sc-row"><span class="sc-desc">Pause</span><span class="sc-keys"><span class="sc-key">K</span></span></div>
-          <div class="sc-row"><span class="sc-desc">Play forward</span><span class="sc-keys"><span class="sc-key">L</span></span></div>
-          <div class="sc-row"><span class="sc-desc">Play backward</span><span class="sc-keys"><span class="sc-key">J</span></span></div>
-          <div class="sc-row"><span class="sc-desc">2× / 4× speed</span><span class="sc-keys"><span class="sc-key">L L</span><span class="sc-key">L L L</span></span></div>
-          <div class="sc-row"><span class="sc-desc">Restart sequence</span><span class="sc-keys"><span class="sc-key">R</span></span></div>
-          <div class="sc-row"><span class="sc-desc">Next cue</span><span class="sc-keys"><span class="sc-key">↓</span></span></div>
-          <div class="sc-row"><span class="sc-desc">Previous cue</span><span class="sc-keys"><span class="sc-key">↑</span></span></div>
+    <div class="sc-body">
+      <div class="sc-cols">
+
+        <!-- LEFT COLUMN -->
+        <div>
+          <div class="sc-section">
+            <div class="sc-section-title">Playback — edit &amp; test mode</div>
+            <div class="sc-row">
+              <span class="sc-desc">Play / Pause</span>
+              <span class="sc-keys"><span class="sc-key">Space</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Play forward</span>
+              <span class="sc-keys"><span class="sc-key">L</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Play backward</span>
+              <span class="sc-keys"><span class="sc-key">J</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Pause</span>
+              <span class="sc-keys"><span class="sc-key">K</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Next cue</span>
+              <span class="sc-keys"><span class="sc-key">↓</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Previous cue</span>
+              <span class="sc-keys"><span class="sc-key">↑</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Restart sequence</span>
+              <span class="sc-keys"><span class="sc-key">R</span></span>
+            </div>
+          </div>
         </div>
+
+        <!-- RIGHT COLUMN -->
+        <div>
+          <div class="sc-section">
+            <div class="sc-section-title">Timeline — edit mode</div>
+            <div class="sc-row">
+              <span class="sc-desc">Zoom in / out</span>
+              <span class="sc-keys"><span class="sc-key">+</span><span class="sc-sep">/</span><span class="sc-key">−</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Shift 1 frame back / forward</span>
+              <span class="sc-keys"><span class="sc-key">←</span><span class="sc-sep">/</span><span class="sc-key">→</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Toggle snap</span>
+              <span class="sc-keys"><span class="sc-key">S</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Delete selected cue</span>
+              <span class="sc-keys"><span class="sc-key">⌫</span></span>
+            </div>
+          </div>
+
+          <div class="sc-section">
+            <div class="sc-section-title">Global</div>
+            <div class="sc-row">
+              <span class="sc-desc">Undo</span>
+              <span class="sc-keys"><span class="sc-key">⌘</span><span class="sc-key">Z</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Redo</span>
+              <span class="sc-keys"><span class="sc-key">⌘</span><span class="sc-key">⇧</span><span class="sc-key">Z</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Show / hide shortcuts</span>
+              <span class="sc-keys"><span class="sc-key">?</span></span>
+            </div>
+          </div>
+        </div>
+
       </div>
-      <div>
-        <div class="sc-section">
-          <div class="sc-section-title">Timeline</div>
-          <div class="sc-row"><span class="sc-desc">Zoom in</span><span class="sc-keys"><span class="sc-key">+</span></span></div>
-          <div class="sc-row"><span class="sc-desc">Zoom out</span><span class="sc-keys"><span class="sc-key">−</span></span></div>
-          <div class="sc-row"><span class="sc-desc">Shift 1 frame back</span><span class="sc-keys"><span class="sc-key">←</span></span></div>
-          <div class="sc-row"><span class="sc-desc">Shift 1 frame forward</span><span class="sc-keys"><span class="sc-key">→</span></span></div>
-          <div class="sc-row"><span class="sc-desc">Toggle snap</span><span class="sc-keys"><span class="sc-key">S</span></span></div>
-          <div class="sc-row"><span class="sc-desc">Delete selected cue</span><span class="sc-keys"><span class="sc-key">⌫</span></span></div>
-        </div>
-        <div class="sc-section">
-          <div class="sc-section-title">Global</div>
-          <div class="sc-row"><span class="sc-desc">Undo</span><span class="sc-keys"><span class="sc-key">⌘Z</span></span></div>
-          <div class="sc-row"><span class="sc-desc">Redo</span><span class="sc-keys"><span class="sc-key">⌘⇧Z</span></span></div>
-          <div class="sc-row"><span class="sc-desc">Show shortcuts</span><span class="sc-keys"><span class="sc-key">?</span></span></div>
-        </div>
+    </div>
+    <div class="sc-footer">
+      <div class="sc-footer-hint">
+        <span class="sc-key">?</span>
+        Open this anywhere
       </div>
+      <button class="sc-footer-close" onclick="closeShortcutsOverlay()">CLOSE</button>
     </div>
   </div>
 </div>
@@ -9305,7 +9734,12 @@ function snapshot(){
     ltcDeviceId: state.ltcDeviceId||'',
     tcOffset: state.tcOffset||0,
     cameraTrack: state.cameraTrack ? JSON.parse(JSON.stringify(state.cameraTrack)) : null,
-    cameraTrackVisible: state.cameraTrackVisible!==false
+    cameraTrackVisible: state.cameraTrackVisible!==false,
+    signalLoss: state.signalLoss||'freerun',
+    autoReconnect: state.autoReconnect!==false,
+    openModalBeforeLive: !!state.openModalBeforeLive,
+    cueFlash: state.cueFlash!==false,
+    showClock: !!state.showClock
   };
 }
 
@@ -9330,23 +9764,15 @@ function ownerSync(){
 }
 
 function updateSyncBtn(){
-  /* Globe panel sync button */
+  /* Sharing panel sync button + state label */
   var btn = document.getElementById('cf-sync-btn');
-  if(!btn) return;
+  var stateLbl = document.querySelector('.sbp-sync-state');
   if(CF.dirty){
-    btn.style.opacity = '1';
-    btn.style.background = 'var(--mode-accent-bg)';
-    btn.style.borderColor = 'var(--mode-accent)';
-    btn.style.color = 'var(--mode-accent-text)';
-    btn.disabled = false;
-    btn.textContent = '↑ Sync';
+    if(btn){ btn.className='sbp-sync-btn dirty'; btn.disabled=false; btn.textContent='↑ SYNC'; }
+    if(stateLbl){ stateLbl.className='sbp-sync-state dirty'; stateLbl.textContent='UNSAVED CHANGES'; }
   } else {
-    btn.style.opacity = '.4';
-    btn.style.background = 'var(--surface2)';
-    btn.style.borderColor = 'var(--border)';
-    btn.style.color = 'var(--text3)';
-    btn.disabled = true;
-    btn.textContent = '✓ Synced';
+    if(btn){ btn.className='sbp-sync-btn clean'; btn.disabled=true; btn.textContent='↑ SYNC'; }
+    if(stateLbl){ stateLbl.className='sbp-sync-state clean'; stateLbl.textContent='ALL CHANGES SAVED'; }
   }
 }
 
@@ -9808,42 +10234,76 @@ function cfJoin(){
 }
 
 /* ── CAMERA PICKER MODAL (cam:select links) ──────────────── */
-function showCameraPickerModal(show){
+function showCameraPickerModal(show, onPick){
   var existing=document.getElementById('cf-cam-picker-modal');
   if(existing) existing.remove();
   var cameras=(state.cameraTrack&&state.cameraTrack.cameras)||[];
-  if(!cameras.length){showViewerScreen(show);return;}
+  if(!cameras.length){if(show)showViewerScreen(show);return;}
 
   var modal=document.createElement('div');
   modal.id='cf-cam-picker-modal';
-  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  modal.className='ntm-bg show';
+  modal.style.cssText='position:fixed;inset:0;z-index:9999;';
 
   var box=document.createElement('div');
-  box.style.cssText='background:var(--surface1);border:1px solid var(--border);border-radius:10px;padding:28px 24px;min-width:280px;max-width:380px;width:90%;';
-  box.innerHTML='<div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">Select your camera</div>'+
-    '<div style="font-size:11px;color:var(--text3);margin-bottom:18px;">You\'ll only see cues for the camera you pick. You can change it later.</div>'+
-    '<div id="cf-cam-picker-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px;"></div>';
+  box.className='ntm-box';
+  box.style.cssText='max-width:460px;overflow:hidden;';
 
-  var grid=box.querySelector('#cf-cam-picker-grid');
+  // Header
+  var hdr=document.createElement('div');
+  hdr.className='ntm-header';
+  hdr.innerHTML='<span class="ntm-title">SELECT CAMERA</span>';
+  if(onPick){
+    // Switcher mode: add close button
+    var closeBtn=document.createElement('button');
+    closeBtn.className='tcs-close';
+    closeBtn.innerHTML='✕';
+    closeBtn.onclick=function(){modal.remove();};
+    hdr.appendChild(closeBtn);
+  }
+
+  // Body
+  var body=document.createElement('div');
+  body.className='ntm-body';
+  body.innerHTML='<div class="ntm-hint">You\'ll only see cues for the camera you select'+(onPick?'. Your current choice will update immediately.':'. You can change this at any time.')+' </div>';
+
+  var grid=document.createElement('div');
+  grid.id='cf-cam-picker-grid';
+  grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:16px;';
+
   cameras.forEach(function(cam){
     var hex=typeof getCameraColor==='function'?getCameraColor(cam.colorIdx||0):'#06b6d4';
+    var isSelected=CF.cameraIds&&CF.cameraIds[0]===cam.id;
     var btn=document.createElement('button');
-    btn.style.cssText='padding:14px 8px;background:'+hex+'18;border:2px solid '+hex+';border-radius:8px;color:'+hex+
-      ';font-size:22px;font-weight:900;font-family:var(--mono);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;transition:background .1s;';
-    btn.innerHTML='<span>'+cam.number+'</span>'+
-      (cam.label?'<span style="font-size:9px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:'+hex+';opacity:.8;">'+escH(cam.label)+'</span>':'');
+    btn.className='cam-picker-btn';
+    btn.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px 8px;'+
+      'background:'+(isSelected?hex+'30':hex+'12')+';border:'+(isSelected?'2px':'1.5px')+' solid '+hex+';color:'+hex+';cursor:pointer;transition:background .1s;';
+    btn.innerHTML='<span style="font-family:var(--mono);font-size:32px;font-weight:900;line-height:1;color:'+hex+';">'+cam.number+'</span>'+
+      (cam.label?'<span style="font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:'+hex+';opacity:.8;">'+escH(cam.label)+'</span>':'');
     btn.onclick=function(){
       CF.cameraIds=[cam.id];
       state.cameraTrackVisible=true;
       state.visibleStreamIds=[];
       modal.remove();
-      showViewerScreen(show);
+      if(onPick){
+        onPick(cam);
+      } else {
+        showViewerScreen(show);
+      }
     };
     grid.appendChild(btn);
   });
+  body.appendChild(grid);
 
+  box.appendChild(hdr);
+  box.appendChild(body);
   modal.appendChild(box);
   document.body.appendChild(modal);
+
+  // Backdrop close (switcher mode only)
+  if(onPick){
+    modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
+  }
 }
 
 /* Shows the camera picker overlay on the viewer screen to switch cameras */
@@ -9852,22 +10312,10 @@ function openCameraSwitcher(){
   if(!cameras.length) return;
   var existing=document.getElementById('cf-cam-picker-modal');
   if(existing){existing.remove();return;}
-  showCameraPickerModal(null);
-  // Override pick action to stay on viewer screen
-  var grid=document.querySelector('#cf-cam-picker-grid');
-  if(grid) grid.querySelectorAll('button').forEach(function(btn,i){
-    var cam=cameras[i];
-    btn.onclick=function(){
-      CF.cameraIds=[cam.id];
-      state.cameraTrackVisible=true;
-      state.visibleStreamIds=[];
-      document.getElementById('cf-cam-picker-modal').remove();
-      // Update switch button label
-      var swBtn=document.getElementById('cf-v-camswitch-btn');
-      if(swBtn) swBtn.textContent='CAM '+cam.number;
-      buildTrackPills();
-      if(window.redrawActive) redrawActive();
-    };
+  showCameraPickerModal(null,function(cam){
+    // Update cam cockpit header
+    _activateCamCockpit();
+    if(window.redrawActive) redrawActive();
   });
 }
 
@@ -9932,7 +10380,19 @@ function showViewerScreen(show){
   var pn=document.getElementById('cf-v-project');
   if(pn) pn.textContent=(show&&show.name)||'';
 
-  buildTrackPills();
+  // Camera viewer: activate dedicated cockpit layout
+  var isCamViewer=CF.cameraIds&&CF.cameraIds.length===1;
+  if(isCamViewer){
+    _activateCamCockpit();
+  } else {
+    // Standard cockpit: ensure live-body visible, cam-cockpit hidden
+    var livBody=document.querySelector('#cf-viewer-screen .live-body');
+    var camCock=document.getElementById('cam-cockpit');
+    if(livBody) livBody.style.display='flex';
+    if(camCock) camCock.style.display='none';
+    var lbl=document.getElementById('vw-track-lbl');if(lbl)lbl.textContent='TRACK';
+    buildTrackPills();
+  }
 
   setTimeout(function(){
     /* Set app mode to 'live' without calling switchMode (which switches screens) */
@@ -10393,45 +10853,47 @@ document.addEventListener('click',function(e){
    ══════════════════════════════════════════════════════════ */
 
 /* ── PROJECTS PANEL (save icon) ──────────────────────────── */
+var _svgUser='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+var _svgPencilSm='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+var _svgTrashSm='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
+
 function buildProjectsPanel(){
   var h='';
   /* Auth section */
   if(authUser){
-    h+='<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border-radius:6px;margin-bottom:12px;border:1px solid var(--border);">';
-    h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
-    h+='<span style="font-size:12px;font-weight:600;color:var(--amber);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escH(displayUser(authUser))+'</span>';
-    h+='<button onclick="CF.cfSignOut()" style="background:none;border:1px solid var(--border2);border-radius:4px;color:var(--text3);cursor:pointer;font-size:10px;padding:3px 7px;" title="Sign out">Sign out</button>';
+    h+='<div class="sbp-auth-row">';
+    h+='<span class="sbp-auth-icon">'+_svgUser+'</span>';
+    h+='<span class="sbp-auth-name">'+(window.escH?escH(displayUser(authUser)):displayUser(authUser))+'</span>';
+    h+='<button class="sbp-auth-signout" onclick="CF.cfSignOut()">Sign out</button>';
     h+='</div>';
   } else {
-    h+='<div style="background:var(--surface2);border-radius:6px;margin-bottom:12px;border:1px solid var(--border);padding:10px;">';
-    h+='<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Sign in to sync</div>';
-    h+='<input id="sb-auth-username" type="text" placeholder="Username" autocomplete="username" style="width:100%;box-sizing:border-box;padding:6px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;margin-bottom:6px;outline:none;">';
-    h+='<input id="sb-auth-password" type="password" placeholder="Password" autocomplete="current-password" style="width:100%;box-sizing:border-box;padding:6px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;margin-bottom:8px;outline:none;">';
-    h+='<div id="sb-auth-err" style="font-size:10px;color:var(--red);margin-bottom:6px;display:none;"></div>';
-    h+='<div style="display:flex;gap:6px;">';
-    h+='<button onclick="CF._sbSignIn()" style="flex:1;padding:6px;background:var(--mode-accent-bg);border:1px solid var(--mode-accent);border-radius:4px;color:var(--mode-accent-text);cursor:pointer;font-size:11px;font-weight:600;">Sign in</button>';
-    h+='<button onclick="CF._sbSignUp()" style="flex:1;padding:6px;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;color:var(--text2);cursor:pointer;font-size:11px;">Create account</button>';
+    h+='<div class="sbp-signin-section">';
+    h+='<div class="sbp-signin-lbl">Sign in to sync projects</div>';
+    h+='<input id="sb-auth-username" class="sbp-auth-inp" type="text" placeholder="Email" autocomplete="username">';
+    h+='<input id="sb-auth-password" class="sbp-auth-inp" type="password" placeholder="Password" autocomplete="current-password">';
+    h+='<div id="sb-auth-err" class="sbp-auth-err"></div>';
+    h+='<div class="sbp-auth-btns">';
+    h+='<button class="sbp-auth-submit" onclick="CF._sbSignIn()">Sign in</button>';
+    h+='<button class="sbp-auth-alt" onclick="CF._sbSignUp()">Create account</button>';
     h+='</div></div>';
   }
   /* Shows list */
-  h+='<div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Projects</div>';
   if(CF._showList.length){
     CF._showList.forEach(function(s){
       var isCur=s.id===CF.showId;
-      h+='<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:5px;background:'+(isCur?'var(--mode-accent-bg)':'var(--surface2)')+';border:1px solid '+(isCur?'var(--mode-accent)':'var(--border)')+';margin-bottom:3px;">';
-      h+='<button style="flex:1;font-size:11px;font-weight:600;color:'+(isCur?'var(--mode-accent-text)':'var(--text)')+';cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:none;border:none;text-align:left;padding:0;" onclick="CF._switchProject(\''+s.id+'\')">'+(window.escH?escH(s.name):s.name)+'</button>';
-      h+='<button onclick="CF._renameProject(\''+s.id+'\')" style="background:none;border:none;color:var(--text4);cursor:pointer;font-size:10px;padding:0 3px;" title="Rename">✎</button>';
-      h+='<button onclick="CF._deleteProject(\''+s.id+'\')" style="background:none;border:none;color:var(--text4);cursor:pointer;font-size:10px;padding:0 3px;" title="Delete">✕</button>';
-      h+='</div>';
+      h+='<div class="sbp-proj-row'+(isCur?' active':'')+'">';
+      h+='<button class="sbp-proj-nm" style="background:none;border:none;text-align:left;cursor:pointer;" onclick="CF._switchProject(\''+s.id+'\')">'+(window.escH?escH(s.name):s.name)+'</button>';
+      h+='<div class="sbp-proj-acts">';
+      h+='<button class="sbp-proj-act" onclick="CF._renameProject(\''+s.id+'\')" title="Rename">'+_svgPencilSm+'</button>';
+      h+='<button class="sbp-proj-act danger" onclick="CF._deleteProject(\''+s.id+'\')" title="Delete">'+_svgTrashSm+'</button>';
+      h+='</div></div>';
     });
   } else {
-    h+='<div style="font-size:10px;color:var(--text4);margin-bottom:8px;">No online projects yet</div>';
+    h+='<div class="sbp-empty">No online projects yet</div>';
   }
-  h+='<button class="sbp-add" style="width:100%;margin-bottom:12px;" onclick="CF._createShow()">+ New project</button>';
-  h+='<div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">';
-  h+='<button class="sbp-add" style="width:100%;margin-bottom:4px;" onclick="exportShowFile()">↓ Export show file</button>';
-  h+='<label class="sbp-add" style="width:100%;display:block;text-align:center;cursor:pointer;" for="cf-file-import">↑ Import show file<input id="cf-file-import" type="file" accept=".cueflow,.json" style="display:none" onchange="importShowFile(event)"></label>';
-  h+='</div>';
+  h+='<button class="sbp-add" onclick="CF._createShow()">+ New project</button>';
+  h+='<button class="sbp-add" onclick="exportShowFile()">↓ Export show file</button>';
+  h+='<label class="sbp-add" style="display:block;text-align:left;cursor:pointer;" for="cf-file-import">↑ Import show file<input id="cf-file-import" type="file" accept=".cueflow,.json" style="display:none" onchange="importShowFile(event)"></label>';
   return h;
 }
 
@@ -10471,7 +10933,7 @@ function switchProject(id){
   }
   if(window.openConfirmModal){
     openConfirmModal('Switch to "'+name+'"? Your current project is auto-saved.',
-      doSwitch,null,'Switch now','primary');
+      doSwitch,null,'Switch now','primary','Switch Project');
   } else {
     doSwitch();
   }
@@ -10585,49 +11047,51 @@ function refreshShowList(){
   }
 }
 
-/* ── ROLES PANEL (globe icon) ────────────────────────────── */
+/* ── SHARING PANEL (globe icon) ──────────────────────────── */
 function buildRolesPanel(){
   var h='';
   if(!CF.showId){
-    h+='<div style="font-size:10px;color:var(--text3);padding:8px 0;">No project connected.<br>Create or select a project first.</div>';
+    h+='<div class="sbp-no-project">No project connected.<br>Create or select a project first.</div>';
     return h;
   }
-  /* Sync button — greyed when clean, blue when dirty */
-  var syncStyle=CF.dirty
-    ?'width:100%;padding:8px;background:var(--mode-accent-bg);border:1px solid var(--mode-accent);border-radius:5px;color:var(--mode-accent-text);font-size:11px;font-weight:700;cursor:pointer;margin-bottom:12px;'
-    :'width:100%;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text3);font-size:11px;font-weight:700;cursor:not-allowed;margin-bottom:12px;opacity:.4;';
-  h+='<button id="cf-sync-btn" onclick="CF.sync()" style="'+syncStyle+'"'+(CF.dirty?'':' disabled')+'>'+(CF.dirty?'↑ Sync':'✓ Synced')+'</button>';
+
+  /* Sync row */
+  var isDirty=CF.dirty;
+  h+='<div class="sbp-sync-row">';
+  h+='<span class="sbp-sync-state '+(isDirty?'dirty':'clean')+'">'+(isDirty?'UNSAVED CHANGES':'ALL CHANGES SAVED')+'</span>';
+  h+='<button id="cf-sync-btn" class="sbp-sync-btn '+(isDirty?'dirty':'clean')+'" onclick="CF.sync()"'+(isDirty?'':' disabled')+'>↑ SYNC</button>';
+  h+='</div>';
 
   /* Join URL */
   var base=location.origin+location.pathname;
   var joinUrl=base+'?show='+CF.showId;
-  h+='<div style="font-size:9px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.08em;">Base join URL</div>';
-  h+='<div style="font-size:9px;word-break:break-all;color:var(--text);background:var(--surface2);border-radius:4px;padding:5px 7px;margin-bottom:10px;">'+joinUrl+'</div>';
+  h+='<div class="sbp-share-url-block">';
+  h+='<div class="sbp-share-url-lbl">Join URL</div>';
+  h+='<div class="sbp-share-url-val">'+joinUrl+'</div>';
+  h+='</div>';
 
-  /* Pins */
-  h+='<div style="font-size:9px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em;">Access links</div>';
-  h+='<div id="cf-pins-list" style="margin-bottom:8px;"><div style="font-size:10px;color:var(--text4);">Loading…</div></div>';
+  /* Access links section */
+  h+='<div id="cf-pins-list"><div class="sbp-empty">Loading…</div></div>';
 
-  /* Add link form */
-  h+='<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px;">';
-  h+='<div style="font-size:9px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em;">New access link</div>';
-  h+='<input id="cf-pin-label" class="minp" placeholder="Label (e.g. Stage Manager)" style="margin-bottom:6px;font-size:11px;">';
-  h+='<select id="cf-pin-role" style="width:100%;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:6px;margin-bottom:6px;" onchange="CF._onRoleChange()">';
+  /* Create link form */
+  h+='<div class="sbp-cl-section">';
+  h+='<div class="sbp-cl-lbl">New access link</div>';
+  h+='<input id="cf-pin-label" class="sbp-cl-inp" placeholder="Label (e.g. Stage Manager)">';
+  h+='<select id="cf-pin-role" class="sbp-cl-select" onchange="CF._onRoleChange()">';
   h+='<option value="viewer">Viewer</option>';
   h+='<option value="editor">Editor</option>';
-  h+='<option value="tc">TC</option>';
+  h+='<option value="tc">TC Display</option>';
   if(state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.length){
     h+='<option value="cam-viewer">Camera Viewer</option>';
   }
   h+='</select>';
-  h+='<div id="cf-pin-tracks-wrap" style="display:none;margin-bottom:6px;">';
-  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">';
-  h+='<div id="cf-pin-tracks-lbl" style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;">Tracks</div>';
-  h+='<button id="cf-pin-tracks-all" onclick="CF._selectAllTracks()" style="display:none;font-size:9px;padding:2px 8px;background:none;border:1px solid var(--border2);border-radius:4px;color:var(--text2);cursor:pointer;">Add all</button>';
-  h+='</div>';
+  h+='<div id="cf-pin-camviewer-hint" class="sbp-camhint"></div>';
+  h+='<div id="cf-pin-tracks-wrap" style="display:none;margin-bottom:8px;">';
+  h+='<div class="sbp-cl-tracks-lbl" id="cf-pin-tracks-lbl">Tracks</div>';
   h+='<div id="cf-pin-tracks-list"></div>';
+  h+='<button id="cf-pin-tracks-all" onclick="CF._selectAllTracks()" style="display:none;font-size:9px;height:26px;padding:0 10px;background:none;border:1px solid var(--hair2);color:var(--txt-low);cursor:pointer;font-family:var(--cond);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-top:4px;">Add all</button>';
   h+='</div>';
-  h+='<button class="sbp-add" style="width:100%;font-weight:700;" onclick="CF._addPin()">Create link</button>';
+  h+='<button class="sbp-cl-btn" onclick="CF._addPin()">+ Create link</button>';
   h+='</div>';
 
   return h;
@@ -10643,56 +11107,66 @@ function afterRolesRender(){
     });
 }
 
+var _svgTrashXs='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
+
 function renderPinsList(){
   var c=document.getElementById('cf-pins-list'); if(!c) return;
   c.innerHTML='';
   if(!CF._pinList.length){
-    c.innerHTML='<div style="font-size:10px;color:var(--text4);">No links yet</div>';
     return;
   }
+  var head=document.createElement('div');
+  head.className='sbp-section-head';
+  head.textContent='ACCESS LINKS';
+  c.appendChild(head);
   var base=location.origin+location.pathname;
   CF._pinList.forEach(function(p){
     var url=base+'?show='+CF.showId+'&pin='+(p.display_pin||'');
-    var row=document.createElement('div');
-    row.id='cf-pin-row-'+p.id;
-    row.style.cssText='background:var(--surface2);border:1px solid var(--border);border-radius:5px;margin-bottom:5px;overflow:hidden;';
     var label=p.label||p.role;
-    var roleTxt=p.role==='tc'?'TC':(p.role==='editor'||p.role==='track-editor'?'Editor':'Viewer');
+    var roleTxt=p.role==='tc'?'TC':p.role==='owner'?'OWNER':(p.role==='editor'||p.role==='track-editor'?'EDITOR':'VIEWER');
     var canEditTracks=(p.role==='viewer'||p.role==='editor'||p.role==='crew'||p.role==='track-editor');
     var trackSummary='';
-    var isCamPin=p.track_ids&&p.track_ids.length&&p.track_ids[0]&&p.track_ids[0].indexOf('cam:')=== 0;
+    var isCamPin=p.track_ids&&p.track_ids.length&&p.track_ids[0]&&p.track_ids[0].indexOf('cam:')===0;
     if(isCamPin){
       var camId=p.track_ids[0].replace('cam:','');
-      if(camId==='select'){
-        trackSummary='Camera track (viewer picks camera)';
-      } else {
-        var camObj=state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.find(function(c){return c.id===camId;});
-        trackSummary='Camera '+(camObj?camObj.number:camId);
-      }
+      trackSummary=camId==='select'?'Camera (viewer selects)':'Camera '+(function(){var co=state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.find(function(cc){return cc.id===camId;});return co?co.number:camId;}());
     } else if(p.track_ids&&p.track_ids.length){
-      var names=p.track_ids.map(function(id){
-        var s=state.streams&&state.streams.find(function(s){return s.id===id;});
-        return s?s.name:id;
-      });
-      trackSummary=names.join(', ');
-    } else if(p.role!=='tc'){
+      trackSummary=p.track_ids.map(function(id){var s=state.streams&&state.streams.find(function(s){return s.id===id;});return s?s.name:id;}).join(', ');
+    } else if(p.role!=='tc'&&p.role!=='owner'){
       trackSummary='All tracks';
     }
-    row.innerHTML=
-      '<div style="padding:8px;display:flex;align-items:center;gap:5px;">'+
-        '<span style="flex:1;font-size:11px;font-weight:700;color:var(--text);">'+(window.escH?escH(label):label)+'</span>'+
-        '<span style="font-size:9px;padding:1px 6px;background:var(--surface3);border-radius:8px;color:var(--text3);">'+roleTxt+'</span>'+
-        (canEditTracks?'<button onclick="CF._toggleEditPinTracks(\''+p.id+'\')" style="background:none;border:1px solid var(--border2);border-radius:4px;color:var(--text3);cursor:pointer;font-size:9px;padding:2px 6px;">Tracks</button>':'')+
-        '<button onclick="CF._deletePin(\''+p.id+'\')" style="background:none;border:none;color:var(--text4);cursor:pointer;font-size:11px;">✕</button>'+
-      '</div>'+
-      (trackSummary?'<div style="padding:0 8px 5px;font-size:9px;color:var(--text3);">'+(window.escH?escH(trackSummary):trackSummary)+'</div>':'')+
-      '<div style="padding:0 8px 8px;">'+
-        '<div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;letter-spacing:.1em;">PIN: '+(p.display_pin||'—')+'</div>'+
-        '<button onclick="navigator.clipboard.writeText(\''+url+'\').then(function(){var b=this;b.textContent=\'✓ Copied\';setTimeout(function(){b.textContent=\'Copy link\';},1500);}.bind(this))" '+
-        'style="font-size:10px;padding:4px 8px;background:var(--mode-accent-bg);border:1px solid var(--mode-accent);border-radius:4px;color:var(--mode-accent-text);cursor:pointer;width:100%;">Copy link</button>'+
-      '</div>'+
-      '<div id="cf-pin-edit-'+p.id+'" style="display:none;padding:8px;border-top:1px solid var(--border2);"></div>';
-    c.appendChild(row);
+
+    var pinRow=document.createElement('div');
+    pinRow.id='cf-pin-row-'+p.id;
+    pinRow.style.cssText='border-bottom:1px solid var(--hair);';
+
+    /* Main row */
+    var mainRow=document.createElement('div');
+    mainRow.className='sbp-pin-row';
+    mainRow.innerHTML=
+      '<span class="sbp-pin-lbl">'+(window.escH?escH(label):label)+'</span>'+
+      '<span class="sbp-pin-role">'+roleTxt+'</span>'+
+      '<span class="sbp-pin-code">'+(p.display_pin||'——')+'</span>'+
+      (canEditTracks?'<button class="sbp-pin-copy" onclick="CF._toggleEditPinTracks(\''+p.id+'\')">TRACKS</button>':'')+
+      '<button class="sbp-pin-copy" onclick="(function(btn,url){navigator.clipboard.writeText(url).then(function(){btn.textContent=\'COPIED\';setTimeout(function(){btn.textContent=\'COPY\';},1500);});})(this,\''+url+'\')">COPY</button>'+
+      '<button class="sbp-pin-del" onclick="CF._deletePin(\''+p.id+'\')" title="Delete link">'+_svgTrashXs+'</button>';
+    pinRow.appendChild(mainRow);
+
+    /* Track summary sub-line */
+    if(trackSummary){
+      var subLine=document.createElement('div');
+      subLine.className='sbp-pin-tracks';
+      subLine.textContent=(window.escH?escH(trackSummary):trackSummary);
+      pinRow.appendChild(subLine);
+    }
+
+    /* Edit tracks panel (hidden) */
+    var editPanel=document.createElement('div');
+    editPanel.id='cf-pin-edit-'+p.id;
+    editPanel.className='sbp-pin-trk-expand';
+    pinRow.appendChild(editPanel);
+
+    c.appendChild(pinRow);
   });
 }
 
@@ -10704,31 +11178,23 @@ function onRoleChange(){
   var isCamViewer=role==='cam-viewer';
   wrap.style.display=needsTracks?'block':'none';
   var lbl=document.getElementById('cf-pin-tracks-lbl');
-  if(lbl) lbl.textContent=role==='editor'?'Editing rights':'Visible tracks';
+  if(lbl) lbl.textContent=role==='editor'?'EDITING RIGHTS':'VISIBLE TRACKS';
   var streams=state.streams||[];
   var addAllBtn=document.getElementById('cf-pin-tracks-all');
   if(addAllBtn) addAllBtn.style.display=needsTracks&&streams.length>5?'':'none';
-  // cam-viewer hint
+  /* Camera viewer hint */
   var camHint=document.getElementById('cf-pin-camviewer-hint');
-  if(isCamViewer){
-    if(!camHint){
-      camHint=document.createElement('div');
-      camHint.id='cf-pin-camviewer-hint';
-      camHint.style.cssText='font-size:10px;color:var(--text3);margin-bottom:6px;';
-      camHint.textContent='Viewer picks their camera after joining. One link for all cameras.';
-      wrap.parentNode.insertBefore(camHint,wrap);
-    }
-    camHint.style.display='';
-  } else if(camHint){
-    camHint.style.display='none';
+  if(camHint){
+    if(isCamViewer){camHint.textContent='Viewer picks their camera after joining. One link for all cameras.';camHint.classList.add('show');}
+    else{camHint.classList.remove('show');}
   }
   if(needsTracks){
     var list=document.getElementById('cf-pin-tracks-list'); if(!list) return;
     list.innerHTML='';
     streams.forEach(function(s){
       var lb=document.createElement('label');
-      lb.style.cssText='display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text);cursor:pointer;margin-bottom:3px;';
-      lb.innerHTML='<input type="checkbox" value="'+s.id+'" style="accent-color:var(--mode-accent);"> '+(window.escH?escH(s.name):s.name);
+      lb.className='sbp-cl-chk-row';
+      lb.innerHTML='<input type="checkbox" value="'+s.id+'" style="accent-color:var(--amber);"> '+(window.escH?escH(s.name):s.name);
       list.appendChild(lb);
     });
   }
@@ -10794,24 +11260,23 @@ CF._selectAllTracks=function(){
 CF._toggleEditPinTracks=function(id){
   var editEl=document.getElementById('cf-pin-edit-'+id);
   if(!editEl) return;
-  if(editEl.style.display!=='none'){editEl.style.display='none';return;}
+  if(editEl.classList.contains('open')){editEl.classList.remove('open');return;}
   var pin=CF._pinList.find(function(p){return p.id===id;}); if(!pin) return;
   var streams=state.streams||[];
-  var html='<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Tracks</div>';
+  var html='<div class="sbp-cl-tracks-lbl" style="margin-bottom:6px;">Track visibility</div>';
   streams.forEach(function(s){
     var checked=pin.track_ids&&pin.track_ids.indexOf(s.id)!==-1;
-    html+='<label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text);cursor:pointer;margin-bottom:3px;">'+
-      '<input type="checkbox" data-track="'+s.id+'" '+(checked?'checked':'')+' style="accent-color:var(--mode-accent);">'+
+    html+='<label class="sbp-cl-chk-row">'+
+      '<input type="checkbox" data-track="'+s.id+'" '+(checked?'checked':'')+' style="accent-color:var(--amber);">'+
       (window.escH?escH(s.name):s.name)+'</label>';
   });
   if(streams.length>5){
-    html+='<button onclick="this.closest(\'[id^=cf-pin-edit]\').querySelectorAll(\'input\').forEach(function(i){i.checked=true;})" '+
-      'style="font-size:9px;padding:2px 8px;background:none;border:1px solid var(--border2);border-radius:4px;color:var(--text2);cursor:pointer;margin-top:4px;margin-bottom:4px;">Add all</button>';
+    html+='<button onclick="this.closest(\'.sbp-pin-trk-expand\').querySelectorAll(\'input\').forEach(function(i){i.checked=true;})" '+
+      'style="font-size:9px;height:26px;padding:0 10px;background:none;border:1px solid var(--hair2);color:var(--txt-low);cursor:pointer;font-family:var(--cond);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin:4px 0;">Add all</button>';
   }
-  html+='<button onclick="CF._savePinTracks(\''+id+'\')" '+
-    'style="margin-top:6px;width:100%;padding:5px;background:var(--mode-accent-bg);border:1px solid var(--mode-accent);border-radius:4px;color:var(--mode-accent-text);font-size:10px;font-weight:700;cursor:pointer;">Save</button>';
+  html+='<button onclick="CF._savePinTracks(\''+id+'\')" class="sbp-cl-btn" style="margin-top:6px;">Save</button>';
   editEl.innerHTML=html;
-  editEl.style.display='block';
+  editEl.classList.add('open');
 };
 
 CF._savePinTracks=function(id){
@@ -11039,13 +11504,13 @@ CF._plDrop=function(toIdx){
 
     /* ── Save / Projects panel ──────────────────────── */
     if(name==='save'){
-      body.innerHTML='<div style="padding:8px;">'+CF._buildProjectsPanel()+'</div>';
+      body.innerHTML=CF._buildProjectsPanel();
       setTimeout(CF._afterProjectsRender,100);
     }
 
-    /* ── Online / Roles panel ───────────────────────── */
+    /* ── Online / Roles / Sharing panel ────────────── */
     if(name==='online'){
-      body.innerHTML='<div style="padding:8px;">'+CF._buildRolesPanel()+'</div>';
+      body.innerHTML=CF._buildRolesPanel();
       setTimeout(CF._afterRolesRender,100);
     }
 
