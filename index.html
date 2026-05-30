@@ -1650,7 +1650,6 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 .sbp-pin-row-bottom { display:flex; align-items:center; gap:6px; }
 .sbp-pin-lbl { flex:1; font-family:var(--cond); font-size:13px; font-weight:700; letter-spacing:.02em; color:var(--txt-hi); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .sbp-pin-role { font-family:var(--cond); font-size:8px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-mid); padding:2px 7px; border:1px solid var(--hair2); flex-shrink:0; }
-.sbp-pin-role.camera { border-color:rgba(76,141,255,.35); color:var(--blue); }
 .sbp-pin-code { font-family:var(--mono); font-size:11px; font-weight:700; color:var(--txt-mid); letter-spacing:.08em; flex:1; }
 .sbp-pin-copy { height:30px; padding:0 12px; background:none; border:1px solid var(--hair2); color:var(--txt-low); cursor:pointer; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; flex-shrink:0; transition:color .12s, border-color .12s; }
 .sbp-pin-copy:hover { color:var(--primary); border-color:var(--primary); }
@@ -1787,15 +1786,18 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 </div>
 <!-- TC-only view -->
 <div id="cf-tc-screen" style="display:none;position:fixed;inset:0;z-index:9997;background:var(--bg);flex-direction:column;">
-  <div style="display:flex;align-items:center;padding:10px 20px;border-bottom:1px solid var(--border);flex-shrink:0;">
-    <span id="cf-tc-project" style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;"></span>
-    <div style="flex:1;"></div>
-    <div id="cf-tc-dot" style="width:7px;height:7px;border-radius:50%;background:var(--surface3);margin-right:8px;transition:background .3s;"></div>
-    <span id="cf-tc-status" style="font-size:10px;color:var(--text4);" aria-live="polite">Waiting for TC</span>
+  <div class="vw-topbar">
+    <div class="vw-cell" id="cf-tc-status-cell">
+      <div class="tc-pip idle" id="cf-tc-pip"></div>
+      <span class="vw-status-lbl" id="cf-tc-lbl" style="color:var(--txt-low)">OFFLINE</span>
+    </div>
+    <div class="vw-cell grow">
+      <span id="cf-tc-project"></span>
+    </div>
   </div>
-  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;">
     <div id="cf-tc-big" style="font-family:monospace;font-size:clamp(52px,13vw,128px);font-weight:700;color:#fff;letter-spacing:.04em;font-variant-numeric:tabular-nums;transition:color .3s;">00:00:00:00</div>
-    <div id="cf-tc-seqname" style="font-size:clamp(14px,3vw,26px);font-weight:700;color:rgba(255,255,255,.45);max-width:80%;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+    <div id="cf-tc-seqname" style="font-family:var(--cond);font-size:clamp(11px,2vw,18px);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-low);max-width:80%;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
   </div>
 </div>
 <!-- Viewer/crew cockpit screen -->
@@ -1978,8 +1980,14 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 <!-- ── Camera Edit Notes screen ── -->
 <div id="cf-cam-notes-screen" role="main" aria-label="Edit Notes">
   <div class="cn-topbar">
-    <span class="cn-topbar-title">Edit Notes</span>
-    <span class="cn-topbar-cam" id="cn-topbar-cam"></span>
+    <div class="vw-cell" id="cn-status-cell">
+      <div class="tc-pip idle" id="cn-status-pip"></div>
+      <span class="vw-status-lbl" id="cn-status-lbl" style="color:var(--txt-low)">OFFLINE</span>
+    </div>
+    <div class="vw-cam-following" id="cn-track-following" style="display:flex;">
+      <span>Following</span>
+      <span id="cn-track-badges-topbar" style="display:flex;align-items:center;gap:5px;"></span>
+    </div>
     <div style="flex:1;"></div>
     <button class="live-toggle" onclick="closeCamNotesScreen()">RETURN TO LIVE</button>
   </div>
@@ -4221,8 +4229,9 @@ function _makeLiveBadge(cue,size){
     return `<span class="cam-badge-sq ${size}" style="background:${col};color:#fff;">${cam?.number||'?'}</span>`;
   }
   const st=state.streams.find(s=>s.id===cue.streamId);
-  const shortName=(st?.shortName||st?.name||'?').slice(0,4).toUpperCase();
-  return `<span class="track-glyph ${size}">${escH(shortName)}</span>`;
+  const shortName=(st?.shortName||st?.name||'?').slice(0,3).toUpperCase();
+  const col=window.getStreamColor?getStreamColor(cue.streamId):{hex:'#3b7bdd'};
+  return `<span class="track-glyph ${size}" style="background:#06060a;color:#fff;">${escH(shortName)}</span>`;
 }
 
 function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId){
@@ -4447,7 +4456,11 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
   }
 
   // ── NEXT hero ──
-  const nextIdx=curIdx+1,nextCue=nextIdx<allCues.length?allCues[nextIdx]:null;
+  const _vwCurSongId=curIdx>=0?allCues[curIdx]?.songId:null;
+  const _isTrackViewer=window.CF&&!CF.isOwner&&(CF.role==='viewer'||CF.role==='crew');
+  const nextIdx=curIdx+1;
+  const _nextRaw=nextIdx<allCues.length?allCues[nextIdx]:null;
+  const nextCue=_nextRaw&&_isTrackViewer&&_vwCurSongId&&_nextRaw.songId!==_vwCurSongId?null:_nextRaw;
   const nhHero=_e('vw-next-hero'),nhCount=_e('vw-next-count');
   if(nextCue){
     const cdF=Math.max(0,nextCue._f-frames),cdSec=cdF/state.fps;
@@ -4474,16 +4487,21 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
   const tr=_e('vw-then-rows');
   if(tr){
     tr.innerHTML='';
-    const qs=nextIdx+1,qe=Math.min(allCues.length,qs+5);
-    for(let qi=qs;qi<qe;qi++){
-      const qc=allCues[qi],cdF=Math.max(0,qc._f-frames),cdSec=cdF/state.fps;
+    const qItems=[];
+    for(let qi=nextIdx+1;qi<allCues.length&&qItems.length<5;qi++){
+      const qc=allCues[qi];
+      if(_isTrackViewer&&_vwCurSongId&&qc.songId!==_vwCurSongId)break;
+      qItems.push({qc,qi});
+    }
+    qItems.forEach(({qc,qi})=>{
+      const cdF=Math.max(0,qc._f-frames),cdSec=cdF/state.fps;
       const isWarn=cdSec<=WARN_SEC,isUrgent=cdSec<=10,showUrg=cdSec<=URGENCY_SEC;
       const row=document.createElement('div');row.className='live-then-row';
       const cdCls=isUrgent?'cd urgent':isWarn?'cd warn':'cd';
       const urgHtml=showUrg?`<div class="urg-bar${isUrgent?' urgent':''}"><div class="urg-fill" style="width:${((1-cdSec/URGENCY_SEC)*100).toFixed(1)}%"></div></div>`:'';
       row.innerHTML=`<div class="ix">${qi+1}</div><div class="tag">${_makeLiveBadge(qc,'md')}</div><div class="nm">${escH(qc.name||'—')}<span class="ds">${escH(qc.desc||'')}</span></div><div class="tc-lbl">${escH(qc.tc||'')}</div><div class="${cdCls}">${cdF>0?fmtCD(cdF):''}</div>${urgHtml}`;
       tr.appendChild(row);
-    }
+    });
   }
 
   // ── Setlist ──
@@ -4733,7 +4751,8 @@ function _activateCamCockpit(){
   // Following + badge + select
   const camBadge=document.getElementById('vw-cam-badge-topbar');
   if(camBadge&&cam){
-    camBadge.innerHTML='<div class="cam-badge xs" style="background:'+hex+';color:#fff;">'+cam.number+'</div>';
+    const _cbHex=getCameraColor(cam.colorIdx||0);
+    camBadge.innerHTML='<div class="cam-badge-sq xs" style="background:'+_cbHex+';color:#06060a;">'+cam.number+'</div>';
   } else if(camBadge){
     camBadge.innerHTML='';
   }
@@ -4783,33 +4802,61 @@ function openCamNotesScreen(){
   const scr=document.getElementById('cf-cam-notes-screen');
   if(!scr)return;
   scr.style.display='flex';
-  const cam=window.CF&&CF.cameraIds&&CF.cameraIds.length?getCameraById(CF.cameraIds[0]):null;
-  const tracks=window.CF&&CF.tracks&&CF.tracks.length?CF.tracks:null;
-  const showAllCams=window.CF&&CF.viewerShowAllCams;
-  const camLbl=document.getElementById('cn-topbar-cam');
-  if(camLbl){
-    if(cam){
-      const hex=getCameraColor(cam.colorIdx||0);
-      camLbl.innerHTML='<div class="cam-badge xs" style="background:'+hex+';color:#fff;margin-right:6px;">'+cam.number+'</div>'+(cam.label?escH(cam.label):'CAM '+cam.number);
-    } else if(tracks){
-      camLbl.innerHTML=(state.streams||[])
-        .filter(s=>tracks.indexOf(s.id)!==-1)
-        .map(function(s){
-          const col=window.getStreamColor?getStreamColor(s.id):{hex:'#3b7bdd'};
-          const short=(s.shortName||s.name||'?').slice(0,4).toUpperCase();
-          return '<span class="track-glyph xs" style="background:'+col.hex+';margin-right:4px;">'+escH(short)+'</span>';
-        }).join('');
-    } else if(showAllCams){
-      const camName=state.cameraTrack?escH(state.cameraTrack.name||'Cameras'):'Cameras';
-      camLbl.innerHTML='<span class="track-glyph xs" style="background:var(--txt-low);color:var(--bg);margin-right:4px;">CAM</span>'+camName;
-    } else {
-      camLbl.innerHTML='';
-    }
-  }
   const liveSong=_getCamNotesLiveSong();
   _camNotesActiveSongId=liveSong?liveSong.id:(getActivePlaylistSongs()[0]?.id||null);
+  buildCamNotesTrackBadges();
   renderCamNotesSeqs();
   renderCamNotesCues(_camNotesActiveSongId);
+}
+
+function buildCamNotesTrackBadges(){
+  const wrap=document.getElementById('cn-track-badges-topbar');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  const streams=state.streams||[];
+  const allowed=window.CF&&CF.tracks&&CF.tracks.length?CF.tracks:null;
+  const visible=allowed?streams.filter(function(s){return allowed.indexOf(s.id)!==-1;}):streams;
+  const singleTrack=visible.length===1&&!(window.CF&&CF.viewerShowAllCams);
+  visible.forEach(function(s){
+    const short=(s.shortName||s.name||'?').slice(0,3).toUpperCase();
+    const col=window.getStreamColor?getStreamColor(s.id):{hex:'#3b7bdd'};
+    const isOn=state.visibleStreamIds.indexOf(s.id)!==-1;
+    const btn=document.createElement('button');
+    btn.className='track-glyph xs';
+    btn.style.cssText='background:'+(isOn?'#06060a':'transparent')+';color:'+(isOn?'#fff':'var(--txt-low)')+
+      ';border-color:'+(isOn?'var(--hair3)':'var(--hair3)')+';'+
+      (singleTrack?'cursor:default;':'cursor:pointer;')+
+      'transition:background .12s,color .12s,border-color .12s;';
+    btn.textContent=short;
+    btn.dataset.sid=s.id;
+    if(!singleTrack){
+      btn.onclick=function(){
+        const id=this.dataset.sid;
+        const idx=state.visibleStreamIds.indexOf(id);
+        if(idx>=0)state.visibleStreamIds.splice(idx,1);
+        else state.visibleStreamIds.push(id);
+        buildCamNotesTrackBadges();
+        renderCamNotesCues(_camNotesActiveSongId);
+      };
+    }
+    wrap.appendChild(btn);
+  });
+  if(window.CF&&CF.viewerShowAllCams){
+    const camVis=state.cameraTrackVisible!==false;
+    const camBtn=document.createElement('button');
+    camBtn.className='track-glyph xs';
+    camBtn.style.cssText='background:'+(camVis?'#06060a':'transparent')+
+      ';color:'+(camVis?'#fff':'var(--txt-low)')+
+      ';border-color:var(--hair3);cursor:pointer;'+
+      'transition:background .12s,color .12s,border-color .12s;';
+    camBtn.textContent='CAM';
+    camBtn.onclick=function(){
+      state.cameraTrackVisible=state.cameraTrackVisible===false?true:false;
+      buildCamNotesTrackBadges();
+      renderCamNotesCues(_camNotesActiveSongId);
+    };
+    wrap.appendChild(camBtn);
+  }
 }
 
 function closeCamNotesScreen(){
@@ -4859,21 +4906,19 @@ function renderCamNotesCues(songId){
   const wrap=document.getElementById('cn-cue-rows');
   if(!wrap)return;
   wrap.innerHTML='';
-  if(!songId){wrap.innerHTML='<div class="cn-empty">Select a sequence</div>';return;}
+  if(!songId){wrap.innerHTML='<div class="cn-empty">No active sequence</div>';return;}
   const song=state.songs.find(s=>s.id===songId);
   if(!song){wrap.innerHTML='<div class="cn-empty">Sequence not found</div>';return;}
   const camId=window.CF&&CF.cameraIds&&CF.cameraIds.length?CF.cameraIds[0]:null;
   const tracks=window.CF&&CF.tracks&&CF.tracks.length?CF.tracks:null;
-  const showAllCams=window.CF&&CF.viewerShowAllCams;
+  const showCams=window.CF&&CF.viewerShowAllCams&&state.cameraTrackVisible!==false;
   const allCues=getSortedCues(songId,false).filter(c=>{
-    if(camId) return c.cameraId&&c.cameraId===camId;
-    if(showAllCams) return !!c.cameraId; // viewer with camera access: camera cues only
-    if(tracks) return !c.cameraId&&tracks.indexOf(c.streamId)!==-1;
-    return !c.cameraId;
+    if(c.cameraId) return camId?c.cameraId===camId:showCams;
+    if(tracks) return tracks.indexOf(c.streamId)!==-1&&state.visibleStreamIds.indexOf(c.streamId)!==-1;
+    return state.visibleStreamIds.indexOf(c.streamId)!==-1;
   });
   if(!allCues.length){
-    const msg=(camId||showAllCams)?'No camera cues in this sequence':'No cues for your tracks in this sequence';
-    wrap.innerHTML='<div class="cn-empty">'+msg+'</div>';
+    wrap.innerHTML='<div class="cn-empty">No cues visible — tap a track badge to show it</div>';
     return;
   }
   allCues.forEach(function(cue){
@@ -4884,8 +4929,8 @@ function renderCamNotesCues(songId){
     } else {
       const st=(state.streams||[]).find(s=>s.id===cue.streamId);
       const col=window.getStreamColor?getStreamColor(cue.streamId):{hex:'#3b7bdd'};
-      const short=(st?.shortName||st?.name||'?').slice(0,4).toUpperCase();
-      badgeHtml='<span class="track-glyph xs" style="background:'+col.hex+';">'+escH(short)+'</span>';
+      const short=(st?.shortName||st?.name||'?').slice(0,3).toUpperCase();
+      badgeHtml='<span class="track-glyph xs" style="background:#06060a;color:#fff;">'+escH(short)+'</span>';
     }
     const row=document.createElement('div');
     row.className='cn-cue-row';
@@ -5037,8 +5082,8 @@ function renderWaterfall(target,frames,allCues,curIdx,upNextSongId){
   const _wfChapters=new Set();
   for(let vi=0;vi<raw.length&&items.filter(x=>x.type==='cue').length<visN+2;vi++){
     const cue=raw[vi],gi=startIdx+vi;
-    // Hard cap: never show cues from songs beyond current + next sequence
-    if(cue.songId!==curSongId&&cue.songId!==upNextSongId)continue;
+    // Live view: active sequence only. Test/preview: current + next (editor can see ahead).
+    if(cue.songId!==curSongId&&(target==='live'||cue.songId!==upNextSongId))continue;
     if(!sepDone&&upNextSongId&&cue.songId===upNextSongId&&gi>curIdx){
       const s=state.songs.find(x=>x.id===upNextSongId);
       items.push({type:'sep',label:s?.name||'Next'});sepDone=true;
@@ -5166,121 +5211,176 @@ function renderWaterfall(target,frames,allCues,curIdx,upNextSongId){
 
 // ─── TIMELINE (multi-track, self-rendering) ───
 const TL_PH_X=180,TL_WIN_SEC=60,TL_H=90;
+const _tlCache={};
+
+/* Smooth timeline: build DOM structure once, then each frame only update translateX on the
+   scrolling containers — a single GPU compositing op instead of hundreds of DOM mutations. */
 function renderTimeline(target,frames,allCues,curIdx){
   const tl=document.getElementById(target+'-tl');
   if(!tl||!state.tlVisible?.[target])return;
-  const TL_LBL_W=62; // fixed width of left label column in px — declared first, used throughout
-  const tlW=tl.clientWidth||1000,fps=state.fps,pxPS=tlW/TL_WIN_SEC,pxPF=pxPS/fps;
+  const TL_LBL_W=62,RULER_H=17;
+  const tlW=tl.clientWidth||1000,fps=state.fps;
+  const pxPS=tlW/TL_WIN_SEC,pxPF=pxPS/fps;
   const visStreams=state.visibleStreamIds.filter(sid=>state.streams.find(s=>s.id===sid));
-  const MIN_TRACK_H=20,RULER_H=17;
-  const trackH=Math.max(MIN_TRACK_H,Math.floor((tl.clientHeight-RULER_H)/Math.max(1,visStreams.length)));
-  tl.innerHTML='';
-  // ruler
-  const ruler=document.createElement('div');
-  ruler.style.cssText=`position:absolute;top:0;left:${TL_LBL_W}px;right:0;height:${RULER_H}px;border-bottom:1px solid var(--border2);`;
-  const rulerW=tlW-TL_LBL_W;
-  const phX_ruler=TL_PH_X-TL_LBL_W; // playhead x relative to ruler
-  const startSec=frames/fps-phX_ruler/pxPS,spm=4,firstMark=Math.ceil(startSec/spm)*spm;
-  for(let s=firstMark;s<startSec+TL_WIN_SEC+spm;s+=spm){
-    const x=phX_ruler+(s-frames/fps)*pxPS;if(x<0||x>rulerW)continue;
-    const lbl=document.createElement('div');lbl.style.cssText=`position:absolute;left:${x.toFixed(1)}px;top:2px;font-family:var(--mono);font-size:9px;color:var(--text3);transform:translateX(-50%);pointer-events:none;white-space:nowrap;`;lbl.textContent=fTC(Math.round(s*fps));ruler.appendChild(lbl);
-    const tick=document.createElement('div');tick.style.cssText=`position:absolute;left:${x.toFixed(1)}px;bottom:0;width:1px;height:4px;background:var(--border2);`;ruler.appendChild(tick);
+  const dynTrackH=Math.max(22,Math.floor((tl.clientHeight-RULER_H)/Math.max(1,visStreams.length)));
+  const hasCamTrack=!!(state.cameraTrack&&state.cameraTrackVisible!==false);
+
+  // Structure key — full rebuild only when cue list / streams / dimensions change
+  const cueStructKey=allCues.map(c=>c.id+':'+c._f).join(',');
+  const structKey=[visStreams.join(','),fps,tlW,dynTrackH,hasCamTrack,cueStructKey].join('|');
+  const ch=_tlCache[target]||(_tlCache[target]={});
+
+  if(ch.structKey!==structKey){
+    ch.structKey=structKey;
+    _buildTimeline(target,tl,allCues,curIdx,visStreams,fps,pxPS,pxPF,dynTrackH,hasCamTrack,TL_LBL_W,RULER_H);
+    ch.pxPF=pxPF;
+    ch.lastCurIdx=curIdx;
+    ch.rulerScroll=document.getElementById(target+'-tl-rscroll');
+    ch.tracksScroll=document.getElementById(target+'-tl-tscroll');
   }
-  tl.appendChild(ruler);
-  // playhead (on top)
-  const ph=document.createElement('div');
-  ph.style.cssText=`position:absolute;top:0;bottom:0;left:${TL_PH_X}px;width:2px;background:${target==='live'?'var(--red)':'var(--orange)'};z-index:12;pointer-events:none;`;
-  ph.innerHTML=`<div style="position:absolute;top:${RULER_H-1}px;left:-4px;border:5px solid transparent;border-top:6px solid ${target==='live'?'var(--red)':'var(--orange)'};"></div>`;
-  tl.appendChild(ph);
-  // track rows
-  // Dynamic height: RULER + each track at least 22px
-  const MIN_TRACK_H_DYN=22;
-  const dynTrackH=Math.max(MIN_TRACK_H_DYN,trackH);
-  const neededH=RULER_H+visStreams.length*dynTrackH;
+
+  // Per-frame fast path: single transform update (GPU-composited)
+  const offset=(TL_PH_X-TL_LBL_W)-frames*ch.pxPF;
+  const tfm='translateX('+offset.toFixed(2)+'px)';
+  if(ch.rulerScroll)ch.rulerScroll.style.transform=tfm;
+  if(ch.tracksScroll)ch.tracksScroll.style.transform=tfm;
+
+  // Active-cue styling — only runs on cue transitions (rare)
+  if(ch.lastCurIdx!==curIdx){
+    ch.lastCurIdx=curIdx;
+    if(ch.tracksScroll)_tlUpdateActiveCue(ch.tracksScroll,allCues,curIdx);
+  }
+}
+
+function _buildTimeline(target,tl,allCues,curIdx,visStreams,fps,pxPS,pxPF,dynTrackH,hasCamTrack,TL_LBL_W,RULER_H){
+  const totalTracks=visStreams.length+(hasCamTrack?1:0);
+  const neededH=RULER_H+totalTracks*dynTrackH;
+  tl.innerHTML='';
   tl.style.height=neededH+'px';
-  // Also update CSS var so wrapper knows height
   tl.style.setProperty('--tl-height',neededH+'px');
 
-  // Label strip (fixed left)
+  // Playhead (fixed, on top)
+  const phColor=target==='live'?'var(--red)':'var(--orange)';
+  const ph=document.createElement('div');
+  ph.style.cssText=`position:absolute;top:0;bottom:0;left:${TL_PH_X}px;width:2px;background:${phColor};z-index:12;pointer-events:none;`;
+  ph.innerHTML=`<div style="position:absolute;top:${RULER_H-1}px;left:-4px;border:5px solid transparent;border-top:6px solid ${phColor};"></div>`;
+  tl.appendChild(ph);
+
+  // Ruler — clipped area + scrolling inner (will-change: transform)
+  const rulerArea=document.createElement('div');
+  rulerArea.style.cssText=`position:absolute;top:0;left:${TL_LBL_W}px;right:0;height:${RULER_H}px;border-bottom:1px solid var(--border2);overflow:hidden;`;
+  const rulerScroll=document.createElement('div');
+  rulerScroll.id=target+'-tl-rscroll';
+  rulerScroll.style.cssText=`position:absolute;top:0;height:${RULER_H}px;will-change:transform;`;
+  // Pre-build marks from TC 0 to end of show + 2-min buffer
+  const maxSec=allCues.length?Math.ceil(allCues[allCues.length-1]._f/fps)+120:3600;
+  for(let s=0;s<=maxSec;s+=4){
+    const x=s*pxPS;
+    const lbl=document.createElement('div');
+    lbl.style.cssText=`position:absolute;left:${x.toFixed(1)}px;top:2px;font-family:var(--mono);font-size:9px;color:var(--text3);transform:translateX(-50%);pointer-events:none;white-space:nowrap;`;
+    lbl.textContent=fTC(Math.round(s*fps));
+    rulerScroll.appendChild(lbl);
+    const tick=document.createElement('div');
+    tick.style.cssText=`position:absolute;left:${x.toFixed(1)}px;bottom:0;width:1px;height:4px;background:var(--border2);`;
+    rulerScroll.appendChild(tick);
+  }
+  rulerArea.appendChild(rulerScroll);
+  tl.appendChild(rulerArea);
+
+  // Label strip (fixed, z-index above scrolling content)
   const labelStrip=document.createElement('div');
   labelStrip.style.cssText=`position:absolute;top:${RULER_H}px;left:0;width:${TL_LBL_W}px;bottom:0;background:rgba(8,8,12,.92);border-right:1px solid var(--border);z-index:5;overflow:hidden;`;
+
+  // Tracks — clipped area + scrolling inner (will-change: transform)
+  const tracksArea=document.createElement('div');
+  tracksArea.style.cssText=`position:absolute;top:${RULER_H}px;left:${TL_LBL_W}px;right:0;bottom:0;overflow:hidden;`;
+  const tracksScroll=document.createElement('div');
+  tracksScroll.id=target+'-tl-tscroll';
+  tracksScroll.style.cssText=`position:absolute;top:0;bottom:0;will-change:transform;`;
+
   visStreams.forEach((sid,ti)=>{
     const col=getStreamColor(sid);
+    // Label cell
     const cell=document.createElement('div');
     cell.style.cssText=`height:${dynTrackH}px;display:flex;align-items:center;padding:0 6px;border-bottom:1px solid var(--border);overflow:hidden;`;
     const lbl=document.createElement('div');
-    lbl.style.cssText=`font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:${col.hex};opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;`;
-    const _s=state.streams.find(x=>x.id===sid);
-    const _short=((_s?.shortName)||streamName(sid).slice(0,3)).toUpperCase();
     lbl.style.cssText='display:inline-flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txt);background:transparent;border:1px solid var(--hair3);flex-shrink:0;width:32px;height:32px;';
-    lbl.textContent=_short;
+    const _s=state.streams.find(x=>x.id===sid);
+    lbl.textContent=((_s?.shortName)||streamName(sid).slice(0,3)).toUpperCase();
     cell.appendChild(lbl);labelStrip.appendChild(cell);
-  });
-  tl.appendChild(labelStrip);
-
-  const tracksWrap=document.createElement('div');
-  tracksWrap.style.cssText=`position:absolute;top:${RULER_H}px;left:${TL_LBL_W}px;right:0;bottom:0;overflow:hidden;`;
-  visStreams.forEach((sid,ti)=>{
-    const col=getStreamColor(sid);
+    // Track body (absolute row position so tracksScroll height is auto)
     const track=document.createElement('div');
-    track.style.cssText=`position:relative;height:${dynTrackH}px;border-bottom:1px solid var(--border);`;
-    const cueStartX_offset=0; // labels are now in their own column
-    // only cues from this stream
+    track.style.cssText=`position:absolute;top:${ti*dynTrackH}px;left:0;right:0;height:${dynTrackH}px;border-bottom:1px solid var(--border);`;
     const streamCuesAll=allCues.filter(c=>c.streamId===sid);
     streamCuesAll.forEach((cue,ci)=>{
       const gi=allCues.indexOf(cue);
-      const phX=TL_PH_X-TL_LBL_W;
-      const x=phX+(cue._f-frames)*pxPF;
-      const nextStreamCue=streamCuesAll[ci+1];
-      const nextF=nextStreamCue?nextStreamCue._f:cue._f+fps*30;
+      const x=cue._f*pxPF; // fixed at timecode position; transform scrolls it
+      const nextF=(streamCuesAll[ci+1]?streamCuesAll[ci+1]._f:cue._f+fps*30);
       const w=Math.max(2,(nextF-cue._f)*pxPF);
-      if(x+w<-4||x>tlW+4)return;
       const isPast=gi<curIdx,isCurrent=gi===curIdx;
       const sqCues=getSortedCues(cue.songId,true).filter(c=>c.streamId===sid);
       const sqI=sqCues.findIndex(c=>c.id===cue.id);
       const block=document.createElement('div');
-      block.style.cssText=`position:absolute;left:${Math.round(x)}px;top:2px;width:${Math.max(2,Math.round(w)-2)}px;height:${dynTrackH-4}px;background:${isPast?'#0a0a0e':col.bg};border:1px solid ${isPast?'var(--border)':isCurrent?col.hex:col.hex+'66'};border-radius:3px;overflow:hidden;display:flex;align-items:center;padding:0 4px;gap:3px;pointer-events:none;opacity:${isPast?.25:1};`;
+      block.dataset.cueId=cue.id;block.dataset.streamId=sid;
+      block.style.cssText=`position:absolute;left:${Math.round(x)}px;top:2px;width:${Math.max(2,Math.round(w)-2)}px;height:${dynTrackH-4}px;background:${isPast?'#0a0a0e':col.bg};border:1px solid ${isPast?'var(--border)':isCurrent?col.hex:col.hex+'66'};border-radius:3px;overflow:hidden;display:flex;align-items:center;padding:0 4px;gap:3px;pointer-events:none;opacity:${isPast?'0.25':'1'};`;
       block.innerHTML=`<span style="font-family:var(--mono);font-size:8px;font-weight:700;color:${col.hex};flex-shrink:0;">${sqI>=0?sqI+1:''}</span><span style="font-size:9px;font-weight:500;color:${col.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escH(cue.name)}</span>`;
       track.appendChild(block);
     });
-    tracksWrap.appendChild(track);
+    tracksScroll.appendChild(track);
   });
-  // Single camera track row (all cameras combined)
-  if(state.cameraTrack&&state.cameraTrackVisible!==false){
-    // Label
+
+  // Camera track
+  if(hasCamTrack){
     const camCell=document.createElement('div');
     camCell.style.cssText=`height:${dynTrackH}px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);overflow:hidden;`;
     const camLbl=document.createElement('div');
     camLbl.style.cssText='display:inline-flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txt);background:transparent;border:1px solid var(--hair3);flex-shrink:0;width:32px;height:32px;';
-    camLbl.textContent='CAM';
-    camCell.appendChild(camLbl);labelStrip.appendChild(camCell);
-    // Single track body — all camera cues interleaved, colored per camera
+    camLbl.textContent='CAM';camCell.appendChild(camLbl);labelStrip.appendChild(camCell);
+    const camTi=visStreams.length;
     const camTrack=document.createElement('div');
-    camTrack.style.cssText=`position:relative;height:${dynTrackH}px;border-bottom:1px solid var(--border);`;
+    camTrack.style.cssText=`position:absolute;top:${camTi*dynTrackH}px;left:0;right:0;height:${dynTrackH}px;border-bottom:1px solid var(--border);`;
     const allCamCues=allCues.filter(c=>c.cameraId&&state.cameraTrack).sort((a,b)=>a._f-b._f);
     allCamCues.forEach((cue,ki)=>{
-      const cam=getCameraById(cue.cameraId);
-      const camHex=getCameraColor(cam?.colorIdx||0);
+      const cam=getCameraById(cue.cameraId);const camHex=getCameraColor(cam?.colorIdx||0);
       const gi=allCues.indexOf(cue);
-      const phX=TL_PH_X-TL_LBL_W;
-      const x=phX+(cue._f-frames)*pxPF;
-      const nextCamCue=allCamCues[ki+1];
-      const nextF=nextCamCue?nextCamCue._f:cue._f+fps*30;
+      const x=cue._f*pxPF;
+      const nextF=(allCamCues[ki+1]?allCamCues[ki+1]._f:cue._f+fps*30);
       const w=Math.max(2,(nextF-cue._f)*pxPF);
-      if(x+w<-4||x>tlW+4)return;
       const isPast=gi<curIdx,isCurrent=gi===curIdx;
       const block=document.createElement('div');
-      block.style.cssText=`position:absolute;left:${Math.round(x)}px;top:2px;width:${Math.max(2,Math.round(w)-2)}px;height:${dynTrackH-4}px;background:${isPast?'#0a0a12':'#0a0a12'};border:1px solid ${isPast?'var(--border)':isCurrent?camHex:camHex+'66'};border-radius:3px;overflow:hidden;display:flex;align-items:center;padding:0 4px;gap:3px;pointer-events:none;opacity:${isPast?.25:1};`;
+      block.dataset.cueId=cue.id;block.dataset.camId=cue.cameraId;
+      block.style.cssText=`position:absolute;left:${Math.round(x)}px;top:2px;width:${Math.max(2,Math.round(w)-2)}px;height:${dynTrackH-4}px;background:#0a0a12;border:1px solid ${isPast?'var(--border)':isCurrent?camHex:camHex+'66'};border-radius:3px;overflow:hidden;display:flex;align-items:center;padding:0 4px;gap:3px;pointer-events:none;opacity:${isPast?'0.25':'1'};`;
       block.innerHTML=`<span style="font-family:var(--mono);font-size:8px;font-weight:800;color:${camHex};flex-shrink:0;">${cam?.number||'?'}</span><span style="font-size:9px;font-weight:500;color:${camHex};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escH(cue.name)}</span>`;
       camTrack.appendChild(block);
     });
-    tracksWrap.appendChild(camTrack);
-    // Resize tl height for the single camera row
+    tracksScroll.appendChild(camTrack);
     const newH=RULER_H+(visStreams.length+1)*dynTrackH;
-    tl.style.height=newH+'px';
-    tl.style.setProperty('--tl-height',newH+'px');
+    tl.style.height=newH+'px';tl.style.setProperty('--tl-height',newH+'px');
   }
-  tl.appendChild(tracksWrap);
+
+  tracksArea.appendChild(tracksScroll);
+  tl.appendChild(tracksArea);
+  tl.appendChild(labelStrip); // appended last — sits on top of scrolling content
+}
+
+function _tlUpdateActiveCue(tracksScroll,allCues,curIdx){
+  tracksScroll.querySelectorAll('[data-cue-id]').forEach(el=>{
+    const gi=allCues.findIndex(c=>c.id===el.dataset.cueId);
+    if(gi<0)return;
+    const cue=allCues[gi];
+    const isPast=gi<curIdx,isCurrent=gi===curIdx;
+    if(el.dataset.camId){
+      const cam=getCameraById(el.dataset.camId);
+      const camHex=getCameraColor(cam?.colorIdx||0);
+      el.style.borderColor=isPast?'var(--border)':isCurrent?camHex:camHex+'66';
+      el.style.opacity=isPast?'0.25':'1';
+    }else{
+      const col=getStreamColor(cue.streamId);
+      el.style.background=isPast?'#0a0a0e':col.bg;
+      el.style.borderColor=isPast?'var(--border)':isCurrent?col.hex:col.hex+'66';
+      el.style.opacity=isPast?'0.25':'1';
+    }
+  });
 }
 
 // ─── RESIZE PANELS ───
@@ -5493,11 +5593,12 @@ function renderCueList(){
     const _cueCam=_isCamCue?getCameraById(cue.cameraId):null;
     const _cueCamHex=_isCamCue?getCameraColor(_cueCam?.colorIdx||0):null;
     const _stName=streamName(cue.streamId);
-    const _stShort=state.streams.find(s=>s.id===cue.streamId)?.shortName||_stName.slice(0,4);
+    const _stShort=state.streams.find(s=>s.id===cue.streamId)?.shortName||_stName.slice(0,3);
+    const _stCol=window.getStreamColor?getStreamColor(cue.streamId):{hex:'#3b7bdd'};
     const _camNumStr=_isCamCue?String(_cueCam?.number||'?').padStart(2,'0'):null;
     const _dotEl=_isCamCue
       ?`<button class="cue-stream-dot cam-badge-sq xs" data-cid="${cue.id}" style="background:${_cueCamHex};color:#fff;" title="Change camera — click to reassign">${_camNumStr}</button>`
-      :`<button class="cue-stream-dot track-glyph xs" data-cid="${cue.id}" title="Move to track — click to reassign">${escH((_stShort||_stName.charAt(0)||'?').slice(0,4).toUpperCase())}</button>`;
+      :`<button class="cue-stream-dot track-glyph xs" data-cid="${cue.id}" style="background:#06060a;color:#fff;" title="Move to track — click to reassign">${escH((_stShort||_stName.charAt(0)||'?').slice(0,3).toUpperCase())}</button>`;
     // TO NEXT
     const _nextCue=cues[i+1];
     let _toNext='—';
@@ -5711,9 +5812,10 @@ function showStreamCtxMenu(e,cueId){
     _ctxTitle(_isCtxCam?'Change camera':'Assign to camera');
     // "Remove camera" → convert back to track cue
     if(_isCtxCam){
-      const shortName=(state.streams[0]?.shortName||state.streams[0]?.name||'—').slice(0,4).toUpperCase();
+      const shortName=(state.streams[0]?.shortName||state.streams[0]?.name||'—').slice(0,3).toUpperCase();
+      const _s0col=window.getStreamColor?getStreamColor(state.streams[0]?.id||''):{hex:'#3b7bdd'};
       _ctxItem(
-        `<span class="track-glyph xs" style="opacity:.45;">${escH(shortName)}</span>`,
+        `<span class="track-glyph xs" style="background:#06060a;color:#fff;opacity:.45;">${escH(shortName)}</span>`,
         'Remove camera',false,
         ()=>{snapshot();state.songs.forEach(sg=>{const c=sg.cues.find(x=>x.id===cueId);if(c){delete c.cameraId;c.streamId=state.streams[0]?.id||'';}});persist();renderCueList();redrawActive();_ctxMenu.remove();_ctxMenu=null;}
       );
@@ -5736,10 +5838,11 @@ function showStreamCtxMenu(e,cueId){
   if(!_isCtxCam){
     _ctxTitle('Move to track');
     state.streams.forEach(s=>{
-      const shortName=(s.shortName||s.name||'?').slice(0,4).toUpperCase();
+      const shortName=(s.shortName||s.name||'?').slice(0,3).toUpperCase();
+      const _sCol=window.getStreamColor?getStreamColor(s.id):{hex:'#3b7bdd'};
       const isCur=_thisCue?.streamId===s.id;
       _ctxItem(
-        `<span class="track-glyph xs">${escH(shortName)}</span>`,
+        `<span class="track-glyph xs" style="background:#06060a;color:#fff;">${escH(shortName)}</span>`,
         s.name,isCur,
         ()=>{if(isCur){_ctxMenu.remove();_ctxMenu=null;return;}snapshot();state.songs.forEach(sg=>{const c=sg.cues.find(x=>x.id===cueId);if(c){c.streamId=s.id;delete c.cameraId;}});persist();renderCueList();redrawActive();_ctxMenu.remove();_ctxMenu=null;}
       );
@@ -5922,10 +6025,11 @@ function updateTCStatus(status,label){
       pip.className='tc-pip'+(status==='receiving'?' ok pulse':status==='waiting'?' warn pulse':' idle');
     }
   }
-  // TC source label (LTC / MTC / —)
+  // TC source label (LTC / MTC / FREE RUN / —)
   const srcLbl=document.getElementById('live-tc-src-lbl');
   if(srcLbl){
-    if(label&&label.startsWith('LTC'))srcLbl.textContent='LTC';
+    if(status==='freerun')srcLbl.textContent='FREE RUN';
+    else if(label&&label.startsWith('LTC'))srcLbl.textContent='LTC';
     else if(label&&label.startsWith('MTC'))srcLbl.textContent='MTC';
     else srcLbl.textContent='—';
   }
@@ -7092,7 +7196,7 @@ function toggleTimeline(t){
   if(tl)tl.style.height=state.tlVisible[t]?TL_H+'px':'0';
   const btn=document.getElementById(t+'-tl-btn');
   if(btn)btn.style.color=state.tlVisible[t]?'var(--text)':'';
-  if(state.tlVisible[t])redrawActive();
+  if(state.tlVisible[t]){if(_tlCache[t])_tlCache[t].structKey=null;redrawActive();}
 }
 function toggleRightPanel(t){
   const p=document.getElementById(t+'-right');if(!p)return;
@@ -8547,7 +8651,7 @@ function renderListFilterPanel(){
     row.appendChild(_makeChip('NONE',isNone,()=>{_listFilterTracks=new Set();renderListFilterPanel();renderCueList();}));
     streams.forEach(s=>{
       const col=getStreamColor(s.id);
-      const shortName=(s.shortName||s.name||'?').slice(0,4).toUpperCase();
+      const shortName=(s.shortName||s.name||'?').slice(0,3).toUpperCase();
       const on=!isAll&&!isNone&&_listFilterTracks.has(s.id);
       row.appendChild(_makeChip(escH(shortName),on,()=>{
         if(_listFilterTracks===null||_listFilterTracks.size===0)_listFilterTracks=new Set(streams.map(x=>x.id));
@@ -9212,7 +9316,7 @@ function _ncBuildPicker(){
   streams.forEach(s=>{
     const col=getStreamColor(s.id);
     const hex=col.hex||'#888';
-    const short=(s.shortName||s.name||'?').slice(0,4).toUpperCase();
+    const short=(s.shortName||s.name||'?').slice(0,3).toUpperCase();
     const isSel=_ncSelTarget?.type==='stream'&&_ncSelTarget.id===s.id;
     const btn=document.createElement('button');
     btn.className='nc-badge'+(isSel?' sel':'');
@@ -11080,6 +11184,14 @@ function _updateViewerStatus(){
   }
   if(dot) dot.className=pipCls;
   if(lbl){lbl.textContent=lblTxt; lbl.style.color=lblColor;}
+  var tcPip=document.getElementById('cf-tc-pip');
+  var tcLbl=document.getElementById('cf-tc-lbl');
+  if(tcPip) tcPip.className=pipCls;
+  if(tcLbl){tcLbl.textContent=lblTxt; tcLbl.style.color=lblColor;}
+  var cnPip=document.getElementById('cn-status-pip');
+  var cnLbl=document.getElementById('cn-status-lbl');
+  if(cnPip) cnPip.className=pipCls;
+  if(cnLbl){cnLbl.textContent=lblTxt; cnLbl.style.color=lblColor;}
 }
 window._updateViewerStatus = _updateViewerStatus; /* expose for Block 1 */
 
@@ -11158,10 +11270,6 @@ function subscribeTc(){
       if(big){big.textContent=fmtd;big.style.color=color;}
       var seqEl=document.getElementById('cf-tc-seqname');
       if(seqEl&&displayLabel) seqEl.textContent=displayLabel;
-      var dotEl=document.getElementById('cf-tc-dot');
-      if(dotEl) dotEl.style.background=dot;
-      var stEl=document.getElementById('cf-tc-status');
-      if(stEl) stEl.textContent=isLive?'LIVE MTC':'Simulator';
 
       /* Viewer screen */
       var vtc=document.getElementById('cf-v-tc');
@@ -11210,12 +11318,7 @@ function subscribeTc(){
 
   /* Stale TC indicator + overview refresh */
   setInterval(function(){
-    var tcDot=document.getElementById('cf-tc-dot');
-    if(CF._lastTcRx && Date.now()-CF._lastTcRx<800){
-      /* still receiving — TC-only screen dot stays colored */
-      if(tcDot && tcDot.style.background==='#333') tcDot.style.background='';
-    } else {
-      if(tcDot) tcDot.style.background='#333';
+    if(!CF._lastTcRx || Date.now()-CF._lastTcRx>=800){
       var vstxt=document.getElementById('cf-v-status-txt');
       if(vstxt){vstxt.textContent='Waiting for TC';vstxt.style.display='';}
     }
@@ -11251,11 +11354,6 @@ function subscribeTc(){
       if(window.redrawActive) redrawActive();
     }
 
-    /* Stale state */
-    if(stale){
-      var st=document.getElementById('cf-tc-status');
-      if(st) st.textContent='Waiting for TC';
-    }
   })();
 }
 
@@ -11926,16 +12024,17 @@ function buildTrackPills(){
     vtfc.innerHTML='';
     var singleTrack=visible.length===1;
     visible.forEach(function(s){
+      var short=(s.shortName||s.name||'?').slice(0,3).toUpperCase();
       var col=window.getStreamColor?getStreamColor(s.id):{hex:'#3b7bdd'};
-      var short=(s.shortName||s.name||'?').slice(0,4).toUpperCase();
       var vis=state.visibleStreamIds.indexOf(s.id)!==-1;
       var btn=document.createElement('button');
+      btn.className='track-glyph xs';
       btn.style.cssText=
-        'background:'+(vis?col.hex:'none')+';color:'+(vis?'#fff':col.hex)+
-        ';border:1px solid '+col.hex+';font-family:var(--cond);font-size:10px;font-weight:700;'+
-        'letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;'+
+        'background:'+(vis?'#06060a':'transparent')+
+        ';color:'+(vis?'#fff':'var(--txt-low)')+
+        ';border-color:var(--hair3);'+
         (singleTrack?'cursor:default;':'cursor:pointer;')+
-        'border-radius:2px;transition:background .12s,color .12s;white-space:nowrap;';
+        'transition:background .12s,color .12s,border-color .12s;';
       btn.textContent=short;
       btn.dataset.sid=s.id;
       if(!singleTrack){
@@ -11950,16 +12049,16 @@ function buildTrackPills(){
       }
       vtfc.appendChild(btn);
     });
-    // CAM badge: clickable toggle, same style as track badges
+    // CAM toggle: same track-glyph style as track badges
     if(CF.viewerShowAllCams){
-      var camHex=typeof getCameraColor==='function'?getCameraColor(0):'#888';
       var camVis=state.cameraTrackVisible!==false;
       var camBtn=document.createElement('button');
+      camBtn.className='track-glyph xs';
       camBtn.style.cssText=
-        'background:'+(camVis?camHex:'none')+';color:'+(camVis?'#fff':camHex)+
-        ';border:1px solid '+camHex+';font-family:var(--cond);font-size:10px;font-weight:700;'+
-        'letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;cursor:pointer;'+
-        'border-radius:2px;transition:background .12s,color .12s;white-space:nowrap;';
+        'background:'+(camVis?'#06060a':'transparent')+
+        ';color:'+(camVis?'#fff':'var(--txt-low)')+
+        ';border-color:var(--hair3);cursor:pointer;'+
+        'transition:background .12s,color .12s;';
       camBtn.textContent='CAM';
       camBtn.onclick=function(){
         state.cameraTrackVisible=state.cameraTrackVisible===false?true:false;
@@ -11981,17 +12080,17 @@ function buildTrackPills(){
     if(isSingle){
       /* Non-interactive label */
       p.style.cssText='padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;'+
-        'background:'+col.hex+';color:#fff;border:1px solid '+col.hex+';user-select:none;';
+        'background:#06060a;color:#fff;border:1px solid var(--hair3);user-select:none;';
       p.textContent=s.name;
       c.appendChild(p);
       return;
     }
     /* Multi-track: toggleable with clearly visible off state */
     p.style.cssText='padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;'+
-      'cursor:pointer;user-select:none;border:1px solid '+col.hex+';transition:background .15s,color .15s,opacity .15s;'+
+      'cursor:pointer;user-select:none;border:1px solid var(--hair3);transition:background .15s,color .15s,opacity .15s;'+
       (vis
-        ? 'background:'+col.hex+';color:#fff;opacity:1;'
-        : 'background:transparent;color:'+col.hex+';opacity:0.75;');
+        ? 'background:#06060a;color:#fff;opacity:1;'
+        : 'background:transparent;color:var(--txt-low);opacity:0.5;');
     p.textContent=s.name;
     p.dataset.sid=s.id;
     p.addEventListener('click',function(){
