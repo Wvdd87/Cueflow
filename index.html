@@ -328,7 +328,7 @@ input, select, textarea { font-family: inherit; }
 .et-item {
   display: flex; align-items: center; gap: 7px;
   padding: 0 16px; border: none; background: none;
-  font-family: var(--cond); font-size: 10px; font-weight: 600;
+  font-family: var(--cond); font-size: 10px; font-weight: 700;
   letter-spacing: .08em; text-transform: uppercase;
   color: var(--txt-mid); white-space: nowrap;
   border-right: 1px solid var(--hair); height: 100%;
@@ -338,9 +338,17 @@ button.et-item { cursor: pointer; }
 button.et-item:hover { color: var(--txt-hi); background: var(--surface2); }
 .et-item.et-online { border-right: none; border-left: 1px solid var(--hair); }
 #edit-topbar .save-indicator { padding: 0 14px; border-right: 1px solid var(--hair); border-left: none; display: flex; align-items: center; }
+.et-breadcrumb { gap: 0; min-width: 0; overflow: hidden; }
+.et-crumb-pl { background: none; border: none; font-family: var(--cond); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--txt-low); cursor: pointer; padding: 0; transition: color .12s; white-space: nowrap; flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+.et-crumb-pl:hover { color: var(--txt-mid); }
+.et-crumb-sep { color: var(--txt-low); font-family: var(--cond); font-size: 11px; font-weight: 400; letter-spacing: 0; flex-shrink: 0; margin: 0 5px; }
+.et-crumb-sq { background: none; border: none; font-family: var(--cond); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--txt-mid); cursor: pointer; padding: 0; transition: color .12s; white-space: nowrap; flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+.et-crumb-sq:hover { color: var(--txt-hi); }
+.et-status-lbl { font-size: 10px; font-family: var(--cond); font-weight: 700; letter-spacing: .08em; }
 
-/* Live mode: hide edit-topbar only — sidebar stays visible */
+/* Live mode: hide edit-topbar + full-width banner */
 body.mode-live #edit-topbar { display: none; }
+body.mode-live #edit-mode-banner { display: none; }
 
 /* ── Viewer Cockpit topbar ── */
 .vw-topbar {
@@ -350,8 +358,8 @@ body.mode-live #edit-topbar { display: none; }
 .vw-cell {
   display: flex; align-items: center; gap: 6px;
   padding: 0 14px; border-right: 1px solid var(--hair);
-  font-family: var(--cond); font-size: 9px; font-weight: 700;
-  letter-spacing: .1em; text-transform: uppercase;
+  font-family: var(--cond); font-size: 10px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
   color: var(--txt-low); white-space: nowrap; flex-shrink: 0;
 }
 .vw-cell.grow { flex: 1; border-right: none; }
@@ -359,9 +367,7 @@ body.mode-live #edit-topbar { display: none; }
 .vw-val { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--txt-hi); letter-spacing: .01em; font-variant-numeric: tabular-nums; }
 .vw-tc-val { font-size: 14px; letter-spacing: -.01em; }
 .vw-tc-src { font-size: 10px; font-weight: 700; color: var(--txt-mid); font-family: var(--cond); letter-spacing: .1em; }
-.vw-lock { font-size: 9px; color: var(--green); font-family: var(--cond); font-weight: 700; letter-spacing: .1em; }
-.vw-onair { color: var(--red); gap: 7px; }
-.vw-onair .sb-val { color: var(--red); }
+.vw-status-lbl { font-size: 10px; font-family: var(--cond); font-weight: 700; letter-spacing: .08em; }
 /* Setlist count badge */
 .vw-setlist-count { font-family: var(--mono); font-size: 10px; color: var(--txt-low); margin-left: auto; }
 
@@ -382,19 +388,17 @@ body.mode-live #edit-topbar { display: none; }
 .seq-nav-chev:hover { color: var(--txt-hi); }
 #topbar-seq-name { font-family: var(--cond); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--txt-hi); max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Go Live button */
+/* Go Live / Return to Live button — matches UI Kit .btn.danger.solid */
 .live-toggle {
-  padding: 0 14px; height: 100%;
+  padding: 0 16px; height: 100%;
   border: none; border-left: 1px solid var(--hair);
-  font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
   cursor: pointer;
-  background: var(--red-bg); color: var(--red);
-  transition: background .15s, color .15s;
+  background: var(--red); color: #fff;
+  transition: background 80ms linear;
 }
-.live-toggle:hover { background: var(--red); color: #fff; }
-.live-toggle.red { background: var(--red-bg); color: var(--red); }
-#live-toggle { background: var(--red-dim); color: #fff; }
-#live-toggle:hover { background: var(--red); color: #fff; }
+.live-toggle:hover { background: #ff4663; }
+.live-toggle:active { background: #d8001f; }
 
 /* Stream popup button */
 .stream-btn { display: flex; align-items: center; gap: 8px; padding: 0 14px; height: 100%; background: none; border: none; border-left: 1px solid var(--hair); color: var(--txt-mid); font-family: var(--cond); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: color .15s, background .15s; }
@@ -443,7 +447,7 @@ body.mode-live #edit-topbar { display: none; }
 /* Slide-out panel */
 #cf-panel { width: 0; overflow: hidden; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--hair2); display: flex; flex-direction: column; transition: width .18s ease; z-index: 290; }
 #cf-panel.open { width: 280px; }
-.sbp-head { display: flex; align-items: center; gap: 6px; padding: 0 10px 0 16px; height: 44px; border-bottom: 1px solid var(--hair); border-top: 3px solid var(--primary); flex-shrink: 0; }
+.sbp-head { display: flex; align-items: center; gap: 6px; padding: 0 10px 0 16px; height: 44px; border-bottom: 1px solid var(--hair); flex-shrink: 0; }
 .sbp-title { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--txt-hi); font-family: var(--cond); }
 .sbp-count { font-size: 10px; font-weight: 700; color: var(--primary); font-family: var(--mono); }
 .sbp-sep { font-size: 10px; color: var(--txt-low); }
@@ -882,9 +886,9 @@ body.mode-live #edit-topbar { display: none; }
 .etl-cue.active-cue .etl-cue-inner { outline: 2px solid var(--primary); outline-offset: -2px; }
 .etl-cue.invalid .etl-cue-inner { opacity: .3; filter: grayscale(.9); }
 /* Camera cue block */
-.etl-cam-inner { position: absolute; inset: 0; display: flex; flex-direction: row; align-items: center; overflow: hidden; gap: 8px; padding: 0 10px; }
+.etl-cam-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; overflow: hidden; gap: 2px; padding: 0 10px 0 12px; }
 .etl-cam-num { font-family: var(--mono); font-weight: 900; flex-shrink: 0; line-height: 1; letter-spacing: -.01em; }
-.etl-cam-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .04em; text-transform: uppercase; flex: 1; }
+.etl-cam-name { font-family: var(--cond); font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .06em; text-transform: uppercase; width: 100%; }
 .etl-cue.cam-selected .etl-cam-inner { outline: 2px solid #fff; outline-offset: -2px; }
 .etl-cue.cam-active .etl-cam-inner { outline: 2px solid var(--primary); outline-offset: -2px; }
 /* Regular cue block */
@@ -922,16 +926,17 @@ body.mode-live #edit-topbar { display: none; }
 .chapter-type-lbl { font-size: 9px; color: rgba(240,168,56,.4); padding: 0 6px; letter-spacing: .06em; text-transform: uppercase; }
 
 /* Popup modes */
-.tl-popup-modes { display: flex; margin-bottom: 8px; border: 1px solid var(--hair2); overflow: hidden; }
-.tl-popup-mode { flex: 1; padding: 5px; font-size: 10px; font-weight: 700; background: transparent; border: none; color: var(--txt-mid); cursor: pointer; }
-.tl-popup-mode.active { background: var(--primary-bg); color: var(--primary); }
-.tl-popup-mode.chmode.active { background: var(--primary-bg); color: var(--primary); }
-#tl-create-popup { position: fixed; z-index: 900; background: var(--surface2); border: 1px solid var(--hair2); padding: 12px 14px; min-width: 240px; display: none; box-shadow: 0 16px 40px rgba(0,0,0,.6); }
-#tl-create-popup .pop-title { font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--txt-mid); margin-bottom: 8px; }
-#tl-create-popup .pop-tc { font-family: var(--mono); font-size: 12px; color: var(--primary); margin-bottom: 8px; }
-#tl-create-popup input { background: var(--surface2); border: 1px solid var(--hair2); color: var(--txt); font-size: 12px; padding: 6px 8px; width: 100%; outline: none; margin-bottom: 6px; }
-#tl-create-popup input:focus { border-color: var(--primary); box-shadow: var(--focus); }
-#tl-create-popup .pop-actions { display: flex; gap: 6px; margin-top: 6px; }
+/* New Cue modal — track picker badges */
+.nc-badge {
+  width: 68px; height: 62px; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 3px; cursor: pointer;
+  border: 2px solid var(--hair2); background: var(--surface2);
+  transition: background .12s, border-color .12s; flex-shrink: 0;
+}
+.nc-badge:hover { background: var(--surface3); }
+.nc-badge.sel { border-color: var(--nc-color, var(--primary)); background: var(--nc-bg, var(--primary-bg)); }
+.nc-badge-num { font-family: var(--mono); font-size: 20px; font-weight: 900; line-height: 1; letter-spacing: -.01em; }
+.nc-badge-lbl { font-family: var(--cond); font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 
 /* Video track in timeline */
 .etl-video-track { position: absolute; top: 2px; height: calc(100% - 4px); overflow: hidden; border: 1px solid rgba(139,92,246,.5); background: rgba(139,92,246,.08); display: flex; align-items: center; pointer-events: none; user-select: none; }
@@ -1155,9 +1160,9 @@ body.mode-live #edit-topbar { display: none; }
 
 /* ── Camera view: topbar cells ── */
 .vw-cam-status { display:none; align-items:center; gap:6px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); flex-shrink:0; white-space:nowrap; }
-.vw-cam-crumb { display:none; align-items:center; gap:5px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; flex-shrink:0; min-width:0; max-width:260px; overflow:hidden; }
+.vw-cam-crumb { display:none; align-items:center; gap:5px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; flex-shrink:0; min-width:0; max-width:260px; overflow:hidden; }
 .vw-cam-crumb-pl { color:var(--txt-low); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
-.vw-cam-crumb-arr { color:var(--hair3); flex-shrink:0; font-size:8px; }
+.vw-cam-crumb-arr { color:var(--hair3); flex-shrink:0; font-size:11px; letter-spacing:0; }
 .vw-cam-crumb-sq { color:var(--txt-mid); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .vw-cam-following { display:none; align-items:center; gap:7px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); flex-shrink:0; }
 .vw-cam-name-cell { display:none; align-items:center; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--txt-hi); flex-shrink:0; white-space:nowrap; }
@@ -1555,6 +1560,23 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 /* ── UNDO TOAST ── */
 .undo-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--hair2); padding: 10px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 32px rgba(0,0,0,.6); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; transform: translateX(-50%) translateY(8px); font-size: 13px; color: var(--txt); z-index: 9999; white-space: nowrap; }
 .undo-toast.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+/* Offline toast */
+#cf-offline-bar {
+  position: fixed; top: 48px; right: 20px; z-index: 9995;
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--surface2); border: 1px solid var(--hair2); border-left: 3px solid var(--amber);
+  padding: 14px 36px 14px 14px; max-width: 300px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6);
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s, transform .2s; transform: translateY(-8px);
+}
+#cf-offline-bar.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+#cf-offline-bar .oft-close {
+  position: absolute; top: 8px; right: 8px;
+  background: none; border: none; color: var(--txt-low); cursor: pointer;
+  font-size: 14px; padding: 2px 5px; line-height: 1; transition: color .12s;
+}
+#cf-offline-bar .oft-close:hover { color: var(--txt-hi); }
 .undo-btn { padding: 3px 10px; background: var(--primary-bg); border: 1px solid var(--primary-dim); color: var(--primary); font-size: 11px; font-weight: 700; cursor: pointer; }
 
 /* ── MISC BUTTONS ── */
@@ -1784,28 +1806,23 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <!-- TC status (pip only — no source label) -->
     <div class="vw-cell" id="vw-tc-cell">
       <div class="tc-pip idle" id="cf-v-dot"></div>
-      <span class="vw-lock" id="vw-tc-lock"></span>
+      <span class="vw-status-lbl" id="vw-tc-lock" style="color:var(--txt-low)">OFFLINE</span>
     </div>
     <!-- Timecode value -->
     <div class="vw-cell" id="vw-tc-val-cell">
       TIMECODE
       <span class="vw-val vw-tc-val" id="cf-v-tc" aria-live="polite">--:--:--:--</span>
     </div>
-    <!-- FPS -->
-    <div class="vw-cell" id="vw-fps-cell">
-      FPS
-      <span class="vw-val" id="vw-fps-val">—</span>
-    </div>
-    <!-- Track badge(s) -->
-    <div class="vw-cell" id="vw-track-cell" style="display:none;">
-      <span id="vw-track-lbl">TRACK</span>
-      <span id="vw-track-badge-inner"></span>
-    </div>
-    <!-- Camera: breadcrumb (cam-viewer only) -->
+    <!-- Camera: breadcrumb (cam-viewer + track-viewer) -->
     <div class="vw-cam-crumb" id="vw-cam-crumb-cell">
       <span class="vw-cam-crumb-pl" id="vw-cam-crumb-pl">—</span>
       <span class="vw-cam-crumb-arr">›</span>
       <span class="vw-cam-crumb-sq" id="vw-cam-crumb-sq">—</span>
+    </div>
+    <!-- Track viewer: Following + track badges -->
+    <div class="vw-cam-following" id="vw-track-following-cell" style="display:none;">
+      <span>Following</span>
+      <span id="vw-track-badges-topbar" style="display:flex;align-items:center;gap:5px;"></span>
     </div>
     <!-- Camera: Following + badge + select (cam-viewer only) -->
     <div class="vw-cam-following" id="vw-cam-cell">
@@ -1826,11 +1843,6 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.4"/><line x1="3" y1="4" x2="9" y2="4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="3" y1="6.5" x2="9" y2="6.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="3" y1="9" x2="6.5" y2="9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
       Edit Notes
     </button>
-    <!-- ON AIR chip -->
-    <div class="vw-cell right vw-onair" id="vw-onair-cell">
-      <div class="tc-pip live pulse"></div>
-      <span class="sb-val">LIVE</span>
-    </div>
   </div>
 
   <!-- 4px mode banner -->
@@ -2011,15 +2023,20 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 <!-- ── Edit mode full-width topbar ── -->
 <div id="edit-topbar">
   <button class="et-item" id="et-project-btn" onclick="sbOpen('save')" title="Project menu">Project</button>
-  <button class="et-item" id="et-playlist-btn" onclick="sbOpen('playlists')" title="Playlist menu">Playlist</button>
+  <div class="et-item et-breadcrumb" id="et-breadcrumb">
+    <button class="et-crumb-pl" id="et-crumb-playlist" onclick="sbOpen('playlists')" title="Open playlists">—</button>
+    <span class="et-crumb-sep">›</span>
+    <button class="et-crumb-sq" id="et-crumb-seq" onclick="sbOpen('seqs')" title="Open sequences">—</button>
+  </div>
   <div style="flex:1;min-width:0;"></div>
   <span class="save-indicator" id="save-indicator">Saved</span>
   <div class="et-item et-online" id="et-online-cell">
-    <span class="pip idle" id="et-online-dot"></span>
-    <span id="et-online-lbl">Local</span>
+    <div class="tc-pip idle" id="et-online-dot"></div>
+    <span class="et-status-lbl" id="et-online-lbl" style="color:var(--txt-low)">OFFLINE</span>
   </div>
   <button class="live-toggle" id="live-toggle" onclick="switchMode('live')">Go Live</button>
 </div>
+<div class="mode-banner edit" id="edit-mode-banner"></div>
 <!-- ── App body: sidebar + panel + screens ── -->
 <div id="cf-body" style="display:flex;flex:1;min-height:0;overflow:hidden;">
 <aside id="cf-sidebar">
@@ -2088,7 +2105,6 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <div class="live-sb-cell" id="edit-mode-chip">Edit Mode</div>
     </div>
   </div>
-  <div class="mode-banner edit" id="edit-mode-banner"></div>
 
   <div class="edit-main">
 
@@ -2121,8 +2137,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <!-- View tab bar -->
       <div class="edit-right-tabs" id="edit-right-tabs">
         <button class="er-tab active" id="ertab-list"  onclick="switchEditView('list')">LIST</button>
-        <button class="er-tab"        id="ertab-wf"    onclick="switchEditView('wf')">WATERFALL</button>
-        <button class="er-tab"        id="ertab-vid"   onclick="switchEditView('vid')">VIDEO</button>
+        <button class="er-tab"        id="ertab-wf"    onclick="switchEditView('wf')">PREVIEW</button>
+        <button class="er-tab"        id="ertab-vid"   onclick="switchEditView('vid')">MEDIA</button>
         <button class="er-tab"        id="ertab-notes" onclick="switchEditView('notes')">NOTES</button>
         <!-- Cameras tab removed: camera track managed via streams bar + cam-track-bar -->
         <button class="er-tab" id="ertab-cams" onclick="switchEditView('cams')" style="display:none;"></button>
@@ -2153,21 +2169,55 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <div style="display:none;"><span id="desc-has-content"></span></div>
       </div>
 
-      <!-- WATERFALL view: horizontal split (seq panel | wf | notes panel) -->
-      <div id="er-wf-content" style="display:none;flex:1;min-height:0;overflow:hidden;position:relative;">
-        <!-- Sequences side panel -->
-        <div id="wf-seq-panel" style="width:220px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--surface);position:absolute;left:0;top:0;bottom:0;z-index:2;display:none!important;">
-          <div style="padding:8px 12px 5px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);flex-shrink:0;">Sequences</div>
-          <div id="wf-seq-jump-list" style="flex:1;overflow-y:auto;padding:6px;"></div>
-        </div>
-        <!-- Waterfall main area -->
-        <div id="wf-main-area" style="position:absolute;top:0;bottom:0;left:0;right:0;display:flex;flex-direction:column;overflow:hidden;transition:left .15s,right .15s;">
-          <div class="wf-area" id="wf-test" style="overflow-y:auto;flex:1;"></div>
-        </div>
-        <!-- Notes side panel -->
-        <div id="wf-notes-panel" style="width:320px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--surface);position:absolute;right:0;top:0;bottom:0;z-index:2;display:none;">
-          <div style="padding:8px 12px 5px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);flex-shrink:0;">Notes</div>
-          <div id="wf-notes-content" style="flex:1;overflow-y:auto;padding:10px 12px;font-size:13px;color:var(--text);line-height:1.7;"></div>
+      <!-- PREVIEW view: cockpit layout matching live mode -->
+      <div id="er-wf-content" style="display:none;flex:1;min-height:0;overflow:hidden;">
+        <!-- Hidden compat elements (JS still renders into wf-test; keep in DOM) -->
+        <div id="wf-test" style="display:none;"></div>
+        <div id="wf-seq-panel" style="display:none!important;"><div id="wf-seq-jump-list"></div></div>
+        <div id="wf-notes-panel" style="display:none;"><div id="wf-notes-content"></div></div>
+
+        <!-- Cockpit layout — mirrors live-screen live-body structure -->
+        <div class="live-body">
+          <div class="live-main">
+            <!-- ON AIR strip -->
+            <div class="live-onair" id="test-onair-strip">
+              <div class="oa-lbl"><div class="tc-pip warn"></div>Preview</div>
+              <div class="oa-mid">
+                <span id="test-oa-badge"></span>
+                <div>
+                  <div class="oa-name" id="test-oa-name">—</div>
+                  <div class="oa-tc" id="test-oa-tc"></div>
+                </div>
+              </div>
+              <div class="oa-held"><div>Held</div><span class="v" id="test-oa-held">—</span></div>
+            </div>
+            <!-- NEXT cue hero -->
+            <div class="live-next" id="test-next-hero">
+              <div class="nh-eyebrow" id="test-next-eyebrow">Next</div>
+              <div style="margin-top:4px;">
+                <div class="nh-badge" id="test-next-badge-row">
+                  <span id="test-next-badge"></span>
+                  <div class="nh-name" id="test-next-name">—</div>
+                </div>
+                <div class="nh-desc" id="test-next-desc-txt"></div>
+              </div>
+              <div class="nh-count" id="test-next-count">
+                <div class="v" id="test-next-cd">—</div>
+                <div class="nh-cd-lbl">Until cue</div>
+              </div>
+              <div class="nh-bar"><div class="nh-fill" id="test-next-bar-fill" style="width:0%"></div></div>
+            </div>
+            <!-- THEN queue (upcoming cues) -->
+            <div class="live-then">
+              <div class="live-then-head"><span class="lbl">Upcoming</span></div>
+              <div class="live-then-rows" id="test-then-rows"></div>
+            </div>
+          </div>
+          <!-- Setlist rail -->
+          <div class="live-setlist" id="test-setlist-rail">
+            <div class="live-setlist-head"><span>Setlist</span></div>
+            <div class="live-setlist-body" id="test-mini-songs"></div>
+          </div>
         </div>
       </div>
 
@@ -2229,12 +2279,10 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <button class="tl-tbtn-transport" id="tl-play-btn" onclick="simTogglePlay()" title="Play/Stop (Space)" aria-label="Play">▶</button>
       
       </div>
-      <!-- TC + seq info -->
+      <!-- TC display -->
       <span id="tl-tc-disp" style="font-family:var(--mono);font-size:26px;font-weight:700;color:var(--text);letter-spacing:.02em;font-variant-numeric:tabular-nums;cursor:default;flex-shrink:0;">00:00:00:00</span>
-      <span class="tl-sep">|</span>
-      <span id="tl-seq-info" style="font-family:var(--cond);font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--txt-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1;">—</span>
       <!-- Right zone -->
-      <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;margin-left:12px;">
+      <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;margin-left:auto;">
         <button class="tl-tbtn accent" onclick="openTlCreateFromBtn()" title="Add cue (timeline click or this btn)" aria-label="Add cue">+ CUE</button>
         <button class="tl-tbtn accent" onclick="openTlCreateMarkerBtn()" title="Add chapter marker" aria-label="Add marker">+ MARKER</button>
         <span class="tl-sep">|</span>
@@ -2258,18 +2306,56 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   <!-- Drag tooltip -->
   <div id="tl-drag-tip" style="position:fixed;display:none;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;padding:3px 8px;font-family:var(--mono);font-size:11px;color:var(--text);pointer-events:none;z-index:9000;"></div>
   <!-- Create popup (ruler click or + button) -->
-  <div id="tl-create-popup">
-    <div class="tl-popup-modes" style="display:flex;margin-bottom:8px;border:1px solid var(--border2);border-radius:4px;overflow:hidden;">
-      <button class="tl-popup-mode active" id="tl-pm-cue" onclick="setTlCreateMode('cue')" style="flex:1;padding:5px;font-size:10px;font-weight:700;background:var(--mode-accent-bg);border:none;color:var(--mode-accent-text);cursor:pointer;">+ Cue</button>
-      <button class="tl-popup-mode" id="tl-pm-mkr" onclick="setTlCreateMode('marker')" style="flex:1;padding:5px;font-size:10px;font-weight:700;background:transparent;border:none;color:var(--text3);cursor:pointer;">+ Marker</button>
+  <!-- New Cue modal — full redesign -->
+  <div id="tl-create-popup" class="ntm-bg" role="dialog" aria-modal="true">
+    <div class="ntm-box" style="width:560px;">
+      <div class="ntm-header" style="flex-direction:column;align-items:flex-start;gap:5px;padding:16px 24px 14px;">
+        <span class="ntm-badge" id="nc-breadcrumb">INSERTING IN · —</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+          <span class="ntm-title">New Cue</span>
+          <button class="tcs-close" onclick="closeTlCreatePopup()">✕</button>
+        </div>
+      </div>
+      <div class="ntm-body" style="gap:18px;">
+        <div class="ntm-fg">
+          <div class="ntm-lbl">Track</div>
+          <div id="nc-track-row1" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+          <div id="nc-track-row2" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;"></div>
+        </div>
+        <div class="ntm-fg">
+          <div class="ntm-lbl">Insert at</div>
+          <div class="ntm-iw">
+            <input id="nc-tc-inp" class="ntm-inp" style="font-family:var(--mono);font-size:16px;letter-spacing:.02em;padding-right:80px;" placeholder="00:00:00:00" spellcheck="false" autocomplete="off">
+            <span id="nc-fps-lbl" class="ntm-cnt"></span>
+          </div>
+        </div>
+        <div class="ntm-fg">
+          <div class="ntm-lbl">Name</div>
+          <div class="ntm-iw">
+            <input id="nc-name-inp" class="ntm-inp" placeholder="Cue name" maxlength="60" spellcheck="false" autocomplete="off">
+            <span id="nc-name-cnt" class="ntm-cnt"></span>
+          </div>
+        </div>
+        <div class="ntm-fg">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">
+            <span class="ntm-lbl" style="margin:0;">Description</span>
+            <span class="ntm-badge">Shown to operator</span>
+          </div>
+          <textarea id="nc-desc-inp" class="ntm-inp" rows="3" placeholder="Optional note…" style="resize:none;padding-top:10px;padding-bottom:10px;" maxlength="240"></textarea>
+        </div>
+      </div>
+      <div class="ntm-footer">
+        <button class="ntm-btn" onclick="closeTlCreatePopup()">Cancel</button>
+        <button class="ntm-btn primary" id="nc-create-btn" onclick="commitTlCreateCue()">Create Cue</button>
+      </div>
     </div>
-    <div class="pop-tc" id="tl-create-tc">—</div>
-    <input id="tl-create-name" placeholder="Name (required)">
-    <input id="tl-create-desc" placeholder="Description (optional)">
-    <div class="pop-actions">
-      <button class="mbtn" onclick="closeTlCreatePopup()">Cancel</button>
-      <button class="mbtn primary" id="tl-create-commit" onclick="commitTlCreate()">Create</button>
-    </div>
+  </div>
+  <!-- Compat: hidden elements for old JS paths still referencing tl-create-* IDs -->
+  <div style="display:none;">
+    <div id="tl-create-tc"></div>
+    <input id="tl-create-name"><input id="tl-create-desc">
+    <button id="tl-create-commit"></button>
+    <button id="tl-pm-cue"></button><button id="tl-pm-mkr"></button>
   </div>
 
   <div id="audio-loading-bar">
@@ -2278,6 +2364,42 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   </div>
 </div>
 
+<!-- New Marker modal -->
+<div id="tl-marker-modal" class="ntm-bg" role="dialog" aria-modal="true">
+  <div class="ntm-box" style="width:480px;">
+    <div class="ntm-header" style="flex-direction:column;align-items:flex-start;gap:5px;padding:16px 24px 14px;">
+      <span class="ntm-badge" id="nm-breadcrumb">INSERTING IN · —</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+        <span class="ntm-title">New Marker</span>
+        <button class="tcs-close" onclick="closeMarkerModal()">✕</button>
+      </div>
+    </div>
+    <div class="ntm-body" style="gap:18px;">
+      <div class="ntm-fg">
+        <div class="ntm-lbl">Insert at</div>
+        <div class="ntm-iw">
+          <input id="nm-tc-inp" class="ntm-inp" style="font-family:var(--mono);font-size:16px;letter-spacing:.02em;padding-right:80px;" placeholder="00:00:00:00" spellcheck="false" autocomplete="off">
+          <span id="nm-fps-lbl" class="ntm-cnt"></span>
+        </div>
+      </div>
+      <div class="ntm-fg">
+        <div class="ntm-lbl">Name</div>
+        <div class="ntm-iw">
+          <input id="nm-name-inp" class="ntm-inp" placeholder="Marker name" maxlength="60" spellcheck="false" autocomplete="off">
+          <span id="nm-name-cnt" class="ntm-cnt"></span>
+        </div>
+      </div>
+      <div class="ntm-fg">
+        <div class="ntm-lbl">Description</div>
+        <textarea id="nm-desc-inp" class="ntm-inp" rows="3" placeholder="Optional note…" style="resize:none;padding-top:10px;padding-bottom:10px;" maxlength="240"></textarea>
+      </div>
+    </div>
+    <div class="ntm-footer">
+      <button class="ntm-btn" onclick="closeMarkerModal()">Cancel</button>
+      <button class="ntm-btn primary" onclick="commitMarker()">Create Marker</button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ LIVE SCREEN ═══ -->
 <div id="live-screen" class="screen">
@@ -2315,14 +2437,14 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <div class="tc-pip ok"></div>
       <span id="live-sharing-lbl" style="letter-spacing:0.05em;">Sharing</span>
     </div>
-    <!-- ON AIR chip -->
-    <div class="live-sb-cell right onair-cell" id="live-onair-chip">
-      
-      <span class="sb-val">LIVE</span>
+    <!-- Connection status chip -->
+    <div class="live-sb-cell right" id="live-onair-chip">
+      <div class="tc-pip idle" id="live-status-pip"></div>
+      <span class="sb-val" id="live-status-lbl">—</span>
     </div>
     <!-- Edit button -->
     <div class="live-sb-cell right" style="padding-left:0px;padding-right: 10px;">
-      <button class="live-toggle mbtn primary" onclick="exitLiveGuard()" style="height:26px;padding:0 14px;font-size:10px;">Edit</button>
+      <button class="mbtn primary" onclick="exitLiveGuard()" style="height:26px;padding:0 14px;font-size:10px;">Edit</button>
     </div>
     <!-- Hidden compat elements -->
     <div style="display:none;">
@@ -2685,6 +2807,14 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <div class="sbp-cl-tracks-lbl" id="cf-pin-tracks-lbl">Visible tracks</div>
         <div id="cf-pin-tracks-list" style="margin-top:6px;display:flex;flex-direction:column;gap:4px;"></div>
         <button id="cf-pin-tracks-all" onclick="CF._selectAllTracks()" style="display:none;margin-top:8px;height:30px;padding:0 12px;background:none;border:1px solid var(--hair2);color:var(--txt-low);cursor:pointer;font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;transition:color .12s,border-color .12s;">Add all</button>
+        <label id="cf-pin-cam-all-wrap" class="sbp-cl-chk-row" style="display:none;margin-top:10px;border-top:1px solid var(--hair);padding-top:10px;">
+          <input type="checkbox" id="cf-pin-cam-all" style="accent-color:var(--primary);margin-right:6px;">
+          Also show camera cues
+        </label>
+        <label id="cf-pin-cam-track-wrap" class="sbp-cl-chk-row" style="display:none;margin-top:10px;border-top:1px solid var(--hair);padding-top:10px;">
+          <input type="checkbox" id="cf-pin-cam-track" style="accent-color:var(--primary);margin-right:6px;">
+          Camera track access (can view &amp; edit all camera cues)
+        </label>
       </div>
     </div>
     <div class="ntm-footer">
@@ -2918,13 +3048,22 @@ function switchMode(mode){
   const _showSidebar=!window.CF||CF.isOwner||_isEditorRole;
   if(_sb) _sb.style.display=_showSidebar?'':'none';
   if(_showSidebar&&_sb){
+    const _pn=document.getElementById('cf-panel');
     if(mode==='live'){
       // Target the owner's live-screen .live-body specifically (not the viewer screen's)
       const _lb=document.querySelector('#live-screen .live-body');
-      if(_lb&&_sb.parentNode!==_lb) _lb.insertBefore(_sb,_lb.firstChild);
+      if(_lb){
+        if(_sb.parentNode!==_lb) _lb.insertBefore(_sb,_lb.firstChild);
+        // Panel sits right after sidebar so it opens to the right of it
+        if(_pn) _lb.insertBefore(_pn,_sb.nextSibling);
+      }
     } else {
       const _cfb=document.getElementById('cf-body');
-      if(_cfb&&_sb.parentNode!==_cfb) _cfb.insertBefore(_sb,_cfb.firstChild);
+      if(_cfb){
+        // Restore order: sidebar → panel → screens
+        if(_pn&&_pn.parentNode!==_cfb) _cfb.insertBefore(_pn,_cfb.firstChild);
+        if(_sb.parentNode!==_cfb) _cfb.insertBefore(_sb,_cfb.firstChild);
+      }
     }
   }
 
@@ -4036,15 +4175,8 @@ function _doRedraw(target,frames){
   } else {
     const lbl=document.getElementById('test-song-lbl');if(lbl)lbl.textContent=liveSong?.name||'—';
     renderTestSeqList(liveSongId);
-    const np=document.getElementById('test-next-panel');
-    if(np){
-      np.style.display=upNextSong?'block':'none';
-      if(upNextSong){
-        const nt=document.getElementById('test-next-title');if(nt)nt.textContent=upNextSong.name;
-        const nd=document.getElementById('test-next-desc');if(nd)nd.innerHTML=upNextSong.description||'<span style="color:var(--text3);">No notes</span>';
-      }
-    }
     renderMiniSongs('test',liveSongId,upNextSongId);
+    _updateTestCockpit(frames,allCues,curIdx,upNextSongId);
   }
 
   renderWaterfall(target,frames,allCues,curIdx,upNextSongId);
@@ -4189,6 +4321,99 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId){
   }
 }
 
+/* ── Preview (test mode) cockpit — mirrors _updateLiveCockpit, targets test- IDs ── */
+function _updateTestCockpit(frames,allCues,curIdx,upNextSongId){
+  const wfEl=document.getElementById('er-wf-content');
+  if(!wfEl||wfEl.style.display==='none')return;
+  const WARN_SEC=state.warnSec||10;
+  const URGENCY_SEC=20;
+
+  // ── ON AIR strip ──
+  const curCue=curIdx>=0?allCues[curIdx]:null;
+  const oaName=document.getElementById('test-oa-name');
+  const oaBadge=document.getElementById('test-oa-badge');
+  const oaTc=document.getElementById('test-oa-tc');
+  const oaHeld=document.getElementById('test-oa-held');
+  if(curCue){
+    if(oaName)oaName.textContent=curCue.name||'—';
+    if(oaBadge)oaBadge.innerHTML=_makeLiveBadge(curCue,'sm');
+    if(oaTc)oaTc.textContent=curCue.tc||'';
+    if(oaHeld){
+      const heldF=Math.max(0,frames-curCue._f);
+      const heldS=Math.floor(heldF/state.fps);
+      const m=Math.floor(heldS/60),s=heldS%60;
+      oaHeld.textContent=m>0?m+':'+String(s).padStart(2,'0'):String(s);
+    }
+  } else {
+    if(oaName)oaName.textContent='—';
+    if(oaBadge)oaBadge.innerHTML='';
+    if(oaTc)oaTc.textContent='';
+    if(oaHeld)oaHeld.textContent='—';
+  }
+
+  // ── NEXT cue hero ──
+  const nextIdx=curIdx+1;
+  const nextCue=nextIdx<allCues.length?allCues[nextIdx]:null;
+  const nhName=document.getElementById('test-next-name');
+  const nhBadge=document.getElementById('test-next-badge');
+  const nhDesc=document.getElementById('test-next-desc-txt');
+  const nhCd=document.getElementById('test-next-cd');
+  const nhCount=document.getElementById('test-next-count');
+  const nhHero=document.getElementById('test-next-hero');
+  const nhBarFill=document.getElementById('test-next-bar-fill');
+  if(nextCue){
+    const cdF=Math.max(0,nextCue._f-frames);
+    const cdSec=cdF/state.fps;
+    if(nhName)nhName.textContent=nextCue.name||'—';
+    if(nhBadge)nhBadge.innerHTML=_makeLiveBadge(nextCue,'lg');
+    if(nhDesc)nhDesc.textContent=nextCue.desc||'';
+    if(nhCd)nhCd.textContent=cdF>0?fmtCD(cdF):'GO';
+    const isWarn=cdSec<=WARN_SEC&&cdSec>=0;
+    if(nhCount)nhCount.classList.toggle('warn',isWarn);
+    if(nhHero)nhHero.classList.toggle('warn',isWarn);
+    if(nhBarFill){
+      const FILL_SEC=Math.max(WARN_SEC*3,30);
+      const fillPct=cdSec<=FILL_SEC?Math.max(0,Math.min(100,(1-cdSec/FILL_SEC)*100)):0;
+      nhBarFill.style.width=fillPct.toFixed(1)+'%';
+    }
+  } else {
+    if(nhName)nhName.textContent='—';
+    if(nhBadge)nhBadge.innerHTML='';
+    if(nhDesc)nhDesc.textContent='';
+    if(nhCd)nhCd.textContent='—';
+    if(nhCount)nhCount.classList.remove('warn');
+    if(nhHero)nhHero.classList.remove('warn');
+    if(nhBarFill)nhBarFill.style.width='0%';
+  }
+
+  // ── THEN queue ──
+  const thenRows=document.getElementById('test-then-rows');
+  if(thenRows){
+    thenRows.innerHTML='';
+    const queueStart=nextIdx+1;
+    const queueEnd=Math.min(allCues.length,queueStart+5);
+    for(let qi=queueStart;qi<queueEnd;qi++){
+      const qc=allCues[qi];
+      const cdF=Math.max(0,qc._f-frames);
+      const cdSec=cdF/state.fps;
+      const isWarn=cdSec<=WARN_SEC;
+      const isUrgent=cdSec<=10;
+      const showUrgBar=cdSec<=URGENCY_SEC;
+      const row=document.createElement('div');
+      row.className='live-then-row';
+      const cdClass=isUrgent?'cd urgent':isWarn?'cd warn':'cd';
+      const urgBarHtml=showUrgBar?`<div class="urg-bar${isUrgent?' urgent':''}"><div class="urg-fill" style="width:${((1-cdSec/URGENCY_SEC)*100).toFixed(1)}%"></div></div>`:'';
+      row.innerHTML=`<div class="ix">${qi+1}</div>
+        <div class="tag">${_makeLiveBadge(qc,'md')}</div>
+        <div class="nm">${escH(qc.name||'—')}<span class="ds">${escH(qc.desc||'')}</span></div>
+        <div class="tc-lbl">${escH(qc.tc||'')}</div>
+        <div class="${cdClass}">${cdF>0?fmtCD(cdF):''}</div>
+        ${urgBarHtml}`;
+      thenRows.appendChild(row);
+    }
+  }
+}
+
 /* ── Viewer cockpit updater (mirrors _updateLiveCockpit for crew/track-editor screens) ── */
 function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
   const vs=document.getElementById('cf-viewer-screen');
@@ -4264,21 +4489,19 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
     const liveSongId=curIdx>=0?allCues[curIdx]?.songId:null;
     const liveIdx=Math.max(0,songs.findIndex(s=>s.id===liveSongId));
     const cnt=_e('vw-setlist-count');
-    if(cnt)cnt.textContent=liveSongId?`${liveIdx+1} / ${songs.length}`:'';
+    if(cnt)cnt.textContent=liveSongId?`${liveIdx+1}/${songs.length}`:'';
     songs.forEach((song,i)=>{
-      const isLive=song.id===liveSongId,isUp=song.id===upNextSongId;
+      const isLive=song.id===liveSongId;
+      const isDone=!isLive&&i<liveIdx;
       const div=document.createElement('div');
-      div.className='mini-song'+(isLive?' live':isUp?' upnext':'');
-      div.innerHTML=`<div class="mini-song-num">${i+1}</div><div class="mini-song-name">${escH(song.name)}</div><div class="mini-dot"></div>`;
+      div.className='setlist-row'+(isLive?' current':isDone?' done':' upcoming');
+      div.innerHTML=`<div class="sl-num">${i+1}</div><div class="sl-name">${escH(song.name)}</div><div class="sl-dur"></div>`;
       ms.appendChild(div);
     });
   }
 
   // ── Topbar: TC pip + seq crumb ──
-  const dot=_e('cf-v-dot');
-  if(dot){const hasTc=window.CF&&(CF._tcReady||state.currentFrames>0);dot.className='tc-pip'+(hasTc?' ok pulse':' idle');}
-  const fps=_e('vw-fps-val');
-  if(fps)fps.textContent=(state.fps||25).toFixed((state.fps||25)%1?3:0);
+  if(window._updateViewerStatus) _updateViewerStatus();
   const sc=_e('vw-seq-crumb');
   if(sc){const liveSongId=curIdx>=0?allCues[curIdx]?.songId:null;const ls=liveSongId?state.songs.find(s=>s.id===liveSongId):null;sc.textContent=ls?ls.name:'—';}
 }
@@ -4471,8 +4694,8 @@ function _updateCamCockpit(frames){
   const sc=_e('vw-seq-crumb');
   if(sc)sc.textContent=liveSong?liveSong.name:'—';
   // Status pip: update based on TC presence
-  const dot=_e('cf-v-dot');
-  if(dot){const hasTc=window.CF&&(CF._tcReady||frames>0);dot.className='tc-pip'+(hasTc?' ok pulse':' idle');}
+  if(window._updateViewerStatus) _updateViewerStatus();
+  else{const dot=_e('cf-v-dot');if(dot){const hasTc=window.CF&&(CF._tcReady||frames>0);dot.className='tc-pip'+(hasTc?' ok pulse':' idle');}}
 }
 
 /* Activate/deactivate camera cockpit layout */
@@ -4486,10 +4709,7 @@ function _activateCamCockpit(){
   const _hide=id=>{const e=document.getElementById(id);if(e)e.style.display='none';};
   const _show=(id,d='flex')=>{const e=document.getElementById(id);if(e)e.style.display=d;};
   _hide('vw-tc-val-cell');
-  _hide('vw-fps-cell');
-  _hide('vw-track-cell');
   _hide('vw-seq-grow-cell');
-  _hide('vw-onair-cell');
 
   // ── Topbar: populate + show camera cells ──
   const cam=window.CF&&CF.cameraIds&&CF.cameraIds.length?getCameraById(CF.cameraIds[0]):null;
@@ -4558,16 +4778,25 @@ function openCamNotesScreen(){
   const scr=document.getElementById('cf-cam-notes-screen');
   if(!scr)return;
   scr.style.display='flex';
-  // Set topbar cam label
   const cam=window.CF&&CF.cameraIds&&CF.cameraIds.length?getCameraById(CF.cameraIds[0]):null;
-  const hex=getCameraColor(cam?cam.colorIdx:0);
+  const tracks=window.CF&&CF.tracks&&CF.tracks.length?CF.tracks:null;
   const camLbl=document.getElementById('cn-topbar-cam');
   if(camLbl){
-    camLbl.innerHTML=cam
-      ?'<div class="cam-badge xs" style="background:'+hex+';color:#fff;margin-right:6px;">'+cam.number+'</div>'+(cam.label?escH(cam.label):'CAM '+cam.number)
-      :'—';
+    if(cam){
+      const hex=getCameraColor(cam.colorIdx||0);
+      camLbl.innerHTML='<div class="cam-badge xs" style="background:'+hex+';color:#fff;margin-right:6px;">'+cam.number+'</div>'+(cam.label?escH(cam.label):'CAM '+cam.number);
+    } else if(tracks){
+      camLbl.innerHTML=(state.streams||[])
+        .filter(s=>tracks.indexOf(s.id)!==-1)
+        .map(function(s){
+          const col=window.getStreamColor?getStreamColor(s.id):{hex:'#3b7bdd'};
+          const short=(s.shortName||s.name||'?').slice(0,4).toUpperCase();
+          return '<span class="track-glyph xs" style="background:'+col.hex+';margin-right:4px;">'+escH(short)+'</span>';
+        }).join('');
+    } else {
+      camLbl.innerHTML='';
+    }
   }
-  // Default to current live song
   const liveSong=_getCamNotesLiveSong();
   _camNotesActiveSongId=liveSong?liveSong.id:(getActivePlaylistSongs()[0]?.id||null);
   renderCamNotesSeqs();
@@ -4582,14 +4811,16 @@ function closeCamNotesScreen(){
 function _getCamNotesLiveSong(){
   const curFrames=state.currentFrames||0;
   const camId=window.CF&&CF.cameraIds&&CF.cameraIds.length?CF.cameraIds[0]:null;
-  if(!camId)return null;
+  const tracks=window.CF&&CF.tracks&&CF.tracks.length?CF.tracks:null;
   const songs=getActivePlaylistSongs();
   let best=null;
   for(const song of songs){
-    const cues=getSortedCues(song.id,false).filter(c=>c.cameraId===camId);
-    for(const cue of cues){
-      if(cue._f<=curFrames)best=song;
-    }
+    const cues=getSortedCues(song.id,false).filter(c=>{
+      if(camId) return c.cameraId===camId;
+      if(tracks) return !c.cameraId&&tracks.indexOf(c.streamId)!==-1;
+      return true;
+    });
+    for(const cue of cues){if(cue._f<=curFrames)best=song;}
   }
   return best||songs[0]||null;
 }
@@ -4621,31 +4852,40 @@ function renderCamNotesCues(songId){
   const song=state.songs.find(s=>s.id===songId);
   if(!song){wrap.innerHTML='<div class="cn-empty">Sequence not found</div>';return;}
   const camId=window.CF&&CF.cameraIds&&CF.cameraIds.length?CF.cameraIds[0]:null;
-  // Get all camera cues for this song, filtered to this camera
-  const allCues=getSortedCues(songId,false).filter(c=>c.cameraId&&(!camId||c.cameraId===camId));
+  const tracks=window.CF&&CF.tracks&&CF.tracks.length?CF.tracks:null;
+  const allCues=getSortedCues(songId,false).filter(c=>{
+    if(camId) return c.cameraId&&c.cameraId===camId;
+    if(tracks) return !c.cameraId&&tracks.indexOf(c.streamId)!==-1;
+    return !c.cameraId;
+  });
   if(!allCues.length){
-    wrap.innerHTML='<div class="cn-empty">No camera cues in this sequence</div>';
+    const msg=camId?'No camera cues in this sequence':'No cues for your tracks in this sequence';
+    wrap.innerHTML='<div class="cn-empty">'+msg+'</div>';
     return;
   }
   allCues.forEach(function(cue){
-    const cam=getCameraById(cue.cameraId);
-    const hex=getCameraColor(cam?cam.colorIdx:0);
+    let badgeHtml='';
+    if(cue.cameraId){
+      const cam=getCameraById(cue.cameraId);const hex=getCameraColor(cam?cam.colorIdx:0);
+      badgeHtml=cam?'<div class="cam-badge xs" style="background:'+hex+';color:#fff;">'+cam.number+'</div>':'';
+    } else {
+      const st=(state.streams||[]).find(s=>s.id===cue.streamId);
+      const col=window.getStreamColor?getStreamColor(cue.streamId):{hex:'#3b7bdd'};
+      const short=(st?.shortName||st?.name||'?').slice(0,4).toUpperCase();
+      badgeHtml='<span class="track-glyph xs" style="background:'+col.hex+';">'+escH(short)+'</span>';
+    }
     const row=document.createElement('div');
     row.className='cn-cue-row';
     row.innerHTML=
-      '<div class="cn-cue-badge-cell">'+(cam?'<div class="cam-badge xs" style="background:'+hex+';color:#fff;">'+cam.number+'</div>':'')+'</div>'+
+      '<div class="cn-cue-badge-cell">'+badgeHtml+'</div>'+
       '<div class="cn-cue-tc">'+escH(cue.tc||'')+'</div>'+
       '<div class="cn-cue-name"><span class="cn-cue-name-inner">'+escH(cue.name||'—')+'</span></div>'+
       '<div class="cn-cue-desc"><textarea placeholder="Add a note…" rows="1" data-cue-id="'+cue.id+'" data-song-id="'+songId+'">'+escH(cue.desc||'')+'</textarea></div>';
     wrap.appendChild(row);
   });
-  // Auto-resize textareas + save on input
   wrap.querySelectorAll('textarea').forEach(function(ta){
     _autoResizeTa(ta);
-    ta.addEventListener('input',function(){
-      _autoResizeTa(ta);
-      saveCamNoteDesc(ta.dataset.cueId,ta.dataset.songId,ta.value);
-    });
+    ta.addEventListener('input',function(){_autoResizeTa(ta);saveCamNoteDesc(ta.dataset.cueId,ta.dataset.songId,ta.value);});
   });
 }
 
@@ -7327,15 +7567,20 @@ function _syncTopbarSeqName(){
   const pn=document.getElementById('topbar-proj-name');
   if(pn){ pn.textContent=state.name||''; pn.title=state.name||''; }
   _syncEditTopbar();
-  _syncTlSeqInfo();
 }
 // ── Full-width edit topbar sync ──
 function _syncEditTopbar(){
   const pnBtn = document.getElementById('et-project-btn');
   if(pnBtn) pnBtn.textContent = state.name || 'Project';
   const pl = getActivePlaylist();
-  const plBtn = document.getElementById('et-playlist-btn');
-  if(plBtn) plBtn.textContent = pl ? pl.name : 'Playlist';
+  const song = getActiveSong();
+  const plCrumb = document.getElementById('et-crumb-playlist');
+  if(plCrumb) plCrumb.textContent = pl ? pl.name : '—';
+  const seqCrumb = document.getElementById('et-crumb-seq');
+  if(seqCrumb) seqCrumb.textContent = song ? song.name : '—';
+  // Dim the sep + playlist when no playlist is set
+  const sep = document.querySelector('#et-breadcrumb .et-crumb-sep');
+  if(sep) sep.style.opacity = pl ? '1' : '.4';
 }
 // ── Live view clock + offset display ──
 let _clockTimer=null;
@@ -7366,29 +7611,15 @@ function _updateLiveOffsetDisplay(){
 }
 
 // Called by Block 2 when Supabase connection state changes
-window._syncEditTopbarOnline = function(isOnline, label){
+window._syncEditTopbarOnline = function(isOnline){
   const dot = document.getElementById('et-online-dot');
   const lbl = document.getElementById('et-online-lbl');
-  if(dot) dot.className = 'pip ' + (isOnline ? 'ok' : 'idle');
-  if(lbl) lbl.textContent = label || (isOnline ? 'Online' : 'Offline');
-};
-function _syncTlSeqInfo(){
-  const el=document.getElementById('tl-seq-info');if(!el)return;
-  const song=getActiveSong();if(!song){el.textContent='—';return;}
-  // Sequence index in active playlist
-  const pSongs=getActivePlaylistSongs();
-  const idx=pSongs.findIndex(s=>s.id===song.id);
-  const seqNum=idx>=0?String(idx+1).padStart(2,'0'):'—';
-  // Duration from cues or audio
-  const cues=getSortedCues(song.id,true);
-  let durStr='';
-  if(cues.length>=2){
-    const totalS=Math.round((cues[cues.length-1]._f-cues[0]._f)/state.fps);
-    const m=Math.floor(totalS/60),s=totalS%60;
-    durStr=m+':'+String(s).padStart(2,'0');
+  if(dot) dot.className = 'tc-pip ' + (isOnline ? 'ok' : 'idle');
+  if(lbl){
+    lbl.textContent = isOnline ? 'ONLINE' : 'OFFLINE';
+    lbl.style.color = isOnline ? 'var(--green)' : 'var(--txt-low)';
   }
-  el.textContent='SEQ '+seqNum+' · '+song.name+(durStr?' · '+durStr:'');
-}
+};
 
 // ══════════════════════════════════════════════════════
 // TIMELINE TC DISPLAY
@@ -7400,9 +7631,73 @@ function _syncTlTC(frames){
 
 // Open the create popup in marker/chapter mode
 function openTlCreateMarkerBtn(){
-  openTlCreateFromBtn();
-  // After popup opens, switch to marker mode
-  requestAnimationFrame(()=>setTlCreateMode('marker'));
+  openMarkerModal(state.simFrames);
+}
+
+function openMarkerModal(tcFrames){
+  const modal=document.getElementById('tl-marker-modal');if(!modal)return;
+  _tlCreateTcF=Math.floor(tcFrames!=null?tcFrames:state.simFrames);
+
+  // Breadcrumb
+  const song=getActiveSong();
+  const pl=getActivePlaylist();
+  const bc=document.getElementById('nm-breadcrumb');
+  if(bc){
+    let txt='INSERTING IN';
+    if(pl)txt+=' · '+pl.name.toUpperCase();
+    if(song)txt+=' · '+song.name.toUpperCase();
+    bc.textContent=txt;
+  }
+
+  // Prefill TC and FPS
+  const tcInp=document.getElementById('nm-tc-inp');
+  if(tcInp)tcInp.value=fTC(_tlCreateTcF);
+  const fpsLbl=document.getElementById('nm-fps-lbl');
+  if(fpsLbl)fpsLbl.textContent=(state.fps||25)+' fps';
+
+  // Clear fields
+  const nameInp=document.getElementById('nm-name-inp');
+  const descInp=document.getElementById('nm-desc-inp');
+  const nameCnt=document.getElementById('nm-name-cnt');
+  if(nameInp){nameInp.value='';if(nameCnt)nameCnt.textContent='';}
+  if(descInp)descInp.value='';
+
+  // Name counter
+  if(nameInp&&nameCnt){
+    nameInp.oninput=()=>{nameCnt.textContent=nameInp.value.length?nameInp.value.length+'/60':'';};
+  }
+
+  // Enter/Escape keys
+  modal._nmKeyHandler=function(ev){
+    if(ev.key==='Escape'){closeMarkerModal();}
+    else if(ev.key==='Enter'&&!ev.shiftKey&&document.activeElement!==descInp){
+      ev.preventDefault();commitMarker();
+    }
+  };
+  document.addEventListener('keydown',modal._nmKeyHandler);
+
+  modal.classList.add('show');
+  setTimeout(()=>nameInp?.focus(),60);
+}
+
+function closeMarkerModal(){
+  const modal=document.getElementById('tl-marker-modal');if(!modal)return;
+  modal.classList.remove('show');
+  if(modal._nmKeyHandler){document.removeEventListener('keydown',modal._nmKeyHandler);modal._nmKeyHandler=null;}
+}
+
+function commitMarker(){
+  const nameInp=document.getElementById('nm-name-inp');
+  const name=(nameInp?.value||'').trim();
+  if(!name){nameInp?.focus();return;}
+  const desc=(document.getElementById('nm-desc-inp')?.value||'').trim();
+  const song=getActiveSong();if(!song)return;
+  const tcRaw=(document.getElementById('nm-tc-inp')?.value||'').trim();
+  const f=tcRaw?tcF(tcRaw):_tlCreateTcF;
+  _ensureChapters(song);snapshot();
+  song.chapters.push({id:uid(),name,desc,tc:fTC(Math.floor(f||_tlCreateTcF))});
+  persist();renderCueList();if(ETL.visible)renderEditTimeline();
+  closeMarkerModal();
 }
 
 // ══════════════════════════════════════════════════════
@@ -7976,48 +8271,101 @@ async function checkAndRelinkAudio(){
   const list = document.getElementById('relink-list');
   if(!list) return;
   list.innerHTML = '';
+
+  // Track which songs still need linking
+  const pendingIds = new Set(missing.map(s => s.id));
+
+  // Update the batch-link button count
+  function _updateBatchBtn(){
+    const btn = document.getElementById('relink-batch-btn');
+    if(!btn) return;
+    const n = pendingIds.size;
+    btn.style.display = n > 0 ? '' : 'none';
+    btn.textContent = 'Link ' + n + ' remaining from folder…';
+  }
+
+  // Mark one row as successfully linked
+  function _markLinked(sid, filename, relinkBtn, unlinkBtn){
+    pendingIds.delete(sid);
+    const statusEl = document.getElementById('relink-status-' + sid);
+    if(statusEl){ statusEl.textContent = '✓ Linked: ' + filename; statusEl.style.color = 'var(--green-text)'; }
+    if(relinkBtn){
+      relinkBtn.textContent = '✓ Linked';
+      relinkBtn.style.cssText += 'background:var(--green-bg);border-color:var(--green);color:var(--green-text);';
+      relinkBtn.disabled = true;
+    }
+    if(unlinkBtn) unlinkBtn.style.display = 'none';
+    _updateBatchBtn();
+    const listEl = document.getElementById('relink-list');
+    if(listEl && !pendingIds.size) closeModal('relink-modal');
+  }
+
   missing.forEach(song => {
     const row = document.createElement('div');
+    row.id = 'relink-row-' + song.id;
     row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius);';
-    row.innerHTML = `<div style="flex:1;min-width:0;">
-      <div style="font-size:12px;font-weight:600;color:var(--text);">${escH(song.name)}</div>
-      <div id="relink-status-${song.id}" style="font-size:10px;color:var(--orange-text);font-family:var(--mono);margin-top:2px;">Missing: ${escH(song.audioFilename||'')}</div>
-    </div>
-    <button class="btn-icon" style="color:var(--text3);" data-action="forget" data-sid="${song.id}" title="Remove audio link">Forget</button>
-    <button class="btn-icon" data-action="relink" data-sid="${song.id}">Relink</button>`;
-    const btn = row.querySelector('[data-action="relink"]');
-    const forgetBtn = row.querySelector('[data-action="forget"]');
-    btn.onclick = () => {
-      const sid = btn.dataset.sid;
+    row.innerHTML =
+      `<div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:600;color:var(--text);">${escH(song.name)}</div>
+        <div id="relink-status-${song.id}" style="font-size:10px;color:var(--orange-text);font-family:var(--mono);margin-top:2px;">Missing: ${escH(song.audioFilename||'')}</div>
+      </div>
+      <button class="btn-icon" style="color:var(--red);" data-action="unlink" data-sid="${song.id}" title="Remove this audio link — file will not be expected on next load">Unlink</button>
+      <button class="btn-icon" data-action="relink" data-sid="${song.id}">Relink…</button>`;
+
+    const relinkBtn = row.querySelector('[data-action="relink"]');
+    const unlinkBtn = row.querySelector('[data-action="unlink"]');
+
+    relinkBtn.onclick = () => {
+      const sid = relinkBtn.dataset.sid;
       const inp = document.createElement('input');
       inp.type = 'file'; inp.accept = '.mp3,.wav,audio/mpeg,audio/wav';
       inp.onchange = async e => {
         const f = e.target.files[0]; if(!f) return;
-        const s = state.songs.find(x => x.id === sid);
-        if(s){ s.audioFilename = f.name; persist(); }
         await loadAudioForSong(sid, f);
-        const statusEl = document.getElementById(`relink-status-${sid}`);
-        if(statusEl){ statusEl.textContent = '✓ Linked: ' + f.name; statusEl.style.color = 'var(--green-text)'; }
-        btn.textContent = '✓ Linked';
-        btn.style.background = 'var(--green-bg)';
-        btn.style.borderColor = 'var(--green)';
-        btn.style.color = 'var(--green-text)';
-        if(forgetBtn) forgetBtn.style.display = 'none';
+        _markLinked(sid, f.name, relinkBtn, unlinkBtn);
       };
       inp.click();
     };
-    if(forgetBtn){
-      forgetBtn.onclick = async () => {
-        const sid = forgetBtn.dataset.sid;
-        await removeAudioFromSong(sid);
-        row.remove();
-        // Hide modal if no more rows
-        const listEl = document.getElementById('relink-list');
-        if(listEl && !listEl.children.length) closeModal('relink-modal');
-      };
-    }
+
+    unlinkBtn.onclick = async () => {
+      const sid = unlinkBtn.dataset.sid;
+      pendingIds.delete(sid);
+      await mediaRemove(sid);
+      row.remove();
+      _updateBatchBtn();
+      if(!pendingIds.size) closeModal('relink-modal');
+    };
+
     list.appendChild(row);
   });
+
+  // Batch link button (shown in modal footer, visible when 2+ files pending)
+  const batchBtn = document.getElementById('relink-batch-btn');
+  if(batchBtn){
+    batchBtn.style.display = missing.length > 1 ? '' : 'none';
+    batchBtn.textContent = 'Link ' + missing.length + ' remaining from folder…';
+    batchBtn.onclick = () => {
+      const inp = document.createElement('input');
+      inp.type = 'file'; inp.multiple = true; inp.accept = '.mp3,.wav,audio/mpeg,audio/wav';
+      inp.onchange = async e => {
+        const files = Array.from(e.target.files);
+        for(const f of files){
+          for(const sid of [...pendingIds]){
+            const s = state.songs.find(x => x.id === sid);
+            if(s && (s.audioFilename === f.name || s.mediaFile === f.name)){
+              await loadAudioForSong(sid, f);
+              const relinkBtn = document.querySelector(`[data-action="relink"][data-sid="${sid}"]`);
+              const unlinkBtn = document.querySelector(`[data-action="unlink"][data-sid="${sid}"]`);
+              _markLinked(sid, f.name, relinkBtn, unlinkBtn);
+              break;
+            }
+          }
+        }
+      };
+      inp.click();
+    };
+  }
+
   document.getElementById('relink-modal').classList.add('show');
 }
 
@@ -8396,7 +8744,6 @@ function renderEditTimeline(){
   const MKRH=16; // marker strip height
   const neededH=ETL.RULER_H+MKRH+visStreams.length*trackH;
   container.style.height=neededH+'px';
-  _syncTlSeqInfo();
   const tlW=container.clientWidth||1000;
 
   // Start second of left edge so playhead lands at PH_X over current frames
@@ -8591,29 +8938,32 @@ function renderEditTimeline(){
       block.dataset.cueId=cue.id;
       block.style.cssText=`left:${Math.round(x)}px;width:${Math.round(blockW)-1}px;height:${camH}px;top:0;opacity:${isDragging?.5:1};`;
 
-      // Camera block inner: large number + name, colored by camera
+      // Camera block inner: number stacked above cue name
       const inner=document.createElement('div');
       inner.className='etl-cam-inner';
       const bgAlpha=isCur?'28':isCueSel?'22':'14';
-      inner.style.cssText=`position:absolute;inset:0;display:flex;flex-direction:row;align-items:center;gap:8px;padding:0 10px 0 12px;overflow:hidden;background:${camHex}${bgAlpha};border-left:3px solid ${isCur?'var(--primary)':isCueSel?'#fff':camHex};`;
+      inner.style.cssText=`background:${camHex}${bgAlpha};border-left:3px solid ${isCur?'var(--primary)':isCueSel?'#fff':camHex};`;
       if(isCueSel)inner.style.outline='1.5px solid rgba(255,255,255,.3)';
 
-      // Number — large, zero-padded, monospaced
-      const numFontPx=Math.min(Math.round(camH*0.45),32);
+      // Number — zero-padded, monospaced
+      // padding-top is fixed so the number always sits at the same Y regardless of name
+      const numFontPx=Math.min(Math.round(camH*0.28),24);
+      const nameLH=14; // etl-cam-name rendered height at 11px
+      const groupH=numFontPx+2+nameLH; // num + gap + name-line
+      const pt=Math.max(0,Math.floor((camH-groupH)/2));
+      inner.style.paddingTop=pt+'px';
       const num=document.createElement('span');
       num.className='etl-cam-num';
       num.style.cssText=`font-size:${numFontPx}px;color:${isCur?'var(--primary)':camHex};`;
       num.textContent=String(cam?.number||'?').padStart(2,'0');
       inner.appendChild(num);
 
-      // Shot name
-      if(blockW>numFontPx+20){
-        const nameEl=document.createElement('span');
-        nameEl.className='etl-cam-name';
-        nameEl.style.color=isCur?'rgba(245,158,11,.8)':camHex+'cc';
-        nameEl.textContent=cue.name;
-        inner.appendChild(nameEl);
-      }
+      // Cue name — always rendered so all numbers align at the same Y via justify-content:center
+      const nameEl=document.createElement('span');
+      nameEl.className='etl-cam-name';
+      nameEl.style.color=isCur?'rgba(245,158,11,.8)':camHex+'cc';
+      nameEl.textContent=(cue.name&&blockW>30)?cue.name:'';
+      inner.appendChild(nameEl);
 
       const handle=document.createElement('div');
       handle.className='etl-cue-handle';
@@ -8772,63 +9122,158 @@ function commitTlCreate(){
 
 
 
-function openTlCreateFromBtn(){
-  // When camera track is selected, open camera cue modal instead
-  if(state.activeStreamId==='CAMERA'&&state.cameraTrack){
-    openCameraCueModal(null, state.simFrames);
-    return;
+// Selected target in the new cue modal: {type:'stream',id} or {type:'camera',id}
+let _ncSelTarget=null;
+
+function _ncOpenModal(tcFrames){
+  const pop=document.getElementById('tl-create-popup');if(!pop)return;
+  _tlCreateTcF=Math.floor(tcFrames!=null?tcFrames:state.simFrames);
+
+  // Breadcrumb
+  const song=getActiveSong();
+  const pl=getActivePlaylist();
+  const bc=document.getElementById('nc-breadcrumb');
+  if(bc){
+    let txt='INSERTING IN';
+    if(pl)txt+=' · '+pl.name.toUpperCase();
+    if(song)txt+=' · '+song.name.toUpperCase();
+    bc.textContent=txt;
   }
-  // Position popup below the + button in the toolbar
-  const f=Math.floor(state.simFrames);
-  _tlCreateTcF=f;
-  const pop=document.getElementById('tl-create-popup'); if(!pop) return;
-  const tcLbl=document.getElementById('tl-create-tc');
-  const nameInp=document.getElementById('tl-create-name');
-  const descInp=document.getElementById('tl-create-desc');
-  if(tcLbl) tcLbl.textContent=fTC(f);
-  if(nameInp) nameInp.value='';
-  if(descInp) descInp.value='';
-  _tlCreateMode='cue'; setTlCreateMode('cue');
-  // Position below + button
-  const btn=event?.currentTarget||document.querySelector('.tl-tbtn[onclick*="openTlCreateFromBtn"]');
-  let px=200, py=90;
-  if(btn){
-    const r=btn.getBoundingClientRect();
-    px=Math.max(4, r.left+r.width/2-120);
-    py=r.bottom+4;
+
+  // TC prefill
+  const tcInp=document.getElementById('nc-tc-inp');
+  if(tcInp)tcInp.value=fTC(_tlCreateTcF);
+  const fpsLbl=document.getElementById('nc-fps-lbl');
+  if(fpsLbl)fpsLbl.textContent=(state.fps||25)+' fps';
+
+  // Clear name/desc
+  const nameInp=document.getElementById('nc-name-inp');
+  const descInp=document.getElementById('nc-desc-inp');
+  const nameCnt=document.getElementById('nc-name-cnt');
+  if(nameInp){nameInp.value='';if(nameCnt)nameCnt.textContent='';}
+  if(descInp)descInp.value='';
+
+  // Build track picker
+  _ncBuildPicker();
+
+  // Show modal
+  pop.classList.add('show');
+  setTimeout(()=>nameInp?.focus(),60);
+
+  // Name char counter
+  if(nameInp&&nameCnt){
+    nameInp.oninput=()=>{ nameCnt.textContent=nameInp.value.length?nameInp.value.length+'/60':''; };
   }
-  const pw=240,ph=200;
-  if(px+pw>window.innerWidth) px=window.innerWidth-pw-8;
-  if(py+ph>window.innerHeight) py=py-ph-40;
-  pop.style.left=px+'px'; pop.style.top=py+'px'; pop.style.display='block';
-  setTimeout(()=>nameInp?.focus(), 40);
-  setTimeout(()=>{
-    if(_tlOutside){document.removeEventListener('mousedown',_tlOutside);_tlOutside=null;}
-    _tlOutside=function(ev){
-      const p=document.getElementById('tl-create-popup');
-      if(p&&!p.contains(ev.target)) closeTlCreatePopup();
+
+  // Enter key: commit; Escape: close
+  pop._ncKeyHandler=function(ev){
+    if(ev.key==='Escape'){closeTlCreatePopup();}
+    else if(ev.key==='Enter'&&!ev.shiftKey&&document.activeElement!==descInp){
+      ev.preventDefault();commitTlCreateCue();
+    }
+  };
+  document.addEventListener('keydown', pop._ncKeyHandler);
+}
+
+function _ncBuildPicker(){
+  const row1=document.getElementById('nc-track-row1');
+  const row2=document.getElementById('nc-track-row2');
+  if(!row1||!row2)return;
+  row1.innerHTML='';row2.innerHTML='';
+
+  const streams=state.streams||[];
+  const camTrack=state.cameraTrack;
+
+  // Determine initial selection
+  const activeIsCamera=state.activeStreamId==='CAMERA';
+  if(!_ncSelTarget){
+    if(activeIsCamera&&camTrack){
+      _ncSelTarget={type:'camera',id:camTrack.cameras[0]?.id||null};
+    } else {
+      const sid=state.activeStreamId||streams[0]?.id||null;
+      _ncSelTarget=sid?{type:'stream',id:sid}:null;
+    }
+  }
+
+  // Row 1: normal track badges
+  streams.forEach(s=>{
+    const col=getStreamColor(s.id);
+    const hex=col.hex||'#888';
+    const short=(s.shortName||s.name||'?').slice(0,4).toUpperCase();
+    const isSel=_ncSelTarget?.type==='stream'&&_ncSelTarget.id===s.id;
+    const btn=document.createElement('button');
+    btn.className='nc-badge'+(isSel?' sel':'');
+    btn.style.color=hex;
+    btn.style.setProperty('--nc-color',hex);
+    btn.style.setProperty('--nc-bg',hex+'18');
+    btn.innerHTML=`<span class="nc-badge-num">${escH(short)}</span>`;
+    btn.onclick=()=>{
+      _ncSelTarget={type:'stream',id:s.id};
+      _ncBuildPicker();
     };
-    document.addEventListener('mousedown',_tlOutside);
-  }, 100);
+    row1.appendChild(btn);
+  });
+
+  // Row 2: camera badges (if camera track exists)
+  if(camTrack&&camTrack.cameras&&camTrack.cameras.length){
+    camTrack.cameras.forEach(cam=>{
+      const hex=getCameraColor(cam.colorIdx||0);
+      const isSel=_ncSelTarget?.type==='camera'&&_ncSelTarget.id===cam.id;
+      const btn=document.createElement('button');
+      btn.className='nc-badge'+(isSel?' sel':'');
+      btn.style.color=hex;
+      btn.style.setProperty('--nc-color',hex);
+      btn.style.setProperty('--nc-bg',hex+'18');
+      btn.innerHTML=
+        `<span class="nc-badge-num">${String(cam.number||'?').padStart(2,'0')}</span>`+
+        (cam.label?`<span class="nc-badge-lbl">${escH(cam.label.slice(0,6))}</span>`:'');
+      btn.onclick=()=>{
+        _ncSelTarget={type:'camera',id:cam.id};
+        _ncBuildPicker();
+      };
+      row2.appendChild(btn);
+    });
+  }
+}
+
+function openTlCreateFromBtn(tcFrames){
+  _ncSelTarget=null; // reset so it picks up active stream
+  _ncOpenModal(tcFrames!=null?tcFrames:state.simFrames);
 }
 
 function closeTlCreatePopup(){
-  const p=document.getElementById('tl-create-popup');if(p)p.style.display='none';
+  const p=document.getElementById('tl-create-popup');
+  if(!p)return;
+  p.classList.remove('show');
+  if(p._ncKeyHandler){document.removeEventListener('keydown',p._ncKeyHandler);p._ncKeyHandler=null;}
   if(_tlOutside){document.removeEventListener('mousedown',_tlOutside);_tlOutside=null;}
+  _ncSelTarget=null;
 }
+
 function commitTlCreateCue(){
-  const name=document.getElementById('tl-create-name').value.trim();
-  if(!name){document.getElementById('tl-create-name').focus();return;}
-  const desc=document.getElementById('tl-create-desc').value.trim();
+  const nameInp=document.getElementById('nc-name-inp');
+  const name=(nameInp?.value||'').trim();
+  if(!name){nameInp?.focus();return;}
+  const desc=(document.getElementById('nc-desc-inp')?.value||'').trim();
   const song=getActiveSong();if(!song)return;
-  // Check overlap in same stream
-  const streamId=state.activeStreamId||state.streams[0]?.id||'';
-  let f=_tlCreateTcF;
-  while(song.cues.some(c=>c.streamId===streamId&&tcF(c.tc)===f))f++;
+
+  // Parse TC from input (fall back to _tlCreateTcF)
+  const tcRaw=(document.getElementById('nc-tc-inp')?.value||'').trim();
+  let f=tcRaw?tcF(tcRaw):_tlCreateTcF;
+  if(!f||isNaN(f))f=_tlCreateTcF;
+
   snapshot();
-  song.cues.push({id:uid(),tc:fTC(f),name,desc,streamId});
+  if(_ncSelTarget?.type==='camera'){
+    song.cues.push({id:uid(),tc:fTC(f),name,desc,cameraId:_ncSelTarget.id});
+  } else {
+    const streamId=(_ncSelTarget?.type==='stream'?_ncSelTarget.id:null)||state.activeStreamId||state.streams[0]?.id||'';
+    while(song.cues.some(c=>c.streamId===streamId&&tcF(c.tc)===f))f++;
+    song.cues.push({id:uid(),tc:fTC(f),name,desc,streamId});
+  }
   persist();renderCueList();redrawActive();
+  if(ETL.visible)renderEditTimeline();
   closeTlCreatePopup();
+  _ncSelTarget=null;
 }
 function _initEditTimeline(){
   const container=document.getElementById('edit-tl');if(!container)return;
@@ -8922,42 +9367,11 @@ function _initEditTimeline(){
         redrawTest(f);
       }
     } else if(y<ETL.RULER_H){
-      // RULER CLICK: open create-cue popup (or camera cue popup when camera track selected)
+      // RULER CLICK: open new cue modal at clicked TC
       e.preventDefault();
-      closeTlCreatePopup();
-      _tlCreateTcF=_xToTcF(container,e.clientX);
-      if(state.activeStreamId==='CAMERA'&&state.cameraTrack){
-        openCameraCueModal(null,_tlCreateTcF);
-        return;
-      }
-      const pop=document.getElementById('tl-create-popup');
-      const tcLbl=document.getElementById('tl-create-tc');
-      const nameInp=document.getElementById('tl-create-name');
-      const descInp=document.getElementById('tl-create-desc');
-      if(pop&&tcLbl&&nameInp){
-        tcLbl.textContent=fTC(_tlCreateTcF);
-        nameInp.value='';descInp.value='';
-        _tlCreateMode='cue';setTlCreateMode('cue');// reset mode each time
-        // Position near cursor but keep on screen
-        let px=e.clientX,py=e.clientY+12;
-        const pw=240,ph=160;
-        if(px+pw>window.innerWidth)px=window.innerWidth-pw-8;
-        if(py+ph>window.innerHeight)py=e.clientY-ph-4;
-        pop.style.left=px+'px';pop.style.top=py+'px';
-        pop.style.display='block';
-        setTimeout(()=>nameInp.focus(),40);
-        setTimeout(()=>{
-          document.addEventListener('keydown',function _esc(ev){
-            if(ev.key==='Escape'){closeTlCreatePopup();document.removeEventListener('keydown',_esc);}
-          });
-          if(_tlOutside){document.removeEventListener('mousedown',_tlOutside);_tlOutside=null;}
-          _tlOutside=function(ev){
-            const p=document.getElementById('tl-create-popup');
-            if(p&&!p.contains(ev.target)) closeTlCreatePopup();
-          };
-          document.addEventListener('mousedown',_tlOutside);
-        },10);
-      }
+      const clickedTcF=_xToTcF(container,e.clientX);
+      _ncSelTarget=null; // reset so it picks up active stream
+      _ncOpenModal(clickedTcF);
     } else {
       // Click on empty track area — deselect
       ETL.selId=null;
@@ -10013,9 +10427,11 @@ window.CfSelect=(function(){
 <!-- AUDIO RELINK MODAL -->
 <div id="relink-modal" class="modal-bg"><div class="modal-box" style="max-width:480px;">
   <div class="modal-title">Relink audio files</div>
-  <div class="modal-body" id="relink-body">Some audio files could not be found. Please relink them below.</div>
+  <div class="modal-body" id="relink-body">Some audio files could not be found. Relink or unlink each one below.</div>
   <div id="relink-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;max-height:260px;overflow-y:auto;"></div>
-  <div class="modal-actions">
+  <div class="modal-actions" style="flex-wrap:wrap;gap:8px;">
+    <button id="relink-batch-btn" class="mbtn primary" style="display:none;"></button>
+    <div style="flex:1;"></div>
     <button class="mbtn" onclick="closeModal('relink-modal')">Skip all</button>
     <button class="mbtn primary" onclick="closeModal('relink-modal')">Done</button>
   </div>
@@ -10332,6 +10748,8 @@ function sbSignUp(){
 }
 
 /* ── Public API ──────────────────────────────────────────── */
+var _presKey = Math.random().toString(36).slice(2); /* unique per-tab presence key */
+
 window.CF = {
   showId:   null,
   role:     null,
@@ -10341,6 +10759,7 @@ window.CF = {
   dirty:    false,
   _tcChan:  null,
   _projChan:null,
+  _presChan:null,
   _tcReady: false,
   _lastBcast: 0,
   _pendingConflictProj: null,
@@ -10625,8 +11044,81 @@ function relayTC(frames, source){
              activePlaylistId:state.activePlaylistId||null,fps:state.fps||25}});
 }
 
+/* ── Viewer status indicator ──────────────────────────────────────────────────
+ * 4 states, shown in the viewer topbar pip + label:
+ *   OFFLINE   — browser offline            pip:idle  label:OFFLINE    grey
+ *   WAITING   — online, channel not ready  pip:warn  label:WAITING…   amber
+ *   CONNECTED — channel ready, TC stale    pip:ok    label:CONNECTED  green
+ *   RECEIVING — TC received in last 800ms  pip:ok pulse  label:RECEIVING  green
+ * ─────────────────────────────────────────────────────────────────────────── */
+function _updateViewerStatus(){
+  var dot=document.getElementById('cf-v-dot');
+  var lbl=document.getElementById('vw-tc-lock');
+  if(!dot && !lbl) return;
+  var pipCls, lblTxt, lblColor;
+  if(!navigator.onLine){
+    pipCls='tc-pip idle'; lblTxt='OFFLINE'; lblColor='var(--txt-low)';
+  } else if(!CF._viewerTcSubOk){
+    pipCls='tc-pip warn pulse'; lblTxt='WAITING…'; lblColor='var(--amber)';
+  } else if(!CF._lastTcRx || Date.now()-CF._lastTcRx>2000){
+    pipCls='tc-pip ok'; lblTxt='CONNECTED'; lblColor='var(--green)';
+  } else {
+    pipCls='tc-pip ok pulse'; lblTxt='RECEIVING'; lblColor='var(--green)';
+  }
+  if(dot) dot.className=pipCls;
+  if(lbl){lbl.textContent=lblTxt; lbl.style.color=lblColor;}
+}
+window._updateViewerStatus = _updateViewerStatus; /* expose for Block 1 */
+
+/* ── Live status chip (owner): Offline / Online / n Followers ── */
+function _updateLiveStatusChip(){
+  var pip = document.getElementById('live-status-pip');
+  var lbl = document.getElementById('live-status-lbl');
+  if(!pip && !lbl) return;
+  var pipCls, lblTxt;
+  if(!navigator.onLine){
+    pipCls = 'tc-pip idle'; lblTxt = 'OFFLINE';
+  } else {
+    var viewerCount = 0;
+    if(CF._presChan){
+      var pState = CF._presChan.presenceState();
+      Object.keys(pState).forEach(function(k){
+        (pState[k]||[]).forEach(function(p){ if(p.role!=='owner') viewerCount++; });
+      });
+    }
+    if(viewerCount === 0){
+      pipCls = 'tc-pip ok'; lblTxt = 'ONLINE';
+    } else {
+      pipCls = 'tc-pip ok pulse';
+      lblTxt = viewerCount + (viewerCount===1?' FOLLOWER':' FOLLOWERS');
+    }
+  }
+  if(pip) pip.className = pipCls;
+  if(lbl) lbl.textContent = lblTxt;
+}
+window._updateLiveStatusChip = _updateLiveStatusChip;
+
+function startPresence(){
+  if(!CF.showId) return;
+  if(CF._presChan){ CF._presChan.unsubscribe(); CF._presChan = null; }
+  CF._presChan = db()
+    .channel('presence:'+CF.showId, {config:{presence:{key:_presKey}}})
+    .on('presence', {event:'sync'}, function(){
+      _updateLiveStatusChip();
+    })
+    .subscribe(function(status){
+      if(status === 'SUBSCRIBED'){
+        CF._presChan.track({role: CF.role || 'owner'});
+        _updateLiveStatusChip();
+      }
+    });
+}
+window.addEventListener('online',  _updateLiveStatusChip);
+window.addEventListener('offline', _updateLiveStatusChip);
+
 function subscribeTc(){
   if(!CF.showId) return;
+  CF._viewerTcSubOk = false;
   // Receivers use a plain channel — broadcast:{self:false} is for senders only
   // Using it on the receiver side tells Supabase to treat this as a sender,
   // which stops incoming messages from being routed here.
@@ -10663,15 +11155,11 @@ function subscribeTc(){
       if(vtc){vtc.textContent=fmtd;vtc.style.color=color;}
       var vseq=document.getElementById('cf-v-seqname');
       if(vseq&&displayLabel) vseq.textContent=displayLabel;
-      var vdot=document.getElementById('cf-v-dot');
-      if(vdot){vdot.className='tc-pip ok pulse';}
       var vstxt=document.getElementById('cf-v-status-txt');
       if(vstxt) vstxt.style.display='none';
-      /* Viewer cockpit topbar — TC source + lock */
+      /* Viewer cockpit topbar — TC source */
       var vsrc=document.getElementById('vw-tc-src');
       if(vsrc) vsrc.textContent=p.source?p.source.toUpperCase():'—';
-      var vlck=document.getElementById('vw-tc-lock');
-      if(vlck) vlck.textContent='RECEIVING';
 
       /* Editor live mode — just update TC digit color */
       var liveDisp=document.getElementById('tc-disp-live');
@@ -10683,6 +11171,9 @@ function subscribeTc(){
       CF._tcRef = {frames:frames, fps:state.fps||25, recvAt:Date.now()};
       CF._lastTcRx = Date.now();
 
+      /* Update viewer status pip + label */
+      _updateViewerStatus();
+
       /* Drive waterfall on each received packet + refresh overview */
       if(CF.role!=='tc'){
         state.simFrames = frames;
@@ -10693,23 +11184,35 @@ function subscribeTc(){
     })
     .subscribe(function(status, err){
       console.log('[CF] TC channel status:', status, err||'');
-      if(status === 'CHANNEL_ERROR') console.error('[CF] TC channel error:', err);
+      if(status === 'CHANNEL_ERROR'){
+        console.error('[CF] TC channel error:', err);
+        CF._viewerTcSubOk = false;
+      } else if(status === 'SUBSCRIBED'){
+        CF._viewerTcSubOk = true;
+      } else if(status === 'CLOSED'){
+        CF._viewerTcSubOk = false;
+      }
+      _updateViewerStatus();
     });
 
   /* Stale TC indicator + overview refresh */
   setInterval(function(){
-    if(CF._lastTcRx && Date.now()-CF._lastTcRx<800) return;
-    var dotEl=document.getElementById('cf-v-dot');
-    if(dotEl) dotEl.className='tc-pip idle';
     var tcDot=document.getElementById('cf-tc-dot');
-    if(tcDot) tcDot.style.background='#333';
-    var vstxt=document.getElementById('cf-v-status-txt');
-    if(vstxt){vstxt.textContent='Waiting for TC';vstxt.style.display='';}
-    /* Reset viewer topbar source label */
-    var vlck=document.getElementById('vw-tc-lock');
-    if(vlck) vlck.textContent='';
+    if(CF._lastTcRx && Date.now()-CF._lastTcRx<800){
+      /* still receiving — TC-only screen dot stays colored */
+      if(tcDot && tcDot.style.background==='#333') tcDot.style.background='';
+    } else {
+      if(tcDot) tcDot.style.background='#333';
+      var vstxt=document.getElementById('cf-v-status-txt');
+      if(vstxt){vstxt.textContent='Waiting for TC';vstxt.style.display='';}
+    }
+    _updateViewerStatus();
     refreshViewerOverview();
   }, 2000);
+
+  /* Network state listeners */
+  window.addEventListener('online',  _updateViewerStatus);
+  window.addEventListener('offline', _updateViewerStatus);
 
   /* ── RAF interpolation loop — runs every frame for smooth TC display ── */
   CF._tcRef = null;
@@ -10866,12 +11369,23 @@ function cfJoin(){
     CF.role=r.data.role; CF._accessId=r.data.id;
     var rawTrackIds=r.data.track_ids||null;
     var _camSelectMode=false;
+    CF.viewerShowAllCams=false;
+    CF.viewerShowCamTrack=false;
     // Separate camera IDs (prefixed 'cam:') from normal stream IDs
     if(rawTrackIds&&rawTrackIds.length){
       var rawCamIds=rawTrackIds.filter(function(id){return id&&id.indexOf('cam:')===0;}).map(function(id){return id.replace('cam:','');});
       CF.tracks=rawTrackIds.filter(function(id){return id&&id.indexOf('cam:')!==0;});
+      // cam:all sentinel: track viewer gets camera cue visibility
+      if(rawCamIds.indexOf('all')!==-1){
+        CF.viewerShowAllCams=true;
+        rawCamIds=rawCamIds.filter(function(id){return id!=='all';});
+      }
+      // cam:track sentinel: editor gets camera track edit access
+      if(rawCamIds.indexOf('track')!==-1){
+        CF.viewerShowCamTrack=true;
+        rawCamIds=rawCamIds.filter(function(id){return id!=='track';});
+      }
       if(rawCamIds.length===1&&rawCamIds[0]==='select'){
-        // Special sentinel: viewer must pick their camera
         _camSelectMode=true;
         CF.cameraIds=null;
       } else {
@@ -10911,6 +11425,7 @@ function cfJoin(){
             if(window.redrawActive&&state.appMode==='live') redrawActive();
           })
           .subscribe();
+        startPresence();
         hideLoading();
         document.getElementById('cf-join-screen').style.display='none';
         if(CF.role==='tc') showTcScreen(show);
@@ -11073,34 +11588,58 @@ function showViewerScreen(show){
   var pn=document.getElementById('cf-v-project');
   if(pn) pn.textContent=(show&&show.name)||'';
 
-  // Camera viewer: activate dedicated cockpit layout
-  var isCamViewer=CF.cameraIds&&CF.cameraIds.length===1;
+  var isCamViewer=window.CF&&CF.cameraIds&&CF.cameraIds.length===1;
+  var isTrackViewer=window.CF&&CF.tracks&&CF.tracks.length>0&&!isCamViewer;
+  var _show=function(id,d){var e=document.getElementById(id);if(e)e.style.display=d||'flex';};
+  var _hide=function(id){var e=document.getElementById(id);if(e)e.style.display='none';};
+
   if(isCamViewer){
     _activateCamCockpit();
   } else {
-    // Standard cockpit: ensure live-body visible, cam-cockpit hidden
     var livBody=document.querySelector('#cf-viewer-screen .live-body');
     var camCock=document.getElementById('cam-cockpit');
     if(livBody) livBody.style.display='flex';
     if(camCock) camCock.style.display='none';
-    var lbl=document.getElementById('vw-track-lbl');if(lbl)lbl.textContent='TRACK';
+
+    if(isTrackViewer){
+      // Track viewer: show breadcrumb + following cell + notes btn
+      _hide('vw-cam-cell');
+      _hide('vw-cam-name-cell');
+      _hide('vw-seq-grow-cell');
+      var pl=window.getActivePlaylist?getActivePlaylist():null;
+      var crumbPl=document.getElementById('vw-cam-crumb-pl');
+      var crumbSq=document.getElementById('vw-cam-crumb-sq');
+      if(crumbPl)crumbPl.textContent=pl?pl.name:'—';
+      var seedSong=window.getActiveSong?getActiveSong():null;
+      if(crumbSq)crumbSq.textContent=seedSong?seedSong.name:'—';
+      _show('vw-cam-crumb-cell');
+      _show('vw-track-following-cell');
+      _show('vw-cam-notes-btn');
+    } else {
+      // Full viewer (all tracks visible)
+      _hide('vw-cam-crumb-cell');
+      _hide('vw-cam-cell');
+      _hide('vw-cam-name-cell');
+      _hide('vw-track-following-cell');
+      _hide('vw-cam-notes-btn');
+      _show('vw-seq-grow-cell');
+    }
     buildTrackPills();
   }
 
   setTimeout(function(){
-    /* Set app mode to 'live' without calling switchMode (which switches screens) */
     state.appMode='live';
-    /* Initialise visible streams */
-    if(CF.cameraIds&&CF.cameraIds.length&&(!CF.tracks||!CF.tracks.length)){
-      // Camera-only viewer: hide all normal track cues, show only the assigned camera
+    if(isCamViewer){
       state.visibleStreamIds=[];
       state.cameraTrackVisible=true;
-    } else if(CF.tracks&&CF.tracks.length){
+    } else if(isTrackViewer){
       state.visibleStreamIds=CF.tracks.slice();
-    } else if(!CF.tracks){
+      // Camera cues visible only if explicitly granted via cam:all
+      state.cameraTrackVisible=window.CF&&CF.viewerShowAllCams?true:false;
+    } else {
       state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});
+      state.cameraTrackVisible=false;
     }
-    /* Initial render */
     if(window.redrawActive) redrawActive();
   },400);
 }
@@ -11329,10 +11868,6 @@ function refreshViewerOverview(){ /* _doRedraw keeps #live-right current */ }
 function buildTrackPills(){
   var c=document.getElementById('cf-v-tracks'); if(!c) return;
   c.innerHTML='';
-  /* Also populate viewer topbar track cell */
-  var vtc=document.getElementById('vw-track-cell');
-  var vtbi=document.getElementById('vw-track-badge-inner');
-  if(vtbi) vtbi.innerHTML='';
 
   // Camera-only viewer: show the active camera as a single pill
   if(CF.cameraIds&&CF.cameraIds.length){
@@ -11352,25 +11887,46 @@ function buildTrackPills(){
   var streams=state.streams||[];
   var allowed=CF.tracks;
   var visible=streams.filter(function(s){ return !allowed||allowed.indexOf(s.id)!==-1; });
-  if(!visible.length){c.style.display='none';if(vtc)vtc.style.display='none';return;}
+  if(!visible.length){c.style.display='none';return;}
   c.style.display='flex';
-  /* Viewer topbar: show track name(s) */
-  if(vtc&&vtbi){
-    vtc.style.display='flex';
+  /* Track viewer following cell: clickable track badges (non-clickable if only 1 track) */
+  var vtfc=document.getElementById('vw-track-badges-topbar');
+  if(vtfc){
+    vtfc.innerHTML='';
+    var singleTrack=visible.length===1;
     visible.forEach(function(s){
       var col=window.getStreamColor?getStreamColor(s.id):{hex:'#3b7bdd'};
       var short=(s.shortName||s.name||'?').slice(0,4).toUpperCase();
-      var span=document.createElement('span');
-      span.className='track-glyph sm';
-      span.style.background=col.hex;
-      span.textContent=short;
-      vtbi.appendChild(span);
-      var nm=document.createElement('span');
-      nm.className='vw-tc-src';
-      nm.style.color='var(--txt-hi)';
-      nm.textContent=s.name;
-      vtbi.appendChild(nm);
+      var vis=state.visibleStreamIds.indexOf(s.id)!==-1;
+      var btn=document.createElement('button');
+      btn.style.cssText=
+        'background:'+(vis?col.hex:'none')+';color:'+(vis?'#fff':col.hex)+
+        ';border:1px solid '+col.hex+';font-family:var(--cond);font-size:10px;font-weight:700;'+
+        'letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;'+
+        (singleTrack?'cursor:default;':'cursor:pointer;')+
+        'border-radius:2px;transition:background .12s,color .12s;white-space:nowrap;';
+      btn.textContent=short;
+      btn.dataset.sid=s.id;
+      if(!singleTrack){
+        btn.onclick=function(){
+          var id=this.dataset.sid;
+          var idx=state.visibleStreamIds.indexOf(id);
+          if(idx>=0) state.visibleStreamIds.splice(idx,1);
+          else state.visibleStreamIds.push(id);
+          if(window.buildTrackPills) buildTrackPills();
+          if(window.redrawActive) redrawActive();
+        };
+      }
+      vtfc.appendChild(btn);
     });
+    // CAM badge: shown when viewer has camera cue access
+    if(CF.viewerShowAllCams){
+      var camBadge=document.createElement('span');
+      camBadge.className='track-glyph sm';
+      camBadge.style.cssText='background:var(--txt-low);color:var(--bg);cursor:default;user-select:none;';
+      camBadge.textContent='CAM';
+      vtfc.appendChild(camBadge);
+    }
   }
   var isSingle = visible.length===1;
   visible.forEach(function(s){
@@ -11448,39 +12004,73 @@ function _editorEnterEditMode(){
 }
 
 function showEditorApp(show){
-  showViewerScreen(show);
+  var isTrackEd=CF.role==='track-editor';
   window._editorMode=true;
   window.openMidiModal=function(){};
 
-  /* Hide panels editors must not access */
+  /* Block project + share panels — patch sbOpen so no code path can bypass the restriction */
+  var _origSbOpen=window.sbOpen;
+  window.sbOpen=function(name){
+    if(name==='save'||name==='online') return; // silently blocked for all editor roles
+    if(_origSbOpen) _origSbOpen.call(window,name);
+  };
+  CF.sbOpenRoles=function(){}; // block share panel via globe button too
+
+  /* Hide restricted sidebar buttons and topbar entry points */
   var ob=document.getElementById('sb-online'); if(ob) ob.style.display='none';
   var saveBtn=document.getElementById('sb-save'); if(saveBtn) saveBtn.style.display='none';
   var sb2=document.getElementById('sb-settings'); if(sb2) sb2.style.display='none';
-  /* Hide Live mode button — editors never enter live mode */
+  /* Topbar project button: remove onclick so even keyboard/script can't open it */
+  var projBtn=document.getElementById('et-project-btn');
+  if(projBtn){ projBtn.style.display='none'; projBtn.onclick=null; }
+  /* Go Live button — editors never enter live mode */
   var lt=document.getElementById('live-toggle'); if(lt) lt.style.display='none';
 
-  /* Rename "Add description" → "✎ Edit" and wire to edit mode */
-  var editBtn=document.getElementById('cf-v-edit-btn');
-  if(editBtn){
-    editBtn.textContent='EDIT';
-    editBtn.onclick=function(){ _editorEnterEditMode(); };
-  }
-
-  /* Patch persist — auto-push with debounce, no manual sync needed */
+  /* Patch persist — auto-push with debounce */
   var _origP=window.persist;
   window.persist=function(){
     _origP.call(this);
     clearTimeout(CF._editorPushTimer);
     CF._editorPushTimer=setTimeout(pushProject, 1200);
   };
-
-  /* Push pending changes when coming back online */
   window.addEventListener('online',function(){
-    if(CF.showId && (CF.role==='editor'||CF.role==='track-editor')){
+    if(CF.showId&&(CF.role==='editor'||CF.role==='track-editor')){
       clearTimeout(CF._editorPushTimer);
-      CF._editorPushTimer=setTimeout(pushProject, 300);
+      CF._editorPushTimer=setTimeout(pushProject,300);
     }
   });
+
+  if(isTrackEd){
+    /* Track-editor: go directly to the edit screen */
+    /* Apply camera track visibility if granted */
+    if(CF.viewerShowCamTrack) state.cameraTrackVisible=true;
+
+    /* Hide PREVIEW tab — track-editors get list, media, notes only */
+    var wfTab=document.getElementById('ertab-wf');
+    if(wfTab) wfTab.style.display='none';
+
+    /* Activate edit screen */
+    document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+    var es=document.getElementById('edit-screen');
+    if(es) es.classList.add('active');
+    var vs=document.getElementById('cf-viewer-screen');
+    if(vs) vs.style.display='none';
+    state.appMode='test';
+
+    if(window.renderSongList) renderSongList();
+    if(window.renderCueList) renderCueList();
+    if(window.renderStreamsBar) renderStreamsBar();
+    if(window.buildTrackPills) buildTrackPills();
+    if(window._syncEditTopbar) _syncEditTopbar();
+  } else {
+    /* Full editor: viewer screen with "EDIT" button to switch to edit mode */
+    showViewerScreen(show);
+    var editBtn=document.getElementById('cf-v-edit-btn');
+    if(editBtn){
+      editBtn.textContent='EDIT';
+      editBtn.onclick=function(){ _editorEnterEditMode(); };
+    }
+  }
 }
 
 /* ── Track-editor permission modal ──────────────────────── */
@@ -11856,6 +12446,12 @@ function onRoleChange(){
   if(!wrap) return;
   var needsTracks=role==='viewer'||role==='editor';
   var isCamViewer=role==='cam-viewer';
+  /* Camera cues checkbox: only for track-restricted viewers */
+  var camAllWrap=document.getElementById('cf-pin-cam-all-wrap');
+  if(camAllWrap) camAllWrap.style.display=role==='viewer'?'block':'none';
+  /* Camera track access: for editors, when a camera track exists */
+  var camTrackWrap=document.getElementById('cf-pin-cam-track-wrap');
+  if(camTrackWrap) camTrackWrap.style.display=(role==='editor'&&state.cameraTrack)?'block':'none';
   wrap.style.display=needsTracks?'block':'none';
   var lbl=document.getElementById('cf-pin-tracks-lbl');
   if(lbl) lbl.textContent=role==='editor'?'Editing rights — which tracks can this editor modify?':'Visible tracks — leave unchecked to show all';
@@ -11894,7 +12490,18 @@ function addPin(){
     trackIds=['cam:select'];
   } else if(role==='viewer'||role==='editor'){
     var boxes=document.querySelectorAll('#cf-pin-tracks-list input:checked');
-    if(boxes.length) trackIds=Array.from(boxes).map(function(b){return b.value;});
+    if(boxes.length){
+      trackIds=Array.from(boxes).map(function(b){return b.value;});
+    }
+    /* Camera cues (viewer only) */
+    var camAllBox=document.getElementById('cf-pin-cam-all');
+    if(role==='viewer'&&camAllBox&&camAllBox.checked&&trackIds) trackIds.push('cam:all');
+    /* Camera track access (editor only) */
+    var camTrackBox=document.getElementById('cf-pin-cam-track');
+    if(role==='editor'&&camTrackBox&&camTrackBox.checked){
+      if(!trackIds) trackIds=[];
+      trackIds.push('cam:track');
+    }
   }
   var pin=String(Math.floor(100000+Math.random()*900000));
   hashPin(pin).then(function(h){
@@ -12335,31 +12942,32 @@ CF._plDrop=function(toIdx){
 CF._wasOffline=false; CF._offlineDirty=false;
 window.addEventListener('online',function(){
   CF._wasOffline=true;
-  var bar=document.getElementById('cf-offline-bar'); if(bar) bar.style.display='none';
-  if(window._syncEditTopbarOnline) _syncEditTopbarOnline(true, CF.showId ? 'Online' : 'Online');
+  var bar=document.getElementById('cf-offline-bar'); if(bar) bar.classList.remove('show');
+  if(window._syncEditTopbarOnline) _syncEditTopbarOnline(true);
   if(CF.showId&&CF.isOwner&&CF.dirty) pushProject(function(){CF.dirty=false;updateSyncBtn();});
 });
 window.addEventListener('offline',function(){
   if(CF.dirty) CF._offlineDirty=true;
-  var bar=document.getElementById('cf-offline-bar'); if(bar) bar.style.display='block';
-  if(window._syncEditTopbarOnline) _syncEditTopbarOnline(false,'Offline');
+  var bar=document.getElementById('cf-offline-bar'); if(bar) bar.classList.add('show');
+  if(window._syncEditTopbarOnline) _syncEditTopbarOnline(false);
   updateSyncBtn();
 });
 /* ── Initial online state sync ───────────────────────────── */
 (function(){
   if(window._syncEditTopbarOnline){
-    if(navigator.onLine && CF.showId){
-      _syncEditTopbarOnline(true,'Online');
-    } else if(!navigator.onLine){
-      _syncEditTopbarOnline(false,'Offline');
-    }
-    /* Local-only (no show): pip stays 'idle', label stays 'Local' */
+    _syncEditTopbarOnline(navigator.onLine);
   }
 })();
 /* ── Live mode hooks ───────────────────────────────────── */
 CF._tcRelayActive=false;
-CF._onEnterLive=function(){ CF._tcRelayActive=true; openTcChan(); if(window.sbClose) sbClose(); };
-CF._onExitLive=function(){ CF._tcRelayActive=false; };
+CF._onEnterLive=function(){
+  CF._tcRelayActive=true; openTcChan(); if(window.sbClose) sbClose();
+  startPresence(); _updateLiveStatusChip();
+};
+CF._onExitLive=function(){
+  CF._tcRelayActive=false;
+  if(CF._presChan){ CF._presChan.unsubscribe(); CF._presChan=null; }
+};
 
 boot();
 
@@ -12400,7 +13008,18 @@ boot();
   </div>
 </div>
 
-<div id="cf-offline-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9995;background:#1a1200;border-top:1px solid var(--orange);padding:6px 16px;font-size:11px;color:var(--orange-text);text-align:center;">Changes will be synced when back online</div>
+<div id="cf-offline-bar">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;margin-top:1px;">
+    <path d="M8 2.5L13.8 12.5H2.2L8 2.5Z" stroke="var(--amber)" stroke-width="1.4" stroke-linejoin="round" fill="none"/>
+    <line x1="8" y1="6.5" x2="8" y2="9.5" stroke="var(--amber)" stroke-width="1.4" stroke-linecap="round"/>
+    <circle cx="8" cy="11.2" r=".65" fill="var(--amber)"/>
+  </svg>
+  <div style="flex:1;min-width:0;">
+    <div style="font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-hi);margin-bottom:4px;">Offline</div>
+    <div style="font-size:12px;color:var(--txt-mid);line-height:1.5;">Changes will be saved locally and synced when back online.</div>
+  </div>
+  <button class="oft-close" onclick="this.closest('#cf-offline-bar').classList.remove('show')" title="Dismiss">×</button>
+</div>
 
 <div id="cf-tip"></div>
 <script>
