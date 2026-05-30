@@ -1166,7 +1166,7 @@ body.mode-live #edit-mode-banner { display: none; }
 .vw-cam-crumb-sq { color:var(--txt-mid); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .vw-cam-following { display:none; align-items:center; gap:7px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); flex-shrink:0; }
 .vw-cam-name-cell { display:none; align-items:center; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--txt-hi); flex-shrink:0; white-space:nowrap; }
-.vw-cam-notes-btn { display:none; align-items:center; gap:7px; padding:0 16px; margin-left:auto; border-left:1px solid var(--hair); border-right:none; border-top:none; border-bottom:none; height:100%; background:none; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; transition:color .12s,background .12s; flex-shrink:0; white-space:nowrap; }
+.vw-cam-notes-btn { display:none; align-items:center; gap:7px; padding:0 16px; margin-left:auto; border-left:1px solid var(--hair); border-right:none; border-top:none; border-bottom:none; height:100%; background:none; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; transition:color .12s,background .12s; flex-shrink:0; white-space:nowrap; }
 .vw-cam-notes-btn:hover { color:var(--txt-hi); background:var(--surface2); }
 /* Camera panel collapse toggle */
 .cam-panel-toggle { background:none; border:1px solid var(--hair2); color:var(--txt-low); width:24px; height:24px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:color .12s,border-color .12s; padding:0; flex-shrink:0; }
@@ -1843,6 +1843,10 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.4"/><line x1="3" y1="4" x2="9" y2="4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="3" y1="6.5" x2="9" y2="6.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="3" y1="9" x2="6.5" y2="9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
       Edit Notes
     </button>
+    <!-- Editor: back to edit screen (shown only in editor follow mode) -->
+    <div class="vw-cell right" id="editor-back-btn" style="display:none;padding:0 10px;">
+      <button class="mbtn primary" onclick="if(window._editorEnterEditMode)_editorEnterEditMode()" style="height:26px;padding:0 14px;font-size:10px;">Edit</button>
+    </div>
   </div>
 
   <!-- 4px mode banner -->
@@ -2035,6 +2039,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <span class="et-status-lbl" id="et-online-lbl" style="color:var(--txt-low)">OFFLINE</span>
   </div>
   <button class="live-toggle" id="live-toggle" onclick="switchMode('live')">Go Live</button>
+  <button class="live-toggle" id="editor-online-btn" style="display:none;" onclick="if(window._editorGoOnline)_editorGoOnline()">Go Online</button>
 </div>
 <div class="mode-banner edit" id="edit-mode-banner"></div>
 <!-- ── App body: sidebar + panel + screens ── -->
@@ -4780,6 +4785,7 @@ function openCamNotesScreen(){
   scr.style.display='flex';
   const cam=window.CF&&CF.cameraIds&&CF.cameraIds.length?getCameraById(CF.cameraIds[0]):null;
   const tracks=window.CF&&CF.tracks&&CF.tracks.length?CF.tracks:null;
+  const showAllCams=window.CF&&CF.viewerShowAllCams;
   const camLbl=document.getElementById('cn-topbar-cam');
   if(camLbl){
     if(cam){
@@ -4793,6 +4799,9 @@ function openCamNotesScreen(){
           const short=(s.shortName||s.name||'?').slice(0,4).toUpperCase();
           return '<span class="track-glyph xs" style="background:'+col.hex+';margin-right:4px;">'+escH(short)+'</span>';
         }).join('');
+    } else if(showAllCams){
+      const camName=state.cameraTrack?escH(state.cameraTrack.name||'Cameras'):'Cameras';
+      camLbl.innerHTML='<span class="track-glyph xs" style="background:var(--txt-low);color:var(--bg);margin-right:4px;">CAM</span>'+camName;
     } else {
       camLbl.innerHTML='';
     }
@@ -4812,11 +4821,13 @@ function _getCamNotesLiveSong(){
   const curFrames=state.currentFrames||0;
   const camId=window.CF&&CF.cameraIds&&CF.cameraIds.length?CF.cameraIds[0]:null;
   const tracks=window.CF&&CF.tracks&&CF.tracks.length?CF.tracks:null;
+  const showAllCams=window.CF&&CF.viewerShowAllCams;
   const songs=getActivePlaylistSongs();
   let best=null;
   for(const song of songs){
     const cues=getSortedCues(song.id,false).filter(c=>{
       if(camId) return c.cameraId===camId;
+      if(showAllCams) return !!c.cameraId;
       if(tracks) return !c.cameraId&&tracks.indexOf(c.streamId)!==-1;
       return true;
     });
@@ -4853,13 +4864,15 @@ function renderCamNotesCues(songId){
   if(!song){wrap.innerHTML='<div class="cn-empty">Sequence not found</div>';return;}
   const camId=window.CF&&CF.cameraIds&&CF.cameraIds.length?CF.cameraIds[0]:null;
   const tracks=window.CF&&CF.tracks&&CF.tracks.length?CF.tracks:null;
+  const showAllCams=window.CF&&CF.viewerShowAllCams;
   const allCues=getSortedCues(songId,false).filter(c=>{
     if(camId) return c.cameraId&&c.cameraId===camId;
+    if(showAllCams) return !!c.cameraId; // viewer with camera access: camera cues only
     if(tracks) return !c.cameraId&&tracks.indexOf(c.streamId)!==-1;
     return !c.cameraId;
   });
   if(!allCues.length){
-    const msg=camId?'No camera cues in this sequence':'No cues for your tracks in this sequence';
+    const msg=(camId||showAllCams)?'No camera cues in this sequence':'No cues for your tracks in this sequence';
     wrap.innerHTML='<div class="cn-empty">'+msg+'</div>';
     return;
   }
@@ -11414,15 +11427,26 @@ function cfJoin(){
         CF._accessTracksChan=db().channel('access-tracks:'+CF.showId)
           .on('broadcast',{event:'tracks_changed'},function(msg){
             if(!msg.payload||msg.payload.id!==CF._accessId) return;
-            var newTracks=msg.payload.track_ids||null;
-            CF.tracks=newTracks;
-            if(newTracks&&newTracks.length){
-              state.visibleStreamIds=newTracks.slice();
+            var raw=msg.payload.track_ids||null;
+            /* Separate sentinels from real stream IDs */
+            var camSentinels=raw?raw.filter(function(id){return id&&id.indexOf('cam:')===0;}):[];
+            var streamIds=raw?raw.filter(function(id){return !id||id.indexOf('cam:')!==0;}):null;
+            /* Update track access flags */
+            CF.viewerShowAllCams=camSentinels.indexOf('all')!==-1;
+            CF.viewerShowCamTrack=camSentinels.indexOf('track')!==-1;
+            CF.tracks=(streamIds&&streamIds.length)?streamIds:null;
+            /* Update visible stream IDs */
+            if(CF.tracks&&CF.tracks.length){
+              state.visibleStreamIds=CF.tracks.slice();
             } else {
               state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});
             }
+            /* Camera track visibility */
+            state.cameraTrackVisible=CF.viewerShowCamTrack||CF.viewerShowAllCams?true:false;
             if(window.buildTrackPills) buildTrackPills();
-            if(window.redrawActive&&state.appMode==='live') redrawActive();
+            if(window.renderCueList) renderCueList();
+            if(window.renderStreamsBar) renderStreamsBar();
+            if(window.redrawActive) redrawActive();
           })
           .subscribe();
         startPresence();
@@ -11615,8 +11639,15 @@ function showViewerScreen(show){
       _show('vw-cam-crumb-cell');
       _show('vw-track-following-cell');
       _show('vw-cam-notes-btn');
+    } else if(window.CF&&CF.viewerShowAllCams){
+      // Viewer with camera cue access: show notes button for editing camera descriptions
+      _hide('vw-cam-cell');
+      _hide('vw-cam-name-cell');
+      _hide('vw-track-following-cell');
+      _show('vw-seq-grow-cell');
+      _show('vw-cam-notes-btn');
     } else {
-      // Full viewer (all tracks visible)
+      // Full viewer (all tracks visible, no camera access)
       _hide('vw-cam-crumb-cell');
       _hide('vw-cam-cell');
       _hide('vw-cam-name-cell');
@@ -11919,13 +11950,23 @@ function buildTrackPills(){
       }
       vtfc.appendChild(btn);
     });
-    // CAM badge: shown when viewer has camera cue access
+    // CAM badge: clickable toggle, same style as track badges
     if(CF.viewerShowAllCams){
-      var camBadge=document.createElement('span');
-      camBadge.className='track-glyph sm';
-      camBadge.style.cssText='background:var(--txt-low);color:var(--bg);cursor:default;user-select:none;';
-      camBadge.textContent='CAM';
-      vtfc.appendChild(camBadge);
+      var camHex=typeof getCameraColor==='function'?getCameraColor(0):'#888';
+      var camVis=state.cameraTrackVisible!==false;
+      var camBtn=document.createElement('button');
+      camBtn.style.cssText=
+        'background:'+(camVis?camHex:'none')+';color:'+(camVis?'#fff':camHex)+
+        ';border:1px solid '+camHex+';font-family:var(--cond);font-size:10px;font-weight:700;'+
+        'letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;cursor:pointer;'+
+        'border-radius:2px;transition:background .12s,color .12s;white-space:nowrap;';
+      camBtn.textContent='CAM';
+      camBtn.onclick=function(){
+        state.cameraTrackVisible=state.cameraTrackVisible===false?true:false;
+        if(window.buildTrackPills) buildTrackPills();
+        if(window.redrawActive) redrawActive();
+      };
+      vtfc.appendChild(camBtn);
     }
   }
   var isSingle = visible.length===1;
@@ -11977,12 +12018,29 @@ function _editorEnterFollowMode(){
   if(window.redrawActive) redrawActive();
 }
 
+function _editorGoOnline(){
+  /* Show the viewer screen as a live follow view, with the owner's preselected tracks */
+  showViewerScreen({name:state.name||''});
+  /* Replace "Edit Notes" with "Edit" — showViewerScreen may have shown the notes btn */
+  var notesBtn=document.getElementById('vw-cam-notes-btn');
+  if(notesBtn) notesBtn.style.display='none';
+  var backBtn=document.getElementById('editor-back-btn');
+  if(backBtn) backBtn.style.display='flex';
+}
+window._editorGoOnline=_editorGoOnline;
+window._editorEnterEditMode=_editorEnterEditMode;
+
 function _editorEnterEditMode(){
   /* Close overview overlay if open */
   var lr=document.getElementById('live-right');
   if(lr&&lr.dataset.viewerOverlay==='1') toggleViewerOverview();
   var vs=document.getElementById('cf-viewer-screen');
   if(vs) vs.style.display='none';
+  var backBtn=document.getElementById('editor-back-btn');
+  if(backBtn) backBtn.style.display='none';
+  /* Notes button was hidden in follow mode — keep it hidden in edit mode too */
+  var notesBtn=document.getElementById('vw-cam-notes-btn');
+  if(notesBtn) notesBtn.style.display='none';
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   var es=document.getElementById('edit-screen');
   if(es) es.classList.add('active');
@@ -12004,34 +12062,64 @@ function _editorEnterEditMode(){
 }
 
 function showEditorApp(show){
-  var isTrackEd=CF.role==='track-editor';
+  /* Track-restricted editor: role === 'track-editor' OR role === 'editor' with specific tracks */
+  var hasTrackRestriction=!!(CF.tracks&&CF.tracks.length);
   window._editorMode=true;
   window.openMidiModal=function(){};
 
-  /* Block project + share panels — patch sbOpen so no code path can bypass the restriction */
+  /* Block project + share panels at the function level so no code path bypasses it */
   var _origSbOpen=window.sbOpen;
   window.sbOpen=function(name){
-    if(name==='save'||name==='online') return; // silently blocked for all editor roles
+    if(name==='save'||name==='online') return;
     if(_origSbOpen) _origSbOpen.call(window,name);
   };
-  CF.sbOpenRoles=function(){}; // block share panel via globe button too
+  CF.sbOpenRoles=function(){};
 
   /* Hide restricted sidebar buttons and topbar entry points */
   var ob=document.getElementById('sb-online'); if(ob) ob.style.display='none';
   var saveBtn=document.getElementById('sb-save'); if(saveBtn) saveBtn.style.display='none';
   var sb2=document.getElementById('sb-settings'); if(sb2) sb2.style.display='none';
-  /* Topbar project button: remove onclick so even keyboard/script can't open it */
   var projBtn=document.getElementById('et-project-btn');
   if(projBtn){ projBtn.style.display='none'; projBtn.onclick=null; }
-  /* Go Live button — editors never enter live mode */
+  /* Go Live button — replaced by Go Online for editors */
   var lt=document.getElementById('live-toggle'); if(lt) lt.style.display='none';
+  var goOnlineBtn=document.getElementById('editor-online-btn'); if(goOnlineBtn) goOnlineBtn.style.display='';
+
+  /* Initialise stream visibility from CF.tracks (overrides owner's saved state) */
+  if(CF.tracks&&CF.tracks.length){
+    state.visibleStreamIds=CF.tracks.slice();
+  } else {
+    state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});
+  }
+  /* Camera track visible only when explicitly granted — overrides owner's saved state */
+  state.cameraTrackVisible=!!CF.viewerShowCamTrack;
+
+  /* Track-restricted editors: hide PREVIEW tab (list, media, notes only) */
+  if(hasTrackRestriction){
+    var wfTab=document.getElementById('ertab-wf');
+    if(wfTab) wfTab.style.display='none';
+  }
+
+  /* All editors go directly to the edit screen */
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  var es=document.getElementById('edit-screen');
+  if(es) es.classList.add('active');
+  var vs=document.getElementById('cf-viewer-screen');
+  if(vs) vs.style.display='none';
+  state.appMode='test';
+
+  if(window.renderSongList) renderSongList();
+  if(window.renderCueList) renderCueList();
+  if(window.renderStreamsBar) renderStreamsBar();
+  if(window.buildTrackPills) buildTrackPills();
+  if(window._syncEditTopbar) _syncEditTopbar();
 
   /* Patch persist — auto-push with debounce */
   var _origP=window.persist;
   window.persist=function(){
     _origP.call(this);
     clearTimeout(CF._editorPushTimer);
-    CF._editorPushTimer=setTimeout(pushProject, 1200);
+    CF._editorPushTimer=setTimeout(pushProject,1200);
   };
   window.addEventListener('online',function(){
     if(CF.showId&&(CF.role==='editor'||CF.role==='track-editor')){
@@ -12039,38 +12127,6 @@ function showEditorApp(show){
       CF._editorPushTimer=setTimeout(pushProject,300);
     }
   });
-
-  if(isTrackEd){
-    /* Track-editor: go directly to the edit screen */
-    /* Apply camera track visibility if granted */
-    if(CF.viewerShowCamTrack) state.cameraTrackVisible=true;
-
-    /* Hide PREVIEW tab — track-editors get list, media, notes only */
-    var wfTab=document.getElementById('ertab-wf');
-    if(wfTab) wfTab.style.display='none';
-
-    /* Activate edit screen */
-    document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
-    var es=document.getElementById('edit-screen');
-    if(es) es.classList.add('active');
-    var vs=document.getElementById('cf-viewer-screen');
-    if(vs) vs.style.display='none';
-    state.appMode='test';
-
-    if(window.renderSongList) renderSongList();
-    if(window.renderCueList) renderCueList();
-    if(window.renderStreamsBar) renderStreamsBar();
-    if(window.buildTrackPills) buildTrackPills();
-    if(window._syncEditTopbar) _syncEditTopbar();
-  } else {
-    /* Full editor: viewer screen with "EDIT" button to switch to edit mode */
-    showViewerScreen(show);
-    var editBtn=document.getElementById('cf-v-edit-btn');
-    if(editBtn){
-      editBtn.textContent='EDIT';
-      editBtn.onclick=function(){ _editorEnterEditMode(); };
-    }
-  }
 }
 
 /* ── Track-editor permission modal ──────────────────────── */
@@ -12398,7 +12454,12 @@ function renderPinsList(){
       var camId=p.track_ids[0].replace('cam:','');
       trackSummary=camId==='select'?'Viewer selects camera on join':'Camera '+(function(){var co=state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.find(function(cc){return cc.id===camId;});return co?(co.label||'CAM '+co.number):camId;}());
     } else if(p.track_ids&&p.track_ids.length){
-      trackSummary=p.track_ids.map(function(id){var s=state.streams&&state.streams.find(function(s){return s.id===id;});return s?s.name:id;}).join(', ');
+      trackSummary=p.track_ids.map(function(id){
+        if(id==='cam:track') return state.cameraTrack?(state.cameraTrack.name||'Cameras'):'Camera track';
+        if(id==='cam:all') return 'Camera cues';
+        var s=state.streams&&state.streams.find(function(s){return s.id===id;});
+        return s?s.name:id;
+      }).join(', ');
     } else if(p.role!=='tc'&&p.role!=='owner'){
       trackSummary='All tracks';
     }
@@ -12564,15 +12625,26 @@ CF._toggleEditPinTracks=function(id){
   if(editEl.classList.contains('open')){editEl.classList.remove('open');return;}
   var pin=CF._pinList.find(function(p){return p.id===id;}); if(!pin) return;
   var streams=state.streams||[];
-  var html='<div class="sbp-cl-tracks-lbl" style="margin-bottom:6px;">Track visibility</div>';
+  var isEditor=pin.role==='editor'||pin.role==='track-editor';
+  var lbl=isEditor?'Edit access — tracks this editor can modify':'Track visibility';
+  var html='<div class="sbp-cl-tracks-lbl" style="margin-bottom:6px;">'+lbl+'</div>';
   streams.forEach(function(s){
     var checked=pin.track_ids&&pin.track_ids.indexOf(s.id)!==-1;
     html+='<label class="sbp-cl-chk-row">'+
       '<input type="checkbox" data-track="'+s.id+'" '+(checked?'checked':'')+' style="accent-color:var(--primary);">'+
       (window.escH?escH(s.name):s.name)+'</label>';
   });
+  /* Camera track option for editors and viewers */
+  if(state.cameraTrack){
+    var camSentinel=isEditor?'cam:track':'cam:all';
+    var camChecked=pin.track_ids&&pin.track_ids.indexOf(camSentinel)!==-1;
+    var camName=window.escH?escH(state.cameraTrack.name||'Cameras'):(state.cameraTrack.name||'Cameras');
+    html+='<label class="sbp-cl-chk-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--hair);">'+
+      '<input type="checkbox" data-track="'+camSentinel+'" '+(camChecked?'checked':'')+' style="accent-color:var(--primary);">'+
+      camName+'</label>';
+  }
   if(streams.length>5){
-    html+='<button onclick="this.closest(\'.sbp-pin-trk-expand\').querySelectorAll(\'input\').forEach(function(i){i.checked=true;})" '+
+    html+='<button onclick="this.closest(\'.sbp-pin-trk-expand\').querySelectorAll(\'input[data-track]\').forEach(function(i){if(!i.dataset.track.startsWith(\'cam:\'))i.checked=true;})" '+
       'style="font-size:9px;height:26px;padding:0 10px;background:none;border:1px solid var(--hair2);color:var(--txt-low);cursor:pointer;font-family:var(--cond);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin:4px 0;">Add all</button>';
   }
   html+='<button onclick="CF._savePinTracks(\''+id+'\')" class="sbp-cl-btn" style="margin-top:6px;">Save</button>';
