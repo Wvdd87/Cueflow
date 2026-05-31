@@ -2611,19 +2611,39 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 </div>
 
 <!-- MODALS -->
-<div id="cf-auth-modal" class="modal-bg" role="dialog" aria-modal="true" aria-labelledby="cf-auth-modal-title">
-  <div class="modal-box" style="width:320px;">
-    <div class="modal-title" id="cf-auth-modal-title">Sign in to CueFlow</div>
-    <div class="modal-body" style="padding-bottom:4px;">
-      <input id="cf-auth-username" type="text" placeholder="Username" autocomplete="username" style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;outline:none;">
-      <input id="cf-auth-password" type="password" placeholder="Password" autocomplete="current-password" style="width:100%;box-sizing:border-box;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;outline:none;" onkeydown="if(event.key==='Enter')CF.cfSignIn()">
-      <div id="cf-auth-err" style="font-size:11px;min-height:18px;margin-top:8px;"></div>
+<div id="cf-auth-screen" style="display:none;position:fixed;inset:0;z-index:99997;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;">
+  <div style="width:100%;max-width:340px;padding:0 24px;">
+
+    <!-- Sign-in view -->
+    <div id="cf-signin-view">
+      <div style="text-align:center;margin-bottom:40px;">
+        <div style="font-size:36px;margin-bottom:10px;">🎬</div>
+        <div style="font-family:var(--cond);font-size:24px;font-weight:700;letter-spacing:.04em;color:var(--text);">CueFlow</div>
+        <div style="font-size:11px;color:var(--text3);letter-spacing:.15em;text-transform:uppercase;margin-top:6px;">Sign in to continue</div>
+      </div>
+      <input id="cf-auth-email" type="email" placeholder="Email address" autocomplete="email" style="width:100%;box-sizing:border-box;margin-bottom:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--hair2);border-radius:6px;color:var(--text);font-size:14px;outline:none;" onkeydown="if(event.key==='Enter')document.getElementById('cf-auth-password').focus()">
+      <input id="cf-auth-password" type="password" placeholder="Password" autocomplete="current-password" style="width:100%;box-sizing:border-box;margin-bottom:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--hair2);border-radius:6px;color:var(--text);font-size:14px;outline:none;" onkeydown="if(event.key==='Enter')CF.cfSignIn()">
+      <div id="cf-auth-err" style="font-size:12px;min-height:16px;margin-bottom:10px;color:var(--red);text-align:center;"></div>
+      <button id="cf-auth-submit" onclick="CF.cfSignIn()" style="width:100%;padding:10px;background:var(--amber);border:none;border-radius:6px;color:#06060a;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--cond);letter-spacing:.03em;">Sign in</button>
+      <div style="text-align:center;margin-top:14px;">
+        <button onclick="CF.cfForgotPassword()" style="background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;padding:0;text-decoration:underline;">Forgot password?</button>
+      </div>
+      <div id="cf-auth-msg" style="font-size:12px;min-height:16px;margin-top:10px;color:var(--green);text-align:center;"></div>
     </div>
-    <div style="display:flex;gap:8px;padding:12px 20px 16px;justify-content:flex-end;">
-      <button class="mbtn" onclick="closeModal('cf-auth-modal')">Cancel</button>
-      <button class="mbtn" id="cf-auth-signup-btn" onclick="CF.cfSignUp()">Create account</button>
-      <button class="mbtn primary" id="cf-auth-submit" onclick="CF.cfSignIn()">Sign in</button>
+
+    <!-- Set-password view (invite link / password reset) -->
+    <div id="cf-set-password-view" style="display:none;">
+      <div style="text-align:center;margin-bottom:32px;">
+        <div style="font-size:36px;margin-bottom:10px;">🎬</div>
+        <div style="font-family:var(--cond);font-size:24px;font-weight:700;letter-spacing:.04em;color:var(--text);">CueFlow</div>
+        <div id="cf-set-pw-heading" style="font-size:11px;color:var(--text3);letter-spacing:.15em;text-transform:uppercase;margin-top:6px;">Choose a password</div>
+      </div>
+      <input id="cf-set-pw-input" type="password" placeholder="New password" autocomplete="new-password" style="width:100%;box-sizing:border-box;margin-bottom:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--hair2);border-radius:6px;color:var(--text);font-size:14px;outline:none;" onkeydown="if(event.key==='Enter')document.getElementById('cf-set-pw-confirm').focus()">
+      <input id="cf-set-pw-confirm" type="password" placeholder="Confirm password" autocomplete="new-password" style="width:100%;box-sizing:border-box;margin-bottom:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--hair2);border-radius:6px;color:var(--text);font-size:14px;outline:none;" onkeydown="if(event.key==='Enter')CF.cfSetPassword()">
+      <div id="cf-set-pw-err" style="font-size:12px;min-height:16px;margin-bottom:10px;color:var(--red);text-align:center;"></div>
+      <button id="cf-set-pw-submit" onclick="CF.cfSetPassword()" style="width:100%;padding:10px;background:var(--amber);border:none;border-radius:6px;color:#06060a;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--cond);letter-spacing:.03em;">Set password</button>
     </div>
+
   </div>
 </div>
 <div id="midi-modal" class="modal-bg" role="dialog" aria-modal="true" aria-labelledby="midi-modal-title">
@@ -11297,16 +11317,66 @@ var SESS_KEY = 'cf18_session';
 var _db = null;
 var authUser = null;
 function db(){ if(!_db) _db = supabase.createClient(SB_URL, SB_KEY); return _db; }
-function toAuthEmail(u){ return u.toLowerCase().trim().replace(/[^a-z0-9._-]/g,'')+'@cueflow.local'; }
-function displayUser(user){ return user ? user.email.replace(/@cueflow\.local$/,'') : ''; }
+function displayUser(user){ return user ? (user.email||'').replace(/@.*$/,'')||user.email : ''; }
 
 /* ── Auth ────────────────────────────────────────────────── */
+
+/* Read URL hash before the SDK clears it — detect invite / recovery tokens */
+var _pendingPasswordSet = (function(){
+  try {
+    var p = new URLSearchParams(window.location.hash.slice(1));
+    var t = p.get('type');
+    return t === 'invite' || t === 'recovery';
+  } catch(e){ return false; }
+})();
+
+function showAuthScreen(){
+  var s=document.getElementById('cf-auth-screen');
+  if(s){ s.style.display='flex'; }
+  /* Always show the sign-in view, hide set-password view */
+  var si=document.getElementById('cf-signin-view');
+  var sp=document.getElementById('cf-set-password-view');
+  if(si) si.style.display='';
+  if(sp) sp.style.display='none';
+  setTimeout(function(){ var e=document.getElementById('cf-auth-email'); if(e) e.focus(); }, 80);
+}
+
+function showSetPasswordScreen(heading){
+  var s=document.getElementById('cf-auth-screen');
+  if(s){ s.style.display='flex'; }
+  var si=document.getElementById('cf-signin-view');
+  var sp=document.getElementById('cf-set-password-view');
+  if(si) si.style.display='none';
+  if(sp) sp.style.display='';
+  var h=document.getElementById('cf-set-pw-heading');
+  if(h) h.textContent=heading||'Choose a password';
+  setTimeout(function(){ var e=document.getElementById('cf-set-pw-input'); if(e) e.focus(); }, 80);
+}
+
+function hideAuthScreen(){
+  var s=document.getElementById('cf-auth-screen');
+  if(s){ s.style.display='none'; }
+  /* Reset both views for next time the screen is shown */
+  var si=document.getElementById('cf-signin-view');
+  var sp=document.getElementById('cf-set-password-view');
+  if(si) si.style.display='';
+  if(sp) sp.style.display='none';
+  var errEl=document.getElementById('cf-auth-err');
+  if(errEl){ errEl.textContent=''; }
+  var msgEl=document.getElementById('cf-auth-msg');
+  if(msgEl){ msgEl.textContent=''; }
+  var pwErr=document.getElementById('cf-set-pw-err');
+  if(pwErr){ pwErr.textContent=''; }
+}
+
 function initAuth(){
   db().auth.getSession().then(function(r){
     authUser = r.data.session ? r.data.session.user : null;
+    hideLoading();
+    if(!authUser){ showAuthScreen(); }
     updateAuthUI();
     /* Always refresh show list after auth state is known */
-    if(navigator.onLine) refreshShowList().then(function(){
+    if(authUser && navigator.onLine) refreshShowList().then(function(){
       if(window._sbPanel==='save' && window._sbRender) _sbRender('save');
     });
   });
@@ -11314,14 +11384,24 @@ function initAuth(){
     var wasAuthed = !!authUser;
     authUser = session ? session.user : null;
     updateAuthUI();
+
+    /* Invite link or password-reset link: user is signed in but must set a password first */
+    if(event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && _pendingPasswordSet)){
+      _pendingPasswordSet = false;
+      showSetPasswordScreen(event === 'PASSWORD_RECOVERY' ? 'Reset your password' : 'Choose a password');
+      return;
+    }
+
     if(authUser && !wasAuthed){
+      hideAuthScreen();
       /* Just signed in — push any pending local show then refresh list */
       if(CF.showId && CF.isOwner) pushProject();
       if(navigator.onLine) refreshShowList().then(function(){
         if(window._sbPanel==='save' && window._sbRender) _sbRender('save');
       });
     } else if(!authUser && wasAuthed){
-      /* Signed out — clear list, show only local shows */
+      /* Signed out — show login screen, clear list */
+      showAuthScreen();
       CF._showList = [];
       if(window._sbPanel==='save' && window._sbRender) _sbRender('save');
     }
@@ -11344,43 +11424,52 @@ function updateAuthUI(){
 
 function openAuthModal(){
   if(authUser){ db().auth.signOut(); return; }
-  var errEl = document.getElementById('cf-auth-err');
-  if(errEl){ errEl.textContent = ''; errEl.style.color = 'var(--red)'; }
-  var sub = document.getElementById('cf-auth-submit');
-  if(sub){ sub.disabled = false; sub.textContent = 'Sign in'; }
-  document.getElementById('cf-auth-modal').classList.add('show');
-  setTimeout(function(){ var e=document.getElementById('cf-auth-username'); if(e) e.focus(); }, 80);
+  showAuthScreen();
 }
 
 function cfSignIn(){
-  var username = (document.getElementById('cf-auth-username').value||'').trim();
-  var email = username ? toAuthEmail(username) : '';
+  var email = (document.getElementById('cf-auth-email').value||'').trim();
   var pass = document.getElementById('cf-auth-password').value||'';
   var errEl = document.getElementById('cf-auth-err');
   var sub = document.getElementById('cf-auth-submit');
-  var sig = document.getElementById('cf-auth-signup-btn');
-  if(!username||!pass){ if(errEl) errEl.textContent='Username and password required.'; return; }
-  sub.disabled = true; sig.disabled = true; sub.textContent = 'Signing in…';
+  if(!email||!pass){ if(errEl) errEl.textContent='Email and password required.'; return; }
+  sub.disabled = true; sub.textContent = 'Signing in…';
   db().auth.signInWithPassword({email:email, password:pass}).then(function(r){
-    sub.disabled = false; sig.disabled = false; sub.textContent = 'Sign in';
-    if(r.error){ if(errEl){ errEl.textContent=r.error.message; errEl.style.color='var(--red)'; } return; }
-    closeModal('cf-auth-modal');
+    sub.disabled = false; sub.textContent = 'Sign in';
+    if(r.error){ if(errEl) errEl.textContent=r.error.message; return; }
+    /* hideAuthScreen() is called by onAuthStateChange */
   });
 }
 
-function cfSignUp(){
-  var username = (document.getElementById('cf-auth-username').value||'').trim();
-  var email = username ? toAuthEmail(username) : '';
-  var pass = document.getElementById('cf-auth-password').value||'';
+function cfForgotPassword(){
+  var email = (document.getElementById('cf-auth-email').value||'').trim();
   var errEl = document.getElementById('cf-auth-err');
-  var sub = document.getElementById('cf-auth-submit');
-  var sig = document.getElementById('cf-auth-signup-btn');
-  if(!username||!pass){ if(errEl) errEl.textContent='Username and password required.'; return; }
-  sub.disabled = true; sig.disabled = true; sig.textContent = 'Creating…';
-  db().auth.signUp({email:email, password:pass}).then(function(r){
-    sub.disabled = false; sig.disabled = false; sig.textContent = 'Create account';
-    if(r.error){ if(errEl){ errEl.textContent=r.error.message; errEl.style.color='var(--red)'; } return; }
-    closeModal('cf-auth-modal');
+  var msgEl = document.getElementById('cf-auth-msg');
+  if(!email){ if(errEl) errEl.textContent='Enter your email address first.'; return; }
+  if(errEl) errEl.textContent='';
+  db().auth.resetPasswordForEmail(email).then(function(r){
+    if(r.error){ if(errEl) errEl.textContent=r.error.message; return; }
+    if(msgEl) msgEl.textContent='Password reset email sent — check your inbox.';
+  });
+}
+
+function cfSetPassword(){
+  var pw  = (document.getElementById('cf-set-pw-input').value||'');
+  var pw2 = (document.getElementById('cf-set-pw-confirm').value||'');
+  var errEl = document.getElementById('cf-set-pw-err');
+  var sub   = document.getElementById('cf-set-pw-submit');
+  if(pw.length < 8){ if(errEl) errEl.textContent='Password must be at least 8 characters.'; return; }
+  if(pw !== pw2){    if(errEl) errEl.textContent='Passwords do not match.'; return; }
+  if(errEl) errEl.textContent='';
+  sub.disabled = true; sub.textContent = 'Saving…';
+  db().auth.updateUser({ password: pw }).then(function(r){
+    sub.disabled = false; sub.textContent = 'Set password';
+    if(r.error){ if(errEl) errEl.textContent=r.error.message; return; }
+    hideAuthScreen();
+    updateAuthUI();
+    if(navigator.onLine) refreshShowList().then(function(){
+      if(window._sbPanel==='save' && window._sbRender) _sbRender('save');
+    });
   });
 }
 
@@ -11394,19 +11483,9 @@ function sbSignIn(){
   var u=(document.getElementById('sb-auth-username')||{}).value||'';
   var p=(document.getElementById('sb-auth-password')||{}).value||'';
   u=u.trim();
-  if(!u||!p){sbAuthErr('Username and password required.');return;}
+  if(!u||!p){sbAuthErr('Email and password required.');return;}
   sbAuthErr('');
-  db().auth.signInWithPassword({email:toAuthEmail(u),password:p}).then(function(r){
-    if(r.error){sbAuthErr(r.error.message);}
-  });
-}
-function sbSignUp(){
-  var u=(document.getElementById('sb-auth-username')||{}).value||'';
-  var p=(document.getElementById('sb-auth-password')||{}).value||'';
-  u=u.trim();
-  if(!u||!p){sbAuthErr('Username and password required.');return;}
-  sbAuthErr('');
-  db().auth.signUp({email:toAuthEmail(u),password:p}).then(function(r){
+  db().auth.signInWithPassword({email:u,password:p}).then(function(r){
     if(r.error){sbAuthErr(r.error.message);}
   });
 }
@@ -11460,10 +11539,10 @@ window.CF = {
   /* auth */
   openAuthModal: openAuthModal,
   cfSignIn: cfSignIn,
-  cfSignUp: cfSignUp,
+  cfForgotPassword: cfForgotPassword,
+  cfSetPassword: cfSetPassword,
   cfSignOut: function(){ db().auth.signOut(); },
   _sbSignIn: sbSignIn,
-  _sbSignUp: sbSignUp,
 };
 
 /* ── Crypto ──────────────────────────────────────────────── */
@@ -11955,7 +12034,7 @@ function ownerBoot(){
   var btn=document.getElementById('sb-online');
   if(btn) btn.style.display='';
 
-  /* Auth — restore session + listen for changes */
+  /* Auth — restore session + listen for changes; hideLoading() called inside */
   initAuth();
 
   /* Restore session */
@@ -11965,8 +12044,6 @@ function ownerBoot(){
     openTcChan();
     if(navigator.onLine){ ownerRestoreShow(sess.showId); }
   }
-
-  hideLoading();
 
   /* Patch redrawLive — called by name each frame from mtcRafLoop */
   var _origRL=window.redrawLive;
@@ -12104,7 +12181,7 @@ function cfJoin(){
         document.getElementById('cf-join-screen').style.display='none';
         if(CF.role==='tc') showTcScreen(show);
         else if(CF.role==='editor'||CF.role==='track-editor') showEditorApp(show);
-        else if(_camSelectMode) showCameraPickerModal(show);
+        else if(_camSelectMode){ showViewerScreen(show); showCameraPickerModal(show); }
         else showViewerScreen(show);
       });
   });
@@ -12176,9 +12253,12 @@ function showCameraPickerModal(show, onPick){
   modal.appendChild(box);
   document.body.appendChild(modal);
 
-  // Backdrop close (switcher mode only)
   if(onPick){
+    // Switcher mode: backdrop closes the picker
     modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
+  } else {
+    // Initial selection: a camera MUST be chosen — stop the global ntm-bg backdrop handler
+    modal.addEventListener('click',function(e){if(e.target===modal)e.stopPropagation();});
   }
 }
 
@@ -12823,7 +12903,7 @@ document.addEventListener('keydown',function(e){
   if(cm&&cm.style.display!=='none') cm.style.display='none';
   var ntm=document.getElementById('new-track-modal');
   if(ntm&&ntm.classList.contains('show')) ntm.classList.remove('show');
-  ['confirm-modal','rename-modal','cf-auth-modal'].forEach(function(id){
+  ['confirm-modal','rename-modal'].forEach(function(id){
     var el=document.getElementById(id);
     if(el&&el.classList.contains('show')) el.classList.remove('show');
   });
@@ -12855,12 +12935,11 @@ function buildProjectsPanel(){
   } else {
     h+='<div class="sbp-signin-section">';
     h+='<div class="sbp-signin-lbl">Sign in to sync projects</div>';
-    h+='<input id="sb-auth-username" class="sbp-auth-inp" type="text" placeholder="Email" autocomplete="username">';
+    h+='<input id="sb-auth-username" class="sbp-auth-inp" type="email" placeholder="Email address" autocomplete="email">';
     h+='<input id="sb-auth-password" class="sbp-auth-inp" type="password" placeholder="Password" autocomplete="current-password">';
     h+='<div id="sb-auth-err" class="sbp-auth-err"></div>';
     h+='<div class="sbp-auth-btns">';
     h+='<button class="sbp-auth-submit" onclick="CF._sbSignIn()">Sign in</button>';
-    h+='<button class="sbp-auth-alt" onclick="CF._sbSignUp()">Create account</button>';
     h+='</div></div>';
   }
   /* Shows list */
