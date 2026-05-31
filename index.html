@@ -11779,6 +11779,8 @@ window.CF = {
   dirty:    false,
   _lastPushUpdatedAt: null,
   _lastEditAt: 0,
+  _pendingRemoteProj: null,
+  _pendingRemoteTimer: null,
   _tcChan:  null,
   _projChan:null,
   _presChan:null,
@@ -11901,6 +11903,8 @@ function pushProject(cb, _retry){
       }
       CF.dirty=false;
       CF._lastPushUpdatedAt = _pushTs;
+      CF._pendingRemoteProj = null;
+      clearTimeout(CF._pendingRemoteTimer);
       localStorage.removeItem(DIRTY_KEY);
       updateSyncBtn(); if(cb) cb();
     });
@@ -11934,10 +11938,31 @@ function subscribeProject(){
       function(payload){
         var proj = payload.new && payload.new.project_data;
         if(!proj) return;
-        /* Block remote updates while editing locally (3-second quiet window after last edit) */
         var isOwnEcho = payload.new.updated_at && payload.new.updated_at === CF._lastPushUpdatedAt;
+        /* Hard block: our own echo or a push still in-flight */
+        if(CF.isOwner && (CF.dirty || isOwnEcho)) return;
         var inQuietWindow = (Date.now() - CF._lastEditAt) < 3000;
-        if(CF.isOwner && (CF.dirty || isOwnEcho || inQuietWindow)) return;
+        if(CF.isOwner && inQuietWindow){
+          /* Soft block: editing in progress — queue and retry once editing stops */
+          CF._pendingRemoteProj = proj;
+          clearTimeout(CF._pendingRemoteTimer);
+          var _tryApply = function(){
+            var p = CF._pendingRemoteProj;
+            if(!p) return;
+            if(CF.dirty){ CF._pendingRemoteProj=null; return; } /* owner pushed — discard */
+            if((Date.now()-CF._lastEditAt) < 3000){
+              CF._pendingRemoteTimer = setTimeout(_tryApply, 500);
+              return;
+            }
+            CF._pendingRemoteProj = null;
+            applyRemote(p);
+          };
+          CF._pendingRemoteTimer = setTimeout(_tryApply, 3100);
+          return;
+        }
+        /* Clear any pending since this fresh update supersedes it */
+        CF._pendingRemoteProj = null;
+        clearTimeout(CF._pendingRemoteTimer);
         if(CF.isOwner || CF.role==='viewer' || CF.role==='crew' || CF.role==='tc' || CF.role==='editor' || CF.role==='track-editor'){
           applyRemote(proj);
           if((CF.role==='viewer'||CF.role==='crew') && window.buildTrackPills) buildTrackPills();
