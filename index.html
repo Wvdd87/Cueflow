@@ -707,7 +707,7 @@ body.mode-live #edit-mode-banner { display: none; }
 .cue-list-wrap { overflow-x: hidden !important; }
 .cue-row {
   display: grid;
-  grid-template-columns: 30px 32px var(--col-tc,108px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px;
+  grid-template-columns: 30px 32px var(--col-tc,108px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px 28px;
   align-items: stretch;
   border-bottom: 1px solid var(--hair);
   transition: background .08s; position: relative;
@@ -752,6 +752,15 @@ body.mode-live #edit-mode-banner { display: none; }
 .cue-col-del { display: flex; align-items: center; justify-content: center; }
 .cue-del { background: none; border: none; color: var(--txt-low); cursor: pointer; font-size: 13px; padding: 6px; min-width: 28px; min-height: 28px; display: flex; align-items: center; justify-content: center; transition: color .1s; }
 .cue-del:hover { color: var(--red); }
+/* Cue flag button — list view */
+.cue-col-flag { display: flex; align-items: center; justify-content: center; }
+.cue-flag-btn { background: none; border: none; cursor: pointer; font-size: 13px; padding: 6px; min-width: 28px; min-height: 28px; display: flex; align-items: center; justify-content: center; color: var(--txt-low); opacity: .45; transition: opacity .12s, color .12s; }
+.cue-flag-btn:hover { opacity: .75; }
+.cue-flag-btn.on { color: #FFB020; opacity: 1; text-shadow: 0 0 8px rgba(255,176,32,.55); }
+/* Cue flag button — waterfall */
+.wf-flag-btn { background: none; border: none; cursor: pointer; font-size: 13px; padding: 4px; line-height: 1; color: rgba(255,255,255,.3); opacity: .45; transition: opacity .12s, color .12s; }
+.wf-flag-btn:hover { opacity: .75; }
+.wf-flag-btn.on { color: #FFB020; opacity: 1; text-shadow: 0 0 10px rgba(255,176,32,.7); }
 /* Delete Cue confirmation modal */
 .dcm-box { border-color:var(--red) !important; max-width:520px; }
 .dcm-warning { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
@@ -772,7 +781,7 @@ body.mode-live #edit-mode-banner { display: none; }
 
 .cue-list-header {
   display: grid;
-  grid-template-columns: 30px 32px var(--col-tc,108px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px;
+  grid-template-columns: 30px 32px var(--col-tc,108px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px 28px;
   border-bottom: 1px solid var(--hair2); flex-shrink: 0;
   background: var(--surface); position: relative; height: 28px;
 }
@@ -789,7 +798,7 @@ body.mode-live #edit-mode-banner { display: none; }
 /* ── Marker rows — grid-aligned with cue rows ── */
 .chapter-list-row {
   display: grid;
-  grid-template-columns: 30px 32px var(--col-tc,108px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px;
+  grid-template-columns: 30px 32px var(--col-tc,108px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px 28px;
   align-items: stretch; min-height: 34px;
   border-bottom: 1px solid var(--primary-bg);
   cursor: default; position: relative;
@@ -1042,7 +1051,8 @@ body.mode-live #edit-mode-banner { display: none; }
 .tc-live-badge.show { display: inline-block; }
 
 .wf-area { flex: 1; display: flex; flex-direction: column; padding: 8px 12px; gap: 2px; overflow: hidden; min-height: 0; }
-.wf-row { display: grid; grid-template-columns: 34px 104px 1fr; overflow: hidden; flex-shrink: 0; position: relative; }
+.wf-row { display: grid; grid-template-columns: 34px 104px 1fr 22px; overflow: hidden; flex-shrink: 0; position: relative; }
+.wf-col-flag { display: flex; align-items: center; justify-content: center; }
 .wf-num { background: var(--canvas); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--txt-low); font-variant-numeric: tabular-nums; }
 .wf-row.current .wf-num { color: var(--txt); }
 .wf-row.next .wf-num, .wf-row.multi-next .wf-num { color: var(--txt); }
@@ -1366,9 +1376,14 @@ body.mode-live #edit-mode-banner { display: none; }
 .live-then-head .lbl { font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: var(--txt-mid); }
 .live-then-rows { flex: 1; min-height: 0; overflow: hidden; }
 .live-then-row {
-  display: grid; grid-template-columns: 40px 80px 1fr auto auto;
+  display: grid; grid-template-columns: 40px 80px 1fr auto auto 28px;
   align-items: center; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--hair);
 }
+/* Cockpit flag button — NEXT hero (absolute) + THEN rows */
+.ck-flag-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 6px; line-height: 1; color: rgba(255,255,255,.3); opacity: .45; transition: opacity .15s, color .15s; }
+.ck-flag-btn:hover { opacity: .75; }
+.ck-flag-btn.on { color: #FFB020; opacity: 1; text-shadow: 0 0 14px rgba(255,176,32,.8); }
+.live-next-flag { position: absolute; top: 10px; right: 12px; }
 .live-then-row:last-child { border-bottom: none; }
 .live-then-row .ix { font-family: var(--mono); font-size: 12px; color: var(--txt-low); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
 .live-then-row .nm { font-family: var(--cond); font-size: 30px; font-weight: 700; color: var(--txt-hi); letter-spacing: 0; text-transform: uppercase; white-space: wrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1915,6 +1930,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 
       <!-- NEXT cue hero -->
       <div class="live-next" id="vw-next-hero">
+        <button class="ck-flag-btn live-next-flag" id="vw-next-flag" data-cid="" style="display:none;" title="Flag for attention">⚑</button>
         <div class="nh-eyebrow" id="vw-next-eyebrow">Next</div>
         <div style="margin-top:4px;">
           <div class="nh-badge" id="vw-next-badge-row">
@@ -2215,7 +2231,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
           <select class="batch-track-sel" id="batch-track-sel" onchange="batchMoveToTrack(this.value)"><option value="">Move to…</option></select>
           <button class="batch-del-btn" id="batch-del-btn" onclick="batchDeleteStage()">Delete</button>
         </div>
-        <div class="cue-list-header"><span></span><span style="padding:0 4px;justify-content:center;border-right:1px solid var(--hair);">TRK</span><span>Timecode</span><span>Cue</span><span>Description</span><span>Type</span><span>Next</span><span></span></div>
+        <div class="cue-list-header"><span></span><span style="padding:0 4px;justify-content:center;border-right:1px solid var(--hair);">TRK</span><span>Timecode</span><span>Cue</span><span>Description</span><span>Type</span><span>Next</span><span style="justify-content:center;padding:0;">⚑</span><span></span></div>
         <div id="cue-list-wrap"></div>
         <div style="display:none;"><span id="desc-has-content"></span></div>
       </div>
@@ -2244,6 +2260,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
             </div>
             <!-- NEXT cue hero -->
             <div class="live-next" id="test-next-hero">
+              <button class="ck-flag-btn live-next-flag" id="test-next-flag" data-cid="" style="display:none;" title="Flag for attention">⚑</button>
               <div class="nh-eyebrow" id="test-next-eyebrow">Next</div>
               <div style="margin-top:4px;">
                 <div class="nh-badge" id="test-next-badge-row">
@@ -2553,6 +2570,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 
       <!-- NEXT cue hero -->
       <div class="live-next" id="live-next-hero">
+        <button class="ck-flag-btn live-next-flag" id="live-next-flag" data-cid="" style="display:none;" title="Flag for attention">⚑</button>
         <div class="nh-eyebrow" id="live-next-eyebrow">Next</div>
         <div style="margin-top:4px;">
           <div class="nh-badge" id="live-next-badge-row">
@@ -4490,6 +4508,8 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId){
   const nhHero=document.getElementById('live-next-hero');
   const nhBarFill=document.getElementById('live-next-bar-fill');
 
+  const _ckCanFlag=!window.CF||!CF.role||CF.role==='owner'||CF.role==='editor'||CF.role==='track-editor';
+  const nhFlag=document.getElementById('live-next-flag');
   if(nextCue){
     const cdF=Math.max(0,nextCue._f-frames);
     const cdSec=cdF/state.fps;
@@ -4500,6 +4520,7 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId){
     const isWarn=cdSec<=WARN_SEC&&cdSec>=0;
     if(nhCount)nhCount.classList.toggle('warn',isWarn);
     if(nhHero)nhHero.classList.toggle('warn',isWarn);
+    if(nhFlag&&_ckCanFlag){nhFlag.style.display='';nhFlag.dataset.cid=nextCue.id;nhFlag.classList.toggle('on',!!nextCue.flagged);}
     // Urgency bar — fills as we approach the cue (within 30s)
     if(nhBarFill){
       const FILL_SEC=Math.max(WARN_SEC*3,30);
@@ -4514,6 +4535,7 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId){
     if(nhCount)nhCount.classList.remove('warn');
     if(nhHero)nhHero.classList.remove('warn');
     if(nhBarFill)nhBarFill.style.width='0%';
+    if(nhFlag)nhFlag.style.display='none';
   }
 
   // ── THEN queue (cues after NEXT, up to 5) ──
@@ -4522,9 +4544,10 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId){
     // Collect queue cues
     const _tq=[];
     for(let qi=nextIdx+1;qi<allCues.length&&_tq.length<5;qi++)_tq.push({qc:allCues[qi],qi});
-    const qKey=_tq.map(x=>x.qc.id).join(',');
+    const flagKey=_ckCanFlag?_tq.map(x=>(x.qc.flagged?'1':'0')).join(''):'';
+    const qKey=_tq.map(x=>x.qc.id).join(',')+flagKey;
     if(thenRows._qKey!==qKey){
-      // Rebuild structure only when the set of cues changes
+      // Rebuild structure only when the set of cues (or their flag states) changes
       thenRows._qKey=qKey;thenRows.innerHTML='';
       _tq.forEach(({qc,qi})=>{
         const row=document.createElement('div');row.className='live-then-row';
@@ -4533,6 +4556,7 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId){
           `<div class="nm">${escH(qc.name||'—')}<span class="ds">${escH(qc.desc||'')}</span></div>`+
           `<div class="tc-lbl">${escH(qc.tc||'')}</div>`+
           `<div class="cd" data-cd></div>`+
+          (_ckCanFlag?`<button class="ck-flag-btn${qc.flagged?' on':''}" data-cid="${qc.id}" title="Flag for attention">⚑</button>`:'<div></div>')+
           `<div class="urg-bar" data-urg style="display:none"><div class="urg-fill" data-uf></div></div>`;
         row._cqf=qc._f;
         row._cdEl=row.querySelector('[data-cd]');
@@ -4612,6 +4636,8 @@ function _updateTestCockpit(frames,allCues,curIdx,upNextSongId){
   const nhCount=document.getElementById('test-next-count');
   const nhHero=document.getElementById('test-next-hero');
   const nhBarFill=document.getElementById('test-next-bar-fill');
+  const _ckCanFlagT=!window.CF||!CF.role||CF.role==='owner'||CF.role==='editor'||CF.role==='track-editor';
+  const nhFlagT=document.getElementById('test-next-flag');
   if(nextCue){
     const cdF=Math.max(0,nextCue._f-frames);
     const cdSec=cdF/state.fps;
@@ -4622,6 +4648,7 @@ function _updateTestCockpit(frames,allCues,curIdx,upNextSongId){
     const isWarn=cdSec<=WARN_SEC&&cdSec>=0;
     if(nhCount)nhCount.classList.toggle('warn',isWarn);
     if(nhHero)nhHero.classList.toggle('warn',isWarn);
+    if(nhFlagT&&_ckCanFlagT){nhFlagT.style.display='';nhFlagT.dataset.cid=nextCue.id;nhFlagT.classList.toggle('on',!!nextCue.flagged);}
     if(nhBarFill){
       const FILL_SEC=Math.max(WARN_SEC*3,30);
       const fillPct=cdSec<=FILL_SEC?Math.max(0,Math.min(100,(1-cdSec/FILL_SEC)*100)):0;
@@ -4635,6 +4662,7 @@ function _updateTestCockpit(frames,allCues,curIdx,upNextSongId){
     if(nhCount)nhCount.classList.remove('warn');
     if(nhHero)nhHero.classList.remove('warn');
     if(nhBarFill)nhBarFill.style.width='0%';
+    if(nhFlagT)nhFlagT.style.display='none';
   }
 
   // ── THEN queue ──
@@ -4659,6 +4687,7 @@ function _updateTestCockpit(frames,allCues,curIdx,upNextSongId){
         <div class="nm">${escH(qc.name||'—')}<span class="ds">${escH(qc.desc||'')}</span></div>
         <div class="tc-lbl">${escH(qc.tc||'')}</div>
         <div class="${cdClass}">${cdF>0?fmtCD(cdF):''}</div>
+        ${_ckCanFlagT?`<button class="ck-flag-btn${qc.flagged?' on':''}" data-cid="${qc.id}" title="Flag for attention">⚑</button>`:'<div></div>'}
         ${urgBarHtml}`;
       thenRows.appendChild(row);
     }
@@ -4705,6 +4734,8 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
   const nextIdx=curIdx+1;
   const _nextRaw=nextIdx<allCues.length?allCues[nextIdx]:null;
   const nextCue=_nextRaw&&_isTrackViewer&&_vwCurSongId&&_nextRaw.songId!==_vwCurSongId?null:_nextRaw;
+  const _ckCanFlagV=window.CF&&(CF.role==='editor'||CF.role==='track-editor');
+  const vwFlag=_e('vw-next-flag');
   const nhHero=_e('vw-next-hero'),nhCount=_e('vw-next-count');
   if(nextCue){
     const cdF=Math.max(0,nextCue._f-frames),cdSec=cdF/state.fps;
@@ -4715,6 +4746,7 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
     const isWarn=cdSec<=WARN_SEC&&cdSec>=0;
     if(nhCount)nhCount.classList.toggle('warn',isWarn);
     if(nhHero)nhHero.classList.toggle('warn',isWarn);
+    if(vwFlag&&_ckCanFlagV){vwFlag.style.display='';vwFlag.dataset.cid=nextCue.id;vwFlag.classList.toggle('on',!!nextCue.flagged);}
     const bf=_e('vw-next-bar-fill');
     if(bf){const FILL_SEC=Math.max(WARN_SEC*3,30);const fp=cdSec<=FILL_SEC?Math.max(0,Math.min(100,(1-cdSec/FILL_SEC)*100)):0;bf.style.width=fp.toFixed(1)+'%';}
   } else {
@@ -4724,6 +4756,7 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
     const c=_e('vw-next-cd');if(c)c.textContent='—';
     if(nhCount)nhCount.classList.remove('warn');
     if(nhHero)nhHero.classList.remove('warn');
+    if(vwFlag)vwFlag.style.display='none';
     const bf=_e('vw-next-bar-fill');if(bf)bf.style.width='0%';
   }
 
@@ -4736,7 +4769,8 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
       if(_isTrackViewer&&_vwCurSongId&&qc.songId!==_vwCurSongId)break;
       _tqV.push({qc,qi});
     }
-    const qKeyV=_tqV.map(x=>x.qc.id).join(',');
+    const flagKeyV=_ckCanFlagV?_tqV.map(x=>(x.qc.flagged?'1':'0')).join(''):'';
+    const qKeyV=_tqV.map(x=>x.qc.id).join(',')+flagKeyV;
     if(tr._qKey!==qKeyV){
       tr._qKey=qKeyV;tr.innerHTML='';
       _tqV.forEach(({qc,qi})=>{
@@ -4746,6 +4780,7 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
           `<div class="nm">${escH(qc.name||'—')}<span class="ds">${escH(qc.desc||'')}</span></div>`+
           `<div class="tc-lbl">${escH(qc.tc||'')}</div>`+
           `<div class="cd" data-cd></div>`+
+          (_ckCanFlagV?`<button class="ck-flag-btn${qc.flagged?' on':''}" data-cid="${qc.id}" title="Flag for attention">⚑</button>`:'<div></div>')+
           `<div class="urg-bar" data-urg style="display:none"><div class="urg-fill" data-uf></div></div>`;
         row._cqf=qc._f;row._cdEl=row.querySelector('[data-cd]');
         row._urgBar=row.querySelector('[data-urg]');row._urgFill=row.querySelector('[data-uf]');
@@ -5492,6 +5527,7 @@ function renderWaterfall(target,frames,allCues,curIdx,upNextSongId){
     const bgTint=isCurrent?col.bg+'cc':(isNextForStream&&!isUpNext)?col.bg+'55':(isUpNext?'#1a1200':'transparent');
     row.dataset.bgTint=bgTint;
     const warnBg=isWarn?'var(--red-bg)':'';
+    const _wfCanFlag=!window.CF||!CF.role||CF.role==='owner'||CF.role==='editor'||CF.role==='track-editor';
 
     row.innerHTML=`<div class="wf-num">${cueNum}</div>
       <div class="wf-cd" style="font-size:${cdFS}px${isWarn?';color:var(--red)':''}">${cdStr}</div>
@@ -5505,7 +5541,8 @@ function renderWaterfall(target,frames,allCues,curIdx,upNextSongId){
           ${cue.desc?`<div class="wf-desc" style="font-size:${isNextForStream?'20px':isCurrent?'16px':isUpNext?'12px':'14px'};">${escH(cue.desc)}</div>`:''}
           ${(!_isCamRow&&visStreams.length>1)?`<div style="font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255, 255, 255, .76);opacity:.5;margin-top:1px;">${escH(streamName(cue.streamId))}</div>`:''}
         </div>
-      </div>`;
+      </div>
+      <div class="wf-col-flag">${_wfCanFlag?`<button class="wf-flag-btn${cue.flagged?' on':''}" data-cid="${cue.id}">⚑</button>`:''}</div>`;
     // Waterfall cue click: select + navigate (edit/preview only — not in live)
     if(target!=='live'){
       row.style.cursor='pointer';
@@ -5880,6 +5917,7 @@ function renderCueList(){
     return;
   }
   let cues=getSortedCues(song.id,true); // visibleOnly=true: global stream visibility
+  const _canFlag=!window.CF||!CF.role||CF.role==='owner'||CF.role==='editor'||CF.role==='track-editor';
   // Apply list filter (null=ALL, empty Set=NONE, Set with IDs=specific)
   if(_listFilterTracks!==null||_listFilterCams!==null){
     cues=cues.filter(cue=>{
@@ -5892,6 +5930,7 @@ function renderCueList(){
       }
     });
   }
+  if(_listFilterFlagged) cues=cues.filter(c=>!!c.flagged);
   // Update tab count badges + keep filter panel in sync
   _updateListTabBadges(cues);
   if(_listFilterOpen)renderListFilterPanel();
@@ -5932,7 +5971,9 @@ function renderCueList(){
         const typeCell=document.createElement('div');typeCell.className='cl-type-cell';typeCell.textContent='MARKER';sep.appendChild(typeCell);
         // Col 7: NEXT — empty
         const nextCell=document.createElement('div');sep.appendChild(nextCell);
-        // Col 8: delete
+        // Col 8: flag — empty (markers don't get flagged)
+        sep.appendChild(document.createElement('div'));
+        // Col 9: delete
         const delCell=document.createElement('div');delCell.className='cue-col-del';
         const delBtn=document.createElement('button');delBtn.className='cue-del';delBtn.textContent='✕';delBtn.title='Delete marker';
         delBtn.addEventListener('click',e=>{e.stopPropagation();_chapterDelete(ch.id);});
@@ -5997,6 +6038,7 @@ function renderCueList(){
       <input class="cue-field desc${isSelected?'':' cue-readonly'}" value="${escH(cue.desc||'')}" data-id="${cue.id}" data-f="desc" placeholder="Description" ${isSelected?'':'readonly'}>
       <div class="cl-type-cell${_isCamCue?' cam':''}">${_isCamCue?'CAMERA':'NORMAL'}</div>
       <div class="cl-next-cell">${_toNext}</div>
+      <div class="cue-col-flag">${_canFlag?`<button class="cue-flag-btn${cue.flagged?' on':''}" data-cid="${cue.id}" title="Flag for attention">⚑</button>`:''}</div>
       <div class="cue-col-del">${state.batchMode?`<input type="checkbox" class="cue-checkbox" ${checked?'checked':''} data-id="${cue.id}">`:`<button class="cue-del" data-id="${cue.id}">✕</button>`}</div>`;
     row.addEventListener('contextmenu',e=>{e.preventDefault();showStreamCtxMenu(e,cue.id);});
     const dotBtn=row.querySelector('.cue-stream-dot');
@@ -6004,7 +6046,7 @@ function renderCueList(){
     row.addEventListener('click',e=>{
       const inp=e.target;
       if(inp.classList.contains('cue-stream-dot'))return;
-      if(inp.classList.contains('cue-del')||inp.classList.contains('cue-checkbox'))return;
+      if(inp.classList.contains('cue-del')||inp.classList.contains('cue-checkbox')||inp.classList.contains('cue-flag-btn'))return;
       if(ETL.selId===cue.id){
         if(inp.classList.contains('cue-readonly')){
           if(window.CF&&(CF.role==='editor'||CF.role==='track-editor')&&CF.tracks&&CF.tracks.indexOf(cue.streamId)===-1){
@@ -6052,6 +6094,7 @@ function renderCueList(){
       const descCell=document.createElement('div');descCell.className='cue-field desc';descCell.style.cssText='cursor:default;';sep.appendChild(descCell);
       const typeCell=document.createElement('div');typeCell.className='cl-type-cell';typeCell.textContent='MARKER';sep.appendChild(typeCell);
       sep.appendChild(document.createElement('div'));// next cell empty
+      sep.appendChild(document.createElement('div'));// flag cell empty
       const delCell=document.createElement('div');delCell.className='cue-col-del';
       const delBtn=document.createElement('button');delBtn.className='cue-del';delBtn.textContent='✕';delBtn.title='Delete marker';
       delBtn.addEventListener('click',e=>{e.stopPropagation();_chapterDelete(ch.id);});
@@ -6357,9 +6400,42 @@ function confirmDeleteCue(){
   closeDeleteCueModal();
 }
 
+function toggleCueFlag(cueId){
+  let nowFlagged=false;
+  state.songs.forEach(s=>{
+    const c=s.cues.find(x=>x.id===cueId);
+    if(c){c.flagged=!c.flagged;nowFlagged=c.flagged;}
+  });
+  persist();
+  if(window.CF)CF._lastEditAt=Date.now();
+  // Direct DOM update — no full re-render needed
+  document.querySelectorAll('.cue-flag-btn[data-cid="'+cueId+'"],.wf-flag-btn[data-cid="'+cueId+'"],.ck-flag-btn[data-cid="'+cueId+'"]').forEach(btn=>{
+    btn.classList.toggle('on',nowFlagged);
+  });
+  // Instant broadcast to all connected clients — bypasses the quiet window entirely
+  if(window.CF&&CF._tcChan&&CF.showId){
+    try{CF._tcChan.send({type:'broadcast',event:'flag',payload:{cueId:cueId,flagged:nowFlagged}});}catch(e){}
+  }
+}
+
 document.getElementById('cue-list-wrap').addEventListener('click',e=>{
   if(!e.target.classList.contains('cue-del'))return;
   openDeleteCueModal(e.target.dataset.id);
+});
+document.getElementById('cue-list-wrap').addEventListener('click',e=>{
+  if(!e.target.classList.contains('cue-flag-btn'))return;
+  e.stopPropagation();
+  toggleCueFlag(e.target.dataset.cid);
+});
+// Waterfall + cockpit flag buttons — delegated on stable containers
+['wf-live','wf-test','live-next-hero','test-next-hero','live-then-rows','test-then-rows','vw-next-hero','vw-then-rows'].forEach(function(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.addEventListener('click',function(e){
+    if(!e.target.classList.contains('wf-flag-btn')&&!e.target.classList.contains('ck-flag-btn'))return;
+    e.stopPropagation();
+    toggleCueFlag(e.target.dataset.cid);
+  });
 });
 
 // ─── SONG ACTIONS ───
@@ -9095,6 +9171,7 @@ let _editView='list'; // 'list','wf','vid','notes','cams'
 let _listFilterOpen=false;
 let _listFilterTracks=null; // null | Set<streamId>
 let _listFilterCams=null;   // null | Set<cameraId>
+let _listFilterFlagged=false;
 function switchEditView(view){
   _editView=view;
   const isList=view==='list',isWf=view==='wf',isVid=view==='vid',isNotes=view==='notes',isCams=view==='cams';
@@ -9202,6 +9279,15 @@ function renderListFilterPanel(){
       },hex,'1px'));
     });
     panel.appendChild(row);
+  }
+  // ── Flags row ──
+  if(!window.CF||!CF.role||CF.role==='owner'||CF.role==='editor'||CF.role==='track-editor'){
+    const flagRow=document.createElement('div');flagRow.className='cl-filter-row';
+    const flagLbl=document.createElement('span');flagLbl.className='cl-filter-label';flagLbl.textContent='Flags';flagRow.appendChild(flagLbl);
+    flagRow.appendChild(_makeChip('⚑ FLAGGED',_listFilterFlagged,()=>{
+      _listFilterFlagged=!_listFilterFlagged;renderListFilterPanel();renderCueList();
+    },_listFilterFlagged?'#FFB020':undefined));
+    panel.appendChild(flagRow);
   }
 }
 function _updateListTabBadges(cues){
@@ -12150,6 +12236,25 @@ function subscribeTc(){
         if(window.redrawActive && state.appMode==='live') redrawActive();
         refreshViewerOverview();
       }
+    })
+    .on('broadcast',{event:'flag'},function(msg){
+      var p=msg.payload||{};
+      if(!p.cueId) return;
+      var changed=false;
+      state.songs.forEach(function(s){
+        var c=s.cues.find(function(x){return x.id===p.cueId;});
+        if(c&&!!c.flagged!==!!p.flagged){c.flagged=!!p.flagged;changed=true;}
+      });
+      if(!changed) return;
+      // Direct DOM update — mirrors toggleCueFlag, no full re-render
+      document.querySelectorAll(
+        '.cue-flag-btn[data-cid="'+p.cueId+'"],.wf-flag-btn[data-cid="'+p.cueId+'"],.ck-flag-btn[data-cid="'+p.cueId+'"]'
+      ).forEach(function(btn){btn.classList.toggle('on',!!p.flagged);});
+      // Hero flag buttons are keyed by data-cid
+      ['live-next-flag','test-next-flag','vw-next-flag'].forEach(function(id){
+        var fl=document.getElementById(id);
+        if(fl&&fl.dataset.cid===p.cueId) fl.classList.toggle('on',!!p.flagged);
+      });
     })
     .subscribe(function(status, err){
       console.log('[CF] TC channel status:', status, err||'');
