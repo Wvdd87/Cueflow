@@ -964,10 +964,16 @@ body.mode-live #edit-mode-banner { display: none; }
   border: 2px solid var(--hair2);
   background: var(--nc-base-bg, var(--surface2));
   color: var(--nc-text, var(--txt-mid));
-  transition: background .12s, border-color .12s, color .12s; flex-shrink: 0;
+  opacity: var(--nc-opacity, 1);
+  transition: background .12s, border-color .12s, color .12s, opacity .12s; flex-shrink: 0;
 }
-.nc-badge:hover { background: var(--nc-hover-bg, var(--surface3)); }
-.nc-badge.sel { border-color: var(--nc-color, var(--primary)); background: var(--nc-bg, var(--primary-bg)); }
+.nc-badge:hover { background: var(--nc-hover-bg, var(--surface3)); opacity:1; }
+.nc-badge.sel {
+  border-color: var(--nc-color, var(--primary));
+  background: var(--nc-bg, var(--primary-bg));
+  box-shadow: 0 0 0 2px var(--nc-color, var(--primary));
+  opacity: 1;
+}
 .nc-badge-num { font-family: var(--mono); font-size: 20px; font-weight: 900; line-height: 1; letter-spacing: -.01em; }
 .nc-badge-lbl { font-family: var(--cond); font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 
@@ -1189,9 +1195,19 @@ body.mode-live #edit-mode-banner { display: none; }
 .cam-shot-urg { height:2px; background:transparent; margin-top:-1px; }
 .cam-shot-urg-fill { height:100%; background:var(--primary); transition:width .15s; }
 .cam-shot-urg.urgent .cam-shot-urg-fill { background:var(--red); }
-/* Camera picker modal buttons */
-.cam-picker-btn:hover { opacity:.85; }
-.cam-picker-btn:active { opacity:.7; }
+/* Camera picker modal */
+.cam-picker-btn {
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  padding:16px 8px 14px; background:var(--surface2); border:1px solid var(--hair2);
+  cursor:pointer; transition:background .1s,border-color .1s; flex-shrink:0;
+}
+.cam-picker-btn:hover { background:var(--surface3); border-color:var(--hair3); }
+.cam-picker-btn.selected { border-color:var(--primary); background:var(--primary-bg); }
+.cam-picker-lbl {
+  font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--txt-mid);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; text-align:center;
+}
 /* All-cameras live-now row */
 .cam-live-row { display:flex; align-items:center; gap:10px; padding:9px 16px; background:rgba(255,40,72,.05); border-bottom:2px solid rgba(255,40,72,.16); flex-shrink:0; }
 .cam-live-row-dot { width:6px; height:6px; border-radius:50%; background:var(--red); flex-shrink:0; animation:livePulse 1.2s ease-in-out infinite; }
@@ -1853,10 +1869,6 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <span style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-low);">Following</span>
       <span id="vw-cam-badge-topbar"></span>
       <select id="vw-cam-select" class="vw-cam-select" onchange="if(window.CF)CF._switchViewerCamera(this.value)"></select>
-    </div>
-    <!-- Camera: camera name (cam-viewer only) -->
-    <div class="vw-cam-name-cell" id="vw-cam-name-cell">
-      <span id="vw-cam-name-txt"></span>
     </div>
     <!-- Sequence crumb (grows) — hidden in camera mode -->
     <div class="vw-cell grow" id="vw-seq-grow-cell">
@@ -2947,7 +2959,7 @@ const STREAM_COLORS=[
   {id:'slate',  hex:'#7788aa',bg:'#14161c',text:'#aabbcc'},
 ];
 // Camera track: 12 fixed colors (identified by index 0-11)
-const CAMERA_COLORS=['#E64E2A','#4E7CFF','#C23FD6','#59AC44','#704DFF','#7F3DB2','#3F5189','#7F2C66','#C6512C','#F3ED58','#7CEEB2','#8741FF'];
+const CAMERA_COLORS=['#E64E2A','#4E7CFF','#C23FD6','#59AC44','#7A5AFF','#995DC8','#6176B6','#C0499C','#C8522C','#F3ED58','#7CEEB2','#8F4EFF'];
 // All normal tracks render in this single neutral color
 const NORMAL_TRACK_COLOR={hex:'#4a6080',bg:'#0e1520',text:'#8aa0c0'};
 const DEFAULT_PROJECT={
@@ -5597,7 +5609,7 @@ function _buildTimeline(target,tl,allCues,curIdx,visStreams,fps,pxPS,pxPF,dynTra
       const block=document.createElement('div');
       block.dataset.cueId=cue.id;block.dataset.streamId=sid;
       block.style.cssText=`position:absolute;left:${Math.round(x)}px;top:2px;width:${Math.max(2,Math.round(w)-2)}px;height:${dynTrackH-4}px;background:${isPast?'#0a0a0e':col.bg};border:1px solid ${isPast?'var(--border)':isCurrent?col.hex:col.hex+'66'};border-radius:3px;overflow:hidden;display:flex;align-items:center;padding:0 4px;gap:3px;pointer-events:none;opacity:${isPast?'0.25':'1'};`;
-      block.innerHTML=`<span style="font-family:var(--mono);font-size:8px;font-weight:700;color:${col.hex};flex-shrink:0;">${sqI>=0?sqI+1:''}</span><span style="font-size:9px;font-weight:500;color:${col.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escH(cue.name)}</span>`;
+      block.innerHTML=`<span style="font-family:var(--mono);font-size:8px;font-weight:700;color:${col.hex};flex-shrink:0;">${sqI>=0?sqI+1:''}</span><span style="font-size:9px;font-weight:500;color:#eef0f3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escH(cue.name)}</span>`;
       track.appendChild(block);
     });
     tracksScroll.appendChild(track);
@@ -7267,12 +7279,6 @@ function switchTCTab(tab){
   document.getElementById('tcs-tab-mtc').classList.toggle('active',tab==='mtc');
   document.getElementById('tcs-ltc-panel').style.display=tab==='ltc'?'':'none';
   document.getElementById('tcs-mtc-panel').style.display=tab==='mtc'?'':'none';
-  // Immediately reflect button state for the new tab
-  const _cb=document.getElementById('tcs-connect-btn');
-  if(_cb){
-    const ltcAge=ltc.lastWall?(performance.now()-ltc.lastWall):Infinity;
-    _cb.disabled=tab==='ltc'?ltcAge>=350:!(mtc.locked&&!mtc._wasStale);
-  }
   if(tab==='ltc') refreshLTCDevices();
   else if(tab==='mtc') tcsConnectMIDI();
 }
@@ -7444,8 +7450,6 @@ async function tcsConnectMIDI(){
 function startSettingsTCReadout(){
   clearInterval(_settingsTCTimer);
   _tcsLtcPeak=0;
-  // Disable CONNECT immediately — readout timer will enable it once signal arrives
-  const _cb=document.getElementById('tcs-connect-btn');if(_cb)_cb.disabled=true;
   _settingsTCTimer=setInterval(function(){
     _tcsUpdateReadout();
   },80);
@@ -7528,9 +7532,6 @@ function _tcsUpdateReadout(){
   }
 
   // CONNECT button: only active when a signal is actually detected on the selected source
-  const _connectBtn=document.getElementById('tcs-connect-btn');
-  if(_connectBtn)_connectBtn.disabled=_tcsTab==='ltc'?!ltcOk:!mtcOk;
-
   // FPS display
   _tcsUpdateFpsDisplay();
 
@@ -9433,7 +9434,7 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       if(isCueSel)inner.style.outline='1.5px solid rgba(255,255,255,.25)';
       const lbl=document.createElement('span');
       lbl.className='etl-cue-label';
-      lbl.style.color=isCueSel?'#fff':col.text||'rgba(255,255,255,.8)';
+      lbl.style.color='#eef0f3';
       lbl.textContent=cue.name;
       inner.appendChild(lbl);
       const handle=document.createElement('div');
@@ -9823,7 +9824,7 @@ function _ncBuildPicker(){
     }
   }
 
-  // Row 1: normal track badges — black background, white text, track-colour border when selected
+  // Row 1: normal track badges — black background, white text, track-colour ring when selected
   streams.forEach(s=>{
     const col=getStreamColor(s.id);
     const hex=col.hex||'#888';
@@ -9836,6 +9837,7 @@ function _ncBuildPicker(){
     btn.style.setProperty('--nc-text','#fff');
     btn.style.setProperty('--nc-color',hex);
     btn.style.setProperty('--nc-bg','#06060a');
+    btn.style.setProperty('--nc-opacity',isSel?'1':'0.7');
     btn.innerHTML=`<span class="nc-badge-num">${escH(short)}</span>`;
     btn.onclick=()=>{
       _ncSelTarget={type:'stream',id:s.id};
@@ -9844,7 +9846,7 @@ function _ncBuildPicker(){
     row1.appendChild(btn);
   });
 
-  // Row 2: camera badges — solid camera-colour background, white text, white border when selected
+  // Row 2: camera badges — solid camera-colour background, black text, white ring when selected
   if(camTrack&&camTrack.cameras&&camTrack.cameras.length){
     camTrack.cameras.forEach(cam=>{
       const hex=getCameraColor(cam.colorIdx||0);
@@ -9854,8 +9856,9 @@ function _ncBuildPicker(){
       btn.style.setProperty('--nc-base-bg',hex);
       btn.style.setProperty('--nc-hover-bg',hex);
       btn.style.setProperty('--nc-text','#06060a');
-      btn.style.setProperty('--nc-color','rgba(0,0,0,.5)');
+      btn.style.setProperty('--nc-color','#fff');
       btn.style.setProperty('--nc-bg',hex);
+      btn.style.setProperty('--nc-opacity',isSel?'1':'0.7');
       btn.innerHTML=
         `<span class="nc-badge-num">${String(cam.number||'?').padStart(2,'0')}</span>`+
         (cam.label?`<span class="nc-badge-lbl">${escH(cam.label.slice(0,6))}</span>`:'');
@@ -12143,22 +12146,16 @@ function showCameraPickerModal(show, onPick){
 
   var grid=document.createElement('div');
   grid.id='cf-cam-picker-grid';
-  grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;margin-top:20px;';
+  grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:16px;';
 
   cameras.forEach(function(cam){
     var hex=typeof getCameraColor==='function'?getCameraColor(cam.colorIdx||0):'#06b6d4';
     var isSelected=CF.cameraIds&&CF.cameraIds[0]===cam.id;
     var btn=document.createElement('button');
-    btn.className='cam-picker-btn';
-    btn.style.cssText=
-      'display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;'+
-      'padding:12px 8px 10px;background:'+(isSelected?'var(--surface2)':'none')+';border:none;outline:none;'+
-      'cursor:pointer;transition:background .12s;border-radius:2px;';
+    btn.className='cam-picker-btn'+(isSelected?' selected':'');
     btn.innerHTML=
-      '<div class="cam-badge md" style="background:'+hex+';color:#06060a;opacity:'+(isSelected?'1':'.7')+';flex-shrink:0;">'+cam.number+'</div>'+
-      '<span style="font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center;'+(cam.label?'':'visibility:hidden;')+'">'+escH(cam.label||'x')+'</span>';
-    btn.onmouseover=function(){if(!isSelected)btn.style.background='var(--surface2)';};
-    btn.onmouseout=function(){if(!isSelected)btn.style.background='none';};
+      '<div class="cam-badge md" style="background:'+hex+';">'+cam.number+'</div>'+
+      (cam.label?'<span class="cam-picker-lbl">'+escH(cam.label)+'</span>':'');
     btn.onclick=function(){
       CF.cameraIds=[cam.id];
       state.cameraTrackVisible=true;
