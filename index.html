@@ -2670,7 +2670,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 <div id="new-proj-modal" class="ntm-bg" role="dialog" aria-modal="true" aria-labelledby="new-proj-modal-title">
   <div class="ntm-box" style="width:400px;">
     <div class="ntm-header">
-      <span class="ntm-title" id="new-proj-modal-title">New Project</span>
+      <span class="ntm-title" id="new-proj-modal-title">Create a project</span>
     </div>
     <div class="ntm-body">
       <div class="ntm-fg">
@@ -2687,10 +2687,25 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
             onkeydown="if(event.key==='Enter')confirmNewProject();if(event.key==='Escape')closeNewProjectModal();">
         </div>
       </div>
+      <div class="ntm-fg" style="margin-top:12px;">
+        <label class="ntm-lbl" for="np-fps">Frame Rate</label>
+        <div class="ntm-iw">
+          <select class="ntm-inp tcs-select" id="np-fps" style="cursor:pointer;">
+            <option value="23.976">23.976 fps</option>
+            <option value="24">24 fps</option>
+            <option value="25" selected>25 fps</option>
+            <option value="29.97">29.97 fps</option>
+            <option value="30">30 fps</option>
+            <option value="50">50 fps</option>
+            <option value="59.94">59.94 fps</option>
+            <option value="60">60 fps</option>
+          </select>
+        </div>
+      </div>
     </div>
     <div class="ntm-footer">
       <button class="ntm-btn" onclick="closeNewProjectModal()">Cancel</button>
-      <button class="ntm-btn primary" onclick="confirmNewProject()">Create Project</button>
+      <button class="ntm-btn primary" onclick="confirmNewProject()">Create project</button>
     </div>
   </div>
 </div>
@@ -6076,7 +6091,10 @@ function renderCueList(){
       emptyMsg.innerHTML='<div style="font-size:12px;color:var(--txt-low);margin-bottom:10px;">No cues match the current filter</div><button class="btn-icon" onclick="toggleListFilter()" style="padding:5px 14px;font-size:11px;">Clear filter</button>';
     } else {
       emptyMsg.style.cssText='padding:20px 20px;text-align:center;';
-      emptyMsg.innerHTML='<div style="font-size:12px;color:var(--txt-low);margin-bottom:10px;">No cues yet</div><button class="btn-icon primary" onclick="addCue()" style="padding:7px 16px;font-size:12px;height:auto;">+ Add first cue</button>';
+      var _hasProj=!!(window.CF && CF.showId);
+      emptyMsg.innerHTML=_hasProj
+        ?'<div style="font-size:12px;color:var(--txt-low);margin-bottom:10px;">No cues yet</div><button class="btn-icon primary" onclick="addCue()" style="padding:7px 16px;font-size:12px;height:auto;">+ Add first cue</button>'
+        :'<div style="font-size:12px;color:var(--txt-low);margin-bottom:10px;">No project yet</div><button class="btn-icon primary" onclick="openNewProjectModal()" style="padding:7px 16px;font-size:12px;height:auto;">Create new project</button>';
     }
     el.appendChild(emptyMsg);
   }
@@ -6261,7 +6279,12 @@ document.getElementById('cue-list-wrap').addEventListener('keydown',e=>{
     e.preventDefault();e.target.blur();
   }
 },true);
-document.getElementById('cue-list-wrap').addEventListener('focusin',e=>{if(e.target.tagName==='INPUT'&&e.target.dataset.id)snapshot();});
+document.getElementById('cue-list-wrap').addEventListener('focusin',e=>{
+  if(e.target.tagName==='INPUT'&&e.target.dataset.id){
+    snapshot();
+    if(window.CF)CF._lastEditAt=Date.now();
+  }
+});
 // ─── DELETE CUE MODAL ───
 let _deleteCueId=null;
 function openDeleteCueModal(cueId){
@@ -6356,6 +6379,7 @@ function deleteSong(){
   persist();renderSongList();renderCueList();redrawActive();showUndoToast(`"${name}" deleted`);
 }
 function addCue(){
+  if(window.CF && !CF.showId){ openNewProjectModal(); return; }
   const song=getActiveSong();if(!song)return;
   const streamId=state.activeStreamId||state.streams[0]?.id||'';
   if(window.CF&&(CF.role==='editor'||CF.role==='track-editor')&&CF.tracks&&CF.tracks.indexOf(streamId)===-1){
@@ -7084,7 +7108,8 @@ function openNewProjectModal(){
   const m=document.getElementById('new-proj-modal');if(!m)return;
   const np=document.getElementById('np-proj-name');
   const nt=document.getElementById('np-track-name');
-  if(np)np.value='';if(nt)nt.value='';
+  const nf=document.getElementById('np-fps');
+  if(np)np.value='';if(nt)nt.value='';if(nf)nf.value='25';
   m.classList.add('show');
   setTimeout(()=>{if(np)np.focus();},60);
 }
@@ -7094,13 +7119,14 @@ function closeNewProjectModal(){
 function confirmNewProject(){
   const projName=(document.getElementById('np-proj-name')?.value||'').trim()||'Untitled Project';
   const trackName=(document.getElementById('np-track-name')?.value||'').trim()||'Track 1';
+  const fps=parseFloat(document.getElementById('np-fps')?.value||'25')||25;
   closeNewProjectModal();
   closeModal('proj-modal');
   // When Block 2 is loaded, route through CF._createShow — handles Supabase sync + session setup
-  if(window.CF&&CF._createShow){CF._createShow(projName,trackName);return;}
+  if(window.CF&&CF._createShow){CF._createShow(projName,trackName,fps);return;}
   // Local-only fallback
   const trackId=uid(),songId=uid(),chapterId=uid();
-  const proj={id:'proj_'+Date.now(),name:projName,fps:25,visibleCount:999,warnSec:10,autoAdvanceSec:10,
+  const proj={id:'proj_'+Date.now(),name:projName,fps:fps,visibleCount:999,warnSec:10,autoAdvanceSec:10,
     streams:[{id:trackId,name:trackName,colorId:'blue'}],
     songs:[{id:songId,name:'Sequence 1',description:'',startTc:'01:00:00:00',
       cues:[],chapters:[{id:chapterId,tc:'01:00:00:00',name:'Start'}]}],
@@ -8236,6 +8262,7 @@ function _syncTlTC(frames){
 
 // Open the create popup in marker/chapter mode
 function openTlCreateMarkerBtn(){
+  if(window.CF && !CF.showId){ openNewProjectModal(); return; }
   openMarkerModal(state.simFrames);
 }
 
@@ -8309,6 +8336,7 @@ function commitMarker(){
 // ADD CUE AT CURRENT TC (from timeline toolbar)
 // ══════════════════════════════════════════════════════
 function addCueAtTC(){
+  if(window.CF && !CF.showId){ openNewProjectModal(); return; }
   const song = getActiveSong(); if(!song) return;
   const streamId = state.activeStreamId || state.visibleStreamIds[0] || state.streams[0]?.id||'';
   if(!streamId) return;
@@ -9775,6 +9803,7 @@ function commitTlCreate(){
 let _ncSelTarget=null;
 
 function _ncOpenModal(tcFrames){
+  if(window.CF && !CF.showId){ openNewProjectModal(); return; }
   const pop=document.getElementById('tl-create-popup');if(!pop)return;
   _tlCreateTcF=Math.floor(tcFrames!=null?tcFrames:state.simFrames);
 
@@ -9892,6 +9921,7 @@ function _ncBuildPicker(){
 }
 
 function openTlCreateFromBtn(tcFrames){
+  if(window.CF && !CF.showId){ openNewProjectModal(); return; }
   _ncSelTarget=null; // reset so it picks up active stream
   _ncOpenModal(tcFrames!=null?tcFrames:state.simFrames);
 }
@@ -10035,6 +10065,41 @@ function _initEditTimeline(){
     }
   });
 
+  function _etlMoveDraggedCue(newF){
+    const container=document.getElementById('edit-tl');
+    if(!container||!ETL.drag)return;
+    const pxPF=ETL.zoom/state.fps;
+    const pxPS=ETL.zoom;
+    const dragId=ETL.drag.cueId;
+    const block=container.querySelector('.etl-cue[data-cue-id="'+dragId+'"]');
+    if(!block)return;
+    block.classList.toggle('invalid',newF<ETL.drag.constrainMin||newF>=ETL.drag.constrainMax);
+    block.style.left=(newF*pxPF).toFixed(1)+'px';
+    const song=state.songs.find(s=>s.id===ETL.drag.songId);
+    if(song){
+      const cue=song.cues.find(c=>c.id===dragId);
+      if(cue){
+        const isCam=!!cue.cameraId;
+        const minW=isCam?20:16;
+        const siblings=song.cues
+          .filter(c=>isCam?!!c.cameraId:c.streamId===cue.streamId)
+          .map(c=>({id:c.id,_f:tcF(c.tc)})).sort((a,b)=>a._f-b._f);
+        const idx=siblings.findIndex(c=>c.id===dragId);
+        const nextF=idx<siblings.length-1?siblings[idx+1]._f:null;
+        const prevEntry=idx>0?siblings[idx-1]:null;
+        const rawW=nextF!=null?(nextF-newF)*pxPF:Math.min(60*pxPS,30*pxPS);
+        block.style.width=(Math.max(minW,rawW)-1)+'px';
+        if(prevEntry){
+          const prevBlock=container.querySelector('.etl-cue[data-cue-id="'+prevEntry.id+'"]');
+          if(prevBlock){
+            const rawPrev=(newF-prevEntry._f)*pxPF;
+            prevBlock.style.width=(Math.max(minW,rawPrev)-1)+'px';
+          }
+        }
+      }
+    }
+  }
+
   document.addEventListener('mousemove',e=>{
     if(!ETL.drag)return;
     ETL._dragging=true;
@@ -10085,7 +10150,7 @@ function _initEditTimeline(){
     if(tip){tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-30)+'px';tip.textContent=fTC(newF)+(isInvalid?' ⚠':'');}
 
     if(ETL._rafId)cancelAnimationFrame(ETL._rafId);
-    ETL._rafId=requestAnimationFrame(()=>renderEditTimeline());
+    ETL._rafId=requestAnimationFrame(()=>_etlMoveDraggedCue(newF));
   });
 
   document.addEventListener('mouseup',e=>{
@@ -10094,6 +10159,7 @@ function _initEditTimeline(){
     if(ETL.drag&&ETL._dragging){
       persist(); // snapshot already taken at drag start
       renderCueList();redrawActive();
+      if(ETL.visible)renderEditTimeline();
     }
     ETL.drag=null;ETL._dragging=false;
     const container2=document.getElementById('edit-tl');
@@ -11309,9 +11375,12 @@ window.CfSelect=(function(){
 (function(){ 'use strict';
 
 /* ── Config ──────────────────────────────────────────────── */
-var SB_URL = 'https://bdqqkmkxflamzqjonvko.supabase.co';
-var SB_KEY = 'sb_publishable_fjJ9TRMu-6dTcVHTxRvXLw_kC3F-5Rl';
-var SESS_KEY = 'cf18_session';
+var SB_URL  = 'https://bdqqkmkxflamzqjonvko.supabase.co';
+var SB_KEY  = 'sb_publishable_fjJ9TRMu-6dTcVHTxRvXLw_kC3F-5Rl';
+var SESS_KEY         = 'cf18_session';
+var OFFLINE_AUTH_KEY = 'cf18_offline_auth';  /* {id,email} for offline sessions */
+var SHOW_CACHE_KEY   = 'cf18_show_cache';    /* cached show list for offline use */
+var DIRTY_KEY        = 'cf18_dirty';         /* {showId, dirtyAt} — unsaved edits across reloads */
 
 /* ── Supabase client ─────────────────────────────────────── */
 var _db = null;
@@ -11369,43 +11438,165 @@ function hideAuthScreen(){
   if(pwErr){ pwErr.textContent=''; }
 }
 
+/* Wipe all cf12_* local project data and reset to a blank project.
+   Called whenever a different user signs in — ensures no data leaks between accounts. */
+function clearLocalProjectData(){
+  try {
+    Object.keys(localStorage)
+      .filter(function(k){ return /^cf12_/.test(k); })
+      .forEach(function(k){ localStorage.removeItem(k); });
+    localStorage.removeItem(SESS_KEY);
+    localStorage.removeItem('cf18_last_user');
+  } catch(e){}
+  /* Disconnect from any live show */
+  if(CF._projChan){ CF._projChan.unsubscribe(); CF._projChan=null; }
+  CF.showId=null; CF.isOwner=false; CF.role=null; CF._showList=[];
+  /* Load a blank project so the UI shows an empty state */
+  if(window.applyProject){
+    var proj=JSON.parse(JSON.stringify(DEFAULT_PROJECT));
+    proj.id='proj_'+Date.now();
+    if(window.saveProjectData) saveProjectData(proj);
+    applyProject(proj);
+  }
+  /* Re-render all content panels so nothing stale remains visible */
+  if(window.renderSongList) renderSongList();
+  if(window.renderCueList) renderCueList();
+  if(window.redrawActive) redrawActive();
+}
+
+/* Check whether the signed-in user differs from the last known user.
+   If it changed, wipe local project data before letting the app render. */
+function guardUserChange(userId){
+  var last=null;
+  try{ last=localStorage.getItem('cf18_last_user'); }catch(e){}
+  if(last === userId) return; /* Same user — nothing to clear */
+  clearLocalProjectData();
+  try{ localStorage.setItem('cf18_last_user', userId); }catch(e){}
+}
+
+/* ── Offline auth helpers ────────────────────────────────── */
+function saveOfflineAuth(user){
+  try{ localStorage.setItem(OFFLINE_AUTH_KEY, JSON.stringify({id:user.id,email:user.email})); }catch(e){}
+}
+function loadOfflineAuth(){
+  try{ return JSON.parse(localStorage.getItem(OFFLINE_AUTH_KEY)||'null'); }catch(e){ return null; }
+}
+function saveShowCache(list){
+  try{ localStorage.setItem(SHOW_CACHE_KEY, JSON.stringify(list)); }catch(e){}
+}
+function loadShowCache(){
+  try{ return JSON.parse(localStorage.getItem(SHOW_CACHE_KEY)||'[]'); }catch(e){ return []; }
+}
+
+/* After a project is pushed to Supabase, ensure an owner PIN row exists
+   (may be missing if the project was created while offline). */
+function ensureOwnerPin(){
+  if(!CF.showId||!authUser||!CF.isOwner) return;
+  db().from('show_access').select('id').eq('show_id',CF.showId).eq('role','owner').maybeSingle()
+    .then(function(r){
+      if(r.data) return;
+      var pin=String(Math.floor(100000+Math.random()*900000));
+      hashPin(pin).then(function(h){
+        return db().from('show_access').insert({
+          show_id:CF.showId,pin_hash:h,display_pin:pin,
+          role:'owner',label:'Owner',track_ids:null
+        });
+      }).then(function(){ if(window._sbRender) _sbRender('save'); });
+    });
+}
+
+/* Called when network comes back online.
+   Refreshes show list and flushes any pending local edits. */
+function onComeOnline(){
+  db().auth.getSession().then(function(r){
+    if(!r.data.session) return;
+    authUser=r.data.session.user;
+    saveOfflineAuth(authUser);
+    updateAuthUI();
+    if(CF.dirty&&CF.showId&&CF.isOwner) pushProject();
+    ensureOwnerPin();
+    refreshShowList().then(function(){
+      saveShowCache(CF._showList);
+      if(window._sbPanel==='save'&&window._sbRender) _sbRender('save');
+    });
+  });
+}
+
+function _afterShowList(){
+  saveShowCache(CF._showList);
+  if(window._sbPanel==='save'&&window._sbRender) _sbRender('save');
+  if(!CF._showList.length&&!CF.showId&&window.openNewProjectModal){
+    setTimeout(window.openNewProjectModal,350);
+  }
+}
+
 function initAuth(){
   db().auth.getSession().then(function(r){
     authUser = r.data.session ? r.data.session.user : null;
+
+    if(authUser){
+      guardUserChange(authUser.id);
+      saveOfflineAuth(authUser);
+    } else if(!navigator.onLine){
+      /* Offline — use cached credentials so returning users don't see the login screen */
+      var cached=loadOfflineAuth();
+      if(cached){ authUser=cached; }
+    }
+
     hideLoading();
-    if(!authUser){ showAuthScreen(); }
+    if(!authUser){ showAuthScreen(); return; }
     updateAuthUI();
-    /* Always refresh show list after auth state is known */
-    if(authUser && navigator.onLine) refreshShowList().then(function(){
-      if(window._sbPanel==='save' && window._sbRender) _sbRender('save');
-    });
+
+    if(navigator.onLine){
+      refreshShowList().then(_afterShowList);
+    } else {
+      CF._showList=loadShowCache();
+      updateAuthUI();
+      if(window._sbPanel==='save'&&window._sbRender) _sbRender('save');
+      if(!CF._showList.length&&!CF.showId&&window.openNewProjectModal){
+        setTimeout(window.openNewProjectModal,350);
+      }
+    }
   });
+
   db().auth.onAuthStateChange(function(event, session){
     var wasAuthed = !!authUser;
     authUser = session ? session.user : null;
     updateAuthUI();
 
-    /* Invite link or password-reset link: user is signed in but must set a password first */
-    if(event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && _pendingPasswordSet)){
-      _pendingPasswordSet = false;
-      showSetPasswordScreen(event === 'PASSWORD_RECOVERY' ? 'Reset your password' : 'Choose a password');
+    /* Invite / password-reset flow */
+    if(event==='PASSWORD_RECOVERY'||(event==='SIGNED_IN'&&_pendingPasswordSet)){
+      _pendingPasswordSet=false;
+      showSetPasswordScreen(event==='PASSWORD_RECOVERY'?'Reset your password':'Choose a password');
       return;
     }
 
-    if(authUser && !wasAuthed){
+    /* Token silently refreshed — flush any pending offline edits */
+    if(event==='TOKEN_REFRESHED'&&authUser){
+      saveOfflineAuth(authUser);
+      if(CF.dirty&&CF.showId&&CF.isOwner) pushProject();
+      ensureOwnerPin();
+      return;
+    }
+
+    if(authUser&&!wasAuthed){
+      guardUserChange(authUser.id);
+      saveOfflineAuth(authUser);
       hideAuthScreen();
-      /* Just signed in — push any pending local show then refresh list */
-      if(CF.showId && CF.isOwner) pushProject();
-      if(navigator.onLine) refreshShowList().then(function(){
-        if(window._sbPanel==='save' && window._sbRender) _sbRender('save');
-      });
-    } else if(!authUser && wasAuthed){
-      /* Signed out — show login screen, clear list */
+      if(CF.showId&&CF.isOwner) pushProject();
+      if(navigator.onLine) refreshShowList().then(_afterShowList);
+    } else if(!authUser&&wasAuthed){
+      /* Explicit sign-out — clear offline credentials and show login */
+      try{ localStorage.removeItem(OFFLINE_AUTH_KEY); }catch(e){}
+      try{ localStorage.removeItem(SHOW_CACHE_KEY); }catch(e){}
       showAuthScreen();
-      CF._showList = [];
-      if(window._sbPanel==='save' && window._sbRender) _sbRender('save');
+      CF._showList=[];
+      if(window._sbPanel==='save'&&window._sbRender) _sbRender('save');
     }
   });
+
+  /* Sync pending changes when network is restored */
+  window.addEventListener('online', onComeOnline);
 }
 
 function updateAuthUI(){
@@ -11500,6 +11691,8 @@ window.CF = {
   tracks:   null,
   cameraIds: null,  // array of camera IDs for camera-specific viewer links
   dirty:    false,
+  _lastPushUpdatedAt: null,
+  _lastEditAt: 0,
   _tcChan:  null,
   _projChan:null,
   _presChan:null,
@@ -11594,17 +11787,36 @@ function snapshot(){
 }
 
 /* ── Push project to Supabase ────────────────────────────── */
-function pushProject(cb){
+function pushProject(cb, _retry){
   if(!CF.showId) return;
   if(!navigator.onLine){ CF.dirty=true; updateSyncBtn(); return; }
+  _retry = _retry||0;
+  var _pushTs = new Date().toISOString();
   db().from('shows')
     .upsert({id:CF.showId, name:state.name, owner_id:authUser?authUser.id:null,
-             project_data:snapshot(), updated_at:new Date().toISOString()})
+             project_data:snapshot(), updated_at:_pushTs})
+    .select('id')
     .then(function(r){
-      if(r.error){ console.warn('[CF] push error', r.error.message); return; }
-      CF.dirty = false;
-      updateSyncBtn();
-      if(cb) cb();
+      if(r.error){
+        console.warn('[CF] push error', r.error.message);
+        CF.dirty=true; updateSyncBtn(); return;
+      }
+      if(!r.data||!r.data.length){
+        /* Silent RLS failure — JWT likely expired; refresh and retry (max 3 attempts) */
+        CF.dirty=true; updateSyncBtn();
+        if(_retry < 2){
+          db().auth.refreshSession().then(function(sr){
+            if(!sr.data||!sr.data.session) return;
+            authUser=sr.data.session.user; saveOfflineAuth(authUser);
+            setTimeout(function(){ if(CF.dirty&&CF.showId) pushProject(cb,_retry+1); },500);
+          });
+        }
+        return;
+      }
+      CF.dirty=false;
+      CF._lastPushUpdatedAt = _pushTs;
+      localStorage.removeItem(DIRTY_KEY);
+      updateSyncBtn(); if(cb) cb();
     });
 }
 
@@ -11636,7 +11848,10 @@ function subscribeProject(){
       function(payload){
         var proj = payload.new && payload.new.project_data;
         if(!proj) return;
-        /* All roles auto-apply remote changes */
+        /* Block remote updates while editing locally (3-second quiet window after last edit) */
+        var isOwnEcho = payload.new.updated_at && payload.new.updated_at === CF._lastPushUpdatedAt;
+        var inQuietWindow = (Date.now() - CF._lastEditAt) < 3000;
+        if(CF.isOwner && (CF.dirty || isOwnEcho || inQuietWindow)) return;
         if(CF.isOwner || CF.role==='viewer' || CF.role==='crew' || CF.role==='tc' || CF.role==='editor' || CF.role==='track-editor'){
           applyRemote(proj);
           if((CF.role==='viewer'||CF.role==='crew') && window.buildTrackPills) buildTrackPills();
@@ -11650,17 +11865,15 @@ function applyRemote(proj){
   var prev = state.activeSongId;
   var prevFrames = state.simFrames;
   var prevVisible = state.visibleStreamIds ? state.visibleStreamIds.slice() : null;
-  var prevCamVis = state.cameraTrackVisible;
   var prevStreamSel = state.activeStreamId;
   applyProject(proj);
-  // Restore playhead + visibility + stream selection — never let a sync echo overwrite local state
+  // Never move the playhead — preserve the local TC position across remote updates
   state.simFrames = prevFrames;
-  if(prevVisible) state.visibleStreamIds = prevVisible;
-  state.cameraTrackVisible = prevCamVis;
+  // Preserve the selected stream (UI pick, not a visibility flag)
   if(prevStreamSel==='CAMERA'||state.streams.find(function(s){return s.id===prevStreamSel;}))
     state.activeStreamId = prevStreamSel;
+  // Viewers/crew with assigned tracks keep their own filter; everyone else gets remote visibility
   if(CF.tracks && CF.tracks.length){
-    // Preserve the viewer's own track toggles — only filter out tracks no longer permitted.
     var _allowed=CF.tracks;
     var _kept=prevVisible?prevVisible.filter(function(id){return _allowed.indexOf(id)!==-1;}):[];
     state.visibleStreamIds=_kept.length?_kept:_allowed.slice();
@@ -11672,6 +11885,10 @@ function applyRemote(proj){
   }
   var validPrev = prev && state.songs.find(function(s){return s.id===prev;});
   state.activeSongId = (validPrev ? prev : null) || (state.songs[0]&&state.songs[0].id);
+  /* Keep localStorage in sync with remote so next reload loads the correct state */
+  if(window.saveProjectData) saveProjectData(proj);
+  try{ localStorage.removeItem(DIRTY_KEY); }catch(e){}
+  CF.dirty=false;
   renderSongList(); renderCueList(); redrawActive();
 }
 
@@ -12066,20 +12283,39 @@ function ownerBoot(){
     _origP.call(this);
     if(!CF.showId) return;
     CF.dirty=true;
+    CF._lastEditAt=Date.now();
+    try{ localStorage.setItem(DIRTY_KEY, JSON.stringify({showId:CF.showId, dirtyAt:CF._lastEditAt})); }catch(e){}
     updateSyncBtn();
     clearTimeout(CF._pushTimer);
     CF._pushTimer=setTimeout(function(){
       pushProject(function(){ CF.dirty=false; updateSyncBtn(); });
-    }, 1200);
+    }, 400);
   };
 }
 
 function ownerRestoreShow(showId){
-  db().from('shows').select('name,project_data').eq('id',showId).single()
+  db().from('shows').select('name,project_data,updated_at').eq('id',showId).single()
     .then(function(r){
-      if(!r.data) return;
-      if(!CF.dirty&&r.data.project_data) applyRemote(r.data.project_data);
+      if(CF.showId!==showId) return; /* Show switched during fetch */
       subscribeProject();
+      if(!r.data||!r.data.project_data) return;
+
+      /* Read persisted dirty flag — contains {showId, dirtyAt} if a previous
+         session had edits that never made it to Supabase */
+      var dirtyInfo=null;
+      try{ dirtyInfo=JSON.parse(localStorage.getItem(DIRTY_KEY)||'null'); }catch(e){}
+      var hasDirty=dirtyInfo&&dirtyInfo.showId===showId;
+      var dirtyAt=hasDirty?dirtyInfo.dirtyAt:0;
+      var remoteTs=r.data.updated_at?new Date(r.data.updated_at).getTime():0;
+
+      if(hasDirty && dirtyAt > remoteTs - 5000){
+        /* Local edits are newer (or within clock-skew tolerance) — push them */
+        CF.dirty=true;
+        pushProject();
+      } else {
+        /* Remote is authoritative — apply it and clear any stale dirty flag */
+        applyRemote(r.data.project_data);
+      }
     });
 }
 
@@ -12946,8 +13182,22 @@ function buildProjectsPanel(){
   if(CF._showList.length){
     CF._showList.forEach(function(s){
       var isCur=s.id===CF.showId;
+      var syncDot='';
+      if(isCur){
+        var isOffline=!navigator.onLine;
+        if(isOffline){
+          syncDot='<span title="Offline — changes saved locally" style="font-size:9px;color:var(--text3);margin-right:4px;flex-shrink:0;">OFFLINE</span>';
+        } else if(CF.dirty){
+          syncDot='<span title="Unsaved changes" style="width:7px;height:7px;border-radius:50%;background:var(--amber);display:inline-block;margin-right:6px;flex-shrink:0;"></span>';
+        } else {
+          syncDot='<span title="All changes synced" style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;margin-right:6px;flex-shrink:0;"></span>';
+        }
+      }
       h+='<div class="sbp-proj-row'+(isCur?' active':'')+'">';
-      h+='<button class="sbp-proj-nm" style="background:none;border:none;text-align:left;cursor:pointer;" onclick="CF._switchProject(\''+s.id+'\')">'+(window.escH?escH(s.name):s.name)+'</button>';
+      h+='<button class="sbp-proj-nm" style="background:none;border:none;text-align:left;cursor:pointer;display:flex;align-items:center;min-width:0;" onclick="CF._switchProject(\''+s.id+'\')">';
+      h+=syncDot;
+      h+='<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(window.escH?escH(s.name):s.name)+'</span>';
+      h+='</button>';
       h+='<div class="sbp-proj-acts">';
       h+='<button class="sbp-proj-act" onclick="CF._renameProject(\''+s.id+'\')" title="Rename">'+_svgPencilSm+'</button>';
       h+='<button class="sbp-proj-act danger" onclick="CF._deleteProject(\''+s.id+'\')" title="Delete">'+_svgTrashSm+'</button>';
@@ -13009,14 +13259,34 @@ function deleteProject(id){
   var msg='Delete "'+(s?s.name:'this project')+'"? This cannot be undone.';
   if(window.openConfirmModal){
     openConfirmModal(msg,function(){
-      db().from('shows').delete().eq('id',id).then(function(){
-        CF._showList=CF._showList.filter(function(s){return s.id!==id;});
-        if(CF.showId===id){
-          CF.showId=null; CF.isOwner=false; CF.role=null;
-          localStorage.removeItem('cf18_session');
-        }
-        if(window._sbRender) _sbRender('save');
-      });
+      var wasActive=CF.showId===id;
+      /* Capture local storage key NOW — state.projectId is the cf12_ key, not the Supabase UUID */
+      var localProjId=window.state && wasActive ? state.projectId : null;
+      /* Delete PINs first, then the show */
+      db().from('show_access').delete().eq('show_id',id)
+        .then(function(){ return db().from('shows').delete().eq('id',id); })
+        .then(function(){
+          CF._showList=CF._showList.filter(function(s){return s.id!==id;});
+          if(wasActive){
+            CF.showId=null; CF.isOwner=false; CF.role=null;
+            if(CF._projChan){ CF._projChan.unsubscribe(); CF._projChan=null; }
+            localStorage.removeItem(SESS_KEY);
+            /* Remove local project data using the correct cf12_ key */
+            if(localProjId && window.deleteProjectData) deleteProjectData(localProjId);
+            localStorage.removeItem('cf12_current');
+            /* Reset state to blank so no stale content remains */
+            if(window.applyProject){
+              var blank=JSON.parse(JSON.stringify(DEFAULT_PROJECT));
+              blank.id='proj_'+Date.now();
+              if(window.saveProjectData) saveProjectData(blank);
+              applyProject(blank);
+            }
+            if(window.renderSongList) renderSongList();
+            if(window.renderCueList) renderCueList();
+            if(window.redrawActive) redrawActive();
+          }
+          if(window._sbRender) _sbRender('save');
+        });
     },null);
   }
 }
@@ -13034,11 +13304,11 @@ function renameProject(id){
   }
 }
 
-function makeFreshProject(name, trackName){
+function makeFreshProject(name, trackName, fps){
   var t=String(Date.now());
   var trackId='stream_'+t; var songId='song_'+t; var chapId='chap_'+t; var plId='pl_'+t;
   return {
-    id:'proj_'+t, name:name, fps:25, visibleCount:999, warnSec:10, autoAdvanceSec:10,
+    id:'proj_'+t, name:name, fps:fps||25, visibleCount:999, warnSec:10, autoAdvanceSec:10,
     streams:[{id:trackId,name:trackName||'Track 1',colorId:'blue'}],
     songs:[{id:songId,name:'Sequence 1',description:'',startTc:'01:00:00:00',
       cues:[],chapters:[{id:chapId,tc:'01:00:00:00',name:'Start'}]}],
@@ -13048,25 +13318,27 @@ function makeFreshProject(name, trackName){
   };
 }
 
-function createShow(name, trackName){
+function createShow(name, trackName, fps){
   if(!name){var nameEl=document.getElementById('cf-new-show-name');name=(nameEl?nameEl.value:'').trim()||'My Show';}
-  var fresh=makeFreshProject(name, trackName);
+  var fresh=makeFreshProject(name, trackName, fps);
   /* Generate UUID client-side for offline-first */
   var showId=crypto.randomUUID();
-  /* Apply locally and save session immediately — no network needed */
+  /* Set identity BEFORE rendering so renderCueList sees the correct showId */
+  CF.showId=showId; CF.isOwner=true; CF.role='owner';
+  saveSession(showId);
+  /* Apply locally */
   if(window.applyProject){
     applyProject(fresh);
     if(window.renderSongList) renderSongList();
     if(window.renderCueList) renderCueList();
     if(window.redrawActive) redrawActive();
   }
-  CF.showId=showId; CF.isOwner=true; CF.role='owner';
-  saveSession(showId);
   CF._showList.unshift({id:showId,name:name});
+  saveShowCache(CF._showList);
   openTcChan();
   subscribeProject();
   if(window._sbRender) _sbRender('save');
-  /* Push to Supabase — may fail if offline; pushProject will retry */
+  /* Push to Supabase — may fail if offline; onComeOnline / TOKEN_REFRESHED will retry */
   var ownerId=authUser?authUser.id:null;
   db().from('shows').insert({id:showId,name:name,owner_id:ownerId,project_data:snapshot()})
     .then(function(r){
@@ -13100,13 +13372,14 @@ function refreshShowList(){
           });
         }
         CF._showList=rows;
+        saveShowCache(rows);
         return rows;
       });
   } else {
     return db().from('shows').select('id,name,updated_at')
       .or('owner_id.is.null,owner_id.eq.local')
       .order('updated_at',{ascending:false})
-      .then(function(r){ CF._showList=r.data||[]; return r.data; });
+      .then(function(r){ CF._showList=r.data||[]; saveShowCache(CF._showList); return r.data; });
   }
 }
 
