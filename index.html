@@ -752,6 +752,22 @@ body.mode-live #edit-mode-banner { display: none; }
 .cue-col-del { display: flex; align-items: center; justify-content: center; }
 .cue-del { background: none; border: none; color: var(--txt-low); cursor: pointer; font-size: 13px; padding: 6px; min-width: 28px; min-height: 28px; display: flex; align-items: center; justify-content: center; transition: color .1s; }
 .cue-del:hover { color: var(--red); }
+/* Delete Cue confirmation modal */
+.dcm-box { border-color:var(--red) !important; max-width:520px; }
+.dcm-warning { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.dcm-pip { width:8px; height:8px; border-radius:50%; background:var(--red); flex-shrink:0; }
+.dcm-warning-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--red); }
+.dcm-card { display:flex; gap:16px; align-items:flex-start; background:var(--surface2); border:1px solid var(--hair2); padding:14px 16px; margin-bottom:16px; }
+.dcm-card-info { flex:1; min-width:0; }
+.dcm-card-meta { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); margin-bottom:6px; }
+.dcm-card-name { font-size:15px; font-weight:700; color:var(--txt-hi); margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dcm-card-desc { font-size:11px; color:var(--txt-mid); line-height:1.5; }
+.dcm-card-tc { font-family:var(--mono); font-size:12px; color:var(--txt-mid); flex-shrink:0; padding-top:2px; }
+.dcm-effects-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); margin-bottom:10px; }
+.dcm-effect-row { display:flex; align-items:flex-start; gap:10px; margin-bottom:7px; font-size:12px; color:var(--txt-mid); line-height:1.55; }
+.dcm-effect-icon { color:var(--txt-low); flex-shrink:0; font-size:12px; }
+.ntm-btn.danger-solid { background:var(--red); border-color:var(--red); color:#fff; }
+.ntm-btn.danger-solid:hover { filter:brightness(1.12); }
 .cue-checkbox { width: 13px; height: 13px; accent-color: var(--primary); }
 
 .cue-list-header {
@@ -1049,6 +1065,10 @@ body.mode-live #edit-mode-banner { display: none; }
 .wf-tc, .wf-cd { font-family: var(--mono) !important; font-variant-numeric: tabular-nums; }
 @keyframes cue-flash { 0%{opacity:.6;} 100%{opacity:0;} }
 .wf-row.triggered::after { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,.15); animation: cue-flash .25s ease-out forwards; pointer-events: none; z-index: 10; }
+/* Full-screen flash for owner live view */
+@keyframes live-screen-flash { 0%{opacity:1;} 100%{opacity:0;} }
+#live-cue-flash { position:fixed; inset:0; background:rgba(255,255,255,.13); pointer-events:none; z-index:9990; display:none; }
+#live-cue-flash.flash { display:block; animation:live-screen-flash .35s ease-out forwards; }
 #wf-btn-seq.wf-panel-on, #wf-btn-notes.wf-panel-on { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); }
 
 /* ═══════════════════════════════════════════
@@ -2567,6 +2587,9 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     </div>
   </div>
 
+  <!-- Cue-trigger flash overlay (controlled by JS, respects cueFlash setting) -->
+  <div id="live-cue-flash"></div>
+
 </div>
 
 <!-- MODALS -->
@@ -2660,6 +2683,38 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <button class="mbtn" onclick="closeModal('stream-modal')">Cancel</button>
       <button class="mbtn danger" id="stream-del-btn" style="display:none;" onclick="deleteCurrentStream()">Delete</button>
       <button class="mbtn primary" onclick="saveStream()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Cue confirmation modal -->
+<div id="delete-cue-modal" class="ntm-bg" role="dialog" aria-modal="true">
+  <div class="ntm-box dcm-box">
+    <div class="ntm-header" style="flex-direction:column;align-items:stretch;gap:0;">
+      <div class="dcm-warning">
+        <span class="dcm-pip"></span>
+        <span class="dcm-warning-lbl">Destructive · Cannot undo after autosave</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span class="ntm-title" id="dcm-title">Delete Cue</span>
+        <button class="tcs-close" onclick="closeDeleteCueModal()">✕</button>
+      </div>
+    </div>
+    <div class="ntm-body" style="gap:0;padding:20px 24px 8px;">
+      <div class="dcm-card">
+        <div id="dcm-badge" style="flex-shrink:0;"></div>
+        <div class="dcm-card-info">
+          <div class="dcm-card-meta" id="dcm-meta"></div>
+          <div class="dcm-card-name" id="dcm-name"></div>
+          <div class="dcm-card-desc" id="dcm-desc"></div>
+        </div>
+        <div class="dcm-card-tc" id="dcm-tc"></div>
+      </div>
+      <div id="dcm-effects"></div>
+    </div>
+    <div class="ntm-footer">
+      <button class="ntm-btn" onclick="closeDeleteCueModal()">Cancel</button>
+      <button class="ntm-btn danger-solid" onclick="confirmDeleteCue()">Delete Cue</button>
     </div>
   </div>
 </div>
@@ -3054,12 +3109,21 @@ function _doSwitchLive(){
   switchMode('live');
   _skipLiveGuard=false;
 }
+// Set when the live guard redirects to TC settings — auto-go-live on first TC lock
+let _awaitingTCForLive=false;
+function _checkAutoLive(){
+  if(!_awaitingTCForLive)return;
+  _awaitingTCForLive=false;
+  const modal=document.getElementById('settings-modal');
+  if(!modal||!modal.classList.contains('show'))return;
+  setTimeout(()=>{stopSettingsTCReadout();closeModal('settings-modal');switchMode('live');},350);
+}
 
 function switchMode(mode){
   // "Open modal before live" guard
   if(mode==='live'&&state.openModalBeforeLive&&!_skipLiveGuard){
     const hasTC=tcListening&&(mtc.locked||ltc.locked);
-    if(!hasTC){document.getElementById('prelive-modal').classList.add('show');return;}
+    if(!hasTC){_awaitingTCForLive=true;openSettingsModal('tc');return;}
   }
   // Update all tab instances (3 topbars each with edit/test/live)
   ['edit','test','live'].forEach(m=>{
@@ -4216,6 +4280,16 @@ function _doRedraw(target,frames){
         const cur=wfEl?.querySelector('.wf-row.current');
         if(cur){cur.classList.add('triggered');setTimeout(()=>cur.classList.remove('triggered'),300);}
       });
+      // Full-screen flash on owner live view
+      if(isLive){
+        const fl=document.getElementById('live-cue-flash');
+        if(fl){
+          fl.classList.remove('flash');
+          void fl.offsetWidth; // restart animation
+          fl.classList.add('flash');
+          setTimeout(()=>fl.classList.remove('flash'),380);
+        }
+      }
     }
   }
 
@@ -6150,11 +6224,81 @@ document.getElementById('cue-list-wrap').addEventListener('keydown',e=>{
   }
 },true);
 document.getElementById('cue-list-wrap').addEventListener('focusin',e=>{if(e.target.tagName==='INPUT'&&e.target.dataset.id)snapshot();});
+// ─── DELETE CUE MODAL ───
+let _deleteCueId=null;
+function openDeleteCueModal(cueId){
+  let cue=null,song=null,cueIdx=-1;
+  state.songs.forEach(s=>{
+    const sorted=getSortedCues(s.id,false);
+    const idx=sorted.findIndex(c=>c.id===cueId);
+    if(idx>=0){cue=sorted[idx];song=s;cueIdx=idx;}
+  });
+  if(!cue)return;
+  _deleteCueId=cueId;
+  // Title
+  const titleEl=document.getElementById('dcm-title');
+  if(titleEl)titleEl.textContent='Delete Cue '+(cueIdx+1);
+  // Badge
+  const badgeEl=document.getElementById('dcm-badge');
+  if(badgeEl){
+    const isCam=!!cue.cameraId&&!!state.cameraTrack;
+    if(isCam){
+      const cam=getCameraById(cue.cameraId);
+      const hex=getCameraColor(cam?.colorIdx||0);
+      const num=String(cam?.number||'?').padStart(2,'0');
+      badgeEl.innerHTML=`<div class="cam-badge md" style="background:${hex};color:#fff;">${num}</div>`;
+    } else {
+      const st=state.streams.find(s=>s.id===cue.streamId);
+      const short=((st?.shortName||st?.name||'?').slice(0,3)).toUpperCase();
+      const col=window.getStreamColor?getStreamColor(cue.streamId):{hex:'#3b7bdd'};
+      badgeEl.innerHTML=`<div class="track-glyph md" style="background:#06060a;color:#fff;border-color:var(--hair2);">${escH(short)}</div>`;
+    }
+  }
+  // Meta: "CUE N · TRACK · DURATION"
+  const isCam=!!cue.cameraId&&!!state.cameraTrack;
+  const trackLabel=isCam?('CAM '+String(getCameraById(cue.cameraId)?.number||'?').padStart(2,'0')):(state.streams.find(s=>s.id===cue.streamId)?.name||'Track');
+  const sorted=getSortedCues(song.id,false);
+  const nextCue=sorted[cueIdx+1];
+  const toNext=nextCue?(()=>{const d=Math.round((nextCue._f-cue._f)/(state.fps||25));return Math.floor(d/60)+':'+String(d%60).padStart(2,'0');})():null;
+  const metaEl=document.getElementById('dcm-meta');
+  if(metaEl)metaEl.textContent=['CUE '+(cueIdx+1),trackLabel,toNext].filter(Boolean).join(' · ');
+  const nameEl=document.getElementById('dcm-name');
+  if(nameEl)nameEl.textContent=cue.name||'—';
+  const descEl=document.getElementById('dcm-desc');
+  if(descEl){descEl.textContent=cue.desc||'';descEl.style.display=cue.desc?'':'none';}
+  const tcEl=document.getElementById('dcm-tc');
+  if(tcEl)tcEl.textContent=cue.tc||'';
+  // Effects
+  const efEl=document.getElementById('dcm-effects');
+  if(efEl){
+    const rows=[];
+    if(cue.desc&&cue.desc.trim())rows.push('The cue note will be lost');
+    rows.push('This cue will be permanently removed from the sequence');
+    efEl.innerHTML='<div class="dcm-effects-lbl">What this will do</div>'+
+      rows.map(r=>`<div class="dcm-effect-row"><span class="dcm-effect-icon">↳</span><span>${escH(r)}</span></div>`).join('');
+  }
+  const m=document.getElementById('delete-cue-modal');
+  if(m)m.classList.add('show');
+}
+function closeDeleteCueModal(){
+  const m=document.getElementById('delete-cue-modal');
+  if(m)m.classList.remove('show');
+  _deleteCueId=null;
+}
+function confirmDeleteCue(){
+  if(!_deleteCueId)return;
+  const id=_deleteCueId;
+  snapshot();
+  state.songs.forEach(s=>{const idx=s.cues.findIndex(c=>c.id===id);if(idx>=0)s.cues.splice(idx,1);});
+  if(window.ETL&&ETL.selId===id)ETL.selId=null;
+  persist();renderCueList();redrawActive();
+  showUndoToast('Cue deleted');
+  closeDeleteCueModal();
+}
+
 document.getElementById('cue-list-wrap').addEventListener('click',e=>{
   if(!e.target.classList.contains('cue-del'))return;
-  const id=e.target.dataset.id;snapshot();
-  state.songs.forEach(s=>{const idx=s.cues.findIndex(c=>c.id===id);if(idx>=0)s.cues.splice(idx,1);});
-  persist();renderCueList();redrawActive();showUndoToast('Cue deleted');
+  openDeleteCueModal(e.target.dataset.id);
 });
 
 // ─── SONG ACTIONS ───
@@ -6360,6 +6504,7 @@ function onMTCMessage(m){
       mtc.locked=true;
       if(mtc.rafId)cancelAnimationFrame(mtc.rafId);
       mtc.rafId=requestAnimationFrame(mtcRafLoop);
+      _checkAutoLive();
     }
     updateTCStatus('receiving','MTC — '+mtc.inputName);
   }
@@ -6504,6 +6649,7 @@ function _onLTCFrame(e){
     ltc.locked=true;
     if(ltc.rafId)cancelAnimationFrame(ltc.rafId);
     ltc.rafId=requestAnimationFrame(_ltcRafLoop);
+    _checkAutoLive();
   }
   updateTCStatus('receiving','LTC — '+ltc.inputName);
 }
@@ -6777,12 +6923,8 @@ document.addEventListener('keydown',e=>{
     if(e.code==='ArrowRight'&&!e.shiftKey){e.preventDefault();
       state.simFrames=Math.max(0,state.simFrames+1);
       redrawTest(Math.floor(state.simFrames));return;}
-    // Backspace: delete selected cue
-    if(e.code==='Backspace'&&ETL.selId){e.preventDefault();
-      snapshot();
-      state.songs.forEach(s=>{const idx=s.cues.findIndex(c=>c.id===ETL.selId);if(idx>=0)s.cues.splice(idx,1);});
-      ETL.selId=null;persist();renderCueList();redrawActive();
-      showUndoToast('Cue deleted');return;}
+    // Backspace: delete selected cue (via confirmation modal)
+    if(e.code==='Backspace'&&ETL.selId){e.preventDefault();openDeleteCueModal(ETL.selId);return;}
     // Camera track hotkeys: 1–9 = cameras 1–9, 0 = camera 10
     if(state.activeStreamId==='CAMERA'&&state.cameraTrack&&!e.metaKey&&!e.ctrlKey&&!e.altKey){
       const _camKeys={'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'0':10};
@@ -6914,6 +7056,11 @@ function closeNewProjectModal(){
 function confirmNewProject(){
   const projName=(document.getElementById('np-proj-name')?.value||'').trim()||'Untitled Project';
   const trackName=(document.getElementById('np-track-name')?.value||'').trim()||'Track 1';
+  closeNewProjectModal();
+  closeModal('proj-modal');
+  // When Block 2 is loaded, route through CF._createShow — handles Supabase sync + session setup
+  if(window.CF&&CF._createShow){CF._createShow(projName,trackName);return;}
+  // Local-only fallback
   const trackId=uid(),songId=uid(),chapterId=uid();
   const proj={id:'proj_'+Date.now(),name:projName,fps:25,visibleCount:999,warnSec:10,autoAdvanceSec:10,
     streams:[{id:trackId,name:trackName,colorId:'blue'}],
@@ -6921,8 +7068,6 @@ function confirmNewProject(){
       cues:[],chapters:[{id:chapterId,tc:'01:00:00:00',name:'Start'}]}],
     visibleStreamIds:[trackId],activeSongId:songId};
   saveProjectData(proj);applyProject(proj);
-  closeNewProjectModal();
-  closeModal('proj-modal');
   if(window._sbRender&&window._sbPanel==='save')_sbRender('save');
   renderProjectList();
 }
@@ -7289,7 +7434,7 @@ function startSettingsTCReadout(){
     _tcsUpdateReadout();
   },80);
 }
-function stopSettingsTCReadout(){clearInterval(_settingsTCTimer);_settingsTCTimer=null;}
+function stopSettingsTCReadout(){clearInterval(_settingsTCTimer);_settingsTCTimer=null;_awaitingTCForLive=false;}
 
 function _tcsUpdateReadout(){
   const fps=state.fps;
@@ -12711,7 +12856,7 @@ function buildProjectsPanel(){
   } else {
     h+='<div class="sbp-empty">No online projects yet</div>';
   }
-  h+='<button class="sbp-add" onclick="CF._createShow()">+ New project</button>';
+  h+='<button class="sbp-add" onclick="openNewProjectModal()">+ New project</button>';
   h+='<button class="sbp-add" onclick="exportShowFile()">↓ Export show file</button>';
   h+='<label class="sbp-add" style="display:block;text-align:left;cursor:pointer;" for="cf-file-import">↑ Import show file<input id="cf-file-import" type="file" accept=".cueflow,.json" style="display:none" onchange="importShowFile(event)"></label>';
   return h;
@@ -12789,25 +12934,23 @@ function renameProject(id){
   }
 }
 
-function makeFreshProject(name){
+function makeFreshProject(name, trackName){
   var t=String(Date.now());
-  var trackId='stream_'+t; var songId='song_'+t; var cueId='cue_'+t; var plId='pl_'+t;
+  var trackId='stream_'+t; var songId='song_'+t; var chapId='chap_'+t; var plId='pl_'+t;
   return {
     id:'proj_'+t, name:name, fps:25, visibleCount:999, warnSec:10, autoAdvanceSec:10,
-    streams:[{id:trackId,name:'Track 1',colorId:'blue'}],
+    streams:[{id:trackId,name:trackName||'Track 1',colorId:'blue'}],
     songs:[{id:songId,name:'Sequence 1',description:'',startTc:'01:00:00:00',
-      cues:[{id:cueId,tc:'01:00:00:00',name:'Cue 1',desc:'',streamId:trackId}],
-      chapters:[]}],
+      cues:[],chapters:[{id:chapId,tc:'01:00:00:00',name:'Start'}]}],
     playlists:[{id:plId,name:'Main',songIds:[songId]}],
     activePlaylistId:plId,
     visibleStreamIds:[trackId], activeSongId:songId
   };
 }
 
-function createShow(){
-  var nameEl=document.getElementById('cf-new-show-name');
-  var name=(nameEl?nameEl.value:'').trim()||'My Show';
-  var fresh=makeFreshProject(name);
+function createShow(name, trackName){
+  if(!name){var nameEl=document.getElementById('cf-new-show-name');name=(nameEl?nameEl.value:'').trim()||'My Show';}
+  var fresh=makeFreshProject(name, trackName);
   /* Generate UUID client-side for offline-first */
   var showId=crypto.randomUUID();
   /* Apply locally and save session immediately — no network needed */
