@@ -237,9 +237,13 @@ input, select, textarea { font-family: inherit; }
 .tcs-title { font-family:var(--cond); font-size:15px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-hi); flex:1; }
 .tcs-close { background:none; border:1px solid var(--hair2); color:var(--txt-mid); width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; }
 .tcs-close:hover { background:var(--surface2); color:var(--txt-hi); }
-.tcs-tabs { display:flex; border-bottom:1px solid var(--hair); }
-.tcs-tab { flex:1; padding:12px 0; background:none; border:none; border-bottom:2px solid transparent; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; transition:color .12s,border-color .12s; }
-.tcs-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+/* Input source bar (LTC / MTC) — compact inline toggle, secondary to section tabs */
+.tcs-source-bar { display:flex; align-items:center; gap:10px; padding:14px 20px 2px; }
+.tcs-source-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-low); flex-shrink:0; }
+.tcs-source-toggle { display:inline-flex; border:1px solid var(--hair2); overflow:hidden; }
+.tcs-tab { height:24px; padding:0 14px; background:transparent; border:none; border-right:1px solid var(--hair2); font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); cursor:pointer; transition:color .1s,background .1s; }
+.tcs-tab:last-child { border-right:none; }
+.tcs-tab.active { background:var(--surface2); color:var(--txt-mid); }
 .tcs-tab:not(.active):hover { color:var(--txt-hi); }
 .tcs-ltc-panel, #tcs-ltc-panel, #tcs-mtc-panel { padding:16px 20px 0; }
 .tcs-row { display:flex; gap:16px; margin-bottom:12px; }
@@ -272,11 +276,11 @@ input, select, textarea { font-family: inherit; }
 .tcs-btn-outline { background:none; border:1px solid var(--hair2); color:var(--txt-mid); font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:5px 10px; cursor:pointer; }
 .tcs-btn-outline:hover { border-color:var(--hair3); color:var(--txt-hi); }
 .tcs-shared { padding:0 20px; }
-/* Outer tabs (TIMECODE / SHOW SETTINGS) — slightly more prominent */
-.tcs-outer-tabs { background:var(--surface2); border-bottom:2px solid var(--hair2); }
-.tcs-outer-tab { flex:1; padding:13px 0; background:none; border:none; border-bottom:3px solid transparent; font-family:var(--cond); font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; transition:color .12s,border-color .12s; margin-bottom:-2px; }
-.tcs-outer-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
-.tcs-outer-tab:not(.active):hover { color:var(--txt-hi); }
+/* Outer section switcher (TIMECODE / SHOW SETTINGS) — primary button style, square corners */
+.tcs-outer-tabs { display:flex; gap:6px; padding:10px 20px 12px; border-bottom:1px solid var(--hair); background:transparent; }
+.tcs-outer-tab { height:36px; padding:0 20px; background:transparent; border:1px solid var(--hair2); font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; transition:color .12s,border-color .12s,background .12s; }
+.tcs-outer-tab.active { background:var(--primary); border-color:var(--primary); color:#000; }
+.tcs-outer-tab:not(.active):hover { border-color:var(--hair3); color:var(--txt-hi); }
 /* Show settings section body */
 .tcs-show-body { padding:16px 20px 4px; display:flex; flex-direction:column; gap:0; }
 .tcs-show-toggle-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 0; border-bottom:1px solid var(--hair); }
@@ -2602,6 +2606,34 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     </div>
   </div>
 </div>
+<div id="new-proj-modal" class="ntm-bg" role="dialog" aria-modal="true" aria-labelledby="new-proj-modal-title">
+  <div class="ntm-box" style="width:400px;">
+    <div class="ntm-header">
+      <span class="ntm-title" id="new-proj-modal-title">New Project</span>
+    </div>
+    <div class="ntm-body">
+      <div class="ntm-fg">
+        <label class="ntm-lbl" for="np-proj-name">Project Name</label>
+        <div class="ntm-iw">
+          <input class="ntm-inp" id="np-proj-name" placeholder="e.g. Show Night 1" maxlength="60" autocomplete="off"
+            onkeydown="if(event.key==='Enter')confirmNewProject();if(event.key==='Escape')closeNewProjectModal();">
+        </div>
+      </div>
+      <div class="ntm-fg" style="margin-top:12px;">
+        <label class="ntm-lbl" for="np-track-name">First Track Name</label>
+        <div class="ntm-iw">
+          <input class="ntm-inp" id="np-track-name" placeholder="e.g. Lighting" maxlength="40" autocomplete="off"
+            onkeydown="if(event.key==='Enter')confirmNewProject();if(event.key==='Escape')closeNewProjectModal();">
+        </div>
+      </div>
+    </div>
+    <div class="ntm-footer">
+      <button class="ntm-btn" onclick="closeNewProjectModal()">Cancel</button>
+      <button class="ntm-btn primary" onclick="confirmNewProject()">Create Project</button>
+    </div>
+  </div>
+</div>
+
 <div id="proj-modal" class="modal-bg" role="dialog" aria-modal="true" aria-labelledby="proj-modal-title">
   <div class="modal-box">
     <div class="modal-title" id="proj-modal-title">Projects</div>
@@ -2611,10 +2643,9 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <label class="mbtn-wide" style="cursor:pointer;">↑ Open show file<input type="file" id="show-import-in" accept=".cueflow,.json" style="display:none" onchange="importShowFile(event)"></label>
       <button class="mbtn-wide" onclick="exportShowFile()">↓ Export show file</button>
     </div>
-    <input class="minp" id="new-proj-name" placeholder="New project name…">
     <div class="modal-actions">
       <button class="mbtn" onclick="closeModal('proj-modal')">Close</button>
-      <button class="mbtn primary" onclick="createProject()">Create project</button>
+      <button class="mbtn primary" onclick="openNewProjectModal()">+ New Project</button>
     </div>
   </div>
 </div>
@@ -2745,14 +2776,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <span class="ntm-title" id="cam-track-modal-title">Camera Track</span>
     </div>
     <div class="ntm-body">
-      <!-- Track name -->
-      <div class="ntm-fg">
-        <label class="ntm-lbl" for="cam-track-name-inp">Track Name</label>
-        <div class="ntm-iw">
-          <input class="ntm-inp" id="cam-track-name-inp" placeholder="e.g. Cameras" maxlength="40" autocomplete="off"
-            onkeydown="if(event.key==='Enter')saveCameraTrack();">
-        </div>
-      </div>
+      <!-- Track name hidden — always "Cameras" -->
+      <input type="hidden" id="cam-track-name-inp" value="Cameras">
       <!-- Create mode: camera count stepper -->
       <div class="ntm-fg" id="cam-track-count-row" style="display:none;">
         <label class="ntm-lbl">Cameras</label>
@@ -2868,8 +2893,8 @@ const DEFAULT_PROJECT={
   id:'proj_def',name:'My Show',fps:25,visibleCount:999,warnSec:10,autoAdvanceSec:10,
   streams:[{id:'stream_1',name:'Track 1',colorId:'blue'}],
   songs:[{id:'s1',name:'Sequence 1',description:'',startTc:'01:00:00:00',
-    cues:[{id:'c1',tc:'01:00:00:00',name:'Cue 1',desc:'',streamId:'stream_1'}],
-    chapters:[]}],
+    cues:[],
+    chapters:[{id:'ch1',tc:'01:00:00:00',name:'Start'}]}],
   visibleStreamIds:['stream_1'],activeSongId:'s1'
 };
 
@@ -3789,7 +3814,7 @@ function openCameraTrackModal(){
     document.getElementById('cam-track-name-inp').value='Cameras';
   }
   document.getElementById('camera-track-modal').classList.add('show');
-  setTimeout(()=>document.getElementById('cam-track-name-inp').focus(),60);
+  setTimeout(()=>document.querySelector('#camera-track-modal .ntm-inp')?.focus(),60);
 }
 
 function _renderCamTrackCameraList(el){
@@ -3833,7 +3858,7 @@ function removeCameraFromTrack(camId){
 }
 
 function saveCameraTrack(){
-  const name=document.getElementById('cam-track-name-inp').value.trim()||'Cameras';
+  const name='Cameras';
   snapshot();
   if(_camTrackEditing&&state.cameraTrack){
     state.cameraTrack.name=name;
@@ -6791,6 +6816,41 @@ document.addEventListener('keydown',e=>{
 // Stop JKL on focus into inputs
 document.addEventListener('focusin',()=>{if(_jklSpeed!==0)_setJKL(0);});
 
+// ── Global modal keyboard handler ──
+// Escape closes the topmost open modal; Enter confirms its primary action.
+document.addEventListener('keydown',function _modalKey(e){
+  if(e.key!=='Escape'&&e.key!=='Enter')return;
+  const modal=document.querySelector('.modal-bg.show, .ntm-bg.show');
+  if(!modal)return;
+
+  if(e.key==='Escape'){
+    e.preventDefault();e.stopPropagation();
+    // Priority: special ESC btn → X close btn → non-primary cancel → last-resort primary (info modals)
+    const btn=
+      modal.querySelector('.asm-esc-btn')||
+      modal.querySelector('.tcs-close')||
+      modal.querySelector('.ntm-btn:not(.primary):not(.danger):not(.ntm-type-btn):not([style*="display:none"])')||
+      modal.querySelector('.mbtn:not(.primary):not(.danger)')||
+      modal.querySelector('.ntm-btn.primary,.mbtn.primary');
+    if(btn)btn.click();
+    return;
+  }
+
+  if(e.key==='Enter'&&!e.shiftKey){
+    const ae=document.activeElement;
+    if(!ae)return;
+    const tag=ae.tagName;
+    // Skip: multiline text, dropdowns, other buttons, contenteditable (rich text)
+    if(tag==='TEXTAREA'||tag==='SELECT'||tag==='BUTTON')return;
+    if(ae.contentEditable==='true')return;
+    e.preventDefault();
+    const primaryBtn=
+      modal.querySelector('.ntm-btn.primary:not(:disabled),.mbtn.primary:not(:disabled)')||
+      modal.querySelector('.ntm-btn.danger:not(:disabled)'); // confirm-modal fallback
+    if(primaryBtn)primaryBtn.click();
+  }
+});
+
 // ─── SHOW FILE ───
 function exportShowFile(){
   const data={_v:APP_VERSION,exported:new Date().toISOString(),project:{
@@ -6840,16 +6900,33 @@ function renderProjectList(){
     el.appendChild(div);
   });
 }
-function createProject(){
-  const name=document.getElementById('new-proj-name').value.trim()||'Untitled Project';
-  const trackId=uid(),songId=uid(),cueId=uid();
-  const proj={id:'proj_'+Date.now(),name,fps:25,visibleCount:999,warnSec:10,autoAdvanceSec:10,
-    streams:[{id:trackId,name:'Track 1',colorId:'blue'}],
-    songs:[{id:songId,name:'Sequence 1',description:'',startTc:'01:00:00:00',
-      cues:[{id:cueId,tc:'01:00:00:00',name:'Cue 1',desc:'',streamId:trackId}],chapters:[]}],
-    visibleStreamIds:[trackId],activeSongId:songId};
-  saveProjectData(proj);applyProject(proj);document.getElementById('new-proj-name').value='';renderProjectList();
+function openNewProjectModal(){
+  const m=document.getElementById('new-proj-modal');if(!m)return;
+  const np=document.getElementById('np-proj-name');
+  const nt=document.getElementById('np-track-name');
+  if(np)np.value='';if(nt)nt.value='';
+  m.classList.add('show');
+  setTimeout(()=>{if(np)np.focus();},60);
 }
+function closeNewProjectModal(){
+  const m=document.getElementById('new-proj-modal');if(m)m.classList.remove('show');
+}
+function confirmNewProject(){
+  const projName=(document.getElementById('np-proj-name')?.value||'').trim()||'Untitled Project';
+  const trackName=(document.getElementById('np-track-name')?.value||'').trim()||'Track 1';
+  const trackId=uid(),songId=uid(),chapterId=uid();
+  const proj={id:'proj_'+Date.now(),name:projName,fps:25,visibleCount:999,warnSec:10,autoAdvanceSec:10,
+    streams:[{id:trackId,name:trackName,colorId:'blue'}],
+    songs:[{id:songId,name:'Sequence 1',description:'',startTc:'01:00:00:00',
+      cues:[],chapters:[{id:chapterId,tc:'01:00:00:00',name:'Start'}]}],
+    visibleStreamIds:[trackId],activeSongId:songId};
+  saveProjectData(proj);applyProject(proj);
+  closeNewProjectModal();
+  closeModal('proj-modal');
+  if(window._sbRender&&window._sbPanel==='save')_sbRender('save');
+  renderProjectList();
+}
+function createProject(){ openNewProjectModal(); }
 
 // ─── INIT ───
 function init(){
@@ -7675,14 +7752,7 @@ function sbDeleteProject(id){
   deleteProjectData(id);
   _sbRender('save');
 }
-function sbCreateProject(){
-  const name=(document.getElementById('sbp-new-proj-name')?.value||'').trim()||'Untitled';
-  const proj=JSON.parse(JSON.stringify(DEFAULT_PROJECT));
-  proj.id='proj_'+Date.now();proj.name=name;
-  proj.songs.forEach(s=>{s.id=uid();s.cues.forEach(c=>c.id=uid());});
-  saveProjectData(proj);applyProject(proj);
-  _sbRender('save');
-}
+function sbCreateProject(){ openNewProjectModal(); }
 
 function sbClose(){
   if(_sbPanel) sbOpen(_sbPanel); // toggle off
@@ -7766,10 +7836,7 @@ function _sbRender(name){
       </div>`;
     });
     html+=`</div>
-    <div style="display:flex;gap:4px;margin-bottom:8px;">
-      <input id="sbp-new-proj-name" placeholder="New project name…" style="flex:1;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:5px 8px;outline:none;">
-      <button class="sbp-add" onclick="sbCreateProject()" style="width:auto;padding:5px 10px;margin:0;white-space:nowrap;">+ Create</button>
-    </div>
+    <button class="sbp-add" onclick="openNewProjectModal()" style="width:100%;margin-bottom:8px;">+ New Project</button>
     <button class="sbp-add" onclick="exportShowFile()" style="width:100%;margin-bottom:4px;">↓ Export show file</button>
     <label class="sbp-add" style="width:100%;display:block;text-align:center;cursor:pointer;margin-bottom:4px;">↑ Import show file<input type="file" accept=".cueflow,.json" style="display:none" onchange="importShowFile(event);sbClose()"></label>
     <hr style="border:none;border-top:1px solid var(--hair);margin:6px 0;">
@@ -10564,26 +10631,25 @@ window.CfSelect=(function(){
   <!-- Header -->
   <div class="ntm-header">
     <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
-      <div class="tcs-status-line" id="tcs-status-line">
-        <span class="tcs-status-pip" id="tcs-status-pip"></span>
-        <span id="tcs-status-text">No signal</span>
-      </div>
       <span class="ntm-title" id="settings-modal-title">SETTINGS</span>
     </div>
     <button class="tcs-close" onclick="stopSettingsTCReadout();closeModal('settings-modal')" aria-label="Close">✕</button>
   </div>
   <!-- Outer tabs: TIMECODE | SHOW SETTINGS -->
-  <div class="tcs-tabs tcs-outer-tabs" style="display:flex;">
+  <div class="tcs-outer-tabs">
     <button class="tcs-outer-tab active" id="sett-tab-tc" onclick="switchSettTab('tc')">TIMECODE</button>
     <button class="tcs-outer-tab" id="sett-tab-show" onclick="switchSettTab('show')">SHOW SETTINGS</button>
   </div>
 
   <!-- ══ TIMECODE SECTION ══ -->
   <div id="sett-tc-section">
-    <!-- Inner tabs: LTC | MTC -->
-    <div class="tcs-tabs">
-      <button class="tcs-tab active" id="tcs-tab-ltc" onclick="switchTCTab('ltc')">LTC</button>
-      <button class="tcs-tab" id="tcs-tab-mtc" onclick="switchTCTab('mtc')">MTC</button>
+    <!-- Input source selector: LTC / MTC -->
+    <div class="tcs-source-bar">
+      <span class="tcs-source-lbl">Input source</span>
+      <div class="tcs-source-toggle">
+        <button class="tcs-tab active" id="tcs-tab-ltc" onclick="switchTCTab('ltc')">LTC</button>
+        <button class="tcs-tab" id="tcs-tab-mtc" onclick="switchTCTab('mtc')">MTC</button>
+      </div>
     </div>
     <!-- LTC panel -->
     <div id="tcs-ltc-panel">
@@ -10680,11 +10746,11 @@ window.CfSelect=(function(){
       </div>
     </div>
     <!-- TC Footer -->
-    <div class="ntm-footer" style="justify-content:space-between;">
-      <div class="tcs-footer-status">
-        <span class="tcs-status-pip" id="tcs-footer-pip"></span>
-        <span id="tcs-footer-text">—</span>
-      </div>
+    <div class="ntm-footer">
+      
+
+
+
       <div style="display:flex;gap:8px;">
         <button class="ntm-btn" onclick="stopSettingsTCReadout();closeModal('settings-modal')">CANCEL</button>
         <button class="ntm-btn primary" id="tcs-connect-btn" onclick="tcsConnect()">CONNECT</button>
@@ -13421,10 +13487,12 @@ CF._plDrop=function(toIdx){
       var _prevListEl=body.querySelector('[style*="overflow-y:auto"]');
       var _prevScroll=_prevListEl?_prevListEl.scrollTop:0;
       body.innerHTML=plCtx+'<div style="flex:1;overflow-y:auto;">'+rows+'</div>'+foot;
+      /* Apply flex layout BEFORE setting scrollTop — without it the inner flex:1 div has
+         no constrained height, scrollTop is clamped to 0, and the next _sbRender call
+         reads 0 and skips scroll restoration entirely. */
+      body.style.display='flex';body.style.flexDirection='column';body.style.padding='0';
       var _newListEl=body.querySelector('[style*="overflow-y:auto"]');
       if(_newListEl&&_prevScroll){_newListEl.scrollTop=_prevScroll;requestAnimationFrame(function(){_newListEl.scrollTop=_prevScroll;});}
-      /* Make body a flex column so footer sticks */
-      body.style.display='flex';body.style.flexDirection='column';body.style.padding='0';
       /* Init any native selects injected into the footer (e.g. "Move to…") */
       if(window.CfSelect){body.querySelectorAll('select:not([data-cf-skip])').forEach(function(s){CfSelect.init(s,{cls:'ghost',style:'flex:1;min-width:80px;'});});}
     }
