@@ -344,7 +344,7 @@ button.et-item:hover { color: var(--txt-hi); background: var(--surface2); }
 .et-crumb-sep { color: var(--txt-low); font-family: var(--cond); font-size: 11px; font-weight: 400; letter-spacing: 0; flex-shrink: 0; margin: 0 5px; }
 .et-crumb-sq { background: none; border: none; font-family: var(--cond); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--txt-mid); cursor: pointer; padding: 0; transition: color .12s; white-space: nowrap; flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
 .et-crumb-sq:hover { color: var(--txt-hi); }
-.et-status-lbl { font-size: 10px; font-family: var(--cond); font-weight: 700; letter-spacing: .08em; }
+.et-status-lbl { font-size: 10px; font-family: var(--mono); font-weight: 600; letter-spacing: .01em; color: var(--txt-hi); }
 
 /* Live mode: hide edit-topbar + full-width banner */
 body.mode-live #edit-topbar { display: none; }
@@ -2036,7 +2036,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   <span class="save-indicator" id="save-indicator">Saved</span>
   <div class="et-item et-online" id="et-online-cell">
     <div class="tc-pip idle" id="et-online-dot"></div>
-    <span class="et-status-lbl" id="et-online-lbl" style="color:var(--txt-low)">OFFLINE</span>
+    <span class="et-status-lbl" id="et-online-lbl">OFFLINE</span>
   </div>
   <button class="live-toggle" id="live-toggle" onclick="switchMode('live')">Go Live</button>
   <button class="live-toggle" id="editor-online-btn" style="display:none;" onclick="if(window._editorGoOnline)_editorGoOnline()">Go Online</button>
@@ -2222,8 +2222,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
               <div class="live-then-rows" id="test-then-rows"></div>
             </div>
           </div>
-          <!-- Setlist rail -->
-          <div class="live-setlist" id="test-setlist-rail">
+          <!-- Setlist rail (hidden in edit preview) -->
+          <div class="live-setlist" id="test-setlist-rail" style="display:none;">
             <div class="live-setlist-head"><span>Setlist</span></div>
             <div class="live-setlist-body" id="test-mini-songs"></div>
           </div>
@@ -2887,7 +2887,7 @@ let state={
   batchMode:false,selectedCueIds:new Set(),
   undoStack:[],redoStack:[],
   pendingCSVFile:null,
-  tlVisible:{test:true,live:true},
+  tlVisible:{test:true,live:false},
   tcSource:'midi',       // 'midi' | 'ltc'
   ltcDeviceId:'',        // audioinput deviceId for LTC
   tcOffset:0,            // ±frames applied to incoming TC
@@ -4526,7 +4526,12 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
   const WARN_SEC=state.warnSec||10,URGENCY_SEC=20;
 
   // ── ON AIR strip ──
-  const curCue=curIdx>=0?allCues[curIdx]:null;
+  // Use all cues (no visibility filter) so the strip always shows what is actually live,
+  // even when that cue belongs to a stream not in the viewer's selected tracks.
+  const _allCuesUnfiltered=getAllCues(false);
+  let _uCurIdx=-1;
+  for(let i=_allCuesUnfiltered.length-1;i>=0;i--){if(frames>=_allCuesUnfiltered[i]._f){_uCurIdx=i;break;}}
+  const curCue=_uCurIdx>=0?_allCuesUnfiltered[_uCurIdx]:null;
   if(curCue){
     const e=_e('vw-oa-name');if(e)e.textContent=curCue.name||'—';
     const b=_e('vw-oa-badge');if(b)b.innerHTML=_makeLiveBadge(curCue,'sm');
@@ -4541,7 +4546,9 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
   }
 
   // ── NEXT hero ──
-  const _vwCurSongId=curIdx>=0?allCues[curIdx]?.songId:null;
+  // Song boundary uses the actual live song (unfiltered) so the "don't cross into next
+  // song" guard is anchored to what is really playing, not the last visible cue.
+  const _vwCurSongId=curCue?curCue.songId:null;
   const _isTrackViewer=window.CF&&!CF.isOwner&&(CF.role==='viewer'||CF.role==='crew');
   const nextIdx=curIdx+1;
   const _nextRaw=nextIdx<allCues.length?allCues[nextIdx]:null;
@@ -4654,11 +4661,23 @@ function _updateCamCockpit(frames){
   const selCamId=CF.cameraIds[0];
   const fps=state.fps||25;
   const WARN_SEC=10,URGENCY_SEC=20;
-  // Collect camera cues by direct scan — completely bypasses getSortedCues visibility
-  // filters (cameraTrackVisible, visibleStreamIds, state.cameraTrack) which can all
-  // be wrong for a remote viewer. Only requirement: the cue has a cameraId.
+  // Determine the active sequence from TC — all cues (any type) decide which song is live.
+  const _plSongs=getActivePlaylistSongs();
+  const _allPlCues=[];
+  _plSongs.forEach(function(song){
+    (song.cues||[]).forEach(function(cue){_allPlCues.push({_f:tcF(cue.tc),songId:song.id});});
+  });
+  _allPlCues.sort((a,b)=>a._f-b._f);
+  let _liveSongId=null;
+  for(let i=_allPlCues.length-1;i>=0;i--){if(frames>=_allPlCues[i]._f){_liveSongId=_allPlCues[i].songId;break;}}
+  if(!_liveSongId)_liveSongId=_plSongs[0]?.id||null;
+
+  // Collect camera cues by direct scan — bypasses getSortedCues visibility filters
+  // (cameraTrackVisible, visibleStreamIds, state.cameraTrack) which can be wrong for
+  // a remote viewer. Restricted to the active sequence only.
   const allCamCues=[];
-  getActivePlaylistSongs().forEach(function(song){
+  _plSongs.forEach(function(song){
+    if(song.id!==_liveSongId)return;
     (song.cues||[]).forEach(function(cue){
       if(cue.cameraId){
         allCamCues.push(Object.assign({},cue,{_f:tcF(cue.tc),songId:song.id}));
@@ -4920,7 +4939,18 @@ function openCamNotesScreen(){
   scr.style.display='flex';
   const liveSong=_getCamNotesLiveSong();
   _camNotesActiveSongId=liveSong?liveSong.id:(getActivePlaylistSongs()[0]?.id||null);
-  buildCamNotesTrackBadges();
+  // For cam-viewer: move vw-cam-cell into the notes topbar instead of showing track badges
+  const isCamViewer=window.CF&&CF.cameraIds&&CF.cameraIds.length===1;
+  const cnTrack=document.getElementById('cn-track-following');
+  const vwCamCell=document.getElementById('vw-cam-cell');
+  const cnStatusCell=document.getElementById('cn-status-cell');
+  if(isCamViewer&&cnTrack&&vwCamCell&&cnStatusCell&&cnStatusCell.parentNode){
+    cnTrack.style.display='none';
+    cnStatusCell.parentNode.insertBefore(vwCamCell,cnStatusCell.nextSibling);
+    vwCamCell.style.display='flex';
+  } else {
+    buildCamNotesTrackBadges();
+  }
   renderCamNotesSeqs();
   renderCamNotesCues(_camNotesActiveSongId);
 }
@@ -4978,6 +5008,14 @@ function buildCamNotesTrackBadges(){
 function closeCamNotesScreen(){
   const scr=document.getElementById('cf-cam-notes-screen');
   if(scr)scr.style.display='none';
+  // Restore vw-cam-cell to its original place in the viewer topbar
+  const vwCamCell=document.getElementById('vw-cam-cell');
+  const vwCamNameCell=document.getElementById('vw-cam-name-cell');
+  if(vwCamCell&&vwCamNameCell&&vwCamNameCell.parentNode){
+    vwCamNameCell.parentNode.insertBefore(vwCamCell,vwCamNameCell);
+  }
+  const cnTrack=document.getElementById('cn-track-following');
+  if(cnTrack)cnTrack.style.display='';
 }
 
 function _getCamNotesLiveSong(){
@@ -5357,8 +5395,9 @@ function renderTimeline(target,frames,allCues,curIdx){
   const tlW=tl.clientWidth||1000,fps=state.fps;
   const pxPS=tlW/TL_WIN_SEC,pxPF=pxPS/fps;
   const visStreams=state.visibleStreamIds.filter(sid=>state.streams.find(s=>s.id===sid));
-  const dynTrackH=Math.max(22,Math.floor((tl.clientHeight-RULER_H)/Math.max(1,visStreams.length)));
   const hasCamTrack=!!(state.cameraTrack&&state.cameraTrackVisible!==false);
+  const totalTracks=visStreams.length+(hasCamTrack?1:0);
+  const dynTrackH=Math.max(22,Math.floor((tl.clientHeight-RULER_H)/Math.max(1,totalTracks)));
 
   // Structure key — full rebuild only when cue list / streams / dimensions change
   const cueStructKey=allCues.map(c=>c.id+':'+c._f).join(',');
@@ -5625,7 +5664,8 @@ function renderSongList(){
     });
     el.appendChild(div);
   });
-  el.scrollTop=_st;
+  el.scrollTop=_st; // set immediately...
+  requestAnimationFrame(()=>{ el.scrollTop=_st; }); // ...and again after reflow
 }
 function startSongRename(songId,rowEl){
   const song=state.songs.find(s=>s.id===songId);if(!song)return;
@@ -5639,17 +5679,21 @@ function startSongRename(songId,rowEl){
 function selectSong(id){
   state.activeSongId=id;persist();
   _selChapterId=null;
-  // Update selection highlight in-place to avoid scroll-reset from full rebuild
+  // Capture scroll before any render that might reset it
   const listEl=document.getElementById('seq-list-scroll');
+  const _savedScroll=listEl?listEl.scrollTop:0;
+  const _restoreScroll=()=>{if(listEl){listEl.scrollTop=_savedScroll;}};
+  // Update selection highlight in-place — avoids full DOM rebuild
   if(listEl){
     listEl.querySelectorAll('.song-row').forEach(r=>{
-      const sel=r.dataset.sid===id;
-      r.classList.toggle('selected',sel);
+      r.classList.toggle('selected',r.dataset.sid===id);
     });
   } else {
     renderSongList();
   }
   renderCueList();resetSimToActiveSong();
+  _restoreScroll();
+  requestAnimationFrame(_restoreScroll);
   _vidUpdateForActiveSong();
   _syncTopbarSeqName();
   if(_editView==='notes')_loadNotesTab();
@@ -6816,7 +6860,7 @@ function init(){
   applyProject(proj);
   updateUndoButtons();updateStreamDots();
   initResize('live-resize-handle','live-right');
-  state.tlVisible={edit:false,live:true};
+  state.tlVisible={edit:false,live:false};
   ETL.visible=true;
   switchMode('edit');
   _initEditTimeline();
@@ -7926,10 +7970,7 @@ window._syncEditTopbarOnline = function(isOnline){
   const dot = document.getElementById('et-online-dot');
   const lbl = document.getElementById('et-online-lbl');
   if(dot) dot.className = 'tc-pip ' + (isOnline ? 'ok' : 'idle');
-  if(lbl){
-    lbl.textContent = isOnline ? 'ONLINE' : 'OFFLINE';
-    lbl.style.color = isOnline ? 'var(--green)' : 'var(--txt-low)';
-  }
+  if(lbl) lbl.textContent = isOnline ? 'ONLINE' : 'OFFLINE';
 };
 
 // ══════════════════════════════════════════════════════
@@ -11301,7 +11342,12 @@ function applyRemote(proj){
   state.cameraTrackVisible = prevCamVis;
   if(prevStreamSel==='CAMERA'||state.streams.find(function(s){return s.id===prevStreamSel;}))
     state.activeStreamId = prevStreamSel;
-  if(CF.tracks && CF.tracks.length) state.visibleStreamIds = CF.tracks;
+  if(CF.tracks && CF.tracks.length){
+    // Preserve the viewer's own track toggles — only filter out tracks no longer permitted.
+    var _allowed=CF.tracks;
+    var _kept=prevVisible?prevVisible.filter(function(id){return _allowed.indexOf(id)!==-1;}):[];
+    state.visibleStreamIds=_kept.length?_kept:_allowed.slice();
+  }
   // Camera-only viewer: keep normal tracks hidden
   if(CF.cameraIds&&CF.cameraIds.length&&(!CF.tracks||!CF.tracks.length)){
     state.visibleStreamIds=[];
@@ -12299,10 +12345,11 @@ function buildTrackPills(){
       btn.className='track-glyph xs';
       btn.style.cssText=
         'background:'+(vis?'#06060a':'transparent')+
-        ';color:'+(vis?'#fff':'var(--txt-low)')+
+        ';color:'+(vis?'#fff':'var(--txt-mid)')+
         ';border-color:var(--hair3);'+
+        ';opacity:'+(vis?'1':'0.45')+';'+
         (singleTrack?'cursor:default;':'cursor:pointer;')+
-        'transition:background .12s,color .12s,border-color .12s;';
+        'transition:background .12s,color .12s,opacity .12s;';
       btn.textContent=short;
       btn.dataset.sid=s.id;
       if(!singleTrack){
@@ -12983,6 +13030,11 @@ CF._switchViewerCamera=function(camId){
   state.visibleStreamIds=[];
   state.cameraTrackVisible=true;
   if(window._activateCamCockpit)_activateCamCockpit();
+  // Refresh edit-notes cue list immediately when the notes screen is open
+  var _notesScr=document.getElementById('cf-cam-notes-screen');
+  if(_notesScr&&_notesScr.style.display!=='none'&&window.renderCamNotesCues){
+    renderCamNotesCues(window._camNotesActiveSongId);
+  }
   if(window.redrawActive)redrawActive();
 };
 
@@ -13366,7 +13418,11 @@ CF._plDrop=function(toIdx){
         foot+='</div>';
       }
 
+      var _prevListEl=body.querySelector('[style*="overflow-y:auto"]');
+      var _prevScroll=_prevListEl?_prevListEl.scrollTop:0;
       body.innerHTML=plCtx+'<div style="flex:1;overflow-y:auto;">'+rows+'</div>'+foot;
+      var _newListEl=body.querySelector('[style*="overflow-y:auto"]');
+      if(_newListEl&&_prevScroll){_newListEl.scrollTop=_prevScroll;requestAnimationFrame(function(){_newListEl.scrollTop=_prevScroll;});}
       /* Make body a flex column so footer sticks */
       body.style.display='flex';body.style.flexDirection='column';body.style.padding='0';
       /* Init any native selects injected into the footer (e.g. "Move to…") */

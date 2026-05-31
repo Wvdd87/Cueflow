@@ -1,0 +1,28 @@
+# Build outputs
+dist/
+out/
+
+# Electron app bundle
+dist/mac/
+
+# Dependencies
+node_modules/
+
+# Skills submodule
+skills/
+
+# Lock files
+package-lock.json
+
+# Images and icons
+*.png
+*.icns
+favicon.png
+build/icon.png
+
+# macOS metadata
+.DS_Store
+**/.DS_Store
+
+# Claude internal state
+.claude/worktrees/
