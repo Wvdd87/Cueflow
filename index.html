@@ -12058,11 +12058,30 @@ function resolveConflicts(){
 }
 
 /* ── TC Broadcast (Supabase Broadcast — no DB writes) ────── */
+function _onFlagBroadcast(msg){
+  var p=msg.payload||{};
+  if(!p.cueId) return;
+  var changed=false;
+  state.songs.forEach(function(s){
+    var c=s.cues.find(function(x){return x.id===p.cueId;});
+    if(c&&!!c.flagged!==!!p.flagged){c.flagged=!!p.flagged;changed=true;}
+  });
+  if(!changed) return;
+  document.querySelectorAll(
+    '.cue-flag-btn[data-cid="'+p.cueId+'"],.wf-flag-btn[data-cid="'+p.cueId+'"],.ck-flag-btn[data-cid="'+p.cueId+'"]'
+  ).forEach(function(btn){btn.classList.toggle('on',!!p.flagged);});
+  ['live-next-flag','test-next-flag','vw-next-flag'].forEach(function(id){
+    var fl=document.getElementById(id);
+    if(fl&&fl.dataset.cid===p.cueId) fl.classList.toggle('on',!!p.flagged);
+  });
+}
+
 function openTcChan(){
   if(!CF.showId || CF._tcChan) return;
   CF._tcReady = false;
   CF._tcChan = db()
     .channel('tc:'+CF.showId, {config:{broadcast:{self:false}}})
+    .on('broadcast',{event:'flag'},_onFlagBroadcast)
     .subscribe(function(status){
       CF._tcReady = (status === 'SUBSCRIBED');
       console.log('[CF] Owner TC channel:', status);
@@ -12237,25 +12256,7 @@ function subscribeTc(){
         refreshViewerOverview();
       }
     })
-    .on('broadcast',{event:'flag'},function(msg){
-      var p=msg.payload||{};
-      if(!p.cueId) return;
-      var changed=false;
-      state.songs.forEach(function(s){
-        var c=s.cues.find(function(x){return x.id===p.cueId;});
-        if(c&&!!c.flagged!==!!p.flagged){c.flagged=!!p.flagged;changed=true;}
-      });
-      if(!changed) return;
-      // Direct DOM update — mirrors toggleCueFlag, no full re-render
-      document.querySelectorAll(
-        '.cue-flag-btn[data-cid="'+p.cueId+'"],.wf-flag-btn[data-cid="'+p.cueId+'"],.ck-flag-btn[data-cid="'+p.cueId+'"]'
-      ).forEach(function(btn){btn.classList.toggle('on',!!p.flagged);});
-      // Hero flag buttons are keyed by data-cid
-      ['live-next-flag','test-next-flag','vw-next-flag'].forEach(function(id){
-        var fl=document.getElementById(id);
-        if(fl&&fl.dataset.cid===p.cueId) fl.classList.toggle('on',!!p.flagged);
-      });
-    })
+    .on('broadcast',{event:'flag'},_onFlagBroadcast)
     .subscribe(function(status, err){
       console.log('[CF] TC channel status:', status, err||'');
       if(status === 'CHANNEL_ERROR'){
