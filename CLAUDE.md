@@ -24,6 +24,36 @@ Before adding any new component, panel, modal, or visual element, consult the UI
 
 Do **not** invent new colour values, font sizes, or component patterns that aren't in the UI Kit. If a UI Kit pattern doesn't cover the need, extend it conservatively using the same token system.
 
+## Badge rules — enforced design spec
+
+### Camera badges (`.cam-badge`, `.cam-badge-sq`)
+
+**Always: coloured background + black text (`#06060a`).**
+
+The CSS base class already sets `color: #06060a`. Never override it with `color:#fff` in inline styles. When rendering a camera badge in JS, only set `background`:
+
+```html
+<!-- correct -->
+<div class="cam-badge sm" style="background:${hex};">${cam.number}</div>
+
+<!-- wrong — do not do this -->
+<div class="cam-badge sm" style="background:${hex};color:#fff;">${cam.number}</div>
+```
+
+Sizes: `xs` 24 px · `sm` 32 px · `md` 52 px · `lg` 96 px · `xl` 144 px.
+
+### Track glyphs (`.track-glyph`)
+
+**Always: near-black background (`#06060a`) + white text (`#fff`).**
+
+```html
+<span class="track-glyph xs" style="background:#06060a;color:#fff;">${shortName}</span>
+```
+
+### New-cue picker badges (`.nc-badge` — camera row)
+
+Set `--nc-text: '#06060a'` and `--nc-base-bg: hex` so the coloured background + black text rule is respected in the picker grid.
+
 ## Commands
 
 ```bash

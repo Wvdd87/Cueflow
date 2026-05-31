@@ -886,15 +886,19 @@ body.mode-live #edit-mode-banner { display: none; }
 .tl-left-zone  { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .tl-right-zone { display: flex; align-items: center; gap: 4px; margin-left: auto; flex-shrink: 0; }
 .tl-transport  { display: flex; align-items: center; gap: 2px; flex-shrink: 0; margin-right: 12px; }
-.tl-tbtn-transport { width: 30px; height: 30px; background: transparent; border: 1px solid var(--hair); color: var(--txt-mid); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .1s, color .1s; }
-.tl-tbtn-transport:hover { background: var(--surface2); color: var(--txt); }
+.tl-tbtn-transport { width: 34px; height: 34px; background: var(--bg); border: 1px solid var(--hair2); color: var(--txt-hi); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .1s, border-color .1s, color .1s; }
+.tl-tbtn-transport:hover { background: var(--surface2); border-color: var(--hair3); }
 .tl-tbtn-transport.playing { color: var(--primary); border-color: var(--primary); background: var(--primary-bg); }
 
-.tl-tbtn { padding: 3px 9px; height: 28px; background: var(--surface2); border: 1px solid var(--hair); color: var(--txt-mid); font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; white-space: nowrap; transition: background .1s, border-color .1s, color .1s; display: flex; align-items: center; }
-.tl-tbtn:hover { background: var(--surface3); border-color: var(--hair2); color: var(--txt); }
+.tl-tbtn { padding: 0 14px; height: 34px; background: var(--bg); border: 1px solid var(--hair2); color: var(--txt-hi); font-family: var(--cond); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; white-space: nowrap; transition: background .1s, border-color .1s, color .1s; display: flex; align-items: center; }
+.tl-tbtn:hover { background: var(--surface2); border-color: var(--hair3); }
 .tl-tbtn.active { border-color: var(--primary); color: var(--primary); background: var(--primary-bg); }
 .tl-tbtn.accent { border-color: var(--primary); color: var(--primary); background: var(--primary-bg); }
 .tl-tbtn.accent:hover { filter: brightness(1.15); }
+/* + CUE / + MARKER add buttons */
+.tl-tbtn-add { height:34px; padding:0 16px; background:var(--bg); border:1px solid var(--hair2); color:var(--txt-hi); font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:7px; transition:background .1s,border-color .1s; flex-shrink:0; }
+.tl-tbtn-add:hover { background:var(--surface2); border-color:var(--hair3); }
+.tl-add-plus { color:var(--primary); font-size:15px; font-weight:700; line-height:1; flex-shrink:0; }
 
 .tl-add-btn { width: 30px; height: 30px; border-radius: 50%; background: var(--primary-bg); border: 1px solid var(--primary); color: var(--primary); font-size: 20px; font-weight: 300; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: filter .12s; flex-shrink: 0; line-height: 1; }
 .tl-add-btn:hover { filter: brightness(1.2); }
@@ -957,10 +961,12 @@ body.mode-live #edit-mode-banner { display: none; }
 .nc-badge {
   width: 68px; height: 62px; display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 3px; cursor: pointer;
-  border: 2px solid var(--hair2); background: var(--surface2);
-  transition: background .12s, border-color .12s; flex-shrink: 0;
+  border: 2px solid var(--hair2);
+  background: var(--nc-base-bg, var(--surface2));
+  color: var(--nc-text, var(--txt-mid));
+  transition: background .12s, border-color .12s, color .12s; flex-shrink: 0;
 }
-.nc-badge:hover { background: var(--surface3); }
+.nc-badge:hover { background: var(--nc-hover-bg, var(--surface3)); }
 .nc-badge.sel { border-color: var(--nc-color, var(--primary)); background: var(--nc-bg, var(--primary-bg)); }
 .nc-badge-num { font-family: var(--mono); font-size: 20px; font-weight: 900; line-height: 1; letter-spacing: -.01em; }
 .nc-badge-lbl { font-family: var(--cond); font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
@@ -2316,11 +2322,11 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <span id="tl-tc-disp" style="font-family:var(--mono);font-size:26px;font-weight:700;color:var(--text);letter-spacing:.02em;font-variant-numeric:tabular-nums;cursor:default;flex-shrink:0;">00:00:00:00</span>
       <!-- Right zone -->
       <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;margin-left:auto;">
-        <button class="tl-tbtn accent" onclick="openTlCreateFromBtn()" title="Add cue (timeline click or this btn)" aria-label="Add cue">+ CUE</button>
-        <button class="tl-tbtn accent" onclick="openTlCreateMarkerBtn()" title="Add chapter marker" aria-label="Add marker">+ MARKER</button>
+        <button class="tl-tbtn-add" onclick="openTlCreateFromBtn()" title="Add cue (timeline click or this btn)" aria-label="Add cue"><span class="tl-add-plus">+</span>CUE</button>
+        <button class="tl-tbtn-add" onclick="openTlCreateMarkerBtn()" title="Add chapter marker" aria-label="Add marker"><span class="tl-add-plus">+</span>MARKER</button>
         <span class="tl-sep">|</span>
-        <button class="tl-tbtn" onclick="tlZoomOut()" title="Zoom out (-)" aria-label="Zoom out" style="padding:3px 8px;">−</button>
-        <button class="tl-tbtn" onclick="tlZoomIn()" title="Zoom in (+)" aria-label="Zoom in" style="padding:3px 8px;">+</button>
+        <button class="tl-tbtn" onclick="tlZoomOut()" title="Zoom out (-)" aria-label="Zoom out" style="width:34px;padding:0;justify-content:center;">−</button>
+        <button class="tl-tbtn" onclick="tlZoomIn()" title="Zoom in (+)" aria-label="Zoom in" style="width:34px;padding:0;justify-content:center;">+</button>
         <button class="tl-tbtn" id="tl-snap-btn" onclick="tlToggleSnap()" title="Snap (S)" aria-label="Toggle snap">SNAP</button>
       </div>
       <!-- Hidden compat elements -->
@@ -4391,7 +4397,7 @@ function _makeLiveBadge(cue,size){
   if(isCam){
     const cam=getCameraById(cue.cameraId);
     const col=getCameraColor(cam?.colorIdx||0);
-    return `<span class="cam-badge-sq ${size}" style="background:${col};color:#fff;">${cam?.number||'?'}</span>`;
+    return `<span class="cam-badge-sq ${size}" style="background:${col};color:#06060a;">${cam?.number||'?'}</span>`;
   }
   const st=state.streams.find(s=>s.id===cue.streamId);
   const shortName=(st?.shortName||st?.name||'?').slice(0,3).toUpperCase();
@@ -4810,7 +4816,7 @@ function _updateCamCockpit(frames){
       const pip=_e('cam-hero-pip');if(pip)pip.style.display='none';
       const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent=myNextCue?'NEXT':'NO UPCOMING SHOT';
       const hb=_e('cam-hero-badge');
-      if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#fff;${myNextCue?'':'opacity:.35;'}">${cam?.number||'?'}</div>`;
+      if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#06060a;${myNextCue?'':'opacity:.35;'}">${cam?.number||'?'}</div>`;
       const hn=_e('cam-hero-name');if(hn)hn.textContent=myNextCue?myNextCue.name||'—':'—';
       const hd=_e('cam-hero-desc');if(hd)hd.textContent=myNextCue?myNextCue.desc||'':'';
       const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=myNextCue?(cdF>0?fmtCD(cdF):'GO'):'—';
@@ -4823,7 +4829,7 @@ function _updateCamCockpit(frames){
       const pip=_e('cam-hero-pip');if(pip)pip.style.display='';
       const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent='ON CAMERA';
       const hb=_e('cam-hero-badge');
-      if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#fff;">${cam?.number||'?'}</div>`;
+      if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#06060a;">${cam?.number||'?'}</div>`;
       const hn=_e('cam-hero-name');if(hn)hn.textContent=myCurCue.name||'—';
       const hd=_e('cam-hero-desc');if(hd)hd.textContent=myCurCue.desc||'';
       // End = when ANY next camera cue fires (that's when the cut happens)
@@ -4846,7 +4852,7 @@ function _updateCamCockpit(frames){
     const pip=_e('cam-hero-pip');if(pip)pip.style.display='none';
     const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent='NEXT';
     const hb=_e('cam-hero-badge');
-    if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#fff;">${cam?.number||'?'}</div>`;
+    if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#06060a;">${cam?.number||'?'}</div>`;
     const hn=_e('cam-hero-name');if(hn)hn.textContent=myNextCue.name||'—';
     const hd=_e('cam-hero-desc');if(hd)hd.textContent=myNextCue.desc||'';
     const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=cdF>0?fmtCD(cdF):'GO';
@@ -4858,7 +4864,7 @@ function _updateCamCockpit(frames){
     const pip=_e('cam-hero-pip');if(pip)pip.style.display='none';
     const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent='NO UPCOMING SHOT';
     const hb=_e('cam-hero-badge');
-    if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#fff;opacity:.35;">${cam?.number||'?'}</div>`;
+    if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#06060a;opacity:.35;">${cam?.number||'?'}</div>`;
     const hn=_e('cam-hero-name');if(hn)hn.textContent='—';
     const hd=_e('cam-hero-desc');if(hd)hd.textContent='';
     const cv=_e('cam-hero-cd-val');if(cv)cv.textContent='—';
@@ -4879,7 +4885,7 @@ function _updateCamCockpit(frames){
         const div=document.createElement('div');
         div.className='cam-shot-row'+(isWarn&&!isUrgent?' my-next-urgent':'');
         div.innerHTML=`<div class="cam-shot-ix">+${i+1}</div>`+
-          `<div class="cam-shot-badge"><div class="cam-badge sm" style="background:${hex};color:#fff;">${cam?.number||'?'}</div></div>`+
+          `<div class="cam-shot-badge"><div class="cam-badge sm" style="background:${hex};color:#06060a;">${cam?.number||'?'}</div></div>`+
           `<div class="cam-shot-info"><div class="cam-shot-name">${escH(cue.name||'—')}</div>${cue.desc?`<div class="cam-shot-desc">${escH(cue.desc)}</div>`:''}</div>`+
           `<div class="cam-shot-tc">${escH(cue.tc||'')}</div>`+
           `<div class="${cdCls}">${cdF>0?fmtCD(cdF):'GO'}</div>`;
@@ -4913,7 +4919,7 @@ function _updateCamCockpit(frames){
       liveDiv.className='cam-live-row';
       liveDiv.innerHTML=
         `<div class="cam-live-row-dot"></div>`+
-        `<div class="cam-shot-badge"><div class="cam-badge sm" style="background:${lh};color:#fff;">${lc?.number||'?'}</div></div>`+
+        `<div class="cam-shot-badge"><div class="cam-badge sm" style="background:${lh};color:#06060a;">${lc?.number||'?'}</div></div>`+
         `<div class="cam-shot-info"><div class="cam-shot-name" style="color:var(--txt-hi);">${escH(liveCamCue.name||'—')}</div></div>`+
         `<span class="cam-live-row-lbl">ON AIR</span>`;
       allRows.appendChild(liveDiv);
@@ -4930,7 +4936,7 @@ function _updateCamCockpit(frames){
         const div=document.createElement('div');
         div.className='cam-shot-row';
         div.innerHTML=`<div class="cam-shot-ix">+${i+1}</div>`+
-          `<div class="cam-shot-badge"><div class="cam-badge sm" style="background:${h};color:#fff;">${c?.number||'?'}</div></div>`+
+          `<div class="cam-shot-badge"><div class="cam-badge sm" style="background:${h};color:#06060a;">${c?.number||'?'}</div></div>`+
           `<div class="cam-shot-info"><div class="cam-shot-name">${escH(cue.name||'—')}</div></div>`+
           `<div class="cam-shot-tc">${escH(cue.tc||'')}</div>`+
           `<div class="${cdCls}">${cdF>0?fmtCD(cdF):'GO'}</div>`;
@@ -5178,7 +5184,7 @@ function renderCamNotesCues(songId){
     let badgeHtml='';
     if(cue.cameraId){
       const cam=getCameraById(cue.cameraId);const hex=getCameraColor(cam?cam.colorIdx:0);
-      badgeHtml=cam?'<div class="cam-badge xs" style="background:'+hex+';color:#fff;">'+cam.number+'</div>':'';
+      badgeHtml=cam?'<div class="cam-badge xs" style="background:'+hex+';color:#06060a;">'+cam.number+'</div>':'';
     } else {
       const st=(state.streams||[]).find(s=>s.id===cue.streamId);
       const col=window.getStreamColor?getStreamColor(cue.streamId):{hex:'#3b7bdd'};
@@ -5928,7 +5934,7 @@ function renderCueList(){
     const _stCol=window.getStreamColor?getStreamColor(cue.streamId):{hex:'#3b7bdd'};
     const _camNumStr=_isCamCue?String(_cueCam?.number||'?').padStart(2,'0'):null;
     const _dotEl=_isCamCue
-      ?`<button class="cue-stream-dot cam-badge-sq xs" data-cid="${cue.id}" style="background:${_cueCamHex};color:#fff;" title="Change camera — click to reassign">${_camNumStr}</button>`
+      ?`<button class="cue-stream-dot cam-badge-sq xs" data-cid="${cue.id}" style="background:${_cueCamHex};color:#06060a;" title="Change camera — click to reassign">${_camNumStr}</button>`
       :`<button class="cue-stream-dot track-glyph xs" data-cid="${cue.id}" style="background:#06060a;color:#fff;" title="Move to track — click to reassign">${escH((_stShort||_stName.charAt(0)||'?').slice(0,3).toUpperCase())}</button>`;
     // TO NEXT
     const _nextCue=cues[i+1];
@@ -6157,7 +6163,7 @@ function showStreamCtxMenu(e,cueId){
       const isCur=_thisCue?.cameraId===cam.id;
       const numStr=String(cam.number).padStart(2,'0');
       _ctxItem(
-        `<span class="cam-badge-sq xs" style="background:${hex};color:#fff;">${numStr}</span>`,
+        `<span class="cam-badge-sq xs" style="background:${hex};color:#06060a;">${numStr}</span>`,
         cam.label||`CAM ${cam.number}`,isCur,
         ()=>{if(isCur){_ctxMenu.remove();_ctxMenu=null;return;}snapshot();state.songs.forEach(sg=>{const c=sg.cues.find(x=>x.id===cueId);if(c){c.cameraId=cam.id;delete c.streamId;}});persist();renderCueList();redrawActive();_ctxMenu.remove();_ctxMenu=null;}
       );
@@ -6246,7 +6252,7 @@ function openDeleteCueModal(cueId){
       const cam=getCameraById(cue.cameraId);
       const hex=getCameraColor(cam?.colorIdx||0);
       const num=String(cam?.number||'?').padStart(2,'0');
-      badgeEl.innerHTML=`<div class="cam-badge md" style="background:${hex};color:#fff;">${num}</div>`;
+      badgeEl.innerHTML=`<div class="cam-badge md" style="background:${hex};color:#06060a;">${num}</div>`;
     } else {
       const st=state.streams.find(s=>s.id===cue.streamId);
       const short=((st?.shortName||st?.name||'?').slice(0,3)).toUpperCase();
@@ -7261,6 +7267,12 @@ function switchTCTab(tab){
   document.getElementById('tcs-tab-mtc').classList.toggle('active',tab==='mtc');
   document.getElementById('tcs-ltc-panel').style.display=tab==='ltc'?'':'none';
   document.getElementById('tcs-mtc-panel').style.display=tab==='mtc'?'':'none';
+  // Immediately reflect button state for the new tab
+  const _cb=document.getElementById('tcs-connect-btn');
+  if(_cb){
+    const ltcAge=ltc.lastWall?(performance.now()-ltc.lastWall):Infinity;
+    _cb.disabled=tab==='ltc'?ltcAge>=350:!(mtc.locked&&!mtc._wasStale);
+  }
   if(tab==='ltc') refreshLTCDevices();
   else if(tab==='mtc') tcsConnectMIDI();
 }
@@ -7370,6 +7382,7 @@ function saveSettings(){
 }
 
 function tcsConnect(){
+  const _wantsLive=_awaitingTCForLive; // capture before saveSettings clears it
   if(_tcsTab==='ltc'){
     const devId=document.getElementById('settings-ltc-device').value;
     if(!devId)return;
@@ -7383,7 +7396,8 @@ function tcsConnect(){
     stopLTC();
     tcsConnectMIDI();
   }
-  saveSettings();
+  saveSettings(); // closes modal, clears _awaitingTCForLive via stopSettingsTCReadout
+  if(_wantsLive){_skipLiveGuard=true;switchMode('live');_skipLiveGuard=false;}
 }
 
 async function tcsConnectMIDI(){
@@ -7430,6 +7444,8 @@ async function tcsConnectMIDI(){
 function startSettingsTCReadout(){
   clearInterval(_settingsTCTimer);
   _tcsLtcPeak=0;
+  // Disable CONNECT immediately — readout timer will enable it once signal arrives
+  const _cb=document.getElementById('tcs-connect-btn');if(_cb)_cb.disabled=true;
   _settingsTCTimer=setInterval(function(){
     _tcsUpdateReadout();
   },80);
@@ -7455,9 +7471,9 @@ function _tcsUpdateReadout(){
     if(ltcDrift)ltcDrift.textContent='';
   } else if(ltc.lastWall){
     if(ltcPip)ltcPip.className='tcs-card-pip warn';
-    if(ltcState){ltcState.textContent='FREE RUN';ltcState.className='tcs-card-state warn';}
-    if(ltcTc){const elapsed=ltcAge/1000;ltcTc.textContent=fTC(Math.round(ltc.lastFrames+elapsed*fps));}
-    if(ltcDrift)ltcDrift.textContent='signal lost';
+    if(ltcState){ltcState.textContent='SIGNAL LOST';ltcState.className='tcs-card-state warn';}
+    if(ltcTc)ltcTc.textContent='--:--:--:--';
+    if(ltcDrift)ltcDrift.textContent='';
   } else {
     if(ltcPip)ltcPip.className='tcs-card-pip';
     if(ltcState){ltcState.textContent='WAITING';ltcState.className='tcs-card-state idle';}
@@ -7510,6 +7526,10 @@ function _tcsUpdateReadout(){
     if(ftPip)ftPip.className='tcs-status-pip';
     if(ftTxt)ftTxt.textContent='NO TC SOURCE';
   }
+
+  // CONNECT button: only active when a signal is actually detected on the selected source
+  const _connectBtn=document.getElementById('tcs-connect-btn');
+  if(_connectBtn)_connectBtn.disabled=_tcsTab==='ltc'?!ltcOk:!mtcOk;
 
   // FPS display
   _tcsUpdateFpsDisplay();
@@ -9803,7 +9823,7 @@ function _ncBuildPicker(){
     }
   }
 
-  // Row 1: normal track badges
+  // Row 1: normal track badges — black background, white text, track-colour border when selected
   streams.forEach(s=>{
     const col=getStreamColor(s.id);
     const hex=col.hex||'#888';
@@ -9811,9 +9831,11 @@ function _ncBuildPicker(){
     const isSel=_ncSelTarget?.type==='stream'&&_ncSelTarget.id===s.id;
     const btn=document.createElement('button');
     btn.className='nc-badge'+(isSel?' sel':'');
-    btn.style.color=hex;
+    btn.style.setProperty('--nc-base-bg','#06060a');
+    btn.style.setProperty('--nc-hover-bg','#111118');
+    btn.style.setProperty('--nc-text','#fff');
     btn.style.setProperty('--nc-color',hex);
-    btn.style.setProperty('--nc-bg',hex+'18');
+    btn.style.setProperty('--nc-bg','#06060a');
     btn.innerHTML=`<span class="nc-badge-num">${escH(short)}</span>`;
     btn.onclick=()=>{
       _ncSelTarget={type:'stream',id:s.id};
@@ -9822,16 +9844,18 @@ function _ncBuildPicker(){
     row1.appendChild(btn);
   });
 
-  // Row 2: camera badges (if camera track exists)
+  // Row 2: camera badges — solid camera-colour background, white text, white border when selected
   if(camTrack&&camTrack.cameras&&camTrack.cameras.length){
     camTrack.cameras.forEach(cam=>{
       const hex=getCameraColor(cam.colorIdx||0);
       const isSel=_ncSelTarget?.type==='camera'&&_ncSelTarget.id===cam.id;
       const btn=document.createElement('button');
       btn.className='nc-badge'+(isSel?' sel':'');
-      btn.style.color=hex;
-      btn.style.setProperty('--nc-color',hex);
-      btn.style.setProperty('--nc-bg',hex+'18');
+      btn.style.setProperty('--nc-base-bg',hex);
+      btn.style.setProperty('--nc-hover-bg',hex);
+      btn.style.setProperty('--nc-text','#06060a');
+      btn.style.setProperty('--nc-color','rgba(0,0,0,.5)');
+      btn.style.setProperty('--nc-bg',hex);
       btn.innerHTML=
         `<span class="nc-badge-num">${String(cam.number||'?').padStart(2,'0')}</span>`+
         (cam.label?`<span class="nc-badge-lbl">${escH(cam.label.slice(0,6))}</span>`:'');
@@ -12131,7 +12155,7 @@ function showCameraPickerModal(show, onPick){
       'padding:12px 8px 10px;background:'+(isSelected?'var(--surface2)':'none')+';border:none;outline:none;'+
       'cursor:pointer;transition:background .12s;border-radius:2px;';
     btn.innerHTML=
-      '<div class="cam-badge md" style="background:'+hex+';color:#fff;opacity:'+(isSelected?'1':'.7')+';flex-shrink:0;">'+cam.number+'</div>'+
+      '<div class="cam-badge md" style="background:'+hex+';color:#06060a;opacity:'+(isSelected?'1':'.7')+';flex-shrink:0;">'+cam.number+'</div>'+
       '<span style="font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center;'+(cam.label?'':'visibility:hidden;')+'">'+escH(cam.label||'x')+'</span>';
     btn.onmouseover=function(){if(!isSelected)btn.style.background='var(--surface2)';};
     btn.onmouseout=function(){if(!isSelected)btn.style.background='none';};
