@@ -5624,7 +5624,7 @@ function _buildTimeline(target,tl,allCues,curIdx,visStreams,fps,pxPS,pxPF,dynTra
       const block=document.createElement('div');
       block.dataset.cueId=cue.id;block.dataset.camId=cue.cameraId;
       block.style.cssText=`position:absolute;left:${Math.round(x)}px;top:2px;width:${Math.max(2,Math.round(w)-2)}px;height:${dynTrackH-4}px;background:#0a0a12;border:1px solid ${isPast?'var(--border)':isCurrent?camHex:camHex+'66'};border-radius:3px;overflow:hidden;display:flex;align-items:center;padding:0 4px;gap:3px;pointer-events:none;opacity:${isPast?'0.25':'1'};`;
-      block.innerHTML=`<span style="font-family:var(--mono);font-size:8px;font-weight:800;color:${camHex};flex-shrink:0;">${cam?.number||'?'}</span><span style="font-size:9px;font-weight:500;color:${camHex};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escH(cue.name)}</span>`;
+      block.innerHTML=`<span style="font-family:var(--mono);font-size:8px;font-weight:800;color:${camHex};flex-shrink:0;">${cam?.number||'?'}</span><span style="font-size:9px;font-weight:500;color:#eef0f3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escH(cue.name)}</span>`;
       camTrack.appendChild(block);
     });
     tracksScroll.appendChild(camTrack);
@@ -9487,7 +9487,7 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       inner.appendChild(num);
       const nameEl=document.createElement('span');
       nameEl.className='etl-cam-name';
-      nameEl.style.color=camHex+'cc';
+      nameEl.style.color='#eef0f3';
       nameEl.textContent=(cue.name&&blockW>30)?cue.name:'';
       inner.appendChild(nameEl);
       const handle=document.createElement('div');
