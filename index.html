@@ -3305,9 +3305,15 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         </label>
       </div>
     </div>
-    <div class="ntm-footer">
-      <button class="ntm-btn" onclick="closeAddPinModal()">Cancel</button>
-      <button class="ntm-btn primary" onclick="CF._addPin();closeAddPinModal()">Create Link</button>
+    <div class="ntm-footer" style="flex-direction:column;align-items:stretch;gap:10px;">
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--txt-low);font-family:var(--cond);letter-spacing:.04em;">
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="flex-shrink:0;"><rect x="3.5" y="1" width="6" height="7.5" rx=".8" stroke="currentColor" stroke-width="1.1"/><rect x="1" y="2.5" width="6" height="7.5" rx=".8" stroke="currentColor" stroke-width="1.1" fill="var(--surface)"/></svg>
+        The link will be copied to your clipboard
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="ntm-btn" onclick="closeAddPinModal()">Cancel</button>
+        <button class="ntm-btn primary" style="flex:1;" onclick="CF._addPin();closeAddPinModal()">Create &amp; Copy Link</button>
+      </div>
     </div>
   </div>
 </div>
@@ -14591,6 +14597,8 @@ function addPin(){
     }
   }
   var pin=String(Math.floor(100000+Math.random()*900000));
+  var base=location.origin+location.pathname;
+  var linkUrl=base+'?show='+CF.showId+'&pin='+pin;
   hashPin(pin).then(function(h){
     return db().from('show_access').insert({
       show_id:CF.showId,pin_hash:h,display_pin:pin,
@@ -14601,15 +14609,21 @@ function addPin(){
     CF._pinList.push(r.data);
     renderPinsList();
     var li=document.getElementById('cf-pin-label'); if(li) li.value='';
+    navigator.clipboard.writeText(linkUrl).catch(function(){});
   });
 }
 
 function deletePin(id){
-  if(!confirm('Remove this link?')) return;
-  db().from('show_access').delete().eq('id',id).then(function(){
-    CF._pinList=CF._pinList.filter(function(p){return p.id!==id;});
-    renderPinsList();
-  });
+  openConfirmModal(
+    'Remove this access link? Anyone using it will immediately lose access.',
+    function(){
+      db().from('show_access').delete().eq('id',id).then(function(){
+        CF._pinList=CF._pinList.filter(function(p){return p.id!==id;});
+        renderPinsList();
+      });
+    },
+    null,'Remove','danger','Remove Link'
+  );
 }
 
 CF._addCameraPin=function(camId){
