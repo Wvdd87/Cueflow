@@ -7146,6 +7146,8 @@ document.addEventListener('keydown',e=>{
     if(e.key==='+'||e.key==='='){e.preventDefault();tlZoomIn();return;}
     if(e.key==='-'){e.preventDefault();tlZoomOut();return;}
     if(e.code==='KeyS'){e.preventDefault();tlToggleSnap();return;}
+    if(e.code==='KeyC'){e.preventDefault();_ncOpenModal(state.simFrames);return;}
+    if(e.code==='KeyM'){e.preventDefault();openMarkerModal(state.simFrames);return;}
   }
   if(e.key==='?'&&!e.metaKey&&!e.ctrlKey){toggleShortcutsOverlay();return;}
   if(e.key==='Escape'){closeShortcutsOverlay();closeSeqSettingsPanel();return;}
@@ -9213,11 +9215,10 @@ function simTogglePlay(){
   else simPlay();
 }
 function simPrev(){
-  // Restart: go to start of active song
+  // Restart: go to the sequence's start TC
   simStop();_setJKL(0);
   const song=getActiveSong();if(!song)return;
-  const cues=getSortedCues(song.id,false);
-  const newF=cues.length?cues[0]._f:tcF(song.startTc||'01:00:00:00');
+  const newF=tcF(song.startTc||'01:00:00:00');
   state.simFrames=newF;
   redrawTest(newF);
   audioEngineSeek(newF);
@@ -11431,7 +11432,7 @@ window.CfSelect=(function(){
               <span class="sc-keys"><span class="sc-key">↑</span></span>
             </div>
             <div class="sc-row">
-              <span class="sc-desc">Restart sequence</span>
+              <span class="sc-desc">Go to sequence start TC</span>
               <span class="sc-keys"><span class="sc-key">R</span></span>
             </div>
           </div>
@@ -11456,6 +11457,14 @@ window.CfSelect=(function(){
             <div class="sc-row">
               <span class="sc-desc">Delete selected cue</span>
               <span class="sc-keys"><span class="sc-key">⌫</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Insert cue at current TC</span>
+              <span class="sc-keys"><span class="sc-key">C</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Insert marker at current TC</span>
+              <span class="sc-keys"><span class="sc-key">M</span></span>
             </div>
           </div>
 
