@@ -12009,6 +12009,10 @@ function pushProject(cb, _retry){
 
   _retry = _retry||0;
   var _pushTs = new Date().toISOString();
+  /* Set optimistically BEFORE the network round-trip: Supabase Realtime (WebSocket)
+     can deliver the echo before the HTTP response returns, so the echo-detection
+     guard must already know the expected timestamp when it fires. */
+  CF._lastPushUpdatedAt = _pushTs;
   db().from('shows')
     .upsert({id:CF.showId, name:state.name, owner_id:authUser?authUser.id:null,
              project_data:snapshot(), updated_at:_pushTs})
