@@ -1336,8 +1336,10 @@ body.mode-live #edit-mode-banner { display: none; }
   /* Breadcrumb: hide playlist prefix, let it grow to fill space */
   .vw-cam-crumb { padding:0 10px; max-width:none; flex:1; min-width:0; }
   .vw-cam-crumb-pl, .vw-cam-crumb-arr { display:none; }
-  /* Hide "Following" text label — badge already shows which cam */
-  .vw-cam-fol-lbl { display:none; }
+  /* Hide "Following" text labels (cam-viewer and track-viewer) */
+  .vw-cam-fol-lbl, .vw-trk-fol-lbl { display:none; }
+  /* TC value redundant on phone — the cockpit shows it large below */
+  #vw-tc-val-cell { display:none; }
   /* Notes button: icon only */
   #vw-cam-notes-btn { padding:0 12px; gap:0; font-size:0; }
 }
@@ -2138,7 +2140,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     </div>
     <!-- Track viewer: Following + track badges -->
     <div class="vw-cam-following" id="vw-track-following-cell" style="display:none;">
-      <span>Following</span>
+      <span class="vw-trk-fol-lbl">Following</span>
       <span id="vw-track-badges-topbar" style="display:flex;align-items:center;gap:5px;"></span>
     </div>
     <!-- Camera: Following + badge + select (cam-viewer only) -->
