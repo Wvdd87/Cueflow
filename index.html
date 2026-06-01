@@ -833,6 +833,10 @@ body.mode-live #edit-mode-banner { display: none; }
 .cl-filter-chip.on { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); }
 .cl-filter-chip:hover:not(.on) { background: var(--surface3); color: var(--txt-hi); }
 .cl-filter-chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.cl-filter-seg { display: inline-flex; border: 1px solid var(--hair2); border-radius: 3px; overflow: hidden; }
+.cl-filter-seg .cl-filter-chip { border: none; border-radius: 0; border-right: 1px solid var(--hair2); padding: 2px 10px; }
+.cl-filter-seg .cl-filter-chip:last-child { border-right: none; }
+.cl-filter-seg .cl-filter-chip.on { background: var(--primary-bg); color: var(--primary); }
 
 /* Cue stream dot (camera badge or track glyph in cue row) */
 .cue-stream-dot { flex-shrink: 0; border: none; cursor: pointer; padding: 0; align-self: center; justify-self: center; margin: 0; opacity: .85; transition: opacity .1s, transform .1s; }
@@ -6090,11 +6094,78 @@ function renderCueList(){
   // Update tab count badges + keep filter panel in sync
   _updateListTabBadges(cues);
   if(_listFilterOpen)renderListFilterPanel();
+  const _showCues=_listFilterType!=='marker';
+  const _showMarkers=_listFilterType!=='cue';
+  // Marker-only mode: render all chapters sorted by TC and return early
+  if(!_showCues){
+    const listBadge=document.getElementById('cl-badge-list');
+    if(listBadge)listBadge.textContent=song.chapters?.length||'';
+    if(!song.chapters?.length){
+      const em=document.createElement('div');em.style.cssText='padding:28px 20px;text-align:center;';
+      em.innerHTML='<div style="font-size:12px;color:var(--txt-low);">No markers in this sequence</div>';
+      el.appendChild(em);
+    } else {
+      [...song.chapters].sort((a,b)=>tcF(a.tc)-tcF(b.tc)).forEach(ch=>{
+        const isSel=_selChapterId===ch.id;
+        const sep=document.createElement('div');
+        sep.className='chapter-list-row'+(isSel?' ch-sel':'');sep.dataset.chid=ch.id;
+        const numCell=document.createElement('div');numCell.className='cue-col-num';sep.appendChild(numCell);
+        const badgeCell=document.createElement('div');badgeCell.className='cue-col-badge';
+        badgeCell.innerHTML='<span class="track-glyph xs cl-marker-badge" title="Section marker">◆</span>';sep.appendChild(badgeCell);
+        const tcInp=document.createElement('input');
+        tcInp.className='cue-field tc'+(isSel?'':' cue-readonly');
+        tcInp.value=ch.tc;tcInp.dataset.chid=ch.id;tcInp.dataset.f='tc';tcInp.placeholder='01:00:00:00';
+        if(!isSel)tcInp.readOnly=true;sep.appendChild(tcInp);
+        const nameInp=document.createElement('input');
+        nameInp.className='cue-field'+(isSel?'':' cue-readonly');
+        nameInp.value=ch.name;nameInp.placeholder='Marker name';nameInp.dataset.chid=ch.id;nameInp.dataset.f='name';
+        if(!isSel)nameInp.readOnly=true;sep.appendChild(nameInp);
+        const descInp=document.createElement('input');
+        descInp.className='cue-field desc'+(isSel?'':' cue-readonly');
+        descInp.value=ch.desc||'';descInp.placeholder='Marker note';descInp.dataset.chid=ch.id;descInp.dataset.f='desc';
+        if(!isSel)descInp.readOnly=true;sep.appendChild(descInp);
+        const typeCell=document.createElement('div');typeCell.className='cl-type-cell';typeCell.textContent='MARKER';sep.appendChild(typeCell);
+        sep.appendChild(document.createElement('div'));sep.appendChild(document.createElement('div'));
+        const delCell=document.createElement('div');delCell.className='cue-col-del';
+        const delBtn=document.createElement('button');delBtn.className='cue-del';delBtn.textContent='✕';delBtn.title='Delete marker';
+        delBtn.addEventListener('click',e=>{e.stopPropagation();_chapterDelete(ch.id);});
+        delCell.appendChild(delBtn);sep.appendChild(delCell);
+        sep.addEventListener('click',e=>{
+          if(e.target.classList.contains('cue-del'))return;
+          const inp=e.target;
+          if(_selChapterId===ch.id){
+            if(inp.classList.contains('cue-readonly')){inp.classList.remove('cue-readonly');inp.removeAttribute('readonly');inp.focus();inp.select();}
+            return;
+          }
+          _selChapterId=ch.id;_etlHighlightList(null);ETL.selId=null;jumpToChapter(ch.id);renderCueList();
+        });
+        [tcInp,nameInp,descInp].forEach(inp=>{
+          inp.addEventListener('blur',()=>{
+            if(inp.readOnly)return;
+            const f=inp.dataset.f,v=inp.value.trim();
+            if(f==='tc'){const tc=normalizeTcInput(v||ch.tc);if(validateTc(tc))ch.tc=tc;}
+            else if(f==='name'){if(v)ch.name=v;}
+            else if(f==='desc'){ch.desc=v;}
+            persist();if(ETL.visible)renderEditTimeline();
+          });
+          inp.addEventListener('keydown',e2=>{
+            if(e2.key==='Enter'){e2.preventDefault();inp.blur();}
+            if(e2.key==='Escape'){
+              const fld=inp.dataset.f;inp.value=fld==='tc'?ch.tc:fld==='desc'?(ch.desc||''):ch.name;inp.blur();
+            }
+            e2.stopPropagation();
+          });
+        });
+        el.appendChild(sep);
+      });
+    }
+    return;
+  }
   // Track which chapters have had their header rendered
   const _renderedChapterIds=new Set();
   cues.forEach((cue,i)=>{
     // ── Marker row — 8 grid columns, aligned with cue rows ──────────
-    if(song.chapters?.length){
+    if(_showMarkers&&song.chapters?.length){
       const ch=getChapterForCue(song,cue);
       if(ch&&!_renderedChapterIds.has(ch.id)){
         _renderedChapterIds.add(ch.id);
@@ -6234,7 +6305,7 @@ function renderCueList(){
   });
   // ── Orphan chapter rows: chapters not preceding any visible cue ──
   // (Covers the case of a Start marker on an empty sequence, or chapters after all cues)
-  if(song.chapters?.length){
+  if(_showMarkers&&song.chapters?.length){
     [...song.chapters].sort((a,b)=>tcF(a.tc)-tcF(b.tc)).forEach(ch=>{
       if(_renderedChapterIds.has(ch.id))return;
       _renderedChapterIds.add(ch.id);
@@ -6295,7 +6366,7 @@ function renderCueList(){
   if(!cues.length){
     const _totalCues=getSortedCues(song.id,true).length;
     const emptyMsg=document.createElement('div');
-    if(_totalCues>0&&(_listFilterTracks!==null||_listFilterCams!==null)){
+    if(_totalCues>0&&(_listFilterTracks!==null||_listFilterCams!==null||_listFilterFlagged||_listFilterType!=='all')){
       emptyMsg.style.cssText='padding:28px 20px;text-align:center;';
       emptyMsg.innerHTML='<div style="font-size:12px;color:var(--txt-low);margin-bottom:10px;">No cues match the current filter</div><button class="btn-icon" onclick="toggleListFilter()" style="padding:5px 14px;font-size:11px;">Clear filter</button>';
     } else {
@@ -9344,6 +9415,7 @@ let _listFilterOpen=false;
 let _listFilterTracks=null; // null | Set<streamId>
 let _listFilterCams=null;   // null | Set<cameraId>
 let _listFilterFlagged=false;
+let _listFilterType='all';  // 'all' | 'cue' | 'marker'
 function switchEditView(view){
   _editView=view;
   const isList=view==='list',isWf=view==='wf',isVid=view==='vid',isNotes=view==='notes',isCams=view==='cams';
@@ -9395,7 +9467,8 @@ function renderListFilterPanel(){
   panel.innerHTML='';
   const streams=state.streams||[];
   const hasCam=!!(state.cameraTrack&&state.cameraTrack.cameras?.length);
-  if(!streams.length&&!hasCam){panel.innerHTML='<div style="font-size:11px;color:var(--txt-low);padding:2px 0;">No tracks to filter</div>';return;}
+  const isMarkerMode=_listFilterType==='marker';
+  const canFlag=!window.CF||!CF.role||CF.role==='owner'||CF.role==='editor'||CF.role==='track-editor';
 
   function _makeChip(label,isOn,onClick,dotColor,dotRadius){
     const chip=document.createElement('button');
@@ -9406,60 +9479,86 @@ function renderListFilterPanel(){
     return chip;
   }
 
-  // ── Tracks row ──
-  if(streams.length){
-    const row=document.createElement('div');row.className='cl-filter-row';
-    const lbl=document.createElement('span');lbl.className='cl-filter-label';lbl.textContent='Tracks';row.appendChild(lbl);
-    const isAll=_listFilterTracks===null;
-    const isNone=_listFilterTracks!==null&&_listFilterTracks.size===0;
-    row.appendChild(_makeChip('ALL',isAll,()=>{_listFilterTracks=null;renderListFilterPanel();renderCueList();}));
-    row.appendChild(_makeChip('NONE',isNone,()=>{_listFilterTracks=new Set();renderListFilterPanel();renderCueList();}));
-    streams.forEach(s=>{
-      const col=getStreamColor(s.id);
-      const shortName=(s.shortName||s.name||'?').slice(0,3).toUpperCase();
-      const on=!isAll&&!isNone&&_listFilterTracks.has(s.id);
-      row.appendChild(_makeChip(escH(shortName),on,()=>{
-        if(_listFilterTracks===null||_listFilterTracks.size===0)_listFilterTracks=new Set(streams.map(x=>x.id));
-        if(_listFilterTracks.has(s.id))_listFilterTracks.delete(s.id);
-        else _listFilterTracks.add(s.id);
-        if(_listFilterTracks.size===0)_listFilterTracks=new Set(); // stay at NONE, not ALL
-        if(_listFilterTracks.size===streams.length)_listFilterTracks=null;
-        renderListFilterPanel();renderCueList();
-      },col.hex));
-    });
-    panel.appendChild(row);
-  }
-  // ── Cameras row ──
-  if(hasCam){
-    const cams=state.cameraTrack.cameras;
-    const row=document.createElement('div');row.className='cl-filter-row';
-    const lbl=document.createElement('span');lbl.className='cl-filter-label';lbl.textContent='Cameras';row.appendChild(lbl);
-    const isAll=_listFilterCams===null;
-    const isNone=_listFilterCams!==null&&_listFilterCams.size===0;
-    row.appendChild(_makeChip('ALL',isAll,()=>{_listFilterCams=null;renderListFilterPanel();renderCueList();}));
-    row.appendChild(_makeChip('NONE',isNone,()=>{_listFilterCams=new Set();renderListFilterPanel();renderCueList();}));
-    cams.forEach(cam=>{
-      const hex=getCameraColor(cam.colorIdx||0);
-      const on=!isAll&&!isNone&&_listFilterCams.has(cam.id);
-      row.appendChild(_makeChip(String(cam.number).padStart(2,'0'),on,()=>{
-        if(_listFilterCams===null||_listFilterCams.size===0)_listFilterCams=new Set(cams.map(c=>c.id));
-        if(_listFilterCams.has(cam.id))_listFilterCams.delete(cam.id);
-        else _listFilterCams.add(cam.id);
-        if(_listFilterCams.size===0)_listFilterCams=new Set();
-        if(_listFilterCams.size===cams.length)_listFilterCams=null;
-        renderListFilterPanel();renderCueList();
-      },hex,'1px'));
-    });
-    panel.appendChild(row);
-  }
-  // ── Flags row ──
-  if(!window.CF||!CF.role||CF.role==='owner'||CF.role==='editor'||CF.role==='track-editor'){
-    const flagRow=document.createElement('div');flagRow.className='cl-filter-row';
-    const flagLbl=document.createElement('span');flagLbl.className='cl-filter-label';flagLbl.textContent='Flags';flagRow.appendChild(flagLbl);
-    flagRow.appendChild(_makeChip('⚑ FLAGGED',_listFilterFlagged,()=>{
+  // ── Row 1: SHOW type + FLAGGED (right-aligned) ──
+  const topRow=document.createElement('div');
+  topRow.className='cl-filter-row';
+  topRow.style.justifyContent='space-between';
+  const typeGroup=document.createElement('div');
+  typeGroup.style.cssText='display:flex;align-items:center;gap:6px;';
+  const typeLbl=document.createElement('span');typeLbl.className='cl-filter-label';typeLbl.textContent='Show';
+  typeGroup.appendChild(typeLbl);
+  const seg=document.createElement('div');seg.className='cl-filter-seg';
+  [['ALL','all'],['CUES','cue'],['MARKERS','marker']].forEach(([label,val])=>{
+    const chip=document.createElement('button');
+    chip.className='cl-filter-chip'+(_listFilterType===val?' on':'');
+    chip.textContent=label;
+    chip.onclick=()=>{_listFilterType=val;renderListFilterPanel();renderCueList();};
+    seg.appendChild(chip);
+  });
+  typeGroup.appendChild(seg);
+  topRow.appendChild(typeGroup);
+  if(canFlag&&!isMarkerMode){
+    const flagGroup=document.createElement('div');
+    flagGroup.style.cssText='display:flex;align-items:center;gap:6px;';
+    flagGroup.appendChild(_makeChip('⚑ Flagged',_listFilterFlagged,()=>{
       _listFilterFlagged=!_listFilterFlagged;renderListFilterPanel();renderCueList();
     },_listFilterFlagged?'#FFB020':undefined));
-    panel.appendChild(flagRow);
+    topRow.appendChild(flagGroup);
+  }
+  panel.appendChild(topRow);
+
+  // ── Rows 2-3: TRACKS + CAMERAS (hidden in marker mode) ──
+  if(!isMarkerMode){
+    if(streams.length){
+      const row=document.createElement('div');row.className='cl-filter-row';
+      const lbl=document.createElement('span');lbl.className='cl-filter-label';lbl.textContent='Tracks';row.appendChild(lbl);
+      const isAll=_listFilterTracks===null;
+      const isNone=_listFilterTracks!==null&&_listFilterTracks.size===0;
+      row.appendChild(_makeChip('ALL',isAll,()=>{_listFilterTracks=null;renderListFilterPanel();renderCueList();}));
+      row.appendChild(_makeChip('NONE',isNone,()=>{_listFilterTracks=new Set();renderListFilterPanel();renderCueList();}));
+      streams.forEach(s=>{
+        const col=getStreamColor(s.id);
+        const shortName=(s.shortName||s.name||'?').slice(0,3).toUpperCase();
+        const on=!isAll&&!isNone&&_listFilterTracks.has(s.id);
+        row.appendChild(_makeChip(escH(shortName),on,()=>{
+          if(_listFilterTracks===null||_listFilterTracks.size===0)_listFilterTracks=new Set(streams.map(x=>x.id));
+          if(_listFilterTracks.has(s.id))_listFilterTracks.delete(s.id);
+          else _listFilterTracks.add(s.id);
+          if(_listFilterTracks.size===0)_listFilterTracks=new Set();
+          if(_listFilterTracks.size===streams.length)_listFilterTracks=null;
+          renderListFilterPanel();renderCueList();
+        },col.hex));
+      });
+      panel.appendChild(row);
+    }
+    if(hasCam){
+      const cams=state.cameraTrack.cameras;
+      const row=document.createElement('div');row.className='cl-filter-row';
+      const lbl=document.createElement('span');lbl.className='cl-filter-label';lbl.textContent='Cameras';row.appendChild(lbl);
+      const isAll=_listFilterCams===null;
+      const isNone=_listFilterCams!==null&&_listFilterCams.size===0;
+      row.appendChild(_makeChip('ALL',isAll,()=>{_listFilterCams=null;renderListFilterPanel();renderCueList();}));
+      row.appendChild(_makeChip('NONE',isNone,()=>{_listFilterCams=new Set();renderListFilterPanel();renderCueList();}));
+      cams.forEach(cam=>{
+        const hex=getCameraColor(cam.colorIdx||0);
+        const on=!isAll&&!isNone&&_listFilterCams.has(cam.id);
+        row.appendChild(_makeChip(String(cam.number).padStart(2,'0'),on,()=>{
+          if(_listFilterCams===null||_listFilterCams.size===0)_listFilterCams=new Set(cams.map(c=>c.id));
+          if(_listFilterCams.has(cam.id))_listFilterCams.delete(cam.id);
+          else _listFilterCams.add(cam.id);
+          if(_listFilterCams.size===0)_listFilterCams=new Set();
+          if(_listFilterCams.size===cams.length)_listFilterCams=null;
+          renderListFilterPanel();renderCueList();
+        },hex,'1px'));
+      });
+      panel.appendChild(row);
+    }
+    if(!streams.length&&!hasCam){
+      const msg=document.createElement('div');
+      msg.style.cssText='font-size:11px;color:var(--txt-low);padding:2px 0;';
+      msg.textContent='No tracks to filter';
+      panel.appendChild(msg);
+    }
   }
 }
 function _updateListTabBadges(cues){
