@@ -5587,11 +5587,13 @@ function buildCamNotesTrackBadges(){
 function closeCamNotesScreen(){
   const scr=document.getElementById('cf-cam-notes-screen');
   if(scr)scr.style.display='none';
-  // Restore vw-cam-cell to its original place in the viewer topbar
+  if(window.closeCnSeqPanel)closeCnSeqPanel();
+  // Restore vw-cam-cell to its original place in the viewer topbar.
+  // vw-seq-grow-cell is a stable anchor that never moves out of the viewer topbar.
   const vwCamCell=document.getElementById('vw-cam-cell');
-  const vwCamNameCell=document.getElementById('vw-cam-name-cell');
-  if(vwCamCell&&vwCamNameCell&&vwCamNameCell.parentNode){
-    vwCamNameCell.parentNode.insertBefore(vwCamCell,vwCamNameCell);
+  const anchor=document.getElementById('vw-seq-grow-cell')||document.getElementById('vw-cam-notes-btn');
+  if(vwCamCell&&anchor&&anchor.parentNode){
+    anchor.parentNode.insertBefore(vwCamCell,anchor);
   }
   const cnTrack=document.getElementById('cn-track-following');
   if(cnTrack)cnTrack.style.display='';
