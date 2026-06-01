@@ -1183,6 +1183,14 @@ body.mode-live #edit-mode-banner { display: none; }
 .cam-hero.oncam .cam-hero-bar-fill { background:var(--red); }
 .cam-hero.warn:not(.oncam) .cam-hero-bar { height:6px; }
 .cam-hero.warn:not(.oncam) .cam-hero-bar-fill { background:var(--primary); box-shadow:0 0 8px var(--primary-dim); }
+/* Hero timers row (HELD FOR + CUT IN) — hidden on desktop, shown at ≤960px */
+.cam-hero-timers { display:none; justify-content:space-between; align-items:flex-end; padding:14px 0 18px; }
+.cam-hero-timer { display:flex; flex-direction:column; gap:3px; }
+.cam-hero-timer-cutin { text-align:right; }
+.cam-hero-timer-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--txt-low); }
+.cam-hero-timer-val { font-family:var(--mono); font-size:clamp(40px,10vw,72px); font-weight:700; color:var(--txt-hi); line-height:1; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+.cam-hero.oncam .cam-hero-timer-cutin .cam-hero-timer-val { color:var(--red); }
+.cam-hero.warn:not(.oncam) .cam-hero-timer-cutin .cam-hero-timer-val { color:var(--primary); }
 /* Split panel */
 .cam-split { flex:1; display:flex; min-height:0; overflow:hidden; }
 .cam-panel { flex:1; display:flex; flex-direction:column; overflow:hidden; border-right:1px solid var(--hair); }
@@ -1221,6 +1229,8 @@ body.mode-live #edit-mode-banner { display: none; }
   text-transform:uppercase; color:var(--txt-mid);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; text-align:center;
 }
+/* Base picker box width (desktop) */
+.cf-cam-picker-box { max-width:460px; }
 /* All-cameras live-now row */
 .cam-live-row { display:flex; align-items:center; gap:10px; padding:9px 16px; background:rgba(255,40,72,.05); border-bottom:2px solid rgba(255,40,72,.16); flex-shrink:0; }
 .cam-live-row-dot { width:6px; height:6px; border-radius:50%; background:var(--red); flex-shrink:0; animation:livePulse 1.2s ease-in-out infinite; }
@@ -1244,7 +1254,93 @@ body.mode-live #edit-mode-banner { display: none; }
 .cam-panel.collapsed .cam-shot-rows { display:none; }
 #cam-panel-all.hidden { display:none; }
 
-/* ── Edit Notes screen (cam-viewer) ── */
+/* ── Responsive camera cockpit ─────────────────────────────
+   960px  tablet     stack panels, swap countdown for timers row
+   640px  phone      compact hero, bigger shot countdowns
+   400px  small      further reduction
+──────────────────────────────────────────────────────────── */
+@media (max-width:960px){
+  .cam-hero { padding:16px 20px 0; }
+  .cam-hero-body { gap:16px; margin-bottom:12px; }
+  /* Downscale lg badge to mid-way: 64px */
+  .cam-hero .cam-badge.lg { width:64px; height:64px; font-size:40px; border-radius:3px; }
+  .cam-hero-name { font-size:clamp(20px,3.5vw,36px); }
+  /* Hide right-side countdown; show timers row instead */
+  .cam-hero-cd { display:none; }
+  .cam-hero-timers { display:flex; }
+  /* Stack panels vertically */
+  .cam-split { flex-direction:column; }
+  .cam-panel { border-right:none; border-bottom:1px solid var(--hair); }
+  .cam-panel:last-child { border-bottom:none; }
+  .cam-shot-name { font-size:15px; }
+  .cam-shot-cd { font-size:16px; min-width:50px; }
+}
+@media (max-width:640px){
+  .cam-hero { padding:12px 14px 0; }
+  .cam-hero-eyebrow { margin-bottom:8px; }
+  .cam-hero-body { gap:12px; margin-bottom:8px; }
+  /* Downscale further to md size */
+  .cam-hero .cam-badge.lg { width:52px; height:52px; font-size:28px; border-radius:3px; }
+  .cam-hero-name { font-size:clamp(17px,5vw,28px); }
+  .cam-hero-desc { font-size:12px; }
+  .cam-hero-timers { padding:10px 0 14px; }
+  .cam-hero-timer-val { font-size:clamp(36px,11vw,64px); }
+  /* MY NEXT SHOTS: hide redundant own-camera badge + TC column */
+  #cam-shot-rows .cam-shot-badge { display:none; }
+  #cam-shot-rows .cam-shot-tc { display:none; }
+  #cam-shot-rows .cam-shot-row { padding:9px 14px; }
+  #cam-shot-rows .cam-shot-name { font-size:18px; }
+  #cam-shot-rows .cam-shot-desc { font-size:11px; }
+  #cam-shot-rows .cam-shot-cd { font-size:24px; min-width:62px; }
+  /* ALL CAMERAS: hide TC column, compact */
+  #cam-all-rows .cam-shot-tc { display:none; }
+  #cam-all-rows .cam-shot-row { padding:8px 14px; }
+  #cam-all-rows .cam-shot-name { font-size:15px; }
+  #cam-all-rows .cam-shot-cd { font-size:18px; min-width:52px; }
+  /* Larger touch target for panel toggle */
+  .cam-panel-toggle { width:32px; height:32px; }
+}
+@media (max-width:400px){
+  .cam-hero .cam-badge.lg { width:44px; height:44px; font-size:22px; }
+  .cam-hero-name { font-size:clamp(15px,6vw,24px); }
+  .cam-hero-timer-val { font-size:clamp(32px,12vw,56px); }
+  #cam-shot-rows .cam-shot-name { font-size:16px; }
+  #cam-shot-rows .cam-shot-cd { font-size:20px; }
+}
+
+/* ── Camera picker: bottom sheet on mobile ── */
+@media (max-width:640px){
+  #cf-cam-picker-modal { align-items:flex-end; }
+  .cf-cam-picker-box {
+    max-width:100%; width:100%;
+    border-radius:20px 20px 0 0;
+    border-left:none; border-right:none; border-bottom:none;
+    max-height:80vh;
+  }
+  /* pull handle */
+  .cf-cam-picker-box::before {
+    content:''; display:block; flex-shrink:0; align-self:center;
+    width:36px; height:4px; border-radius:2px;
+    background:var(--hair3); margin:12px 0 -4px;
+  }
+  /* 3-column grid, bigger touch targets */
+  #cf-cam-picker-grid { grid-template-columns:repeat(3,1fr) !important; gap:12px !important; }
+  .cam-picker-btn { padding:20px 8px 16px; }
+}
+
+/* ── Viewer topbar: compact camera layout on mobile ── */
+@media (max-width:640px){
+  /* Tighten all cells */
+  .vw-cell { padding:0 10px; }
+  .vw-cam-following { padding:0 10px; gap:6px; }
+  /* Breadcrumb: hide playlist prefix, let it grow to fill space */
+  .vw-cam-crumb { padding:0 10px; max-width:none; flex:1; min-width:0; }
+  .vw-cam-crumb-pl, .vw-cam-crumb-arr { display:none; }
+  /* Hide "Following" text label — badge already shows which cam */
+  .vw-cam-fol-lbl { display:none; }
+  /* Notes button: icon only */
+  #vw-cam-notes-btn { padding:0 12px; gap:0; font-size:0; }
+}
 #cf-cam-notes-screen { display:none; position:fixed; inset:0; z-index:9997; background:var(--bg); flex-direction:column; overflow:hidden; }
 .cn-topbar { display:flex; align-items:stretch; height:36px; background:var(--surface); border-bottom:1px solid var(--hair); flex-shrink:0; }
 .cn-back-btn { display:flex; align-items:center; gap:8px; padding:0 16px; border-right:1px solid var(--hair); background:none; border-top:none; border-bottom:none; border-left:none; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; transition:color .12s; flex-shrink:0; white-space:nowrap; }
@@ -1682,6 +1778,83 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 /* ── Seq / playlist nav inline edit ── */
 #song-add-bar { background: var(--surface); }
 
+/* ── Responsive live / TC view ───────────────────────────────
+   Breakpoints:
+   1100px  tablet      hide setlist rail
+    860px  compact tab tighten spacing, smaller THEN rows
+    640px  phone       compact status bar, simplified layout
+    400px  small phone further font reduction
+──────────────────────────────────────────────────────────── */
+
+/* Tablet (≤1100px): hide setlist rail — main content takes full width */
+@media (max-width:1100px){
+  .live-setlist { display:none; }
+}
+
+/* Compact tablet (≤860px): tighten padding, scale down THEN rows */
+@media (max-width:860px){
+  .live-onair { padding:12px 20px; gap:16px; }
+  .live-next { padding:20px 20px 28px; gap:20px; }
+  .live-next .nh-eyebrow { left:20px; }
+  .live-then { padding:12px 20px 8px; }
+  .live-then-row { gap:12px; }
+  .live-then-row .nm { font-size:26px; }
+  .live-then-row .nm .ds { font-size:16px; }
+  .live-then-row .cd { font-size:20px; min-width:68px; }
+}
+
+/* Phone (≤640px) */
+@media (max-width:640px){
+  /* Status bar: hide breadcrumb, clock and sharing — keep TC src + status chip */
+  #live-seq-head,
+  #live-clock-cell,
+  #live-sharing-cell { display:none !important; }
+  .live-sb { height:32px; }
+
+  /* ON AIR strip: compact — hide "On Air" text, keep red pip */
+  .live-onair { padding:8px 14px; gap:10px; }
+  .live-onair .oa-lbl { font-size:0; gap:0; }
+  .live-onair .oa-name { font-size:17px; }
+  .live-onair .oa-tc { font-size:11px; }
+  .live-onair .oa-held { font-size:9px; }
+  .live-onair .oa-held .v { font-size:17px; }
+
+  /* NEXT hero: tighter padding, downscale lg badge to md */
+  .live-next { padding:12px 14px 20px; gap:12px; }
+  .live-next .nh-eyebrow { top:7px; left:14px; }
+  .live-next .nh-badge { gap:10px; margin-top:8px; }
+  .live-next .nh-name { font-size:clamp(28px, 8vw, 64px); }
+  .live-next .nh-desc { font-size:14px; margin-top:6px; }
+  .live-next .nh-count .v { font-size:clamp(40px, 11vw, 80px); }
+  .live-next .nh-cd-lbl { font-size:9px; margin-top:3px; }
+  .live-next .cam-badge-sq.lg { width:52px; height:52px; font-size:28px; border-radius:3px; }
+  .live-next .track-glyph.lg  { width:52px; height:52px; font-size:16px; }
+  .live-next-flag { top:7px; right:8px; }
+
+  /* THEN rows: 5-col grid (drop TC column), no descriptions, smaller badges */
+  .live-then { padding:8px 14px 4px; }
+  .live-then-head { margin-bottom:6px; }
+  .live-then-row { grid-template-columns:24px 36px 1fr auto 40px; gap:8px; padding:7px 0; }
+  .live-then-row .tc-lbl { display:none; }
+  .live-then-row .nm { font-size:20px; }
+  .live-then-row .nm .ds { display:none; }
+  .live-then-row .cd { font-size:17px; min-width:52px; }
+  .live-then-row .cam-badge-sq.md { width:36px; height:36px; font-size:18px; border-radius:2px; }
+  .live-then-row .track-glyph.md  { width:36px; height:36px; font-size:12px; }
+  /* Larger touch target for flag buttons */
+  .live-then-row .ck-flag-btn { font-size:16px; padding:8px 6px; min-width:40px; min-height:40px; }
+}
+
+/* Very small phones (≤400px): further font reduction */
+@media (max-width:400px){
+  .live-onair .oa-name { font-size:15px; }
+  .live-onair .oa-held .v { font-size:15px; }
+  .live-next .nh-name { font-size:clamp(24px, 9vw, 52px); }
+  .live-next .nh-count .v { font-size:clamp(36px, 12vw, 68px); }
+  .live-then-row .nm { font-size:18px; }
+  .live-then-row .cd { font-size:15px; min-width:44px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
@@ -1915,7 +2088,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     </div>
     <!-- Camera: Following + badge + select (cam-viewer only) -->
     <div class="vw-cam-following" id="vw-cam-cell">
-      <span style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-low);">Following</span>
+      <span class="vw-cam-fol-lbl" style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-low);">Following</span>
       <span id="vw-cam-badge-topbar"></span>
       <select id="vw-cam-select" class="vw-cam-select" onchange="if(window.CF)CF._switchViewerCamera(this.value)"></select>
     </div>
@@ -2017,6 +2190,17 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <div class="cam-hero-cd">
           <div class="cam-hero-cd-val" id="cam-hero-cd-val">—</div>
           <div class="cam-hero-cd-lbl" id="cam-hero-cd-lbl">UNTIL CUE</div>
+        </div>
+      </div>
+      <!-- Timers row: shown on tablet/phone, hidden on desktop -->
+      <div class="cam-hero-timers" id="cam-hero-timers">
+        <div class="cam-hero-timer">
+          <div class="cam-hero-timer-lbl">HELD FOR</div>
+          <div class="cam-hero-timer-val" id="cam-hero-held-val">—</div>
+        </div>
+        <div class="cam-hero-timer cam-hero-timer-cutin">
+          <div class="cam-hero-timer-lbl" id="cam-hero-cutin-lbl">CUT IN</div>
+          <div class="cam-hero-timer-val" id="cam-hero-cutin-val">—</div>
         </div>
       </div>
       <div class="cam-hero-bar"><div class="cam-hero-bar-fill" id="cam-hero-bar-fill" style="width:0%"></div></div>
@@ -4990,7 +5174,6 @@ function _updateCamCockpit(frames){
     const anotherCamActive=nextAnyCue&&frames>=nextAnyCue._f&&nextAnyCue.cameraId!==selCamId;
     if(anotherCamActive){
       // Another camera has taken over — this camera is now waiting for its next shot.
-      // Fall through to NEXT rendering using myNextCue.
       const cdF=myNextCue?Math.max(0,myNextCue._f-frames):0;
       const cdSec=cdF/fps;
       const isWarn=cdSec<=WARN_SEC;
@@ -5001,15 +5184,20 @@ function _updateCamCockpit(frames){
       if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#06060a;${myNextCue?'':'opacity:.35;'}">${cam?.number||'?'}</div>`;
       const hn=_e('cam-hero-name');if(hn)hn.textContent=myNextCue?myNextCue.name||'—':'—';
       const hd=_e('cam-hero-desc');if(hd)hd.textContent=myNextCue?myNextCue.desc||'':'';
-      const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=myNextCue?(cdF>0?fmtCD(cdF):'GO'):'—';
+      const cdTxt=myNextCue?(cdF>0?fmtCD(cdF):'GO'):'—';
+      const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=cdTxt;
       const cl=_e('cam-hero-cd-lbl');if(cl)cl.textContent='UNTIL CUE';
       const bf=_e('cam-hero-bar-fill');
       if(bf)bf.style.width=myNextCue&&isWarn?Math.min(100,(1-cdSec/WARN_SEC)*100).toFixed(1)+'%':'0%';
+      // Timers row (tablet/phone)
+      const hv=_e('cam-hero-held-val');if(hv)hv.textContent='—';
+      const cv2=_e('cam-hero-cutin-val');if(cv2)cv2.textContent=cdTxt;
+      const cl2=_e('cam-hero-cutin-lbl');if(cl2)cl2.textContent='UNTIL CUE';
     } else {
       // ON CAMERA: countdown ends when the next ANY-camera cue fires (not just mine).
       hero.className='cam-hero oncam';
       const pip=_e('cam-hero-pip');if(pip)pip.style.display='';
-      const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent='ON CAMERA';
+      const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent='ON CAMERA · CAM '+(cam?.number||'?');
       const hb=_e('cam-hero-badge');
       if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#06060a;">${cam?.number||'?'}</div>`;
       const hn=_e('cam-hero-name');if(hn)hn.textContent=myCurCue.name||'—';
@@ -5019,12 +5207,19 @@ function _updateCamCockpit(frames){
       const remF=Math.max(0,endF-frames);
       const remSec=remF/fps;
       const rm=Math.floor(remSec/60),rs=Math.floor(remSec%60);
-      const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=remF>0?(rm>0?rm+':'+String(rs).padStart(2,'0'):'0:'+String(rs).padStart(2,'0')):'0:00';
+      const cutTxt=remF>0?(rm>0?rm+':'+String(rs).padStart(2,'0'):'0:'+String(rs).padStart(2,'0')):'0:00';
+      const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=cutTxt;
       const cl=_e('cam-hero-cd-lbl');if(cl)cl.textContent='UNTIL CUT';
       // Red progress bar over full duration (from this cue to next cut)
       const durF=endF-myCurCue._f;
       const prog=durF>0?Math.min(100,((frames-myCurCue._f)/durF)*100):100;
       const bf=_e('cam-hero-bar-fill');if(bf)bf.style.width=prog.toFixed(1)+'%';
+      // Timers row (tablet/phone)
+      const heldF2=Math.max(0,frames-myCurCue._f);
+      const heldS=Math.floor(heldF2/fps),hm=Math.floor(heldS/60),hs2=heldS%60;
+      const hv=_e('cam-hero-held-val');if(hv)hv.textContent=hm>0?hm+':'+String(hs2).padStart(2,'0'):'0:'+String(hs2).padStart(2,'0');
+      const cv2=_e('cam-hero-cutin-val');if(cv2)cv2.textContent=cutTxt;
+      const cl2=_e('cam-hero-cutin-lbl');if(cl2)cl2.textContent='CUT IN';
     }
   } else if(myNextCue){
     // NEXT: white bar within 10s
@@ -5037,10 +5232,15 @@ function _updateCamCockpit(frames){
     if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#06060a;">${cam?.number||'?'}</div>`;
     const hn=_e('cam-hero-name');if(hn)hn.textContent=myNextCue.name||'—';
     const hd=_e('cam-hero-desc');if(hd)hd.textContent=myNextCue.desc||'';
-    const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=cdF>0?fmtCD(cdF):'GO';
+    const cdTxt=cdF>0?fmtCD(cdF):'GO';
+    const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=cdTxt;
     const cl=_e('cam-hero-cd-lbl');if(cl)cl.textContent='UNTIL CUE';
     const bf=_e('cam-hero-bar-fill');
     if(bf)bf.style.width=isWarn?Math.min(100,(1-cdSec/WARN_SEC)*100).toFixed(1)+'%':'0%';
+    // Timers row (tablet/phone)
+    const hv=_e('cam-hero-held-val');if(hv)hv.textContent='—';
+    const cv2=_e('cam-hero-cutin-val');if(cv2)cv2.textContent=cdTxt;
+    const cl2=_e('cam-hero-cutin-lbl');if(cl2)cl2.textContent='UNTIL CUE';
   } else {
     hero.className='cam-hero';
     const pip=_e('cam-hero-pip');if(pip)pip.style.display='none';
@@ -5052,6 +5252,10 @@ function _updateCamCockpit(frames){
     const cv=_e('cam-hero-cd-val');if(cv)cv.textContent='—';
     const cl=_e('cam-hero-cd-lbl');if(cl)cl.textContent='UNTIL CUE';
     const bf=_e('cam-hero-bar-fill');if(bf)bf.style.width='0%';
+    // Timers row (tablet/phone)
+    const hv=_e('cam-hero-held-val');if(hv)hv.textContent='—';
+    const cv2=_e('cam-hero-cutin-val');if(cv2)cv2.textContent='—';
+    const cl2=_e('cam-hero-cutin-lbl');if(cl2)cl2.textContent='UNTIL CUE';
   }
   // ── My next shots panel ──
   const shotRows=_e('cam-shot-rows');
@@ -5083,7 +5287,7 @@ function _updateCamCockpit(frames){
       shotRows.innerHTML='<div style="padding:20px 16px;font-size:11px;color:var(--txt-low);">No more shots in this sequence</div>';
     }
     const sub=_e('cam-panel-my-sub');
-    if(sub){const rem=myCues.filter(c=>c._f>frames).length;sub.textContent=rem+' upcoming shot'+(rem!==1?'s':'');}
+    if(sub){const rem=myCues.filter(c=>c._f>frames).length;const _sn=state.songs.find(s=>s.id===_liveSongId);sub.textContent=rem+(_sn?' in '+_sn.name:'');}
   }
   // ── All cameras panel ──
   const allRows=_e('cam-all-rows');
@@ -13170,8 +13374,8 @@ function showCameraPickerModal(show, onPick){
   modal.style.cssText='position:fixed;inset:0;z-index:9999;';
 
   var box=document.createElement('div');
-  box.className='ntm-box';
-  box.style.cssText='max-width:460px;overflow:hidden;';
+  box.className='ntm-box cf-cam-picker-box';
+  box.style.overflow='hidden';
 
   // Header
   var hdr=document.createElement('div');
