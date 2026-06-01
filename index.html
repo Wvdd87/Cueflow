@@ -1906,6 +1906,10 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
   .live-then-row .cd { font-size:15px; min-width:44px; }
 }
 
+/* Prevent iOS Safari auto-zoom on input focus (triggered when font-size < 16px) */
+@media (max-width:960px){
+  input, textarea, select { font-size:max(16px,1em) !important; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
