@@ -1183,8 +1183,8 @@ body.mode-live #edit-mode-banner { display: none; }
 .cam-hero.oncam .cam-hero-bar-fill { background:var(--red); }
 .cam-hero.warn:not(.oncam) .cam-hero-bar { height:6px; }
 .cam-hero.warn:not(.oncam) .cam-hero-bar-fill { background:var(--primary); box-shadow:0 0 8px var(--primary-dim); }
-/* Hero timers row (HELD FOR + CUT IN) — hidden on desktop, shown at ≤960px */
-.cam-hero-timers { display:none; justify-content:space-between; align-items:flex-end; padding:14px 0 18px; }
+/* Hero CUT IN timer row — hidden on desktop, shown at ≤960px */
+.cam-hero-timers { display:none; justify-content:flex-end; align-items:flex-end; padding:14px 0 18px; }
 .cam-hero-timer { display:flex; flex-direction:column; gap:3px; }
 .cam-hero-timer-cutin { text-align:right; }
 .cam-hero-timer-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--txt-low); }
@@ -2245,10 +2245,6 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       </div>
       <!-- Timers row: shown on tablet/phone, hidden on desktop -->
       <div class="cam-hero-timers" id="cam-hero-timers">
-        <div class="cam-hero-timer">
-          <div class="cam-hero-timer-lbl">HELD FOR</div>
-          <div class="cam-hero-timer-val" id="cam-hero-held-val">—</div>
-        </div>
         <div class="cam-hero-timer cam-hero-timer-cutin">
           <div class="cam-hero-timer-lbl" id="cam-hero-cutin-lbl">CUT IN</div>
           <div class="cam-hero-timer-val" id="cam-hero-cutin-val">—</div>
@@ -5257,7 +5253,6 @@ function _updateCamCockpit(frames){
       const bf=_e('cam-hero-bar-fill');
       if(bf)bf.style.width=myNextCue&&isWarn?Math.min(100,(1-cdSec/WARN_SEC)*100).toFixed(1)+'%':'0%';
       // Timers row (tablet/phone)
-      const hv=_e('cam-hero-held-val');if(hv)hv.textContent='—';
       const cv2=_e('cam-hero-cutin-val');if(cv2)cv2.textContent=cdTxt;
       const cl2=_e('cam-hero-cutin-lbl');if(cl2)cl2.textContent='UNTIL CUE';
     } else {
@@ -5282,9 +5277,6 @@ function _updateCamCockpit(frames){
       const prog=durF>0?Math.min(100,((frames-myCurCue._f)/durF)*100):100;
       const bf=_e('cam-hero-bar-fill');if(bf)bf.style.width=prog.toFixed(1)+'%';
       // Timers row (tablet/phone)
-      const heldF2=Math.max(0,frames-myCurCue._f);
-      const heldS=Math.floor(heldF2/fps),hm=Math.floor(heldS/60),hs2=heldS%60;
-      const hv=_e('cam-hero-held-val');if(hv)hv.textContent=hm>0?hm+':'+String(hs2).padStart(2,'0'):'0:'+String(hs2).padStart(2,'0');
       const cv2=_e('cam-hero-cutin-val');if(cv2)cv2.textContent=cutTxt;
       const cl2=_e('cam-hero-cutin-lbl');if(cl2)cl2.textContent='CUT IN';
     }
@@ -5305,7 +5297,6 @@ function _updateCamCockpit(frames){
     const bf=_e('cam-hero-bar-fill');
     if(bf)bf.style.width=isWarn?Math.min(100,(1-cdSec/WARN_SEC)*100).toFixed(1)+'%':'0%';
     // Timers row (tablet/phone)
-    const hv=_e('cam-hero-held-val');if(hv)hv.textContent='—';
     const cv2=_e('cam-hero-cutin-val');if(cv2)cv2.textContent=cdTxt;
     const cl2=_e('cam-hero-cutin-lbl');if(cl2)cl2.textContent='UNTIL CUE';
   } else {
@@ -5320,7 +5311,6 @@ function _updateCamCockpit(frames){
     const cl=_e('cam-hero-cd-lbl');if(cl)cl.textContent='UNTIL CUE';
     const bf=_e('cam-hero-bar-fill');if(bf)bf.style.width='0%';
     // Timers row (tablet/phone)
-    const hv=_e('cam-hero-held-val');if(hv)hv.textContent='—';
     const cv2=_e('cam-hero-cutin-val');if(cv2)cv2.textContent='—';
     const cl2=_e('cam-hero-cutin-lbl');if(cl2)cl2.textContent='UNTIL CUE';
   }
