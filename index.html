@@ -715,7 +715,7 @@ body.mode-live #edit-mode-banner { display: none; }
 }
 .cue-row:nth-child(even) { background: rgba(255,255,255,.01); }
 .cue-row:hover { background: var(--surface2); }
-.cue-row.active-cue { background: var(--primary-bg) !important; border-left: 2px solid var(--primary); }
+.cue-row.active-cue { background: var(--primary-bg) !important; box-shadow: inset 2px 0 0 var(--primary); }
 .cue-row.tl-sel { background: rgba(220,220,220,0.1) !important; }
 .cue-row.audio-out-range { opacity: .38; }
 .cue-row.audio-out-range .cue-field { color: var(--txt-mid) !important; }
@@ -728,7 +728,7 @@ body.mode-live #edit-mode-banner { display: none; }
   display: flex; align-items: center; justify-content: center;
   font-family: var(--cond); font-size: 9px; font-weight: 700;
   letter-spacing: .1em; text-transform: uppercase; color: var(--txt-low);
-  border-right: 1px solid var(--hair);
+  border-left: 1px solid var(--hair); border-right: 1px solid var(--hair);
 }
 
 .cl-next-cell {
@@ -749,7 +749,7 @@ body.mode-live #edit-mode-banner { display: none; }
 .cue-field:focus { background: var(--surface3); box-shadow: inset 0 0 0 1px var(--primary); }
 .cue-readonly { cursor: pointer !important; user-select: none; }
 .cue-readonly:focus { background: var(--surface2) !important; }
-.cue-col-del { display: flex; align-items: center; justify-content: center; }
+.cue-col-del { display: flex; align-items: center; justify-content: center; border-left: 1px solid var(--hair); }
 .cue-del { background: none; border: none; color: var(--txt-low); cursor: pointer; font-size: 13px; padding: 6px; min-width: 28px; min-height: 28px; display: flex; align-items: center; justify-content: center; transition: color .1s; }
 .cue-del:hover { color: var(--red); }
 /* Cue flag button — list view */
@@ -791,8 +791,6 @@ body.mode-live #edit-mode-banner { display: none; }
   color: var(--txt-mid); border-right: 1px solid var(--hair);
 }
 .cue-list-header span:last-child { border-right: none; }
-.col-resize-handle { position: absolute; top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 10; background: transparent; }
-.col-resize-handle:hover { background: var(--primary); opacity: .35; }
 
 /* ── Marker / chapter divider row (full-width, not a data grid row) ── */
 /* ── Marker rows — grid-aligned with cue rows ── */
@@ -1415,6 +1413,37 @@ body.mode-live #edit-mode-banner { display: none; }
 .show-step { flex: 1; height: 100%; background: var(--hair); }
 .show-step.done { background: var(--txt-low); }
 .show-step.live { background: var(--red); }
+
+/* Live rail — tab bar + notes view */
+.live-rail-tabs { display:flex; flex-shrink:0; border-top:1px solid var(--hair); background:var(--surface); }
+.live-rail-tab {
+  flex:1; height:32px; background:none; border:none;
+  border-top:2px solid transparent;
+  font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--txt-mid); cursor:pointer;
+  transition:color .12s, background .12s, border-top-color .12s;
+}
+.live-rail-tab+.live-rail-tab { border-left:1px solid var(--hair); }
+.live-rail-tab:not(.active):hover { color:var(--txt-hi); background:var(--surface2); }
+.live-rail-tab.active { color:var(--txt-hi); border-top-color:var(--primary); background:var(--bg); }
+.live-rail-notes { flex:1; display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+.live-rail-notes-half { flex:1; display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+.live-rail-notes-half:first-child { border-bottom:1px solid var(--hair2); }
+.live-rail-notes-label {
+  padding:5px 12px 4px; flex-shrink:0; border-bottom:1px solid var(--hair);
+  font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--txt-low); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.live-rail-notes-body {
+  flex:1; min-height:0; overflow-y:auto; padding:10px 12px;
+  font-size:12px; line-height:1.65; color:var(--txt);
+}
+.live-rail-notes-body * { color:var(--txt) !important; }
+.live-rail-notes-body h1 { font-size:15px; font-weight:700; margin-bottom:4px; }
+.live-rail-notes-body h2 { font-size:13px; font-weight:600; margin-bottom:3px; }
+.live-rail-notes-body ul, .live-rail-notes-body ol { padding-left:18px; }
+.live-rail-notes-body p { margin:0 0 3px; }
+.live-rail-notes-empty { color:var(--txt-low) !important; font-style:italic; font-size:11px; }
 
 /* Live foot */
 .live-foot { height: 36px; border-top: 1px solid var(--hair); background: var(--surface); display: flex; align-items: center; padding: 0 18px; font-family: var(--cond); font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--txt-mid); gap: 16px; flex-shrink: 0; }
@@ -2231,7 +2260,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
           <select class="batch-track-sel" id="batch-track-sel" onchange="batchMoveToTrack(this.value)"><option value="">Move to…</option></select>
           <button class="batch-del-btn" id="batch-del-btn" onclick="batchDeleteStage()">Delete</button>
         </div>
-        <div class="cue-list-header"><span></span><span style="padding:0 4px;justify-content:center;border-right:1px solid var(--hair);">TRK</span><span>Timecode</span><span>Cue</span><span>Description</span><span>Type</span><span>Next</span><span style="justify-content:center;padding:0;">⚑</span><span></span></div>
+        <div class="cue-list-header"><span style="justify-content:center;padding:0;">#</span><span style="padding:0 4px;justify-content:center;border-right:1px solid var(--hair);">TRK</span><span>Timecode</span><span>Cue</span><span>Description</span><span>Type</span><span>Next</span><span style="justify-content:center;padding:0;">⚑</span><span style="justify-content:center;padding:0;">×</span></div>
         <div id="cue-list-wrap"></div>
         <div style="display:none;"><span id="desc-has-content"></span></div>
       </div>
@@ -2600,10 +2629,27 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <!-- Right setlist rail -->
     <div class="live-setlist" id="live-setlist-rail">
       <div class="live-setlist-head">
-        <span>Setlist</span>
+        <span id="live-rail-head-lbl">Setlist</span>
         <span id="live-setlist-count" style="font-size:10px;color:var(--text4);font-family:var(--mono);"></span>
       </div>
+      <!-- Setlist view (default) -->
       <div class="live-setlist-body" id="live-mini-seqs"></div>
+      <!-- Notes view (hidden until Notes tab selected) -->
+      <div class="live-rail-notes" id="live-rail-notes" style="display:none;">
+        <div class="live-rail-notes-half">
+          <div class="live-rail-notes-label" id="live-rail-cur-label">CURRENT</div>
+          <div class="live-rail-notes-body" id="live-rail-cur-notes"><span class="live-rail-notes-empty">No notes for this sequence</span></div>
+        </div>
+        <div class="live-rail-notes-half">
+          <div class="live-rail-notes-label" id="live-rail-next-label">NEXT</div>
+          <div class="live-rail-notes-body" id="live-rail-next-notes"><span class="live-rail-notes-empty">No next sequence</span></div>
+        </div>
+      </div>
+      <!-- Tab bar -->
+      <div class="live-rail-tabs">
+        <button class="live-rail-tab active" id="live-rail-tab-setlist" onclick="switchLiveRailTab('setlist')">Setlist</button>
+        <button class="live-rail-tab" id="live-rail-tab-notes" onclick="switchLiveRailTab('notes')">Notes</button>
+      </div>
     </div>
 
   </div><!-- /live-body -->
@@ -5378,6 +5424,61 @@ function renderMiniSongs(target,liveSongId,upNextId){
     const cnt=document.getElementById('live-setlist-count');
     if(cnt)cnt.textContent=`${liveIdx+1}/${songs.length}`;
     _renderShowSteps(songs,liveIdx);
+    _updateLiveRailNotes(songs,liveIdx);
+  }
+}
+
+/* ─── Live rail notes panel ──────────────────────────────── */
+let _liveRailTab='setlist'; // persists across sequence changes within a session
+
+function switchLiveRailTab(tab){
+  _liveRailTab=tab;
+  const setlistBody=document.getElementById('live-mini-seqs');
+  const notesView=document.getElementById('live-rail-notes');
+  const tabSetlist=document.getElementById('live-rail-tab-setlist');
+  const tabNotes=document.getElementById('live-rail-tab-notes');
+  const headLbl=document.getElementById('live-rail-head-lbl');
+  const countEl=document.getElementById('live-setlist-count');
+  if(tab==='notes'){
+    if(setlistBody) setlistBody.style.display='none';
+    if(notesView) notesView.style.display='flex';
+    if(tabSetlist) tabSetlist.classList.remove('active');
+    if(tabNotes) tabNotes.classList.add('active');
+    if(headLbl) headLbl.textContent='Notes';
+    if(countEl) countEl.textContent='';
+    // Populate immediately with current state
+    const songs=getActivePlaylistSongs();
+    const liveIdx=Math.max(0,songs.findIndex(s=>s.id===state.activeSongId));
+    _updateLiveRailNotes(songs,liveIdx);
+  } else {
+    if(setlistBody) setlistBody.style.display='';
+    if(notesView) notesView.style.display='none';
+    if(tabSetlist) tabSetlist.classList.add('active');
+    if(tabNotes) tabNotes.classList.remove('active');
+    if(headLbl) headLbl.textContent='Setlist';
+  }
+}
+
+function _updateLiveRailNotes(songs,liveIdx){
+  if(_liveRailTab!=='notes') return;
+  const curSong=songs&&liveIdx>=0?songs[liveIdx]:null;
+  const nextSong=songs&&liveIdx>=0&&liveIdx<songs.length-1?songs[liveIdx+1]:null;
+  const curLbl=document.getElementById('live-rail-cur-label');
+  const curBody=document.getElementById('live-rail-cur-notes');
+  const nxtLbl=document.getElementById('live-rail-next-label');
+  const nxtBody=document.getElementById('live-rail-next-notes');
+  if(curLbl) curLbl.textContent='CURRENT'+(curSong?': '+curSong.name:'');
+  if(curBody){
+    const html=curSong&&curSong.description&&curSong.description.trim()?curSong.description:
+      '<span class="live-rail-notes-empty">No notes for this sequence</span>';
+    if(curBody.innerHTML!==html) curBody.innerHTML=html;
+  }
+  if(nxtLbl) nxtLbl.textContent='NEXT'+(nextSong?': '+nextSong.name:'');
+  if(nxtBody){
+    const html=!nextSong?'<span class="live-rail-notes-empty">No next sequence</span>':
+      nextSong.description&&nextSong.description.trim()?nextSong.description:
+      '<span class="live-rail-notes-empty">No notes for this sequence</span>';
+    if(nxtBody.innerHTML!==html) nxtBody.innerHTML=html;
   }
 }
 
@@ -6183,7 +6284,6 @@ function renderCueList(){
   const notesBadge=document.getElementById('notes-hdr-btn');
   if(notesBadge){const hasNotes=!!(song.description?.trim());notesBadge.setAttribute('data-has-notes',hasNotes?'1':'');}
   renderAudioHeaderStatus(song);
-  attachColResizeHandles();
   // Refresh waterfall side panels
   if(_editView==='wf'){_refreshWfNotes();_refreshWfSeqList();}
   // Refresh timeline seq label
@@ -6201,43 +6301,6 @@ function renderCueList(){
   if(ETL.visible)requestAnimationFrame(renderEditTimeline);
 }
 // Global state for column resizing — prevents multiple simultaneous drags
-let _colResizeActive=null; // {varName, min, startX, startW}
-function _initColResizeGlobal(){
-  if(window._colResizeInited)return;
-  window._colResizeInited=true;
-  document.addEventListener('mousemove',e=>{
-    if(!_colResizeActive)return;
-    const newW=Math.max(_colResizeActive.min,_colResizeActive.startW+(e.clientX-_colResizeActive.startX));
-    document.documentElement.style.setProperty(_colResizeActive.varName,newW+'px');
-  });
-  document.addEventListener('mouseup',()=>{_colResizeActive=null;});
-}
-function attachColResizeHandles(){
-  _initColResizeGlobal();
-  const hdr=document.querySelector('.cue-list-header');
-  if(!hdr||hdr.querySelector('.col-resize-handle'))return;
-  // grid cols: #(30) | TRK(32) | TC(108) | CUE(1fr) | DESC(1fr) | TYPE(70) | NEXT(52) | ×(28)
-  // header children index:  0     1        2           3           4          5          6     7
-  const cols=[
-    {idx:2,varName:'--col-tc',  min:80},
-    {idx:3,varName:'--col-name',min:100},
-    {idx:4,varName:'--col-desc',min:80}
-  ];
-  cols.forEach(col=>{
-    const span=hdr.children[col.idx];
-    if(!span)return;
-    const handle=document.createElement('div');
-    handle.className='col-resize-handle';
-    handle.style.right='-3px';
-    handle.addEventListener('mousedown',e=>{
-      e.preventDefault();e.stopPropagation();
-      const r=span.getBoundingClientRect();
-      _colResizeActive={varName:col.varName,min:col.min,startX:e.clientX,startW:r.width};
-    });
-    span.style.position='relative';
-    span.appendChild(handle);
-  });
-}
 
 let _ctxMenu=null;
 function showStreamCtxMenu(e,cueId){
