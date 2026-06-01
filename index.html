@@ -13493,6 +13493,7 @@ function showCameraPickerModal(show, onPick){
       state.cameraTrackVisible=true;
       state.visibleStreamIds=[];
       modal.remove();
+      if(window._acquireWakeLock)_acquireWakeLock();
       if(onPick){
         onPick(cam);
       } else {
@@ -15086,14 +15087,14 @@ boot();
 
 /* ── Screen Wake Lock — prevents display sleep on mobile during shows ── */
 (function(){
-  if(!navigator.wakeLock) return;
-  var _wl=null;
-  function _acquire(){
-    navigator.wakeLock.request('screen').then(function(wl){_wl=wl;}).catch(function(){});
-  }
-  _acquire();
+  if(!navigator.wakeLock)return;
+  var _wlEnabled=false;
+  window._acquireWakeLock=function(){
+    _wlEnabled=true;
+    navigator.wakeLock.request('screen').catch(function(){});
+  };
   document.addEventListener('visibilitychange',function(){
-    if(document.visibilityState==='visible')_acquire();
+    if(document.visibilityState==='visible'&&_wlEnabled)window._acquireWakeLock();
   });
 })();
 
