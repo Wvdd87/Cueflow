@@ -1255,19 +1255,33 @@ body.mode-live #edit-mode-banner { display: none; }
 #cam-panel-all.hidden { display:none; }
 
 /* ── Responsive camera cockpit ─────────────────────────────
-   960px  tablet     stack panels, swap countdown for timers row
-   640px  phone      compact hero, bigger shot countdowns
-   400px  small      further reduction
+   960px  tablet     new hero grid: badge+cd left, name+desc right
+   640px  phone      smaller badge, font reduction
+   400px  very small further reduction
 ──────────────────────────────────────────────────────────── */
 @media (max-width:960px){
   .cam-hero { padding:16px 20px 0; }
-  .cam-hero-body { gap:16px; margin-bottom:12px; }
-  /* Downscale lg badge to mid-way: 64px */
+  /* Hero body: 2-col grid — badge+countdown stack on left, name+desc on right */
+  .cam-hero-body {
+    display:grid;
+    grid-template-columns:auto 1fr;
+    grid-template-rows:auto auto;
+    column-gap:16px; row-gap:8px;
+    margin-bottom:16px;
+    align-items:start;
+  }
+  .cam-hero-badge-wrap { grid-column:1; grid-row:1; }
+  /* Countdown sits under the badge — re-show it (was hidden) */
+  .cam-hero-cd { display:flex !important; flex-direction:column; align-items:flex-start; grid-column:1; grid-row:2; }
+  .cam-hero-cd-val { font-size:clamp(24px,7vw,44px); }
+  /* Name+desc span both rows on the right */
+  .cam-hero-info { grid-column:2; grid-row:1 / 3; min-width:0; }
   .cam-hero .cam-badge.lg { width:64px; height:64px; font-size:40px; border-radius:3px; }
-  .cam-hero-name { font-size:clamp(20px,3.5vw,36px); }
-  /* Hide right-side countdown; show timers row instead */
-  .cam-hero-cd { display:none; }
-  .cam-hero-timers { display:flex; }
+  /* Allow full name to wrap — no truncation */
+  .cam-hero-name { white-space:normal; font-size:clamp(18px,5vw,32px); line-height:1.1; }
+  .cam-hero-desc { font-size:12px; margin-top:4px; }
+  /* Timers row no longer needed (cd is in grid) */
+  .cam-hero-timers { display:none !important; }
   /* Stack panels vertically */
   .cam-split { flex-direction:column; }
   .cam-panel { border-right:none; border-bottom:1px solid var(--hair); }
@@ -1278,13 +1292,10 @@ body.mode-live #edit-mode-banner { display: none; }
 @media (max-width:640px){
   .cam-hero { padding:12px 14px 0; }
   .cam-hero-eyebrow { margin-bottom:8px; }
-  .cam-hero-body { gap:12px; margin-bottom:8px; }
-  /* Downscale further to md size */
+  .cam-hero-body { column-gap:12px; row-gap:6px; margin-bottom:12px; }
   .cam-hero .cam-badge.lg { width:52px; height:52px; font-size:28px; border-radius:3px; }
-  .cam-hero-name { font-size:clamp(17px,5vw,28px); }
-  .cam-hero-desc { font-size:12px; }
-  .cam-hero-timers { padding:10px 0 14px; }
-  .cam-hero-timer-val { font-size:clamp(36px,11vw,64px); }
+  .cam-hero-cd-val { font-size:clamp(20px,7vw,36px); }
+  .cam-hero-name { font-size:clamp(16px,5vw,26px); }
   /* MY NEXT SHOTS: hide redundant own-camera badge + TC column */
   #cam-shot-rows .cam-shot-badge { display:none; }
   #cam-shot-rows .cam-shot-tc { display:none; }
@@ -1302,10 +1313,68 @@ body.mode-live #edit-mode-banner { display: none; }
 }
 @media (max-width:400px){
   .cam-hero .cam-badge.lg { width:44px; height:44px; font-size:22px; }
-  .cam-hero-name { font-size:clamp(15px,6vw,24px); }
-  .cam-hero-timer-val { font-size:clamp(32px,12vw,56px); }
+  .cam-hero-cd-val { font-size:clamp(17px,8vw,28px); }
+  .cam-hero-name { font-size:clamp(14px,5.5vw,22px); }
   #cam-shot-rows .cam-shot-name { font-size:16px; }
   #cam-shot-rows .cam-shot-cd { font-size:20px; }
+}
+
+/* ── Track viewer next-hero: same grid structure as camera cockpit ──
+   display:contents flattens .nh-main and .nh-badge so the badge span,
+   name div, desc div, and count div all become direct grid children —
+   identical column layout to .cam-hero-body:
+     col1 row1: badge    col2 row1: name (wrapping, no truncation)
+     col1 row2: countdown  col2 row2: description
+──────────────────────────────────────────────────────────────────── */
+@media (max-width:960px){
+  #vw-next-hero {
+    display:grid;
+    grid-template-columns:auto 1fr;
+    grid-template-rows:auto auto auto;
+    column-gap:16px; row-gap:8px;
+    align-items:start;
+    position:relative;
+    padding:14px 20px 24px;
+  }
+  /* Flatten intermediate containers into the parent grid */
+  #vw-next-hero .nh-main { display:contents; }
+  #vw-next-hero .nh-badge { display:contents; }
+  /* Grid placement */
+  #vw-next-hero .nh-eyebrow {
+    grid-column:1 / -1; grid-row:1;
+    position:static; /* override position:absolute from live-next base */
+    margin-bottom:0;
+  }
+  #vw-next-badge { grid-column:1; grid-row:2; align-self:start; }
+  #vw-next-hero .nh-name {
+    grid-column:2; grid-row:2; align-self:start;
+    white-space:normal; line-height:1.1;
+    font-size:clamp(18px,5vw,32px);
+  }
+  #vw-next-hero .nh-count {
+    grid-column:1; grid-row:3; align-self:start;
+    text-align:left;
+  }
+  #vw-next-hero .nh-count .v { font-size:clamp(24px,7vw,44px); line-height:1; }
+  #vw-next-hero .nh-count .nh-cd-lbl { text-align:left; }
+  #vw-next-hero .nh-desc {
+    grid-column:2; grid-row:3; align-self:start;
+    font-size:13px; margin-top:0;
+  }
+  /* Badge sizes */
+  #vw-next-hero .cam-badge-sq.lg { width:64px; height:64px; font-size:40px; border-radius:3px; }
+  #vw-next-hero .track-glyph.lg  { width:64px; height:64px; font-size:20px; }
+}
+@media (max-width:640px){
+  #vw-next-hero { padding:10px 14px 20px; column-gap:12px; row-gap:6px; }
+  #vw-next-hero .cam-badge-sq.lg { width:52px; height:52px; font-size:28px; border-radius:3px; }
+  #vw-next-hero .track-glyph.lg  { width:52px; height:52px; font-size:16px; }
+  #vw-next-hero .nh-name { font-size:clamp(16px,5vw,26px); }
+  #vw-next-hero .nh-count .v { font-size:clamp(20px,7vw,36px); }
+}
+@media (max-width:400px){
+  #vw-next-hero .nh-name { font-size:clamp(14px,5.5vw,22px); }
+  #vw-next-hero .nh-count .v { font-size:clamp(17px,7.5vw,28px); }
 }
 
 /* ── Camera picker: bottom sheet on mobile ── */
@@ -2196,7 +2265,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <div class="live-next" id="vw-next-hero">
         <button class="ck-flag-btn live-next-flag" id="vw-next-flag" data-cid="" style="display:none;" title="Flag for attention">⚑</button>
         <div class="nh-eyebrow" id="vw-next-eyebrow">Next</div>
-        <div style="margin-top:4px;">
+        <div class="nh-main" style="margin-top:4px;">
           <div class="nh-badge" id="vw-next-badge-row">
             <span id="vw-next-badge"></span>
             <div class="nh-name" id="vw-next-name">—</div>
@@ -2882,7 +2951,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <div class="live-next" id="live-next-hero">
         <button class="ck-flag-btn live-next-flag" id="live-next-flag" data-cid="" style="display:none;" title="Flag for attention">⚑</button>
         <div class="nh-eyebrow" id="live-next-eyebrow">Next</div>
-        <div style="margin-top:4px;">
+        <div class="nh-main" style="margin-top:4px;">
           <div class="nh-badge" id="live-next-badge-row">
             <span id="live-next-badge"></span>
             <div class="nh-name" id="live-next-name">—</div>
