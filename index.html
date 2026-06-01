@@ -15084,6 +15084,19 @@ CF._onExitLive=function(){
 
 boot();
 
+/* ── Screen Wake Lock — prevents display sleep on mobile during shows ── */
+(function(){
+  if(!navigator.wakeLock) return;
+  var _wl=null;
+  function _acquire(){
+    navigator.wakeLock.request('screen').then(function(wl){_wl=wl;}).catch(function(){});
+  }
+  _acquire();
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='visible')_acquire();
+  });
+})();
+
 })();
 
 </script>
