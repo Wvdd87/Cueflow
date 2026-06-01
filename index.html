@@ -3083,7 +3083,24 @@ function persist(){
     cameraTrackVisible:state.cameraTrackVisible!==false});
   const el=document.getElementById('save-indicator');
   if(el){el.classList.add('show');clearTimeout(persistTimer);persistTimer=setTimeout(()=>el.classList.remove('show'),1800);}
+  if(window.saveSessionState) saveSessionState();
 }
+
+function saveSessionState(){
+  var _showId=window.CF&&CF.showId;
+  if(!_showId) return;
+  var _userId=window._cfGetUserId?window._cfGetUserId():null;
+  if(!_userId) return;
+  try{
+    localStorage.setItem('cf_ss_'+_showId+'_'+_userId,JSON.stringify({
+      p:state.activePlaylistId||null,
+      s:state.activeSongId||null,
+      v:state.visibleStreamIds?state.visibleStreamIds.slice():[],
+      m:state.appMode||'edit'
+    }));
+  }catch(e){}
+}
+
 function applyProject(proj){
   state.projectId=proj.id;state.name=proj.name;
   state.fps=proj.fps||25;state.visibleCount=proj.visibleCount||6;
@@ -3252,7 +3269,16 @@ function switchMode(mode){
     // Notify collab layer: owner left live mode — stop TC broadcast
     if(window.CF && CF._onExitLive) CF._onExitLive();
   }
+  if(window.saveSessionState) saveSessionState();
 }
+
+/* Used by Block 2's restoreSessionState() to switch mode without triggering
+   the openModalBeforeLive TC guard (restoring state, not going live for show). */
+window._restoreMode=function(mode){
+  _skipLiveGuard=true;
+  switchMode(mode);
+  _skipLiveGuard=false;
+};
 
 // ─── TC UTILS ───
 function tcF(tc){
@@ -12001,6 +12027,67 @@ function pushCueDesc(cueId, desc){
 }
 window.pushCueDesc=pushCueDesc;
 
+/* Returns the stable user ID used as the session-state key suffix.
+   Owner → their Supabase auth UUID; editor/viewer → their PIN hash. */
+window._cfGetUserId=function(){
+  if(CF.isOwner && authUser) return authUser.id;
+  if(CF._pinHash) return CF._pinHash;
+  return null;
+};
+
+/* Restore per-user per-show session preferences from localStorage.
+   Called once after the initial project load.  Falls back silently if
+   the saved playlist/sequence no longer exists. */
+function restoreSessionState(){
+  if(!CF.showId) return;
+  var userId=CF.isOwner&&authUser ? authUser.id : CF._pinHash;
+  if(!userId) return;
+  var saved;
+  try{ saved=JSON.parse(localStorage.getItem('cf_ss_'+CF.showId+'_'+userId)||'null'); }
+  catch(e){ return; }
+  if(!saved) return;
+
+  var changed=false;
+
+  /* Playlist — validate it still exists */
+  if(saved.p && state.playlists && state.playlists.find(function(pl){return pl.id===saved.p;})){
+    if(state.activePlaylistId!==saved.p){ state.activePlaylistId=saved.p; changed=true; }
+  }
+
+  /* Song — must belong to the (possibly just restored) active playlist */
+  if(saved.s){
+    var _apl=window.getActivePlaylistSongs?getActivePlaylistSongs():(state.songs||[]);
+    if(_apl.find(function(s){return s.id===saved.s;})){
+      if(state.activeSongId!==saved.s){ state.activeSongId=saved.s; changed=true; }
+    }
+  }
+
+  /* Visible tracks — only for owners and unrestricted editors (track-viewers keep owner-assigned filter) */
+  if(saved.v && saved.v.length && (!CF.tracks||!CF.tracks.length)){
+    var _valid=(state.streams||[]).map(function(s){return s.id;});
+    var _filt=saved.v.filter(function(id){return _valid.indexOf(id)!==-1;});
+    if(_filt.length){
+      var _cur=(state.visibleStreamIds||[]).slice().sort().join(',');
+      var _nxt=_filt.slice().sort().join(',');
+      if(_cur!==_nxt){ state.visibleStreamIds=_filt; changed=true; }
+    }
+  }
+
+  if(!changed) return;
+
+  /* Re-render with restored context */
+  if(window.renderSongList) renderSongList();
+  if(window.renderCueList) renderCueList();
+  if(window.redrawActive) redrawActive();
+  if(window._syncEditTopbar) _syncEditTopbar();
+
+  /* Mode — restore all saved modes; use _restoreMode to bypass the
+     openModalBeforeLive TC guard (this is a state restore, not a live show start) */
+  if(saved.m && saved.m!==state.appMode && (saved.m==='edit'||saved.m==='test'||saved.m==='live')){
+    if(window._restoreMode) _restoreMode(saved.m);
+  }
+}
+
 function subscribeProject(){
   if(!CF.showId) return;
   if(CF._projChan){ CF._projChan.unsubscribe(); CF._projChan=null; }
@@ -12144,6 +12231,7 @@ function resolveConflicts(){
   /* Push the resolved state back */
   setTimeout(pushProject, 300);
   CF._pendingConflictProj = null;
+  restoreSessionState();
 }
 
 /* ── TC Broadcast (Supabase Broadcast — no DB writes) ────── */
@@ -12522,14 +12610,17 @@ function ownerRestoreShow(showId){
           CF._pendingConflictProj=_remote;
           CF._conflictChoices={};
           showConflictModal(_conflicts);
+          /* restoreSessionState() is called inside resolveConflicts() after the modal */
         } else {
           /* No conflicts: local is definitively newer, push it */
           CF.dirty=true;
           pushProject();
+          restoreSessionState();
         }
       } else {
         /* Remote is authoritative — apply it and clear any stale dirty flag */
         applyRemote(r.data.project_data);
+        restoreSessionState();
       }
     });
 }
@@ -12632,9 +12723,9 @@ function cfJoin(){
         hideLoading();
         document.getElementById('cf-join-screen').style.display='none';
         if(CF.role==='tc') showTcScreen(show);
-        else if(CF.role==='editor'||CF.role==='track-editor') showEditorApp(show);
+        else if(CF.role==='editor'||CF.role==='track-editor'){ showEditorApp(show); restoreSessionState(); }
         else if(_camSelectMode){ showViewerScreen(show); showCameraPickerModal(show); }
-        else showViewerScreen(show);
+        else { showViewerScreen(show); restoreSessionState(); }
       });
   });
 }
