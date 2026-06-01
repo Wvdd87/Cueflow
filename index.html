@@ -1863,7 +1863,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <div class="tc-pip idle" id="cf-v-dot"></div>
       <span class="vw-status-lbl" id="vw-tc-lock" style="color:var(--txt-low)">OFFLINE</span>
     </div>
-    <!-- Timecode value -->
+    <!-- Tt updimecode value -->
     <div class="vw-cell" id="vw-tc-val-cell">
       TIMECODE
       <span class="vw-val vw-tc-val" id="cf-v-tc" aria-live="polite">--:--:--:--</span>
@@ -2039,7 +2039,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <span id="cn-track-badges-topbar" style="display:flex;align-items:center;gap:5px;"></span>
     </div>
     <div style="flex:1;"></div>
-    <button class="live-toggle" onclick="closeCamNotesScreen()">RETURN TO LIVE</button>
+    <button class="live-toggle" onclick="closeCamNotesScreen()">GO LIVE</button>
   </div>
   <div class="cn-mode-banner"></div>
   <div class="cn-hint-bar">
@@ -2097,7 +2097,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <span class="et-status-lbl" id="et-online-lbl">OFFLINE</span>
   </div>
   <button class="live-toggle" id="live-toggle" onclick="switchMode('live')">Go Live</button>
-  <button class="live-toggle" id="editor-online-btn" style="display:none;" onclick="if(window._editorGoOnline)_editorGoOnline()">Go Online</button>
+  <button class="live-toggle" id="editor-online-btn" style="display:none;" onclick="if(window._editorGoOnline)_editorGoOnline()">Go Live</button>
 </div>
 <div class="mode-banner edit" id="edit-mode-banner"></div>
 <!-- ── App body: sidebar + panel + screens ── -->
@@ -5299,7 +5299,12 @@ function saveCamNoteDesc(cueId,songId,val){
   const cue=song.cues.find(c=>c.id===cueId);
   if(!cue)return;
   cue.desc=val;
-  if(window.persist)persist();
+  /* Viewers/crew: use targeted single-field RPC — avoids overwriting concurrent editor changes */
+  if(window.CF&&CF._pinHash&&!CF.isOwner&&CF.role!=='editor'&&CF.role!=='track-editor'){
+    if(window.pushCueDesc) pushCueDesc(cueId,val);
+  } else {
+    if(window.persist) persist();
+  }
 }
 /* ─── end Camera Edit Notes ──────────────────────────────── */
 
@@ -11878,6 +11883,21 @@ function snapshot(){
 function pushProject(cb, _retry){
   if(!CF.showId) return;
   if(!navigator.onLine){ CF.dirty=true; updateSyncBtn(); return; }
+
+  /* Non-owner (editor / track-editor): push via SECURITY DEFINER RPC — bypasses RLS */
+  if(!CF.isOwner && CF._pinHash){
+    db().rpc('push_show_data',{p_show_id:CF.showId, p_pin_hash:CF._pinHash, p_project_data:snapshot()})
+      .then(function(r){
+        if(r.error){ console.warn('[CF] push_show_data error',r.error.message); return; }
+        if(!r.data){ console.warn('[CF] push_show_data: PIN not authorised or show not found'); return; }
+        CF.dirty=false;
+        CF._pendingRemoteProj=null;
+        clearTimeout(CF._pendingRemoteTimer);
+        if(cb) cb();
+      });
+    return;
+  }
+
   _retry = _retry||0;
   var _pushTs = new Date().toISOString();
   db().from('shows')
@@ -11890,7 +11910,17 @@ function pushProject(cb, _retry){
         CF.dirty=true; updateSyncBtn(); return;
       }
       if(!r.data||!r.data.length){
-        /* Silent RLS failure — JWT likely expired; refresh and retry (max 3 attempts) */
+        if(!CF.isOwner){
+          /* Editors have UPDATE but not SELECT — upsert succeeded, empty r.data is normal */
+          CF.dirty=false;
+          CF._lastPushUpdatedAt = _pushTs;
+          CF._pendingRemoteProj = null;
+          clearTimeout(CF._pendingRemoteTimer);
+          localStorage.removeItem(DIRTY_KEY);
+          updateSyncBtn(); if(cb) cb();
+          return;
+        }
+        /* Owner: empty result means JWT likely expired — refresh and retry (max 3 attempts) */
         CF.dirty=true; updateSyncBtn();
         if(_retry < 2){
           db().auth.refreshSession().then(function(sr){
@@ -11929,6 +11959,48 @@ function updateSyncBtn(){
 }
 
 /* ── Subscribe to project Realtime changes ───────────────── */
+function _fetchAndApplyRemote(){
+  if(window._cfCleanupPending||!CF.showId) return;
+  db().from('shows').select('project_data').eq('id',CF.showId).single().then(function(r){
+    if(r.error||!r.data||!r.data.project_data) return;
+    applyRemote(r.data.project_data);
+    if((CF.role==='viewer'||CF.role==='crew') && window.buildTrackPills) buildTrackPills();
+  });
+}
+
+/* Fetch remote, compare against owner's dirty local state, show conflict modal if needed */
+function _fetchAndCheckConflicts(){
+  if(!CF.showId) return;
+  db().from('shows').select('project_data').eq('id',CF.showId).single().then(function(r){
+    if(!r.data||!r.data.project_data) return;
+    var remote=r.data.project_data;
+    var conflicts=findConflicts(state.songs, remote.songs);
+    if(conflicts.length){
+      CF._pendingConflictProj=remote;
+      CF._conflictChoices={};
+      showConflictModal(conflicts);
+    } else {
+      applyRemote(remote);
+    }
+  });
+}
+
+/* Viewer/crew targeted cue-description push — only touches one desc field in the DB JSONB */
+function pushCueDesc(cueId, desc){
+  if(!CF.showId||!CF._pinHash) return;
+  if(!navigator.onLine) return;
+  db().rpc('update_cue_desc',{p_show_id:CF.showId, p_pin_hash:CF._pinHash, p_cue_id:cueId, p_desc:desc})
+    .then(function(r){
+      if(r.error){ console.warn('[CF] update_cue_desc error',r.error.message); return; }
+      if(!r.data){ console.warn('[CF] update_cue_desc: not authorised or cue not found'); return; }
+      /* Signal owner (and other viewers) to refresh */
+      if(CF._tcChan&&CF.showId){
+        try{CF._tcChan.send({type:'broadcast',event:'proj_sync',payload:{signal:'refresh'}});}catch(e){}
+      }
+    });
+}
+window.pushCueDesc=pushCueDesc;
+
 function subscribeProject(){
   if(!CF.showId) return;
   if(CF._projChan){ CF._projChan.unsubscribe(); CF._projChan=null; }
@@ -11938,35 +12010,20 @@ function subscribeProject(){
       function(payload){
         var proj = payload.new && payload.new.project_data;
         if(!proj) return;
-        var isOwnEcho = payload.new.updated_at && payload.new.updated_at === CF._lastPushUpdatedAt;
-        /* Hard block: our own echo or a push still in-flight */
-        if(CF.isOwner && (CF.dirty || isOwnEcho)) return;
-        var inQuietWindow = (Date.now() - CF._lastEditAt) < 3000;
-        if(CF.isOwner && inQuietWindow){
-          /* Soft block: editing in progress — queue and retry once editing stops */
-          CF._pendingRemoteProj = proj;
-          clearTimeout(CF._pendingRemoteTimer);
-          var _tryApply = function(){
-            var p = CF._pendingRemoteProj;
-            if(!p) return;
-            if(CF.dirty){ CF._pendingRemoteProj=null; return; } /* owner pushed — discard */
-            if((Date.now()-CF._lastEditAt) < 3000){
-              CF._pendingRemoteTimer = setTimeout(_tryApply, 500);
-              return;
-            }
-            CF._pendingRemoteProj = null;
-            applyRemote(p);
-          };
-          CF._pendingRemoteTimer = setTimeout(_tryApply, 3100);
+        var newTs = payload.new.updated_at;
+        var isOwnEcho = newTs && newTs === CF._lastPushUpdatedAt;
+        if(isOwnEcho) return;
+        /* Owner has unsaved edits — check for conflicts before applying remote */
+        if(CF.isOwner && CF.dirty){
+          CF._pendingConflictProj = proj;
+          CF._conflictChoices = {};
+          var conflicts = findConflicts(state.songs, proj.songs);
+          if(conflicts.length){ showConflictModal(conflicts); }
+          else { applyRemote(proj); }
           return;
         }
-        /* Clear any pending since this fresh update supersedes it */
-        CF._pendingRemoteProj = null;
-        clearTimeout(CF._pendingRemoteTimer);
-        if(CF.isOwner || CF.role==='viewer' || CF.role==='crew' || CF.role==='tc' || CF.role==='editor' || CF.role==='track-editor'){
-          applyRemote(proj);
-          if((CF.role==='viewer'||CF.role==='crew') && window.buildTrackPills) buildTrackPills();
-        }
+        applyRemote(proj);
+        if((CF.role==='viewer'||CF.role==='crew') && window.buildTrackPills) buildTrackPills();
       })
     .subscribe();
 }
@@ -12013,11 +12070,16 @@ function findConflicts(localSongs, remoteSongs){
     (rs.cues||[]).forEach(function(rc){
       var lc = (ls.cues||[]).find(function(c){ return c.id===rc.id; });
       if(!lc) return;
-      ['tc','name','desc','streamId'].forEach(function(field){
+      ['tc','name','desc'].forEach(function(field){
         if(rc[field]!==undefined && lc[field]!==undefined && rc[field]!==lc[field]){
           conflicts.push({cueId:rc.id,cueName:rc.name||rc.tc,field:field,local:lc[field],remote:rc[field]});
         }
       });
+      /* flagged is stored as boolean or undefined — normalise before comparing */
+      var rcF=!!rc.flagged, lcF=!!lc.flagged;
+      if(rcF!==lcF){
+        conflicts.push({cueId:rc.id,cueName:rc.name||rc.tc,field:'flagged',local:lcF,remote:rcF});
+      }
     });
   });
   return conflicts;
@@ -12033,18 +12095,20 @@ function showConflictModal(conflicts){
     CF._conflictChoices[key] = 'local'; /* default: keep mine */
     var row = document.createElement('div');
     row.style.cssText = 'padding:10px 0;border-bottom:1px solid var(--border);';
+    var _fieldLabel = {tc:'Timecode',name:'Name',desc:'Description',flagged:'Flagged'}[c.field]||c.field;
+    var _fmt = function(v){ return c.field==='flagged' ? (v?'⚑ Flagged':'Not flagged') : escH(String(v)); };
     row.innerHTML =
       '<div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">'+
-        escH(c.cueName)+' — <span style="color:var(--text3);">'+escH(c.field)+'</span>'+
+        escH(c.cueName)+' — <span style="color:var(--text3);">'+escH(_fieldLabel)+'</span>'+
       '</div>'+
       '<div style="display:flex;gap:8px;">'+
         '<label style="flex:1;cursor:pointer;padding:8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);font-size:11px;" id="cf-c-local-'+i+'">'+
           '<input type="radio" name="cf-c-'+key+'" value="local" checked onchange="CF._conflictChoices[\''+key+'\']=this.value" style="margin-right:6px;">'+
-          '<strong style="color:var(--green);">My version:</strong> '+escH(String(c.local))+
+          '<strong style="color:var(--green);">My version:</strong> '+_fmt(c.local)+
         '</label>'+
         '<label style="flex:1;cursor:pointer;padding:8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);font-size:11px;" id="cf-c-remote-'+i+'">'+
           '<input type="radio" name="cf-c-'+key+'" value="remote" onchange="CF._conflictChoices[\''+key+'\']=this.value" style="margin-right:6px;">'+
-          '<strong style="color:var(--mode-accent-text);">Editor\'s version:</strong> '+escH(String(c.remote))+
+          '<strong style="color:var(--mode-accent-text);">Editor\'s version:</strong> '+_fmt(c.remote)+
         '</label>'+
       '</div>';
     list.appendChild(row);
@@ -12083,6 +12147,14 @@ function resolveConflicts(){
 }
 
 /* ── TC Broadcast (Supabase Broadcast — no DB writes) ────── */
+function _onProjSyncBroadcast(msg){
+  /* Owner is dirty (has unsaved edits) — check for field-level conflicts before applying */
+  if(CF.isOwner&&CF.dirty){ _fetchAndCheckConflicts(); return; }
+  CF._pendingRemoteProj=null;
+  clearTimeout(CF._pendingRemoteTimer);
+  _fetchAndApplyRemote();
+}
+
 function _onFlagBroadcast(msg){
   var p=msg.payload||{};
   if(!p.cueId) return;
@@ -12107,6 +12179,7 @@ function openTcChan(){
   CF._tcChan = db()
     .channel('tc:'+CF.showId, {config:{broadcast:{self:false}}})
     .on('broadcast',{event:'flag'},_onFlagBroadcast)
+    .on('broadcast',{event:'proj_sync'},_onProjSyncBroadcast)
     .subscribe(function(status){
       CF._tcReady = (status === 'SUBSCRIBED');
       console.log('[CF] Owner TC channel:', status);
@@ -12282,6 +12355,7 @@ function subscribeTc(){
       }
     })
     .on('broadcast',{event:'flag'},_onFlagBroadcast)
+    .on('broadcast',{event:'proj_sync'},_onProjSyncBroadcast)
     .subscribe(function(status, err){
       console.log('[CF] TC channel status:', status, err||'');
       if(status === 'CHANNEL_ERROR'){
@@ -12440,9 +12514,19 @@ function ownerRestoreShow(showId){
       var remoteTs=r.data.updated_at?new Date(r.data.updated_at).getTime():0;
 
       if(hasDirty && dirtyAt > remoteTs - 5000){
-        /* Local edits are newer (or within clock-skew tolerance) — push them */
-        CF.dirty=true;
-        pushProject();
+        /* Local edits are newer — check field-level conflicts before deciding what to push */
+        var _remote=r.data.project_data;
+        var _conflicts=findConflicts(state.songs, _remote.songs);
+        if(_conflicts.length){
+          CF.dirty=true;
+          CF._pendingConflictProj=_remote;
+          CF._conflictChoices={};
+          showConflictModal(_conflicts);
+        } else {
+          /* No conflicts: local is definitively newer, push it */
+          CF.dirty=true;
+          pushProject();
+        }
       } else {
         /* Remote is authoritative — apply it and clear any stale dirty flag */
         applyRemote(r.data.project_data);
@@ -12460,6 +12544,7 @@ function cfJoin(){
   if(!/^\d+$/.test(pin)){if(err)err.textContent='PIN must contain numbers only';return;}
   if(joinBtn){joinBtn.textContent='Joining…';joinBtn.disabled=true;}
   hashPin(pin).then(function(h){
+    CF._pinHash = h;
     return db().from('show_access').select('id,role,track_ids,label')
       .eq('show_id',CF.showId).eq('pin_hash',h).single();
   }).then(function(r){
@@ -13207,12 +13292,18 @@ function showEditorApp(show){
   if(window.buildTrackPills) buildTrackPills();
   if(window._syncEditTopbar) _syncEditTopbar();
 
-  /* Patch persist — auto-push with debounce */
+  /* Patch persist — auto-push with debounce + instant broadcast to owner */
   var _origP=window.persist;
   window.persist=function(){
     _origP.call(this);
     clearTimeout(CF._editorPushTimer);
-    CF._editorPushTimer=setTimeout(pushProject,1200);
+    CF._editorPushTimer=setTimeout(function(){
+      pushProject(function(){
+        if(CF._tcChan&&CF.showId){
+          try{CF._tcChan.send({type:'broadcast',event:'proj_sync',payload:{signal:'refresh'}});}catch(e){}
+        }
+      });
+    },1200);
   };
   window.addEventListener('online',function(){
     if(CF.showId&&(CF.role==='editor'||CF.role==='track-editor')){
