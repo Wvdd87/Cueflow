@@ -12181,7 +12181,11 @@ function subscribeProject(){
         var proj = payload.new && payload.new.project_data;
         if(!proj) return;
         var newTs = payload.new.updated_at;
-        var isOwnEcho = newTs && newTs === CF._lastPushUpdatedAt;
+        /* Supabase Realtime returns timestamps in a different string format than
+           new Date().toISOString() (e.g. "+00:00" suffix vs "Z"), so compare
+           as Date milliseconds to reliably detect our own push echoing back. */
+        var isOwnEcho = !!newTs && !!CF._lastPushUpdatedAt &&
+          new Date(newTs).getTime() === new Date(CF._lastPushUpdatedAt).getTime();
         if(isOwnEcho) return;
         /* Owner has unsaved edits — check for conflicts before applying remote */
         if(CF.isOwner && CF.dirty){
