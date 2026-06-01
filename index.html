@@ -1357,7 +1357,7 @@ body.mode-live #edit-mode-banner { display: none; }
 .live-next .nh-eyebrow { position: absolute; top: 11px; left: 28px; font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: var(--primary); display: flex; align-items: center; gap: 8px; }
 .live-next .nh-badge { display: flex; align-items: center; gap: 14px; margin-top: 4px; }
 .live-next .nh-name { font-family: var(--cond); font-weight: 700; font-size: clamp(40px, 5vw, 88px); line-height: 0.92; letter-spacing: -0.01em; color: var(--txt-hi); text-transform: uppercase; }
-.live-next .nh-desc { font-family: var(--sans); font-size: 14px; color: var(--txt); margin-top: 10px; max-width: 60ch; line-height: 1.45; }
+.live-next .nh-desc { font-family: var(--sans); font-size: 18px; color: var(--txt); margin-top: 10px; max-width: 60ch; line-height: 1.45; }
 .live-next .nh-count { text-align: right; flex-shrink: 0; }
 .live-next .nh-count .v { font-family: var(--mono); font-size: clamp(48px, 8vw, 96px); font-weight: 700; color: var(--primary); line-height: 0.92; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .live-next .nh-count.warn .v { color: var(--red); }
@@ -1386,7 +1386,7 @@ body.mode-live #edit-mode-banner { display: none; }
 .live-then-row:last-child { border-bottom: none; }
 .live-then-row .ix { font-family: var(--mono); font-size: 12px; color: var(--txt-low); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
 .live-then-row .nm { font-family: var(--cond); font-size: 30px; font-weight: 700; color: var(--txt-hi); letter-spacing: 0; text-transform: uppercase; white-space: wrap; overflow: hidden; text-overflow: ellipsis; }
-.live-then-row .nm .ds { font-family: var(--sans); font-size: 11px; font-weight: 400; color: var(--txt-mid); text-transform: none; letter-spacing: 0; display: block; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.live-then-row .nm .ds { font-family: var(--sans); font-size: 18px; font-weight: 400; color: var(--txt-mid); text-transform: none; letter-spacing: 0; display: block; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .live-then-row .tc-lbl { font-family: var(--mono); font-size: 12px; color: var(--txt-mid); text-align: right; font-variant-numeric: tabular-nums; }
 .live-then-row .cd { font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--txt); letter-spacing: -0.02em; text-align: right; min-width: 80px; font-variant-numeric: tabular-nums; }
 .live-then-row .cd.warn   { color: var(--primary); }
@@ -6611,12 +6611,30 @@ function parseCueLines(text){
     const tc=m[1].replace(/;/g,':');
     const rest=line.replace(m[0],'').replace(/^[\s,|]+|[\s,|]+$/g,'');
     const parts=rest.split(',').map(p=>p.trim());
-    return{id:uid(),tc,name:(parts[0]||'UNNAMED').toUpperCase(),desc:parts[1]||'',streamId:state.activeStreamId||state.streams[0]?.id||''};
+    const streamCol=(parts[2]||'').replace(/\|/g,',');
+    const camMatch=streamCol.match(/^cam\s+(\d+)$/i);
+    let cueBase;
+    if(camMatch&&state.cameraTrack){
+      const camNum=parseInt(camMatch[1],10);
+      const cam=state.cameraTrack.cameras.find(c=>c.number===camNum);
+      if(cam){cueBase={cameraId:cam.id};}
+      else{cueBase={streamId:state.activeStreamId||state.streams[0]?.id||''};}
+    } else {
+      cueBase={streamId:state.activeStreamId||state.streams[0]?.id||''};
+    }
+    return{id:uid(),tc,name:(parts[0]||'UNNAMED').toUpperCase(),desc:parts[1]||'',_chapterName:(parts[3]||'').trim(),...cueBase};
   }).filter(Boolean);
 }
 function importCSVData(text,mode){
   const cues=parseCueLines(text);if(!cues.length){alert('No valid cues found.');return;}
   const song=getActiveSong();if(!song)return;snapshot();
+  cues.forEach(c=>{
+    if(c._chapterName&&song.chapters){
+      const ch=song.chapters.find(x=>x.name.toLowerCase()===c._chapterName.toLowerCase());
+      if(ch)c.chapterId=ch.id;
+    }
+    delete c._chapterName;
+  });
   if(mode==='replace')song.cues=cues;else song.cues.push(...cues);
   persist();renderCueList();redrawActive();
   alert(`${mode==='replace'?'Replaced with':'Imported'} ${cues.length} cue${cues.length!==1?'s':''}.`);
@@ -6635,8 +6653,18 @@ function importCSVAction(mode){importCSVData(document.getElementById('csv-txt').
 function exportCSV(){
   const song=getActiveSong();if(!song)return;
   const sorted=getSortedCues(song.id,false);if(!sorted.length){alert('No cues to export.');return;}
-  const lines=['timecode,cue_name,description,stream'];
-  sorted.forEach(c=>lines.push(`${c.tc},${c.name.replace(/,/g,'|')},${(c.desc||'').replace(/,/g,'|')},${streamName(c.streamId).replace(/,/g,'|')}`));
+  const lines=['timecode,cue_name,description,stream,chapter'];
+  sorted.forEach(c=>{
+    let streamCol;
+    if(c.cameraId){
+      const cam=state.cameraTrack?.cameras.find(x=>x.id===c.cameraId);
+      streamCol=cam?'Cam '+cam.number:'Camera';
+    } else {
+      streamCol=streamName(c.streamId);
+    }
+    const chapterCol=c.chapterId?(song.chapters||[]).find(ch=>ch.id===c.chapterId)?.name||'':'';
+    lines.push(`${c.tc},${c.name.replace(/,/g,'|')},${(c.desc||'').replace(/,/g,'|')},${streamCol.replace(/,/g,'|')},${chapterCol.replace(/,/g,'|')}`);
+  });
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv'}));
   a.download=(song.name.replace(/\s+/g,'_')||'cues')+'.csv';
@@ -7266,7 +7294,22 @@ function exportShowFile(){
   const data={_v:APP_VERSION,exported:new Date().toISOString(),project:{
     id:state.projectId,name:state.name,fps:state.fps,visibleCount:state.visibleCount,
     warnSec:state.warnSec,autoAdvanceSec:state.autoAdvanceSec,
-    streams:state.streams,songs:JSON.parse(JSON.stringify(state.songs.map(s=>({...s,audioFilename:s.audioFilename||undefined}))))}};
+    streams:state.streams,
+    cameraTrack:state.cameraTrack,
+    cameraTrackVisible:state.cameraTrackVisible,
+    playlists:state.playlists,
+    activeSongId:state.activeSongId,
+    activePlaylistId:state.activePlaylistId,
+    visibleStreamIds:state.visibleStreamIds,
+    tcSource:state.tcSource,
+    ltcDeviceId:state.ltcDeviceId,
+    tcOffset:state.tcOffset,
+    signalLoss:state.signalLoss,
+    autoReconnect:state.autoReconnect,
+    openModalBeforeLive:state.openModalBeforeLive,
+    cueFlash:state.cueFlash,
+    showClock:state.showClock,
+    songs:JSON.parse(JSON.stringify(state.songs.map(s=>({...s,audioFilename:s.audioFilename||undefined}))))}};
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
   a.download=(state.name.replace(/\s+/g,'_')||'show')+'.cueflow';
