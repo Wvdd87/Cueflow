@@ -2098,15 +2098,38 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   </div>
 </div>
 <!-- Conflict resolution modal -->
-<div id="cf-conflict-modal" role="dialog" aria-modal="true" aria-labelledby="cf-conflict-modal-title" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);align-items:center;justify-content:center;overscroll-behavior:contain;">
-  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:10px;max-width:500px;width:90%;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;overscroll-behavior:contain;">
-    <div style="padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;">
-      <div id="cf-conflict-modal-title" style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">⚠ Sync Conflict</div>
-      <div style="font-size:11px;color:var(--text3);">An editor changed the same fields you edited. Choose which version to keep for each conflict.</div>
+<div id="cf-conflict-modal" role="dialog" aria-modal="true" aria-labelledby="cf-conflict-modal-title" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.78);align-items:center;justify-content:center;overscroll-behavior:contain;backdrop-filter:blur(4px);">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;width:min(860px,95vw);max-height:90vh;overflow:hidden;display:flex;flex-direction:column;">
+    <!-- Header -->
+    <div style="padding:20px 24px 14px;border-bottom:1px solid var(--border);position:relative;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+        <div style="width:7px;height:7px;border-radius:50%;background:var(--amber);flex-shrink:0;"></div>
+        <span id="cf-cm-tagline" style="font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--txt-mid);">CONFLICT</span>
+      </div>
+      <div id="cf-conflict-modal-title" style="font-family:var(--cond);font-size:20px;font-weight:700;color:var(--txt-hi);letter-spacing:.04em;">RESOLVE CONFLICT</div>
+      <div style="font-size:12px;color:var(--txt-mid);margin-top:5px;max-width:540px;">Both you and an editor changed the same cue while offline. Pick a winner per-field, or take one side wholesale.</div>
+      <button onclick="CF._conflictCancel()" style="position:absolute;top:14px;right:14px;width:28px;height:28px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--txt-mid);font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>
     </div>
-    <div id="cf-conflict-list" style="flex:1;overflow-y:auto;padding:12px 20px;"></div>
-    <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0;">
-      <button onclick="CF.resolveConflicts()" class="mbtn primary">Apply selections</button>
+    <!-- Scrollable body: version cards + per-field pick -->
+    <div style="flex:1;overflow-y:auto;padding:16px 24px 4px;">
+      <div id="cf-cm-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;"></div>
+      <div id="cf-cm-perfield" style="display:none;">
+        <div style="font-family:var(--cond);font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--txt-mid);margin-bottom:10px;">PER-FIELD PICK</div>
+        <div id="cf-cm-field-rows"></div>
+      </div>
+    </div>
+    <!-- Footer -->
+    <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;">
+      <button onclick="CF._conflictKeepMine()" style="padding:0 14px;height:34px;border:1px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--txt-hi);font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.06em;cursor:pointer;">KEEP MINE</button>
+      <button onclick="CF._conflictTakeTheirs()" style="padding:0 14px;height:34px;border:1px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--txt-hi);font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.06em;cursor:pointer;">TAKE THEIRS</button>
+      <div id="cf-cm-nav" style="display:none;align-items:center;gap:5px;margin-left:8px;">
+        <button id="cf-cm-prev" onclick="CF._conflictNav(-1)" style="width:28px;height:28px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--txt-hi);cursor:pointer;font-size:17px;line-height:1;padding:0;">‹</button>
+        <span id="cf-cm-nav-label" style="font-family:var(--mono);font-size:11px;color:var(--txt-mid);min-width:40px;text-align:center;white-space:nowrap;"></span>
+        <button id="cf-cm-next" onclick="CF._conflictNav(1)" style="width:28px;height:28px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--txt-hi);cursor:pointer;font-size:17px;line-height:1;padding:0;">›</button>
+      </div>
+      <div style="flex:1;"></div>
+      <button onclick="CF._conflictCancel()" style="padding:0 14px;height:34px;border:1px solid var(--border2);border-radius:6px;background:transparent;color:var(--txt-mid);font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.06em;cursor:pointer;">CANCEL</button>
+      <button onclick="CF.resolveConflicts()" style="padding:0 20px;height:34px;border:none;border-radius:6px;background:var(--amber);color:#06060a;font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.06em;cursor:pointer;">RESOLVE · SAVE MERGED</button>
     </div>
   </div>
 </div>
@@ -11713,7 +11736,7 @@ function onComeOnline(){
     authUser=r.data.session.user;
     saveOfflineAuth(authUser);
     updateAuthUI();
-    if(CF.dirty&&CF.showId&&CF.isOwner) pushProject();
+    if(CF.dirty&&CF.showId&&CF.isOwner&&!CF._conflictCheckInProgress) pushProject();
     ensureOwnerPin();
     refreshShowList().then(function(){
       saveShowCache(CF._showList);
@@ -11774,7 +11797,7 @@ function initAuth(){
     /* Token silently refreshed — flush any pending offline edits */
     if(event==='TOKEN_REFRESHED'&&authUser){
       saveOfflineAuth(authUser);
-      if(CF.dirty&&CF.showId&&CF.isOwner) pushProject();
+      if(CF.dirty&&CF.showId&&CF.isOwner&&!CF._conflictCheckInProgress) pushProject();
       ensureOwnerPin();
       return;
     }
@@ -11902,6 +11925,8 @@ window.CF = {
   _lastBcast: 0,
   _pendingConflictProj: null,
   _conflictChoices: {},
+  _conflictGroups: [],
+  _conflictGroupIdx: 0,
   _pinList: [],
   _showList: [],
 
@@ -11913,6 +11938,30 @@ window.CF = {
 
   /* called from conflict modal */
   resolveConflicts: resolveConflicts,
+  _conflictNav: function(dir){
+    var idx=CF._conflictGroupIdx+dir;
+    if(idx<0||idx>=(CF._conflictGroups||[]).length)return;
+    _cfCmRenderGroup(idx);
+  },
+  _conflictKeepMine: function(){
+    var g=(CF._conflictGroups||[])[CF._conflictGroupIdx];if(!g)return;
+    g.fields.forEach(function(f){CF._conflictChoices[g.cueId+'_'+f.field]='local';});
+    _cfCmRenderGroup(CF._conflictGroupIdx);
+  },
+  _conflictTakeTheirs: function(){
+    var g=(CF._conflictGroups||[])[CF._conflictGroupIdx];if(!g)return;
+    g.fields.forEach(function(f){CF._conflictChoices[g.cueId+'_'+f.field]='remote';});
+    _cfCmRenderGroup(CF._conflictGroupIdx);
+  },
+  _conflictCancel: function(){
+    var m=document.getElementById('cf-conflict-modal');
+    if(m)m.style.display='none';
+    CF._pendingConflictProj=null;CF._conflictGroups=[];
+    CF._conflictCheckInProgress=false;
+  },
+  _cfCmRefreshGroup: function(){
+    _cfCmRenderGroup(CF._conflictGroupIdx||0);
+  },
 
   /* panels */
   _buildRolesPanel: buildRolesPanel,
@@ -12082,18 +12131,25 @@ function _fetchAndApplyRemote(){
 }
 
 /* Fetch remote, compare against owner's dirty local state, show conflict modal if needed */
-function _fetchAndCheckConflicts(){
+function _fetchAndCheckConflicts(noConflictCb){
   if(!CF.showId) return;
   db().from('shows').select('project_data').eq('id',CF.showId).single().then(function(r){
-    if(!r.data||!r.data.project_data) return;
+    if(!r.data||!r.data.project_data){
+      CF._conflictCheckInProgress=false;
+      if(noConflictCb) noConflictCb();
+      return;
+    }
     var remote=r.data.project_data;
     var conflicts=findConflicts(state.songs, remote.songs);
     if(conflicts.length){
+      /* keep _conflictCheckInProgress=true until modal is resolved/cancelled */
       CF._pendingConflictProj=remote;
       CF._conflictChoices={};
       showConflictModal(conflicts);
     } else {
-      applyRemote(remote);
+      CF._conflictCheckInProgress=false;
+      if(noConflictCb) noConflictCb();
+      else applyRemote(remote);
     }
   });
 }
@@ -12263,65 +12319,203 @@ function findConflicts(localSongs, remoteSongs){
   return conflicts;
 }
 
-function showConflictModal(conflicts){
-  var modal = document.getElementById('cf-conflict-modal');
-  var list  = document.getElementById('cf-conflict-list');
-  if(!modal||!list) return;
-  list.innerHTML = '';
-  conflicts.forEach(function(c, i){
-    var key = c.cueId+'_'+c.field;
-    CF._conflictChoices[key] = 'local'; /* default: keep mine */
-    var row = document.createElement('div');
-    row.style.cssText = 'padding:10px 0;border-bottom:1px solid var(--border);';
-    var _fieldLabel = {tc:'Timecode',name:'Name',desc:'Description',flagged:'Flagged'}[c.field]||c.field;
-    var _fmt = function(v){ return c.field==='flagged' ? (v?'⚑ Flagged':'Not flagged') : escH(String(v)); };
-    row.innerHTML =
-      '<div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">'+
-        escH(c.cueName)+' — <span style="color:var(--text3);">'+escH(_fieldLabel)+'</span>'+
-      '</div>'+
-      '<div style="display:flex;gap:8px;">'+
-        '<label style="flex:1;cursor:pointer;padding:8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);font-size:11px;" id="cf-c-local-'+i+'">'+
-          '<input type="radio" name="cf-c-'+key+'" value="local" checked onchange="CF._conflictChoices[\''+key+'\']=this.value" style="margin-right:6px;">'+
-          '<strong style="color:var(--green);">My version:</strong> '+_fmt(c.local)+
-        '</label>'+
-        '<label style="flex:1;cursor:pointer;padding:8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);font-size:11px;" id="cf-c-remote-'+i+'">'+
-          '<input type="radio" name="cf-c-'+key+'" value="remote" onchange="CF._conflictChoices[\''+key+'\']=this.value" style="margin-right:6px;">'+
-          '<strong style="color:var(--mode-accent-text);">Editor\'s version:</strong> '+_fmt(c.remote)+
-        '</label>'+
+/* ── Conflict modal rendering helpers ───────────────────── */
+function _cfCmBadgeHtml(cue){
+  if(!cue)return '<span style="color:var(--txt-low)">—</span>';
+  if(cue.cameraId&&window.getCameraById){
+    var cam=getCameraById(cue.cameraId);
+    var hex=window.getCameraColor?getCameraColor(cam?cam.colorIdx||0:0):'#888';
+    var num=String(cam&&cam.number||'?').padStart(2,'0');
+    var lbl=cam&&cam.label?cam.label:('CAM '+num);
+    return '<div class="cam-badge xs" style="background:'+escH(hex)+';color:#06060a;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;">'+escH(num)+'</div>&ensp;<span style="font-size:12px;color:var(--txt-hi);">'+escH(lbl)+'</span>';
+  }
+  if(cue.streamId){
+    var st=window.state&&state.streams?state.streams.find(function(s){return s.id===cue.streamId;}):null;
+    var short=((st&&(st.shortName||st.name)||'?').slice(0,3)).toUpperCase();
+    return '<span class="track-glyph xs" style="background:#06060a;color:#fff;vertical-align:middle;">'+escH(short)+'</span>&ensp;<span style="font-size:12px;color:var(--txt-hi);">'+escH(st&&st.name||'Unknown')+'</span>';
+  }
+  return '<span style="color:var(--txt-low)">—</span>';
+}
+
+function _cfCmRenderGroup(idx){
+  var groups=CF._conflictGroups||[];
+  if(!groups.length)return;
+  CF._conflictGroupIdx=idx;
+  var g=groups[idx];
+  var lc=g.localCue||{};
+  var rc=g.remoteCue||{};
+  var conflictFields=g.fields.map(function(f){return f.field;});
+
+  /* Update tagline */
+  var tagEl=document.getElementById('cf-cm-tagline');
+  if(tagEl){
+    var cueNum=g.cueIndex>=0?g.cueIndex+1:'?';
+    tagEl.textContent='CONFLICT · CUE '+cueNum+(groups.length>1?' · EDITED BY PEERS':'');
+  }
+
+  /* Build a version card */
+  function makeCard(cue,isLocal){
+    var border=isLocal?'var(--amber)':'var(--border2)';
+    var avBg=isLocal?'var(--amber)':'var(--surface4)';
+    var avCol=isLocal?'#06060a':'var(--txt-hi)';
+    var avTxt=isLocal?'YOU':'EDI';
+    var cardTitle=isLocal?'YOUR VERSION':'INCOMING VERSION';
+    var meta=isLocal?'local':'from editor';
+    if(isLocal&&CF._lastEditAt){
+      var diff=Math.round((Date.now()-CF._lastEditAt)/1000);
+      meta='saved · '+(diff<60?diff+'s ago':Math.round(diff/60)+'m ago');
+    }
+    function fRow(lbl,val,isConf){
+      var lc2=isConf?'var(--amber)':'var(--txt-low)';
+      return '<div style="display:grid;grid-template-columns:68px 1fr;gap:4px;padding:9px 0;border-bottom:1px solid var(--border);">'+
+        '<span style="font-family:var(--cond);font-size:10px;font-weight:700;letter-spacing:.08em;color:'+lc2+';padding-top:2px;">'+lbl+'</span>'+
+        '<span style="font-size:13px;color:var(--txt-hi);word-break:break-word;">'+val+'</span>'+
       '</div>';
-    list.appendChild(row);
+    }
+    var monoTc='<span style="font-family:var(--mono);">'+escH(cue.tc||'—')+'</span>';
+    var descVal=cue.desc?escH(cue.desc):'<span style="color:var(--txt-low);font-style:italic;">—</span>';
+    return '<div style="border:1px solid '+border+';border-radius:8px;overflow:hidden;">'+
+      '<div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--surface3);">'+
+        '<div style="width:26px;height:26px;border-radius:4px;background:'+avBg+';display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:10px;font-weight:700;color:'+avCol+';flex-shrink:0;letter-spacing:.04em;">'+avTxt+'</div>'+
+        '<div><div style="font-family:var(--cond);font-size:12px;font-weight:700;color:var(--txt-hi);letter-spacing:.05em;">'+cardTitle+'</div>'+
+        '<div style="font-size:10px;color:var(--txt-mid);margin-top:1px;">'+escH(meta)+'</div></div>'+
+      '</div>'+
+      '<div style="padding:0 14px;background:var(--surface2);">'+
+        fRow('TC',monoTc,conflictFields.indexOf('tc')>=0)+
+        fRow('NAME',escH(cue.name||'—'),conflictFields.indexOf('name')>=0)+
+        fRow('TRACK',_cfCmBadgeHtml(cue),false)+
+        fRow('DESC',descVal,conflictFields.indexOf('desc')>=0)+
+      '</div>'+
+    '</div>';
+  }
+
+  var cardsEl=document.getElementById('cf-cm-cards');
+  if(cardsEl) cardsEl.innerHTML=makeCard(lc,true)+makeCard(rc,false);
+
+  /* Per-field pick rows */
+  var pfEl=document.getElementById('cf-cm-perfield');
+  var frEl=document.getElementById('cf-cm-field-rows');
+  if(pfEl&&frEl){
+    var pickableFields=g.fields.filter(function(f){return ['tc','name','desc','flagged'].indexOf(f.field)>=0;});
+    if(pickableFields.length){
+      pfEl.style.display='';
+      var LABELS={tc:'TC',name:'NAME',desc:'DESC',flagged:'FLAGGED'};
+      var html='<table style="width:100%;border-collapse:collapse;border-spacing:0;">';
+      pickableFields.forEach(function(f){
+        var key=g.cueId+'_'+f.field;
+        var chosen=CF._conflictChoices[key]||'local';
+        var lbl=LABELS[f.field]||f.field.toUpperCase();
+        var fmt=function(v){return f.field==='flagged'?(v?'⚑ Flagged':'Not flagged'):escH(String(v||'—'));};
+        var mono=f.field==='tc'?'font-family:var(--mono);':'';
+        function optCell(val,side){
+          var sel=chosen===side;
+          var bg=sel?'background:rgba(240,168,56,.13);border-color:var(--amber);':'background:var(--surface2);border-color:var(--border2);';
+          return '<td style="padding:4px '+(side==='local'?'6px':'0')+'px 4px 0;width:50%;">'+
+            '<label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;border:1px solid;cursor:pointer;'+bg+'">'+
+              '<input type="radio" name="cf-pf-'+escH(key)+'" value="'+side+'" '+(sel?'checked':'')+
+                ' onchange="CF._conflictChoices[\''+key+'\']=this.value;CF._cfCmRefreshGroup()" style="accent-color:var(--amber);flex-shrink:0;">'+
+              '<span style="font-size:12px;color:var(--txt-hi);'+mono+'">'+fmt(val)+'</span>'+
+            '</label>'+
+          '</td>';
+        }
+        html+='<tr>'+
+          '<td style="font-family:var(--cond);font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--amber);padding:6px 14px 6px 0;white-space:nowrap;vertical-align:middle;">'+lbl+'</td>'+
+          optCell(f.local,'local')+
+          optCell(f.remote,'remote')+
+        '</tr>';
+      });
+      html+='</table>';
+      frEl.innerHTML=html;
+    } else {
+      pfEl.style.display='none';
+    }
+  }
+
+  /* Navigation */
+  var navEl=document.getElementById('cf-cm-nav');
+  var navLbl=document.getElementById('cf-cm-nav-label');
+  var prevBtn=document.getElementById('cf-cm-prev');
+  var nextBtn=document.getElementById('cf-cm-next');
+  if(navEl){
+    if(groups.length>1){
+      navEl.style.display='flex';
+      if(navLbl)navLbl.textContent=(idx+1)+' / '+groups.length;
+      if(prevBtn)prevBtn.disabled=idx===0;
+      if(nextBtn)nextBtn.disabled=idx===groups.length-1;
+    } else {
+      navEl.style.display='none';
+    }
+  }
+}
+
+function showConflictModal(conflicts){
+  if(!conflicts||!conflicts.length)return;
+
+  /* Group conflicts by cueId */
+  var cueMap={},cueOrder=[];
+  conflicts.forEach(function(c){
+    if(!cueMap[c.cueId]){cueMap[c.cueId]={cueId:c.cueId,cueName:c.cueName,fields:[]};cueOrder.push(c.cueId);}
+    cueMap[c.cueId].fields.push({field:c.field,local:c.local,remote:c.remote});
   });
-  modal.style.display = 'flex';
+
+  /* Build groups with full cue objects for context display */
+  CF._conflictGroups=cueOrder.map(function(cueId){
+    var g=cueMap[cueId];
+    var localCue=null,remoteCue=null,cueIndex=-1;
+    (state.songs||[]).forEach(function(s){
+      if(cueIndex>=0)return;
+      var sorted=window.getSortedCues?getSortedCues(s.id,false):(s.cues||[]);
+      var i=sorted.findIndex(function(c){return c.id===cueId;});
+      if(i>=0){localCue=sorted[i];cueIndex=i;}
+    });
+    if(CF._pendingConflictProj){
+      (CF._pendingConflictProj.songs||[]).forEach(function(s){
+        var c=(s.cues||[]).find(function(c){return c.id===cueId;});
+        if(c)remoteCue=c;
+      });
+    }
+    return {cueId:g.cueId,cueName:g.cueName,cueIndex:cueIndex,fields:g.fields,localCue:localCue,remoteCue:remoteCue};
+  });
+
+  CF._conflictGroupIdx=0;
+
+  /* Initialise all choices to 'local' (keep mine) */
+  CF._conflictChoices={};
+  CF._conflictGroups.forEach(function(g){
+    g.fields.forEach(function(f){CF._conflictChoices[g.cueId+'_'+f.field]='local';});
+  });
+
+  _cfCmRenderGroup(0);
+  var modal=document.getElementById('cf-conflict-modal');
+  if(modal)modal.style.display='flex';
 }
 
 function resolveConflicts(){
-  var modal = document.getElementById('cf-conflict-modal');
-  if(modal) modal.style.display = 'none';
-  if(!CF._pendingConflictProj) return;
+  var modal=document.getElementById('cf-conflict-modal');
+  if(modal)modal.style.display='none';
+  CF._conflictCheckInProgress=false;
+  if(!CF._pendingConflictProj)return;
 
-  /* Apply field-by-field choices */
-  var base = CF._pendingConflictProj;
   /* Start from remote, override with local where owner chose 'local' */
-  var merged = JSON.parse(JSON.stringify(base));
+  var base=CF._pendingConflictProj;
+  var merged=JSON.parse(JSON.stringify(base));
   Object.keys(CF._conflictChoices).forEach(function(key){
-    if(CF._conflictChoices[key] !== 'local') return;
-    var parts = key.split('_');
-    var cueId = parts.slice(0,-1).join('_');
-    var field = parts[parts.length-1];
+    if(CF._conflictChoices[key]!=='local')return;
+    var parts=key.split('_');
+    var cueId=parts.slice(0,-1).join('_');
+    var field=parts[parts.length-1];
     merged.songs.forEach(function(rs){
-      var rc = (rs.cues||[]).find(function(c){ return c.id===cueId; });
-      if(!rc) return;
-      /* Find local value */
+      var rc=(rs.cues||[]).find(function(c){return c.id===cueId;});
+      if(!rc)return;
       state.songs.forEach(function(ls){
-        var lc = (ls.cues||[]).find(function(c){ return c.id===cueId; });
-        if(lc && lc[field]!==undefined) rc[field] = lc[field];
+        var lc=(ls.cues||[]).find(function(c){return c.id===cueId;});
+        if(lc&&lc[field]!==undefined)rc[field]=lc[field];
       });
     });
   });
   applyRemote(merged);
-  /* Push the resolved state back */
-  setTimeout(pushProject, 300);
-  CF._pendingConflictProj = null;
+  setTimeout(pushProject,300);
+  CF._pendingConflictProj=null;
   restoreSessionState();
 }
 
@@ -13540,7 +13734,7 @@ CF._showTrackPermissionModal=function(streamId){
 document.addEventListener('keydown',function(e){
   if(e.key!=='Escape') return;
   var cm=document.getElementById('cf-conflict-modal');
-  if(cm&&cm.style.display!=='none') cm.style.display='none';
+  if(cm&&cm.style.display!=='none'){ if(window.CF&&CF._conflictCancel)CF._conflictCancel();else cm.style.display='none'; }
   var ntm=document.getElementById('new-track-modal');
   if(ntm&&ntm.classList.contains('show')) ntm.classList.remove('show');
   ['confirm-modal','rename-modal'].forEach(function(id){
@@ -14426,12 +14620,17 @@ CF._plDrop=function(toIdx){
 
 
 /* ── Online/offline events ───────────────────────────────── */
-CF._wasOffline=false; CF._offlineDirty=false;
+CF._wasOffline=false; CF._offlineDirty=false; CF._conflictCheckInProgress=false;
 window.addEventListener('online',function(){
   CF._wasOffline=true;
   var bar=document.getElementById('cf-offline-bar'); if(bar) bar.classList.remove('show');
   if(window._syncEditTopbarOnline) _syncEditTopbarOnline(true);
-  if(CF.showId&&CF.isOwner&&CF.dirty) pushProject(function(){CF.dirty=false;updateSyncBtn();});
+  if(CF.showId&&CF.isOwner&&CF.dirty){
+    /* Set flag synchronously before any async callbacks (onComeOnline's getSession.then)
+       can run — they will check this flag and skip their own pushProject calls. */
+    CF._conflictCheckInProgress=true;
+    _fetchAndCheckConflicts(function(){ pushProject(function(){CF.dirty=false;updateSyncBtn();}); });
+  }
 });
 window.addEventListener('offline',function(){
   if(CF.dirty) CF._offlineDirty=true;
