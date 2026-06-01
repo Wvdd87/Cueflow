@@ -1255,25 +1255,28 @@ body.mode-live #edit-mode-banner { display: none; }
 #cam-panel-all.hidden { display:none; }
 
 /* ── Responsive camera cockpit ─────────────────────────────
-   960px  tablet     3-col grid: badge | name+desc | countdown
+   960px  tablet     2-col grid: badge | name → countdown below
    640px  phone      smaller badge, font reduction
    400px  very small further reduction
 ──────────────────────────────────────────────────────────── */
 @media (max-width:960px){
   .cam-hero { padding:16px 20px 0; }
-  /* Hero body: 3-col grid — badge left, name+desc centre, countdown right */
+  /* Hero body: 2-col grid — badge left, name+countdown+desc stacked right */
   .cam-hero-body {
     display:grid;
-    grid-template-columns:auto 1fr auto;
-    column-gap:16px;
+    grid-template-columns:auto 1fr;
+    grid-template-rows:auto auto;
+    column-gap:16px; row-gap:10px;
     margin-bottom:16px;
     align-items:start;
   }
-  .cam-hero-badge-wrap { grid-column:1; grid-row:1; }
+  .cam-hero-badge-wrap { grid-column:1; grid-row:1/3; align-self:start; }
+  /* Name + desc in the top-right cell */
   .cam-hero-info { grid-column:2; grid-row:1; min-width:0; }
-  /* Countdown on the right, smaller than desktop */
-  .cam-hero-cd { display:flex !important; flex-direction:column; align-items:flex-end; grid-column:3; grid-row:1; }
-  .cam-hero-cd-val { font-size:clamp(28px,8vw,60px); }
+  /* Countdown sits under name+desc, right-aligned */
+  .cam-hero-cd { display:flex !important; flex-direction:column; align-items:flex-end; grid-column:2; grid-row:2; justify-self:end; }
+  .cam-hero-cd-val { font-size:clamp(19px,5.5vw,38px); }
+  .cam-hero-cd-lbl { font-size:7px; }
   .cam-hero .cam-badge.lg { width:64px; height:64px; font-size:40px; border-radius:3px; }
   /* Name: large condensed, wraps freely */
   .cam-hero-name { white-space:normal; font-size:clamp(22px,5.5vw,40px); line-height:1.1; }
@@ -1289,9 +1292,9 @@ body.mode-live #edit-mode-banner { display: none; }
 @media (max-width:640px){
   .cam-hero { padding:12px 14px 0; }
   .cam-hero-eyebrow { margin-bottom:8px; }
-  .cam-hero-body { column-gap:10px; margin-bottom:12px; }
+  .cam-hero-body { column-gap:10px; row-gap:8px; margin-bottom:12px; }
   .cam-hero .cam-badge.lg { width:52px; height:52px; font-size:28px; border-radius:3px; }
-  .cam-hero-cd-val { font-size:clamp(22px,7vw,44px); }
+  .cam-hero-cd-val { font-size:clamp(16px,5vw,30px); }
   .cam-hero-name { font-size:clamp(18px,5vw,32px); }
   /* MY NEXT SHOTS: hide redundant own-camera badge + TC column */
   #cam-shot-rows .cam-shot-badge { display:none; }
@@ -1310,25 +1313,24 @@ body.mode-live #edit-mode-banner { display: none; }
 }
 @media (max-width:400px){
   .cam-hero .cam-badge.lg { width:44px; height:44px; font-size:22px; }
-  .cam-hero-body { column-gap:8px; }
-  .cam-hero-cd-val { font-size:clamp(16px,7vw,28px); }
+  .cam-hero-body { column-gap:8px; row-gap:6px; }
+  .cam-hero-cd-val { font-size:clamp(14px,5.5vw,24px); }
   .cam-hero-name { font-size:clamp(14px,5.5vw,22px); }
   #cam-shot-rows .cam-shot-name { font-size:16px; }
   #cam-shot-rows .cam-shot-cd { font-size:20px; }
 }
 
-/* ── Track viewer next-hero: 3-col grid mirroring camera cockpit ──
+/* ── Track viewer next-hero: 2-col grid — badge left, content stacked right ──
    display:contents flattens .nh-main and .nh-badge into the grid.
-   col1: badge (spans name+desc rows)
-   col2: name (row2) + desc (row3)
-   col3: countdown (spans name+desc rows, right-aligned)
+   col1: badge (spans all content rows)
+   col2 row2: name  |  col2 row3: countdown  |  col2 row4: description
 ──────────────────────────────────────────────────────────────────── */
 @media (max-width:960px){
   #vw-next-hero {
     display:grid;
-    grid-template-columns:auto 1fr auto;
-    grid-template-rows:auto auto auto;
-    column-gap:16px; row-gap:8px;
+    grid-template-columns:auto 1fr;
+    grid-template-rows:auto auto auto auto;
+    column-gap:16px; row-gap:4px;
     align-items:start;
     position:relative;
     padding:14px 20px 24px;
@@ -1338,39 +1340,67 @@ body.mode-live #edit-mode-banner { display: none; }
   #vw-next-hero .nh-eyebrow {
     grid-column:1 / -1; grid-row:1;
     position:static;
-    margin-bottom:0;
+    margin-bottom:4px;
   }
-  #vw-next-badge { grid-column:1; grid-row:2 / 4; align-self:start; }
+  #vw-next-badge { grid-column:1; grid-row:2 / 5; align-self:start; }
   #vw-next-hero .nh-name {
     grid-column:2; grid-row:2; align-self:start;
     white-space:normal; line-height:1.1;
     font-size:clamp(22px,5.5vw,40px);
   }
-  #vw-next-hero .nh-count {
-    grid-column:3; grid-row:2 / 4; align-self:start;
-    text-align:right;
-  }
-  #vw-next-hero .nh-count .v { font-size:clamp(28px,8vw,60px); line-height:1; }
-  #vw-next-hero .nh-count .nh-cd-lbl { text-align:right; }
+  /* desc immediately under name (row 3), countdown below (row 4) */
   #vw-next-hero .nh-desc {
     grid-column:2; grid-row:3; align-self:start;
     font-size:13px; margin-top:0;
   }
+  #vw-next-hero .nh-count {
+    grid-column:2; grid-row:4; align-self:start;
+    justify-self:end; text-align:right;
+    margin-top:6px;
+  }
+  #vw-next-hero .nh-count .v { font-size:clamp(19px,5.5vw,38px); line-height:1; }
+  #vw-next-hero .nh-count .nh-cd-lbl { text-align:right; font-size:7px; }
   #vw-next-hero .cam-badge-sq.lg { width:64px; height:64px; font-size:40px; border-radius:3px; }
   #vw-next-hero .track-glyph.lg  { width:64px; height:64px; font-size:20px; }
 }
 @media (max-width:640px){
-  #vw-next-hero { padding:10px 14px 20px; column-gap:10px; row-gap:6px; }
+  #vw-next-hero { padding:10px 14px 20px; column-gap:10px; row-gap:3px; }
   #vw-next-hero .cam-badge-sq.lg { width:52px; height:52px; font-size:28px; border-radius:3px; }
   #vw-next-hero .track-glyph.lg  { width:52px; height:52px; font-size:16px; }
   #vw-next-hero .nh-name { font-size:clamp(18px,5vw,32px); }
-  #vw-next-hero .nh-count .v { font-size:clamp(22px,7vw,44px); }
+  #vw-next-hero .nh-count .v { font-size:clamp(16px,5vw,30px); }
 }
 @media (max-width:400px){
-  #vw-next-hero { column-gap:8px; }
+  #vw-next-hero { column-gap:8px; row-gap:3px; }
   #vw-next-hero .nh-name { font-size:clamp(14px,5.5vw,22px); }
-  #vw-next-hero .nh-count .v { font-size:clamp(16px,7vw,28px); }
+  #vw-next-hero .nh-count .v { font-size:clamp(14px,5.5vw,24px); }
 }
+
+/* ── Import Show Modal ──────────────────────────────────── */
+.imp-file-card{display:flex;align-items:center;gap:14px;padding:14px 20px;background:var(--surface2);border-bottom:1px solid var(--hair);}
+.imp-cf-icon{width:44px;height:44px;flex-shrink:0;background:var(--surface);border:1px solid var(--hair3);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:11px;font-weight:800;color:var(--txt-mid);letter-spacing:.1em;}
+.imp-file-name{font-family:var(--mono);font-size:13px;color:var(--txt-hi);font-weight:600;word-break:break-all;}
+.imp-file-meta{font-size:11px;color:var(--txt-low);margin-top:3px;}
+.imp-detected{display:flex;align-items:center;gap:5px;font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--green);white-space:nowrap;margin-left:auto;}
+.imp-stats{display:grid;grid-template-columns:repeat(4,1fr);}
+.imp-stat{padding:14px 16px;border-right:1px solid var(--hair);border-bottom:1px solid var(--hair);}
+.imp-stat:last-child{border-right:none;}
+.imp-stat-lbl{font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.16em;color:var(--txt-low);text-transform:uppercase;}
+.imp-stat-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--txt-hi);margin-top:4px;line-height:1;}
+.imp-section{padding:14px 20px;border-bottom:1px solid var(--hair);}
+.imp-section-lbl{font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.16em;color:var(--txt-low);text-transform:uppercase;margin-bottom:10px;}
+.imp-tracks-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.imp-options{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--hair2);}
+.imp-option-btn{padding:10px 6px;border:none;border-right:1px solid var(--hair2);background:none;color:var(--txt-low);font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:color .12s,background .12s;text-align:center;}
+.imp-option-btn:last-child{border-right:none;}
+.imp-option-btn:hover{color:var(--txt-hi);background:var(--surface2);}
+.imp-option-btn.active{background:var(--primary);color:#000;}
+.imp-option-desc{font-size:11px;color:var(--txt-mid);margin-top:8px;line-height:1.55;min-height:2.4em;}
+/* Import conflict card */
+.imp-cf-card{padding:14px;border:2px solid var(--hair2);cursor:pointer;transition:border-color .12s,background .12s;}
+.imp-cf-card.chosen{background:var(--surface2);border-color:var(--primary);}
+.imp-cf-card-lbl{font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--txt-low);margin-bottom:8px;}
+.imp-cf-card.chosen .imp-cf-card-lbl{color:var(--primary);}
 
 /* ── Camera picker: bottom sheet on mobile ── */
 @media (max-width:640px){
@@ -2454,6 +2484,88 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <div style="flex:1;"></div>
       <button onclick="CF._conflictCancel()" style="padding:0 14px;height:34px;border:1px solid var(--border2);border-radius:6px;background:transparent;color:var(--txt-mid);font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.06em;cursor:pointer;">CANCEL</button>
       <button onclick="CF.resolveConflicts()" style="padding:0 20px;height:34px;border:none;border-radius:6px;background:var(--amber);color:#06060a;font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.06em;cursor:pointer;">RESOLVE · SAVE MERGED</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Import Show Modal ── -->
+<div id="cf-import-modal" class="ntm-bg" role="dialog" aria-modal="true">
+  <div class="ntm-box" style="width:560px;padding:0;gap:0;">
+    <div class="ntm-header">
+      <div>
+        <div style="font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--txt-low);margin-bottom:5px;">.CUEFLOW · QLAB · OSC · CSV</div>
+        <span class="ntm-title">IMPORT SHOW</span>
+      </div>
+      <button class="tcs-close" onclick="_closeImportModal()">✕</button>
+    </div>
+    <div class="imp-file-card">
+      <div class="imp-cf-icon">CF</div>
+      <div style="min-width:0;flex:1;">
+        <div class="imp-file-name" id="imp-filename">—</div>
+        <div class="imp-file-meta" id="imp-file-meta"></div>
+      </div>
+      <div class="imp-detected"><div style="width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;"></div>DETECTED</div>
+    </div>
+    <div class="imp-stats">
+      <div class="imp-stat"><div class="imp-stat-lbl">Sequences</div><div class="imp-stat-val" id="imp-stat-seqs">—</div></div>
+      <div class="imp-stat"><div class="imp-stat-lbl">Cues</div><div class="imp-stat-val" id="imp-stat-cues">—</div></div>
+      <div class="imp-stat"><div class="imp-stat-lbl">Tracks</div><div class="imp-stat-val" id="imp-stat-tracks">—</div></div>
+      <div class="imp-stat"><div class="imp-stat-lbl">Runtime</div><div class="imp-stat-val" id="imp-stat-runtime">—</div></div>
+    </div>
+    <div class="imp-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="imp-section-lbl" style="margin-bottom:0;">Tracks</div>
+        <div style="font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--txt-low);">VIVID FOR CAMERAS · GLYPH FOR NORMAL</div>
+      </div>
+      <div class="imp-tracks-row" id="imp-tracks-row"></div>
+    </div>
+    <div class="imp-section" id="imp-conflict-section" style="display:none;">
+      <div class="imp-section-lbl">If show exists</div>
+      <div class="imp-options">
+        <button class="imp-option-btn" id="imp-opt-replace" onclick="_setImportMode('replace')">Replace</button>
+        <button class="imp-option-btn" id="imp-opt-merge" onclick="_setImportMode('merge')">Merge by name</button>
+        <button class="imp-option-btn" id="imp-opt-new" onclick="_setImportMode('new')">Add as new project</button>
+      </div>
+      <div class="imp-option-desc" id="imp-option-desc"></div>
+    </div>
+    <div class="ntm-footer" style="justify-content:space-between;">
+      <label class="ntm-btn" style="cursor:pointer;display:flex;align-items:center;gap:7px;">
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1v7M2 7l3.5 3L9 7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Drop another file
+        <input type="file" id="imp-drop-input" accept=".cueflow,.json" style="display:none" onchange="_importDropAnother(event)">
+      </label>
+      <div style="display:flex;gap:8px;">
+        <button class="ntm-btn" onclick="_closeImportModal()">Cancel</button>
+        <button class="ntm-btn primary" id="imp-import-btn" onclick="_executeImport()">Import</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Import Conflict Modal ── -->
+<div id="cf-import-conflict-modal" class="ntm-bg" role="dialog" aria-modal="true">
+  <div class="ntm-box" style="width:580px;padding:0;gap:0;max-height:90vh;">
+    <div class="ntm-header">
+      <div>
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;"><div style="width:7px;height:7px;border-radius:50%;background:var(--amber);"></div><span style="font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--amber);">MERGE CONFLICT</span></div>
+        <div class="ntm-title" id="imp-cf-title">Resolve conflicts</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--txt-mid);flex-shrink:0;" id="imp-cf-counter"></div>
+    </div>
+    <div style="padding:14px 20px 4px;font-size:12px;color:var(--txt-mid);border-bottom:1px solid var(--hair);">Two cues exist at the same timecode and track. Choose which one to keep.</div>
+    <div style="flex:1;overflow-y:auto;padding:16px 20px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;" id="imp-cf-cards"></div>
+    </div>
+    <div class="ntm-footer" style="justify-content:space-between;">
+      <div style="display:flex;gap:6px;">
+        <button class="ntm-btn" onclick="_impCfKeepAll('existing')">Keep all existing</button>
+        <button class="ntm-btn" onclick="_impCfKeepAll('imported')">Use all imported</button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button class="ntm-btn" id="imp-cf-prev" onclick="_impCfNav(-1)" style="padding:0;width:36px;">‹</button>
+        <button class="ntm-btn" id="imp-cf-next" onclick="_impCfNav(1)" style="padding:0;width:36px;">›</button>
+        <button class="ntm-btn primary" onclick="_impCfApply()">Apply merge</button>
+      </div>
     </div>
   </div>
 </div>
@@ -4971,7 +5083,7 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId){
     const _tq=[];
     for(let qi=nextIdx+1;qi<allCues.length&&_tq.length<5;qi++)_tq.push({qc:allCues[qi],qi});
     const flagKey=_ckCanFlag?_tq.map(x=>(x.qc.flagged?'1':'0')).join(''):'';
-    const qKey=_tq.map(x=>x.qc.id).join(',')+flagKey;
+    const qKey=_tq.map(x=>x.qc.id).join(',')+flagKey+'|'+state.visibleStreamIds.join(',');
     if(thenRows._qKey!==qKey){
       // Rebuild structure only when the set of cues (or their flag states) changes
       thenRows._qKey=qKey;thenRows.innerHTML='';
@@ -5196,7 +5308,7 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
       _tqV.push({qc,qi});
     }
     const flagKeyV=_ckCanFlagV?_tqV.map(x=>(x.qc.flagged?'1':'0')).join(''):'';
-    const qKeyV=_tqV.map(x=>x.qc.id).join(',')+flagKeyV;
+    const qKeyV=_tqV.map(x=>x.qc.id).join(',')+flagKeyV+'|'+state.visibleStreamIds.join(',');
     if(tr._qKey!==qKeyV){
       tr._qKey=qKeyV;tr.innerHTML='';
       _tqV.forEach(({qc,qi})=>{
@@ -5397,7 +5509,7 @@ function _updateCamCockpit(frames){
   const shotRows=_e('cam-shot-rows');
   if(shotRows){
     shotRows.innerHTML='';
-    const upcoming=myCues.filter(c=>c._f>frames).slice(0,8);
+    const upcoming=myCues.filter(c=>c._f>frames).slice(1,9);
     if(upcoming.length){
       upcoming.forEach((cue,i)=>{
         const cdF=Math.max(0,cue._f-frames),cdSec=cdF/fps;
@@ -5406,7 +5518,7 @@ function _updateCamCockpit(frames){
         const showUrg=cdSec<=URGENCY_SEC;
         const div=document.createElement('div');
         div.className='cam-shot-row'+(isWarn&&!isUrgent?' my-next-urgent':'');
-        div.innerHTML=`<div class="cam-shot-ix">+${i+1}</div>`+
+        div.innerHTML=`<div class="cam-shot-ix">+${i+2}</div>`+
           `<div class="cam-shot-badge"><div class="cam-badge sm" style="background:${hex};color:#06060a;">${cam?.number||'?'}</div></div>`+
           `<div class="cam-shot-info"><div class="cam-shot-name">${escH(cue.name||'—')}</div>${cue.desc?`<div class="cam-shot-desc">${escH(cue.desc)}</div>`:''}</div>`+
           `<div class="cam-shot-tc">${escH(cue.tc||'')}</div>`+
@@ -5597,6 +5709,7 @@ function openCamNotesScreen(){
     cnStatusCell.parentNode.insertBefore(vwCamCell,cnStatusCell.nextSibling);
     vwCamCell.style.display='flex';
   } else {
+    if(cnTrack)cnTrack.style.display='flex';
     buildCamNotesTrackBadges();
   }
   renderCamNotesSeqs();
@@ -5631,6 +5744,8 @@ function buildCamNotesTrackBadges(){
         else state.visibleStreamIds.push(id);
         buildCamNotesTrackBadges();
         renderCamNotesCues(_camNotesActiveSongId);
+        if(window.buildTrackPills)buildTrackPills();
+        if(window.redrawActive)redrawActive();
       };
     }
     wrap.appendChild(btn);
@@ -5648,6 +5763,8 @@ function buildCamNotesTrackBadges(){
       state.cameraTrackVisible=state.cameraTrackVisible===false?true:false;
       buildCamNotesTrackBadges();
       renderCamNotesCues(_camNotesActiveSongId);
+      if(window.buildTrackPills)buildTrackPills();
+      if(window.redrawActive)redrawActive();
     };
     wrap.appendChild(camBtn);
   }
@@ -5666,6 +5783,8 @@ function closeCamNotesScreen(){
   }
   const cnTrack=document.getElementById('cn-track-following');
   if(cnTrack)cnTrack.style.display='';
+  // Refresh live topbar badges to reflect any visibility changes made in notes mode
+  if(window.buildTrackPills)buildTrackPills();
 }
 
 function _getCamNotesLiveSong(){
@@ -7750,20 +7869,258 @@ function exportShowFile(){
   a.download=(state.name.replace(/\s+/g,'_')||'show')+'.cueflow';
   a.click();URL.revokeObjectURL(a.href);
 }
+// ─── IMPORT SHOW MODAL ───
+var _pendingImportProj=null,_importMode='fresh',_importMergedProj=null;
+var _importConflicts=[],_importConflictIdx=0,_importConflictChoices={};
+
 function importShowFile(e){
   const f=e.target.files[0];if(!f)return;
+  e.target.value='';
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      const proj=data.project||data;
+      if(!proj?.songs){alert('Invalid show file.');return;}
+      _openImportModal(proj,f.name,f.size,data.exported);
+    }catch(err){alert('Could not read file: '+err.message);}
+  };
+  r.readAsText(f);
+}
+function _importDropAnother(e){
+  const f=e.target.files[0];if(!f)return;e.target.value='';
   const r=new FileReader();
   r.onload=ev=>{
     try{
       const data=JSON.parse(ev.target.result);const proj=data.project||data;
       if(!proj?.songs){alert('Invalid show file.');return;}
-      // Restore audioFilename refs — actual files will need relinking
-      // (stored per-song as .audioFilename)
-      proj.id='proj_'+Date.now();saveProjectData(proj);applyProject(proj);persist();
-      renderProjectList();closeModal('proj-modal');
+      _openImportModal(proj,f.name,f.size,data.exported);
     }catch(err){alert('Could not read file: '+err.message);}
   };
-  r.readAsText(f);e.target.value='';
+  r.readAsText(f);
+}
+function _openImportModal(proj,fileName,fileSize,exportedAt){
+  _pendingImportProj=proj;
+  // Filename
+  const fnEl=document.getElementById('imp-filename');
+  if(fnEl)fnEl.textContent=fileName||proj.name||'Unknown';
+  // Meta
+  const metaEl=document.getElementById('imp-file-meta');
+  if(metaEl){
+    const parts=[];
+    if(fileSize)parts.push((fileSize/1024/1024).toFixed(1)+' MB');
+    if(exportedAt){try{const d=new Date(exportedAt);parts.push('saved '+d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));}catch(e){}}
+    metaEl.textContent=parts.join(' · ');
+  }
+  // Stats
+  const songs=proj.songs||[];
+  const totalCues=songs.reduce((n,s)=>n+(s.cues?s.cues.length:0),0);
+  const streams=proj.streams||[];
+  const camCount=(proj.cameraTrack&&proj.cameraTrack.cameras)?proj.cameraTrack.cameras.length:0;
+  const fps=proj.fps||25;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('imp-stat-seqs',songs.length);
+  set('imp-stat-cues',totalCues);
+  set('imp-stat-tracks',streams.length+camCount);
+  set('imp-stat-runtime',_calcImportRuntime(songs,fps));
+  // Tracks
+  const tracksRow=document.getElementById('imp-tracks-row');
+  if(tracksRow){
+    tracksRow.innerHTML='';
+    ((proj.cameraTrack&&proj.cameraTrack.cameras)||[]).forEach(cam=>{
+      const hex=window.getCameraColor?getCameraColor(cam.colorIdx||0):'#888';
+      const b=document.createElement('div');
+      b.className='cam-badge sm';b.style.cssText='background:'+hex+';color:#06060a;';
+      b.textContent=String(cam.number||'?').padStart(2,'0');
+      tracksRow.appendChild(b);
+    });
+    streams.forEach(s=>{
+      const short=(s.shortName||s.name||'?').slice(0,3).toUpperCase();
+      const g=document.createElement('span');
+      g.className='track-glyph xs';g.style.cssText='background:#06060a;color:#fff;';
+      g.textContent=short;tracksRow.appendChild(g);
+    });
+  }
+  // Conflict section
+  const existing=_findExistingProjectByName(proj.name);
+  const cflSec=document.getElementById('imp-conflict-section');
+  const impBtn=document.getElementById('imp-import-btn');
+  if(existing){
+    if(cflSec)cflSec.style.display='';
+    _setImportMode('merge');
+  }else{
+    if(cflSec)cflSec.style.display='none';
+    _importMode='fresh';
+    if(impBtn)impBtn.textContent='Add as new project';
+  }
+  const modal=document.getElementById('cf-import-modal');
+  if(modal)modal.classList.add('show');
+}
+function _closeImportModal(){
+  const m=document.getElementById('cf-import-modal');if(m)m.classList.remove('show');
+  _pendingImportProj=null;_importMode='fresh';
+}
+function _calcImportRuntime(songs,fps){
+  if(!songs||!songs.length||!window.tcF)return '—';
+  let minF=Infinity,maxF=-Infinity;
+  songs.forEach(s=>(s.cues||[]).forEach(c=>{if(!c.tc)return;const f=tcF(c.tc);if(f<minF)minF=f;if(f>maxF)maxF=f;}));
+  if(minF===Infinity)return '—';
+  const t=Math.max(0,Math.floor((maxF-minF)/(fps||25)));
+  return Math.floor(t/60)+':'+(t%60).toString().padStart(2,'0');
+}
+function _findExistingProjectByName(name){
+  if(!name)return null;
+  const lower=name.toLowerCase().trim();
+  return allProjects().find(p=>p.name&&p.name.toLowerCase().trim()===lower)||null;
+}
+const _IMP_DESCS={
+  replace:'Completely replace the existing project with this file. All current data in that project will be overwritten.',
+  merge:'Add sequences to the existing project. New cues are added; cues at the same timecode and track are flagged as conflicts to resolve.',
+  new:'Save as a separate new project with "(imported)" added to the name, keeping both projects intact.'
+};
+function _setImportMode(mode){
+  _importMode=mode;
+  ['replace','merge','new'].forEach(m=>{
+    const btn=document.getElementById('imp-opt-'+m);
+    if(btn)btn.classList.toggle('active',m===mode);
+  });
+  const desc=document.getElementById('imp-option-desc');
+  if(desc)desc.textContent=_IMP_DESCS[mode]||'';
+  const impBtn=document.getElementById('imp-import-btn');
+  if(impBtn){
+    const proj=_pendingImportProj;
+    const tot=proj?(proj.songs||[]).reduce((n,s)=>n+(s.cues?s.cues.length:0),0):0;
+    if(mode==='replace')impBtn.textContent='Replace project';
+    else if(mode==='merge')impBtn.textContent='Merge '+tot+' cues';
+    else impBtn.textContent='Add as new project';
+  }
+}
+function _executeImport(){
+  const proj=_pendingImportProj;if(!proj)return;
+  if(_importMode==='fresh'||_importMode==='new')_doImportAsNew(proj,_importMode==='new');
+  else if(_importMode==='replace')_doImportReplace(proj);
+  else if(_importMode==='merge')_doImportMerge(proj);
+}
+function _doImportAsNew(proj,addSuffix){
+  const p=JSON.parse(JSON.stringify(proj));
+  p.id='proj_'+Date.now();
+  if(addSuffix&&p.name)p.name=p.name+' (imported)';
+  saveProjectData(p);applyProject(p);persist();
+  renderProjectList();_closeImportModal();closeModal('proj-modal');
+}
+function _doImportReplace(importedProj){
+  const existing=_findExistingProjectByName(importedProj.name);
+  const p=JSON.parse(JSON.stringify(importedProj));
+  p.id=existing?existing.id:'proj_'+Date.now();
+  saveProjectData(p);applyProject(p);persist();
+  renderProjectList();_closeImportModal();closeModal('proj-modal');
+}
+function _doImportMerge(importedProj){
+  const existing=_findExistingProjectByName(importedProj.name);
+  if(!existing){_doImportAsNew(importedProj,false);return;}
+  const existingFull=loadProjectData(existing.id);
+  if(!existingFull){_doImportAsNew(importedProj,false);return;}
+  const merged=JSON.parse(JSON.stringify(existingFull));
+  const fps=existingFull.fps||importedProj.fps||25;
+  // Merge streams by name
+  const streamIdMap={};
+  (importedProj.streams||[]).forEach(is=>{
+    const match=(merged.streams||[]).find(ms=>ms.name&&is.name&&ms.name.toLowerCase()===is.name.toLowerCase());
+    if(match){streamIdMap[is.id]=match.id;}
+    else{
+      const ns=JSON.parse(JSON.stringify(is));ns.id=uid();
+      if(!merged.streams)merged.streams=[];
+      merged.streams.push(ns);
+      streamIdMap[is.id]=ns.id;
+      if(!merged.visibleStreamIds)merged.visibleStreamIds=[];
+      merged.visibleStreamIds.push(ns.id);
+    }
+  });
+  // Merge songs by name
+  const conflicts=[];
+  (importedProj.songs||[]).forEach(impSong=>{
+    const matchSong=(merged.songs||[]).find(ms=>ms.name&&impSong.name&&ms.name.toLowerCase()===impSong.name.toLowerCase());
+    if(!matchSong){
+      const ns=JSON.parse(JSON.stringify(impSong));ns.id=uid();
+      ns.cues=(ns.cues||[]).map(c=>{const nc=JSON.parse(JSON.stringify(c));nc.id=uid();if(nc.streamId&&streamIdMap[nc.streamId])nc.streamId=streamIdMap[nc.streamId];return nc;});
+      if(!merged.songs)merged.songs=[];
+      merged.songs.push(ns);
+      if(merged.playlists&&merged.playlists[0])merged.playlists[0].songIds.push(ns.id);
+    }else{
+      const existingCues=matchSong.cues||[];
+      (impSong.cues||[]).forEach(ic=>{
+        const remStream=(ic.streamId&&streamIdMap[ic.streamId])?streamIdMap[ic.streamId]:ic.streamId;
+        const icF=window.tcF?tcF(ic.tc):0;
+        const cfl=existingCues.find(ec=>{if(!ec.tc||!ic.tc)return false;return (window.tcF?tcF(ec.tc):-1)===icF&&ec.streamId===remStream;});
+        if(cfl){
+          conflicts.push({songName:matchSong.name,songId:matchSong.id,existingCue:cfl,importedCue:Object.assign({},ic,{streamId:remStream}),frame:icF});
+        }else{
+          const nc=JSON.parse(JSON.stringify(ic));nc.id=uid();if(nc.streamId&&streamIdMap[nc.streamId])nc.streamId=streamIdMap[nc.streamId];
+          existingCues.push(nc);
+        }
+      });
+      matchSong.cues=existingCues.sort((a,b)=>(window.tcF?tcF(a.tc):0)-(window.tcF?tcF(b.tc):0));
+    }
+  });
+  if(!conflicts.length){
+    saveProjectData(merged);applyProject(merged);persist();
+    renderProjectList();_closeImportModal();closeModal('proj-modal');
+  }else{
+    _importMergedProj=merged;_importConflicts=conflicts;
+    _importConflictChoices={};
+    conflicts.forEach((_,i)=>{_importConflictChoices[i]='existing';});
+    _closeImportModal();
+    _showImportConflictModal();
+  }
+}
+function _showImportConflictModal(){
+  _importConflictIdx=0;_renderImportConflictCard();
+  const m=document.getElementById('cf-import-conflict-modal');if(m)m.classList.add('show');
+}
+function _renderImportConflictCard(){
+  const c=_importConflicts[_importConflictIdx];if(!c)return;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('imp-cf-counter',(_importConflictIdx+1)+' / '+_importConflicts.length);
+  set('imp-cf-title','Resolve conflicts · '+(c.songName||'Sequence'));
+  const choice=_importConflictChoices[_importConflictIdx]||'existing';
+  const cards=document.getElementById('imp-cf-cards');
+  if(!cards)return;
+  const makeCard=(cue,label,key)=>{
+    const st=(window.state&&state.streams)?state.streams.find(s=>s.id===cue.streamId):null;
+    const short=((st&&(st.shortName||st.name))||'?').slice(0,3).toUpperCase();
+    const name=st?st.name:'Unknown';
+    const chosen=choice===key;
+    return `<div class="imp-cf-card${chosen?' chosen':''}" onclick="_impCfChoose('${key}')">
+      <div class="imp-cf-card-lbl">${escH(label)}${chosen?' ✓':''}</div>
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;"><span class="track-glyph xs" style="background:#06060a;color:#fff;">${escH(short)}</span><span style="font-size:11px;color:var(--txt-mid);">${escH(name)}</span></div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--txt-mid);margin-bottom:3px;">${escH(cue.tc||'—')}</div>
+      <div style="font-family:var(--cond);font-size:15px;font-weight:700;color:var(--txt-hi);margin-bottom:3px;">${escH(cue.name||'—')}</div>
+      ${cue.desc?'<div style="font-size:11px;color:var(--txt-mid);">'+escH(cue.desc)+'</div>':''}
+    </div>`;
+  };
+  cards.innerHTML=makeCard(c.existingCue,'Keep existing','existing')+makeCard(c.importedCue,'Use imported','imported');
+  const prev=document.getElementById('imp-cf-prev');const next=document.getElementById('imp-cf-next');
+  if(prev)prev.disabled=_importConflictIdx===0;
+  if(next)next.disabled=_importConflictIdx>=_importConflicts.length-1;
+}
+function _impCfChoose(key){_importConflictChoices[_importConflictIdx]=key;_renderImportConflictCard();}
+function _impCfNav(dir){const n=_importConflictIdx+dir;if(n<0||n>=_importConflicts.length)return;_importConflictIdx=n;_renderImportConflictCard();}
+function _impCfKeepAll(key){_importConflicts.forEach((_,i)=>{_importConflictChoices[i]=key;});_renderImportConflictCard();}
+function _impCfApply(){
+  if(!_importMergedProj)return;
+  _importConflicts.forEach((c,i)=>{
+    if((_importConflictChoices[i]||'existing')==='imported'){
+      const song=(_importMergedProj.songs||[]).find(s=>s.id===c.songId);if(!song)return;
+      const idx=(song.cues||[]).findIndex(cu=>cu.id===c.existingCue.id);
+      if(idx>=0){const nc=JSON.parse(JSON.stringify(c.importedCue));nc.id=uid();song.cues[idx]=nc;}
+    }
+  });
+  (_importMergedProj.songs||[]).forEach(s=>{s.cues=(s.cues||[]).sort((a,b)=>(window.tcF?tcF(a.tc):0)-(window.tcF?tcF(b.tc):0));});
+  saveProjectData(_importMergedProj);applyProject(_importMergedProj);persist();
+  renderProjectList();
+  const m=document.getElementById('cf-import-conflict-modal');if(m)m.classList.remove('show');
+  closeModal('proj-modal');
+  _importMergedProj=null;_importConflicts=[];
 }
 
 // ─── PROJECT MODAL ───
@@ -13979,11 +14336,10 @@ function buildTrackPills(){
   var visible=streams.filter(function(s){ return !allowed||allowed.indexOf(s.id)!==-1; });
   if(!visible.length){c.style.display='none';return;}
   c.style.display='flex';
-  /* Track viewer following cell: clickable track badges (non-clickable if only 1 track) */
+  /* Track viewer following cell: always interactive */
   var vtfc=document.getElementById('vw-track-badges-topbar');
   if(vtfc){
     vtfc.innerHTML='';
-    var singleTrack=visible.length===1;
     visible.forEach(function(s){
       var short=(s.shortName||s.name||'?').slice(0,3).toUpperCase();
       var col=window.getStreamColor?getStreamColor(s.id):{hex:'#3b7bdd'};
@@ -13995,20 +14351,22 @@ function buildTrackPills(){
         ';color:'+(vis?'#fff':'var(--txt-mid)')+
         ';border-color:var(--hair3);'+
         ';opacity:'+(vis?'1':'0.45')+';'+
-        (singleTrack?'cursor:default;':'cursor:pointer;')+
+        'cursor:pointer;'+
         'transition:background .12s,color .12s,opacity .12s;';
       btn.textContent=short;
       btn.dataset.sid=s.id;
-      if(!singleTrack){
-        btn.onclick=function(){
-          var id=this.dataset.sid;
-          var idx=state.visibleStreamIds.indexOf(id);
-          if(idx>=0) state.visibleStreamIds.splice(idx,1);
-          else state.visibleStreamIds.push(id);
-          if(window.buildTrackPills) buildTrackPills();
-          if(window.redrawActive) redrawActive();
-        };
-      }
+      btn.onclick=function(){
+        var id=this.dataset.sid;
+        var idx=state.visibleStreamIds.indexOf(id);
+        if(idx>=0) state.visibleStreamIds.splice(idx,1);
+        else state.visibleStreamIds.push(id);
+        if(window.buildTrackPills) buildTrackPills();
+        var notesScr=document.getElementById('cf-cam-notes-screen');
+        if(notesScr&&notesScr.style.display!=='none'&&window.renderCamNotesCues){
+          renderCamNotesCues(window._camNotesActiveSongId);
+        }
+        if(window.redrawActive) redrawActive();
+      };
       vtfc.appendChild(btn);
     });
     // CAM toggle: same track-glyph style as track badges
@@ -14033,10 +14391,6 @@ function buildTrackPills(){
   var isSingle = visible.length===1;
   visible.forEach(function(s){
     var col=window.getStreamColor?getStreamColor(s.id):{hex:'#3b7bdd'};
-    /* Ensure single track is always visible */
-    if(isSingle && state.visibleStreamIds.indexOf(s.id)===-1){
-      state.visibleStreamIds.push(s.id);
-    }
     var vis=state.visibleStreamIds.indexOf(s.id)!==-1;
     var p=document.createElement('div');
     if(isSingle){
