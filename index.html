@@ -1255,32 +1255,29 @@ body.mode-live #edit-mode-banner { display: none; }
 #cam-panel-all.hidden { display:none; }
 
 /* ── Responsive camera cockpit ─────────────────────────────
-   960px  tablet     new hero grid: badge+cd left, name+desc right
+   960px  tablet     3-col grid: badge | name+desc | countdown
    640px  phone      smaller badge, font reduction
    400px  very small further reduction
 ──────────────────────────────────────────────────────────── */
 @media (max-width:960px){
   .cam-hero { padding:16px 20px 0; }
-  /* Hero body: 2-col grid — badge+countdown stack on left, name+desc on right */
+  /* Hero body: 3-col grid — badge left, name+desc centre, countdown right */
   .cam-hero-body {
     display:grid;
-    grid-template-columns:auto 1fr;
-    grid-template-rows:auto auto;
-    column-gap:16px; row-gap:8px;
+    grid-template-columns:auto 1fr auto;
+    column-gap:16px;
     margin-bottom:16px;
     align-items:start;
   }
   .cam-hero-badge-wrap { grid-column:1; grid-row:1; }
-  /* Countdown sits under the badge — re-show it (was hidden) */
-  .cam-hero-cd { display:flex !important; flex-direction:column; align-items:flex-start; grid-column:1; grid-row:2; }
-  .cam-hero-cd-val { font-size:clamp(24px,7vw,44px); }
-  /* Name+desc span both rows on the right */
-  .cam-hero-info { grid-column:2; grid-row:1 / 3; min-width:0; }
+  .cam-hero-info { grid-column:2; grid-row:1; min-width:0; }
+  /* Countdown on the right, smaller than desktop */
+  .cam-hero-cd { display:flex !important; flex-direction:column; align-items:flex-end; grid-column:3; grid-row:1; }
+  .cam-hero-cd-val { font-size:clamp(28px,8vw,60px); }
   .cam-hero .cam-badge.lg { width:64px; height:64px; font-size:40px; border-radius:3px; }
-  /* Allow full name to wrap — no truncation */
-  .cam-hero-name { white-space:normal; font-size:clamp(18px,5vw,32px); line-height:1.1; }
+  /* Name: large condensed, wraps freely */
+  .cam-hero-name { white-space:normal; font-size:clamp(22px,5.5vw,40px); line-height:1.1; }
   .cam-hero-desc { font-size:12px; margin-top:4px; }
-  /* Timers row no longer needed (cd is in grid) */
   .cam-hero-timers { display:none !important; }
   /* Stack panels vertically */
   .cam-split { flex-direction:column; }
@@ -1292,10 +1289,10 @@ body.mode-live #edit-mode-banner { display: none; }
 @media (max-width:640px){
   .cam-hero { padding:12px 14px 0; }
   .cam-hero-eyebrow { margin-bottom:8px; }
-  .cam-hero-body { column-gap:12px; row-gap:6px; margin-bottom:12px; }
+  .cam-hero-body { column-gap:10px; margin-bottom:12px; }
   .cam-hero .cam-badge.lg { width:52px; height:52px; font-size:28px; border-radius:3px; }
-  .cam-hero-cd-val { font-size:clamp(20px,7vw,36px); }
-  .cam-hero-name { font-size:clamp(16px,5vw,26px); }
+  .cam-hero-cd-val { font-size:clamp(22px,7vw,44px); }
+  .cam-hero-name { font-size:clamp(18px,5vw,32px); }
   /* MY NEXT SHOTS: hide redundant own-camera badge + TC column */
   #cam-shot-rows .cam-shot-badge { display:none; }
   #cam-shot-rows .cam-shot-tc { display:none; }
@@ -1313,68 +1310,66 @@ body.mode-live #edit-mode-banner { display: none; }
 }
 @media (max-width:400px){
   .cam-hero .cam-badge.lg { width:44px; height:44px; font-size:22px; }
-  .cam-hero-cd-val { font-size:clamp(17px,8vw,28px); }
+  .cam-hero-body { column-gap:8px; }
+  .cam-hero-cd-val { font-size:clamp(16px,7vw,28px); }
   .cam-hero-name { font-size:clamp(14px,5.5vw,22px); }
   #cam-shot-rows .cam-shot-name { font-size:16px; }
   #cam-shot-rows .cam-shot-cd { font-size:20px; }
 }
 
-/* ── Track viewer next-hero: same grid structure as camera cockpit ──
-   display:contents flattens .nh-main and .nh-badge so the badge span,
-   name div, desc div, and count div all become direct grid children —
-   identical column layout to .cam-hero-body:
-     col1 row1: badge    col2 row1: name (wrapping, no truncation)
-     col1 row2: countdown  col2 row2: description
+/* ── Track viewer next-hero: 3-col grid mirroring camera cockpit ──
+   display:contents flattens .nh-main and .nh-badge into the grid.
+   col1: badge (spans name+desc rows)
+   col2: name (row2) + desc (row3)
+   col3: countdown (spans name+desc rows, right-aligned)
 ──────────────────────────────────────────────────────────────────── */
 @media (max-width:960px){
   #vw-next-hero {
     display:grid;
-    grid-template-columns:auto 1fr;
+    grid-template-columns:auto 1fr auto;
     grid-template-rows:auto auto auto;
     column-gap:16px; row-gap:8px;
     align-items:start;
     position:relative;
     padding:14px 20px 24px;
   }
-  /* Flatten intermediate containers into the parent grid */
   #vw-next-hero .nh-main { display:contents; }
   #vw-next-hero .nh-badge { display:contents; }
-  /* Grid placement */
   #vw-next-hero .nh-eyebrow {
     grid-column:1 / -1; grid-row:1;
-    position:static; /* override position:absolute from live-next base */
+    position:static;
     margin-bottom:0;
   }
-  #vw-next-badge { grid-column:1; grid-row:2; align-self:start; }
+  #vw-next-badge { grid-column:1; grid-row:2 / 4; align-self:start; }
   #vw-next-hero .nh-name {
     grid-column:2; grid-row:2; align-self:start;
     white-space:normal; line-height:1.1;
-    font-size:clamp(18px,5vw,32px);
+    font-size:clamp(22px,5.5vw,40px);
   }
   #vw-next-hero .nh-count {
-    grid-column:1; grid-row:3; align-self:start;
-    text-align:left;
+    grid-column:3; grid-row:2 / 4; align-self:start;
+    text-align:right;
   }
-  #vw-next-hero .nh-count .v { font-size:clamp(24px,7vw,44px); line-height:1; }
-  #vw-next-hero .nh-count .nh-cd-lbl { text-align:left; }
+  #vw-next-hero .nh-count .v { font-size:clamp(28px,8vw,60px); line-height:1; }
+  #vw-next-hero .nh-count .nh-cd-lbl { text-align:right; }
   #vw-next-hero .nh-desc {
     grid-column:2; grid-row:3; align-self:start;
     font-size:13px; margin-top:0;
   }
-  /* Badge sizes */
   #vw-next-hero .cam-badge-sq.lg { width:64px; height:64px; font-size:40px; border-radius:3px; }
   #vw-next-hero .track-glyph.lg  { width:64px; height:64px; font-size:20px; }
 }
 @media (max-width:640px){
-  #vw-next-hero { padding:10px 14px 20px; column-gap:12px; row-gap:6px; }
+  #vw-next-hero { padding:10px 14px 20px; column-gap:10px; row-gap:6px; }
   #vw-next-hero .cam-badge-sq.lg { width:52px; height:52px; font-size:28px; border-radius:3px; }
   #vw-next-hero .track-glyph.lg  { width:52px; height:52px; font-size:16px; }
-  #vw-next-hero .nh-name { font-size:clamp(16px,5vw,26px); }
-  #vw-next-hero .nh-count .v { font-size:clamp(20px,7vw,36px); }
+  #vw-next-hero .nh-name { font-size:clamp(18px,5vw,32px); }
+  #vw-next-hero .nh-count .v { font-size:clamp(22px,7vw,44px); }
 }
 @media (max-width:400px){
+  #vw-next-hero { column-gap:8px; }
   #vw-next-hero .nh-name { font-size:clamp(14px,5.5vw,22px); }
-  #vw-next-hero .nh-count .v { font-size:clamp(17px,7.5vw,28px); }
+  #vw-next-hero .nh-count .v { font-size:clamp(16px,7vw,28px); }
 }
 
 /* ── Camera picker: bottom sheet on mobile ── */
@@ -1959,7 +1954,10 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
   .live-then-row { grid-template-columns:24px 36px 1fr auto 40px; gap:8px; padding:7px 0; }
   .live-then-row .tc-lbl { display:none; }
   .live-then-row .nm { font-size:20px; }
+  /* Cockpit: hide descriptions in THEN rows to save space */
   .live-then-row .nm .ds { display:none; }
+  /* Track viewer: keep descriptions visible, wrap on narrow screens */
+  #vw-then-rows .live-then-row .nm .ds { display:block; font-size:12px; white-space:normal; }
   .live-then-row .cd { font-size:17px; min-width:52px; }
   .live-then-row .cam-badge-sq.md { width:36px; height:36px; font-size:18px; border-radius:2px; }
   .live-then-row .track-glyph.md  { width:36px; height:36px; font-size:12px; }
