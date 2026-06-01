@@ -12073,16 +12073,16 @@ function restoreSessionState(){
     }
   }
 
-  if(!changed) return;
+  if(changed){
+    /* Re-render with restored context */
+    if(window.renderSongList) renderSongList();
+    if(window.renderCueList) renderCueList();
+    if(window.redrawActive) redrawActive();
+    if(window._syncEditTopbar) _syncEditTopbar();
+  }
 
-  /* Re-render with restored context */
-  if(window.renderSongList) renderSongList();
-  if(window.renderCueList) renderCueList();
-  if(window.redrawActive) redrawActive();
-  if(window._syncEditTopbar) _syncEditTopbar();
-
-  /* Mode — restore all saved modes; use _restoreMode to bypass the
-     openModalBeforeLive TC guard (this is a state restore, not a live show start) */
+  /* Mode — always restore, independent of whether navigation state changed.
+     Use _restoreMode to bypass the openModalBeforeLive TC guard. */
   if(saved.m && saved.m!==state.appMode && (saved.m==='edit'||saved.m==='test'||saved.m==='live')){
     if(window._restoreMode) _restoreMode(saved.m);
   }
@@ -14044,20 +14044,24 @@ CF._copySelected = function(){
 CF._deleteSelected = function(){
   if(window.CF&&(CF.role==='editor'||CF.role==='track-editor'))return;
   if(!CF._selSeqs.length)return;
-  var names=CF._selSeqs.map(function(id){
+  var _ids=CF._selSeqs.slice();
+  var count=_ids.length;
+  var names=_ids.map(function(id){
     var s=state.songs.find(function(x){return x.id===id;}); return s?'"'+s.name+'"':id;
   }).join(', ');
-  if(!confirm('Delete '+CF._selSeqs.length+' sequence'+(CF._selSeqs.length!==1?'s':'')+': '+names+'?\n\nThis cannot be undone.'))return;
-  var pl=window.getActivePlaylist?getActivePlaylist():null;
-  if(pl)pl.songIds=pl.songIds.filter(function(id){return CF._selSeqs.indexOf(id)<0;});
-  state.songs=state.songs.filter(function(s){return CF._selSeqs.indexOf(s.id)<0;});
-  var rem=window.getActivePlaylistSongs?getActivePlaylistSongs():state.songs;
-  state.activeSongId=rem[0]?rem[0].id:(state.songs[0]?state.songs[0].id:null);
-  CF._exitSelectMode();
-  if(window.persist)persist();
-  if(window.renderSongList)renderSongList();
-  if(window.renderCueList)renderCueList();
-  if(window.redrawActive)redrawActive();
+  var msg='Delete '+(count===1?'sequence '+names:count+' sequences: '+names)+'? This cannot be undone.';
+  openConfirmModal(msg,function(){
+    var pl=window.getActivePlaylist?getActivePlaylist():null;
+    if(pl)pl.songIds=pl.songIds.filter(function(id){return _ids.indexOf(id)<0;});
+    state.songs=state.songs.filter(function(s){return _ids.indexOf(s.id)<0;});
+    var rem=window.getActivePlaylistSongs?getActivePlaylistSongs():state.songs;
+    state.activeSongId=rem[0]?rem[0].id:(state.songs[0]?state.songs[0].id:null);
+    CF._exitSelectMode();
+    if(window.persist)persist();
+    if(window.renderSongList)renderSongList();
+    if(window.renderCueList)renderCueList();
+    if(window.redrawActive)redrawActive();
+  },null,'Delete','danger','Delete sequence'+(count!==1?'s':''));
 };
 
 /* ── Playlist management ─────────────────────────────────── */
