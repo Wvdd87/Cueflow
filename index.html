@@ -6097,8 +6097,13 @@ function renderCueList(){
         nameInp.dataset.chid=ch.id;nameInp.dataset.f='name';
         if(!isSel)nameInp.readOnly=true;
         sep.appendChild(nameInp);
-        // Col 5: DESC — empty (markers have no description)
-        const descCell=document.createElement('div');descCell.className='cue-field desc';descCell.style.cssText='cursor:default;';sep.appendChild(descCell);
+        // Col 5: DESC — note input, same pattern as tc/name
+        const descInp=document.createElement('input');
+        descInp.className='cue-field desc'+(isSel?'':' cue-readonly');
+        descInp.value=ch.desc||'';descInp.placeholder='Marker note';
+        descInp.dataset.chid=ch.id;descInp.dataset.f='desc';
+        if(!isSel)descInp.readOnly=true;
+        sep.appendChild(descInp);
         // Col 6: TYPE — same style as cue type cell
         const typeCell=document.createElement('div');typeCell.className='cl-type-cell';typeCell.textContent='MARKER';sep.appendChild(typeCell);
         // Col 7: NEXT — empty
@@ -6121,17 +6126,22 @@ function renderCueList(){
           _selChapterId=ch.id;_etlHighlightList(null);ETL.selId=null;
           jumpToChapter(ch.id);renderCueList();
         });
-        [tcInp,nameInp].forEach(inp=>{
+        [tcInp,nameInp,descInp].forEach(inp=>{
           inp.addEventListener('blur',()=>{
             if(inp.readOnly)return;
             const f=inp.dataset.f,v=inp.value.trim();
             if(f==='tc'){const tc=normalizeTcInput(v||ch.tc);if(validateTc(tc))ch.tc=tc;}
-            else if(v)ch.name=v;
+            else if(f==='name'){if(v)ch.name=v;}
+            else if(f==='desc'){ch.desc=v;}
             persist();if(ETL.visible)renderEditTimeline();
           });
           inp.addEventListener('keydown',e2=>{
             if(e2.key==='Enter'){e2.preventDefault();inp.blur();}
-            if(e2.key==='Escape'){inp.value=inp.dataset.f==='tc'?ch.tc:ch.name;inp.blur();}
+            if(e2.key==='Escape'){
+              const fld=inp.dataset.f;
+              inp.value=fld==='tc'?ch.tc:fld==='desc'?(ch.desc||''):ch.name;
+              inp.blur();
+            }
             e2.stopPropagation();
           });
         });
