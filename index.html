@@ -2043,11 +2043,12 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 }
 .me-go-live {
   height:36px; padding:0 16px; flex-shrink:0;
-  background:var(--amber); border:none; color:#000;
+  background:var(--red); border:none; color:#fff;
   font-family:var(--cond); font-size:11px; font-weight:700;
-  letter-spacing:.1em; text-transform:uppercase; cursor:pointer; transition:filter .12s;
+  letter-spacing:.1em; text-transform:uppercase; cursor:pointer; transition:background 80ms linear;
 }
-.me-go-live:hover { filter:brightness(1.1); }
+.me-go-live:hover { background:#ff4663; }
+.me-go-live:active { background:#d8001f; }
 .me-body { flex:1; display:flex; min-height:0; overflow:hidden; }
 
 /* Sequence sidebar — tablet only */
@@ -2203,7 +2204,7 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 }
 .me-drawer-item:last-child { border-bottom:none; }
 .me-drawer-item:hover { background:var(--surface2); }
-.me-drawer-item.active { border-left-color:var(--amber); }
+.me-drawer-item.active { border-left-color:var(--amber); padding-left:13px; background:var(--surface2); }
 .me-drawer-item.active .me-drawer-item-name { color:var(--txt-hi); font-weight:700; }
 .me-drawer-item-name {
   flex:1; min-width:0; font-family:var(--sans); font-size:13px; font-weight:600;
@@ -2211,6 +2212,9 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 }
 .me-drawer-pip { width:7px; height:7px; border-radius:50%; background:var(--amber); flex-shrink:0; }
 .me-drawer-pin-info { font-family:var(--mono); font-size:10px; color:var(--txt-low); letter-spacing:.04em; flex-shrink:0; }
+.me-drawer-copy-icon { color:var(--amber); flex-shrink:0; display:flex; align-items:center; opacity:.6; transition:opacity .12s,color .12s; }
+.me-drawer-item:hover .me-drawer-copy-icon { opacity:1; }
+.me-drawer-copy-icon.copied { color:var(--green); opacity:1; }
 .me-drawer-eye {
   background:none; border:none; color:var(--txt-mid); cursor:pointer;
   padding:4px; display:flex; align-items:center; justify-content:center;
@@ -2414,6 +2418,32 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
   display:flex; gap:8px; padding:12px 20px;
   border-top:1px solid var(--hair);
 }
+.me-mini-body-scroll { padding:20px; display:flex; flex-direction:column; gap:14px; overflow-y:auto; max-height:calc(100svh - 180px); }
+.me-role-card {
+  display:flex; flex-direction:column; gap:3px;
+  padding:13px 16px 13px 14px; background:var(--surface2);
+  border:1.5px solid var(--hair2); border-left:3px solid transparent;
+  cursor:pointer; transition:background .12s,border-color .12s; margin-top:-1px;
+}
+.me-role-card:first-child { margin-top:0; }
+.me-role-card.selected { background:rgba(245,158,11,.07); border-color:var(--hair3); border-left-color:var(--amber); }
+.me-role-card-name {
+  font-family:var(--cond); font-size:13px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--txt-hi); transition:color .12s;
+}
+.me-role-card.selected .me-role-card-name { color:var(--amber); }
+.me-role-card-desc {
+  font-family:var(--cond); font-size:10px; font-weight:600;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low);
+}
+.me-ns-track-row {
+  display:flex; align-items:center; gap:12px;
+  padding:12px 16px; background:var(--surface2);
+  border:1px solid var(--hair); cursor:pointer; margin-top:-1px; user-select:none;
+}
+.me-ns-track-row:first-child { margin-top:0; }
+.me-ns-track-row input[type=checkbox] { width:18px; height:18px; accent-color:var(--amber); flex-shrink:0; cursor:pointer; }
+.me-ns-track-row-name { font-family:var(--sans); font-size:14px; color:var(--txt-hi); }
 
 /* ── ntm-btn danger variant ── */
 .ntm-btn.danger { border-color:rgba(255,40,72,.4); color:var(--danger); }
@@ -3723,6 +3753,31 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <div class="ntm-footer">
       <button class="ntm-btn" onclick="trkRenameClose()">Cancel</button>
       <button class="ntm-btn primary" onclick="trkRenameConfirm()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Playlist modal -->
+<div id="new-playlist-modal" class="ntm-bg" role="dialog" aria-modal="true">
+  <div class="ntm-box" style="width:420px;">
+    <div class="ntm-header">
+      <span class="ntm-title">New Playlist</span>
+    </div>
+    <div class="ntm-body">
+      <div class="ntm-fg">
+        <label class="ntm-lbl" for="new-playlist-name">Playlist Name</label>
+        <div class="ntm-iw">
+          <input class="ntm-inp" id="new-playlist-name" placeholder="e.g. Main Show, Night 2, Rehearsal…" maxlength="60" autocomplete="off"
+            oninput="_nplUpdateCount()"
+            onkeydown="if(event.key==='Enter')confirmNewPlaylist();if(event.key==='Escape')closeNewPlaylistModal();">
+          <span class="ntm-cnt" id="new-playlist-name-cnt">0/60</span>
+        </div>
+        <span class="ntm-hint">A playlist groups sequences into one show. Only the active playlist runs in live mode.</span>
+      </div>
+    </div>
+    <div class="ntm-footer">
+      <button class="ntm-btn" onclick="closeNewPlaylistModal()">Cancel</button>
+      <button class="ntm-btn primary" onclick="confirmNewPlaylist()">Create Playlist</button>
     </div>
   </div>
 </div>
@@ -7557,6 +7612,47 @@ function deleteSong(){
   state.activeSongId=state.songs[0].id;
   persist();renderSongList();renderCueList();redrawActive();showUndoToast(`"${name}" deleted`);
 }
+// ── NEW PLAYLIST MODAL (desktop) ──
+function openNewPlaylistModal(){
+  const m=document.getElementById('new-playlist-modal');if(!m)return;
+  const inp=document.getElementById('new-playlist-name');
+  if(inp){inp.value='';inp.style.borderColor='';}
+  _nplUpdateCount();
+  m.classList.add('show');
+  setTimeout(()=>{if(inp)inp.focus();},60);
+}
+function closeNewPlaylistModal(){
+  const m=document.getElementById('new-playlist-modal');
+  if(m)m.classList.remove('show');
+}
+function _nplUpdateCount(){
+  const inp=document.getElementById('new-playlist-name');
+  const cnt=document.getElementById('new-playlist-name-cnt');
+  if(inp&&cnt)cnt.textContent=(inp.value||'').length+'/60';
+}
+function confirmNewPlaylist(){
+  const inp=document.getElementById('new-playlist-name');
+  const name=(inp?.value||'').trim();
+  if(!name){if(inp){inp.style.borderColor='var(--red)';inp.focus();}return;}
+  const plId='pl_'+Date.now();
+  const songId='s_'+Date.now();
+  if(!state.songs)state.songs=[];
+  state.songs.push({id:songId,name:'Sequence 1',description:'',startTc:'01:00:00:00',cues:[],chapters:[]});
+  if(!state.playlists)state.playlists=[];
+  state.playlists.push({id:plId,name:name,songIds:[songId]});
+  // Activate new playlist and its default sequence
+  // Note: switchPlaylist() is Block 2 IIFE-scoped, so we set state directly
+  state.activePlaylistId=plId;
+  state.activeSongId=songId;
+  persist();
+  renderSongList();
+  renderCueList();
+  redrawActive();
+  if(window._sbRender&&_sbPanel==='playlists')_sbRender('playlists');
+  if(window._sbRender&&_sbPanel==='seqs')_sbRender('seqs');
+  closeNewPlaylistModal();
+}
+
 function addCue(){
   if(window.CF && !CF.showId){ openNewProjectModal(); return; }
   const song=getActiveSong();if(!song)return;
@@ -9487,7 +9583,7 @@ function _sbRender(name){
   const _actions = {
     seqs: {label:'+ ADD', fn:'openAddSeqModal()'},
     tracks: {label:'+ ADD', fn:'openNewTrackModal()'},
-    playlists: {label:'+ ADD', fn:'CF.createPlaylist()'}
+    playlists: {label:'+ ADD', fn:'openNewPlaylistModal()'}
   };
   if(_hCnt && name in _counts){
     if(_hSep) _hSep.style.display='';
@@ -12452,6 +12548,10 @@ function meDrawerOpen(){
   if(drawer)drawer.classList.add('open');
   if(backdrop)backdrop.classList.add('show');
   _meRenderDrawer();
+  // Fetch fresh pin list from DB whenever drawer opens as owner
+  if(window.CF&&CF.showId&&CF.isOwner&&CF._fetchPins){
+    CF._fetchPins(function(){ _meRenderDrawer(); });
+  }
 }
 function meDrawerClose(){
   var drawer=document.getElementById('me-drawer');
@@ -12474,16 +12574,21 @@ function _meRenderDrawer(){
   // Merge: prefer collab show list if logged in, else local
   var showItems=cfShowList.length?cfShowList:localProjs;
   showItems.forEach(function(p){
-    var isActive=state.projectId?p.id===state.projectId:(window.CF&&CF.showId&&p.id===CF.showId);
+    // Match by local projectId OR Supabase showId — in connected mode both may differ
+    var isActive=(state.projectId&&p.id===state.projectId)||(window.CF&&CF.showId&&p.id===CF.showId);
     var item=document.createElement('div');
     item.className='me-drawer-item'+(isActive?' active':'');
     item.innerHTML='<span class="me-drawer-item-name">'+escH(p.name||'Untitled')+'</span>'+
       (isActive?'<span class="me-drawer-pip"></span>':'');
     item.addEventListener('click',function(){
-      meDrawerClose();
       if(isActive)return;
-      if(window.CF&&CF._switchProject)CF._switchProject(p.id);
-      else{var d=loadProjectData(p.id);if(d)applyProject(d);}
+      // Show mobile confirmation — don't close drawer yet, modal appears on top
+      _meSwitchProjId=p.id;
+      _meSwitchIsSupabase=!!(window.CF&&CF._showList&&CF._showList.length);
+      var nameEl=document.getElementById('me-spc-name');
+      if(nameEl)nameEl.textContent=p.name||'this project';
+      var m=document.getElementById('me-switch-proj-modal');
+      if(m)m.classList.add('show');
     });
     projSec.body.appendChild(item);
   });
@@ -12496,27 +12601,48 @@ function _meRenderDrawer(){
   var newBtn=document.createElement('button');
   newBtn.className='me-drawer-add-btn amber';
   newBtn.textContent='+ New project';
-  newBtn.addEventListener('click',function(){meDrawerClose();meOpenNewProj();});
+  newBtn.addEventListener('click',function(){meOpenNewProj();});
   projSec.body.appendChild(newBtn);
   body.appendChild(projSec.el);
 
   // SHARE LINKS (owner only when collab active)
   if(window.CF&&CF.showId){
     var shareSec=_meDrawerSection('SHARE LINKS');
+    var shareHint=document.createElement('div');
+    shareHint.style.cssText='padding:6px 16px 10px;font-family:var(--sans);font-size:11px;color:var(--txt-low);border-bottom:1px solid var(--hair);';
+    shareHint.textContent='Tap a link to copy it to your clipboard';
+    shareSec.body.appendChild(shareHint);
+    var _svgClip='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+    var _svgCheck='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    var _meShareBase=location.origin+location.pathname;
     var pins=CF._pinList||[];
     pins.forEach(function(pin){
+      if(pin.role==='owner') return; // skip owner entry
       var item=document.createElement('div');
       item.className='me-drawer-item';
-      var pinCode=pin.pin?String(pin.pin).replace(/(\d{3})(\d{3})/,'$1 $2'):'';
+      var rawPin=pin.display_pin||pin.pin||'';
+      var pinCode=rawPin?String(rawPin).replace(/(\d{3})(\d{3})/,'$1 $2'):'';
       item.innerHTML='<span class="me-drawer-item-name">'+escH(pin.label||pin.role||'Link')+'</span>'+
-        '<span class="me-drawer-pin-info">'+escH((pin.role||'crew').toUpperCase())+' '+escH(pinCode)+'</span>';
+        '<span class="me-drawer-pin-info">'+escH((pin.role||'viewer').toUpperCase())+' '+escH(pinCode)+'</span>'+
+        '<span class="me-drawer-copy-icon">'+_svgClip+'</span>';
+      var linkUrl=_meShareBase+'?show='+CF.showId+'&pin='+encodeURIComponent(rawPin);
+      item.addEventListener('click',(function(url,el){
+        return function(){
+          var iconEl=el.querySelector('.me-drawer-copy-icon');
+          navigator.clipboard.writeText(url).then(function(){
+            meShowToast('Link copied!');
+            if(iconEl){iconEl.innerHTML=_svgCheck;iconEl.classList.add('copied');}
+            setTimeout(function(){if(iconEl){iconEl.innerHTML=_svgClip;iconEl.classList.remove('copied');}},1500);
+          }).catch(function(){ meShowToast('Copy failed'); });
+        };
+      })(linkUrl,item));
       shareSec.body.appendChild(item);
     });
     if(CF.isOwner){
       var addPin=document.createElement('button');
       addPin.className='me-drawer-add-btn amber';
       addPin.textContent='+ New share link';
-      addPin.addEventListener('click',function(){meDrawerClose();meOpenNewShare();});
+      addPin.addEventListener('click',function(){meOpenNewShare();});
       shareSec.body.appendChild(addPin);
     }
     body.appendChild(shareSec.el);
@@ -12542,7 +12668,7 @@ function _meRenderDrawer(){
   var addPlBtn=document.createElement('button');
   addPlBtn.className='me-drawer-add-btn amber';
   addPlBtn.textContent='+ New playlist';
-  addPlBtn.addEventListener('click',function(){meDrawerClose();meOpenNewPlaylist();});
+  addPlBtn.addEventListener('click',function(){meOpenNewPlaylist();});
   plSec.body.appendChild(addPlBtn);
   body.appendChild(plSec.el);
 
@@ -12804,6 +12930,36 @@ function _mePopulateTrackSel(selId,currentStreamId){
   }).join('');
 }
 
+// ── SWITCH PROJECT CONFIRM ──
+var _meSwitchProjId=null;
+var _meSwitchIsSupabase=false;
+function meCancelSwitchProject(){
+  var m=document.getElementById('me-switch-proj-modal');
+  if(m)m.classList.remove('show');
+  _meSwitchProjId=null;
+}
+function meConfirmSwitchProject(){
+  var m=document.getElementById('me-switch-proj-modal');
+  if(m)m.classList.remove('show');
+  meDrawerClose();
+  var id=_meSwitchProjId;
+  _meSwitchProjId=null;
+  if(!id)return;
+  if(_meSwitchIsSupabase&&window.CF&&CF._switchProject){
+    // Temporarily replace openConfirmModal so Block 2's switchProject skips its own dialog
+    var _orig=window.openConfirmModal;
+    window.openConfirmModal=function(msg,onConfirm){if(onConfirm)onConfirm();window.openConfirmModal=_orig;};
+    CF._switchProject(id);
+    // Restore after one tick in case _switchProject didn't call openConfirmModal
+    setTimeout(function(){window.openConfirmModal=_orig;},50);
+  } else {
+    // Local-only mode
+    var d=loadProjectData(id);
+    if(d){applyProject(d);renderMobileEditScreen();}
+    else{meShowToast('Project not found');}
+  }
+}
+
 // ── NEW PROJECT ──
 function meOpenNewProj(){
   var m=document.getElementById('me-new-proj-modal');
@@ -12818,11 +12974,23 @@ function meOpenNewProj(){
 function meCloseNewProj(){
   var m=document.getElementById('me-new-proj-modal');
   if(m)m.classList.remove('show');
+  meDrawerClose();
 }
 function meSubmitNewProj(){
   var nameVal=((document.getElementById('me-np-name')||{}).value||'').trim();
   var trackVal=((document.getElementById('me-np-track')||{}).value||'').trim()||'Track 1';
   if(!nameVal)return;
+  meCloseNewProj();
+  // Route through CF._createShow — handles Supabase sync, session setup, and CF._showList update.
+  // Bypassing this (as the old code did) left CF.showId pointing at the old project,
+  // causing Block 2's subscription to immediately overwrite the new project's data.
+  if(window.CF&&CF._createShow){
+    CF._createShow(nameVal,trackVal,25);
+    renderMobileEditScreen();
+    meShowToast('Project created');
+    return;
+  }
+  // Local-only fallback (Block 2 not loaded)
   var trackId='stream_'+Date.now();
   var songId='s_'+Date.now();
   var plId='pl_'+Date.now();
@@ -12836,59 +13004,76 @@ function meSubmitNewProj(){
     visibleStreamIds:[trackId],
     songs:[{id:songId,name:'Sequence 1',description:'',startTc:'01:00:00:00',cues:[],chapters:[]}]
   };
-  // Save to localStorage before applying so it appears in the project list
   saveProjectData(proj);
   applyProject(proj);
-  meCloseNewProj();
   renderMobileEditScreen();
   meShowToast('Project created');
 }
 
 // ── NEW SHARE LINK ──
+function meNsSelectRole(role){
+  document.querySelectorAll('#me-ns-role-cards .me-role-card').forEach(function(c){
+    c.classList.toggle('selected',c.dataset.role===role);
+  });
+  var needsTracks=role==='viewer'||role==='editor';
+  var wrap=document.getElementById('me-ns-tracks-wrap');
+  if(wrap) wrap.style.display=needsTracks?'block':'none';
+  var lbl=document.getElementById('me-ns-tracks-lbl');
+  if(lbl) lbl.textContent=role==='editor'?'EDITING RIGHTS — WHICH TRACKS?':'VISIBLE TRACKS';
+  var hint=wrap&&wrap.querySelector('div[style*="Leave"]');
+  if(hint) hint.style.display=role==='editor'?'none':'block';
+}
 function meOpenNewShare(){
   var m=document.getElementById('me-new-share-modal');
   if(!m)return;
   var li=document.getElementById('me-ns-label');
   if(li)li.value='';
-  var ri=document.getElementById('me-ns-role');
-  if(ri)ri.value='viewer';
+  // Reset role selection to viewer
+  meNsSelectRole('viewer');
+  // Populate track checkboxes from current state
+  var list=document.getElementById('me-ns-tracks-list');
+  if(list){
+    list.innerHTML='';
+    (state.streams||[]).forEach(function(s){
+      var row=document.createElement('label');
+      row.className='me-ns-track-row';
+      row.innerHTML='<input type="checkbox" value="'+escH(s.id)+'"><span class="me-ns-track-row-name">'+escH(s.name||'Track')+'</span>';
+      list.appendChild(row);
+    });
+  }
   m.classList.add('show');
   setTimeout(function(){if(li)li.focus();},60);
 }
 function meCloseNewShare(){
   var m=document.getElementById('me-new-share-modal');
   if(m)m.classList.remove('show');
+  meDrawerClose();
 }
 function meSubmitNewShare(){
   if(!window.CF||!CF.showId){meCloseNewShare();meShowToast('Connect to a project first');return;}
   var labelVal=((document.getElementById('me-ns-label')||{}).value||'').trim();
-  var roleVal=((document.getElementById('me-ns-role')||{}).value)||'viewer';
+  var selectedCard=document.querySelector('#me-ns-role-cards .me-role-card.selected');
+  var roleVal=selectedCard?selectedCard.dataset.role:'viewer';
   if(!labelVal){var li=document.getElementById('me-ns-label');if(li){li.style.borderColor='var(--red)';li.focus();}return;}
-  var pin=String(Math.floor(100000+Math.random()*900000));
-  var base=location.origin+location.pathname;
-  var linkUrl=base+'?show='+CF.showId+'&pin='+pin;
-  // Show creating state
+  if(!window.CF||!CF.createShareLink){meShowToast('Not available offline');return;}
+  // Collect track IDs and map cam-viewer to db role
+  var trackIds=null;
+  var dbRole=roleVal;
+  if(roleVal==='cam-viewer'){
+    dbRole='viewer';
+    trackIds=['cam:select'];
+  } else if(roleVal==='viewer'||roleVal==='editor'){
+    var boxes=document.querySelectorAll('#me-ns-tracks-list input:checked');
+    if(boxes.length) trackIds=Array.from(boxes).map(function(b){return b.value;});
+  }
   var createBtn=document.querySelector('#me-new-share-modal .me-btn-primary');
   if(createBtn)createBtn.textContent='Creating…';
-  hashPin(pin).then(function(h){
-    return db().from('show_access').insert({
-      show_id:CF.showId,pin_hash:h,display_pin:pin,
-      role:roleVal,label:labelVal||roleVal,track_ids:null
-    }).select().single();
-  }).then(function(r){
+  CF.createShareLink(labelVal,dbRole,trackIds,function(err,result){
     if(createBtn)createBtn.textContent='✓ CREATE LINK';
-    if(r.error){meShowToast('Error: '+r.error.message);return;}
-    CF._pinList.push(r.data);
-    // Copy link to clipboard
-    navigator.clipboard.writeText(linkUrl).catch(function(){});
+    if(err){meShowToast('Error: '+err);return;}
     meCloseNewShare();
-    // Show PIN confirmation
-    _meShowPinConfirm(labelVal,pin,linkUrl);
-    // Refresh drawer with new pin
+    _meShowPinConfirm(result.label,result.pin,result.url);
     meDrawerOpen();
-  }).catch(function(err){
-    if(createBtn)createBtn.textContent='✓ CREATE LINK';
-    meShowToast('Error creating link');
   });
 }
 function _meShowPinConfirm(label,pin,url){
@@ -12938,13 +13123,14 @@ function meOpenNewPlaylist(){
 function meCloseNewPlaylist(){
   var m=document.getElementById('me-new-playlist-modal');
   if(m)m.classList.remove('show');
+  meDrawerClose();
 }
 function meSubmitNewPlaylist(){
   var nameVal=((document.getElementById('me-npl-name')||{}).value||'').trim();
-  if(!nameVal)return;
+  var inp=document.getElementById('me-npl-name');
+  if(!nameVal){if(inp){inp.style.borderColor='var(--red)';inp.focus();}return;}
   var plId='pl_'+Date.now();
   var songId='s_'+Date.now();
-  // Create a default "Sequence 1" for the new playlist
   var newSong={id:songId,name:'Sequence 1',description:'',startTc:'01:00:00:00',cues:[],chapters:[]};
   if(!state.songs)state.songs=[];
   state.songs.push(newSong);
@@ -12953,10 +13139,10 @@ function meSubmitNewPlaylist(){
   state.activePlaylistId=plId;
   state.activeSongId=songId;
   persist();
+  // Close modal + drawer, drop straight into the new sequence editor
   meCloseNewPlaylist();
   renderMobileEditScreen();
-  meDrawerOpen();
-  meShowToast('Playlist created');
+  meShowToast('Playlist "'+nameVal+'" created');
 }
 
 // ── TOAST ──
@@ -13761,6 +13947,26 @@ document.addEventListener('DOMContentLoaded',function(){
   <div class="me-seq-picker-list" id="me-seq-picker-list"></div>
 </div>
 
+<!-- Mobile: Switch Project confirm -->
+<div id="me-switch-proj-modal" class="me-mini-modal">
+  <div class="me-mini-box">
+    <div class="me-mini-head">
+      <span class="me-mini-title">SWITCH PROJECT?</span>
+      <button class="me-modal-close" onclick="meCancelSwitchProject()">✕</button>
+    </div>
+    <div class="me-mini-body">
+      <div style="font-family:var(--sans);font-size:14px;color:var(--txt-mid);line-height:1.5;">
+        Switch to <strong id="me-spc-name" style="color:var(--txt-hi);">—</strong>?<br>
+        <span style="font-size:12px;color:var(--txt-low);">Your current project is saved automatically.</span>
+      </div>
+    </div>
+    <div class="me-mini-footer">
+      <button class="me-btn me-btn-cancel" onclick="meCancelSwitchProject()">CANCEL</button>
+      <button class="me-btn me-btn-primary" onclick="meConfirmSwitchProject()">✓ SWITCH</button>
+    </div>
+  </div>
+</div>
+
 <!-- Mobile: New Project mini-modal -->
 <div id="me-new-proj-modal" class="me-mini-modal">
   <div class="me-mini-box">
@@ -13794,20 +14000,37 @@ document.addEventListener('DOMContentLoaded',function(){
       <span class="me-mini-title">NEW SHARE LINK</span>
       <button class="me-modal-close" onclick="meCloseNewShare()">✕</button>
     </div>
-    <div class="me-mini-body">
+    <div class="me-mini-body-scroll">
       <div class="me-field-group">
         <label class="me-field-lbl" for="me-ns-label">LABEL</label>
         <input class="me-text-inp" id="me-ns-label" type="text" placeholder="e.g. LX Operator, Camera 02" maxlength="60" autocomplete="off"
           onkeydown="if(event.key==='Escape')meCloseNewShare();">
       </div>
       <div class="me-field-group">
-        <label class="me-field-lbl" for="me-ns-role">ROLE</label>
-        <select class="me-select" id="me-ns-role">
-          <option value="viewer">Viewer — waterfall, all tracks</option>
-          <option value="crew">Crew — waterfall, assigned track</option>
-          <option value="editor">Editor — full edit access</option>
-          <option value="tc">TC — timecode display only</option>
-        </select>
+        <div class="me-field-lbl">ROLE</div>
+        <div id="me-ns-role-cards" style="margin-top:2px;">
+          <div class="me-role-card selected" data-role="viewer" onclick="meNsSelectRole('viewer')">
+            <div class="me-role-card-name">VIEWER</div>
+            <div class="me-role-card-desc">FULL WATERFALL, READ-ONLY</div>
+          </div>
+          <div class="me-role-card" data-role="editor" onclick="meNsSelectRole('editor')">
+            <div class="me-role-card-name">EDITOR</div>
+            <div class="me-role-card-desc">CAN CREATE &amp; EDIT CUES</div>
+          </div>
+          <div class="me-role-card" data-role="tc" onclick="meNsSelectRole('tc')">
+            <div class="me-role-card-name">TC DISPLAY</div>
+            <div class="me-role-card-desc">TIMECODE ONLY</div>
+          </div>
+          <div class="me-role-card" data-role="cam-viewer" onclick="meNsSelectRole('cam-viewer')">
+            <div class="me-role-card-name">CAMERA</div>
+            <div class="me-role-card-desc">SINGLE-CAMERA COCKPIT</div>
+          </div>
+        </div>
+      </div>
+      <div id="me-ns-tracks-wrap" style="display:none;">
+        <div class="me-field-lbl" id="me-ns-tracks-lbl" style="margin-bottom:10px;">VISIBLE TRACKS</div>
+        <div id="me-ns-tracks-list"></div>
+        <div style="font-family:var(--cond);font-size:9px;color:var(--txt-low);letter-spacing:.08em;margin-top:8px;">Leave all unchecked to show all tracks</div>
       </div>
     </div>
     <div class="me-mini-footer">
@@ -14196,6 +14419,13 @@ window.CF = {
   _pinList: [],
   _showList: [],
 
+  /* fetches pin list from DB and calls callback — used by mobile drawer */
+  _fetchPins: function(callback){
+    if(!CF.showId) return;
+    db().from('show_access').select('*').eq('show_id',CF.showId)
+      .then(function(r){ CF._pinList=r.data||[]; if(callback) callback(); });
+  },
+
   /* called from sidebar globe button */
   sbOpenRoles: function(){ if(window.sbOpen) sbOpen('online'); },
 
@@ -14241,6 +14471,25 @@ window.CF = {
   _onRoleChange: onRoleChange,
   _addPin: addPin,
   _deletePin: deletePin,
+  createShareLink: function(label, role, trackIds, callback){
+    if(typeof trackIds==='function'){callback=trackIds;trackIds=null;}
+    if(!CF.showId){callback('No project connected',null);return;}
+    var pin=String(Math.floor(100000+Math.random()*900000));
+    var base=location.origin+location.pathname;
+    var linkUrl=base+'?show='+CF.showId+'&pin='+pin;
+    hashPin(pin).then(function(h){
+      return db().from('show_access').insert({
+        show_id:CF.showId,pin_hash:h,display_pin:pin,
+        role:role||'viewer',label:label||(role||'viewer'),track_ids:trackIds||null
+      }).select().single();
+    }).then(function(r){
+      if(r.error){callback(r.error.message,null);return;}
+      CF._pinList.push(r.data);
+      if(window.renderPinsList)renderPinsList();
+      navigator.clipboard.writeText(linkUrl).catch(function(){});
+      callback(null,{pin:pin,url:linkUrl,label:label,data:r.data});
+    }).catch(function(err){callback(err&&err.message||'Error',null);});
+  },
   _switchProject: switchProject,
   _deleteProject: deleteProject,
   _renameProject: renameProject,
@@ -14559,6 +14808,7 @@ function applyRemote(proj){
   try{ localStorage.removeItem(DIRTY_KEY); }catch(e){}
   CF.dirty=false;
   renderSongList(); renderCueList(); redrawActive();
+  if(window.isMobileEditMode && isMobileEditMode() && window.renderMobileEditScreen) renderMobileEditScreen();
 }
 
 /* ── Field-level conflict detection ─────────────────────── */
@@ -16663,11 +16913,16 @@ CF._deleteSelected = function(){
 /* ── Playlist management ─────────────────────────────────── */
 
 function createPlaylist(){
+  // Use Block 1's custom modal — falls back to prompt only if modal unavailable
+  if(window.openNewPlaylistModal){openNewPlaylistModal();return;}
   var name=prompt('Playlist name:','New Playlist');
   if(!name||!name.trim())return;
   var id='pl_'+Date.now();
+  var songId='s_'+Date.now();
+  if(!state.songs)state.songs=[];
+  state.songs.push({id:songId,name:'Sequence 1',description:'',startTc:'01:00:00:00',cues:[],chapters:[]});
   if(!state.playlists)state.playlists=[];
-  state.playlists.push({id:id,name:name.trim(),songIds:[]});
+  state.playlists.push({id:id,name:name.trim(),songIds:[songId]});
   switchPlaylist(id);
 }
 function renamePlaylist(id){
