@@ -14419,7 +14419,7 @@ function ensureOwnerPin(){
   if(!CF.showId||!authUser||!CF.isOwner) return;
   db().from('show_access').select('id').eq('show_id',CF.showId).eq('role','owner').maybeSingle()
     .then(function(r){
-      if(r.data) return;
+      if(r.error||r.data) return;
       var pin=String(Math.floor(100000+Math.random()*900000));
       hashPin(pin).then(function(h){
         return db().from('show_access').insert({
@@ -14744,7 +14744,7 @@ function loadSession(){
 /* ── Project snapshot ────────────────────────────────────── */
 function snapshot(){
   return {
-    id:state.projectId, name:state.name, fps:state.fps,
+    id:(window.CF&&CF.showId)||state.projectId, name:state.name, fps:state.fps,
     visibleCount:state.visibleCount, warnSec:state.warnSec,
     autoAdvanceSec:state.autoAdvanceSec,
     activeSongId:state.activeSongId,
@@ -15794,7 +15794,21 @@ function ownerRestoreShow(showId){
     .then(function(r){
       if(CF.showId!==showId) return; /* Show switched during fetch */
       subscribeProject();
-      if(!r.data||!r.data.project_data) return;
+      if(!r.data||!r.data.project_data){
+        /* Show no longer exists in Supabase — clear stale session and auto-select first valid show */
+        try{ localStorage.removeItem(SESS_KEY); }catch(e){}
+        CF.showId=null; CF.isOwner=false;
+        if(CF._projChan){CF._projChan.unsubscribe();CF._projChan=null;}
+        var _alt=(CF._showList.length?CF._showList:loadShowCache()).find(function(s){return s.id!==showId;});
+        if(_alt){
+          CF.showId=_alt.id; CF.isOwner=true; CF.role='owner';
+          saveSession(_alt.id);
+          openTcChan();
+          ownerRestoreShow(_alt.id);
+        }
+        if(window._sbRender) _sbRender('save');
+        return;
+      }
 
       /* Read persisted dirty flag — contains {showId, dirtyAt} if a previous
          session had edits that never made it to Supabase */
@@ -16760,6 +16774,15 @@ function switchProject(id){
   if(id===CF.showId) return;
   var name=(CF._showList.find(function(x){return x.id===id;})||{}).name||'this project';
   function doSwitch(){
+    /* Cancel any pending debounced push so it doesn't write old content to the new show's row */
+    clearTimeout(CF._pushTimer);
+    /* Flush current dirty state to OLD show before switching */
+    if(CF.dirty&&CF.isOwner&&CF.showId&&authUser){
+      var _oid=CF.showId, _osnap=snapshot();
+      db().from('shows').upsert({id:_oid,name:_osnap.name,owner_id:authUser.id,
+        project_data:_osnap,updated_at:new Date().toISOString()});
+    }
+    CF.dirty=false;
     if(CF._projChan){CF._projChan.unsubscribe();CF._projChan=null;}
     CF.showId=id; CF.isOwner=true; CF.role='owner';
     saveSession(id);
@@ -16830,7 +16853,7 @@ function renameProject(id){
     openRenameModal(s?s.name:'',function(name){
       db().from('shows').update({name:name}).eq('id',id).then(function(){
         if(s) s.name=name;
-        if(id===CF.showId) state.name=name;
+        if(id===CF.showId){ state.name=name; if(window.persist) persist(); }
         if(window._sbRender) _sbRender('save');
       });
     });
@@ -16856,6 +16879,8 @@ function createShow(name, trackName, fps){
   var fresh=makeFreshProject(name, trackName, fps);
   /* Generate UUID client-side for offline-first */
   var showId=crypto.randomUUID();
+  /* Align the internal project ID with the Supabase row ID so state.projectId===CF.showId */
+  fresh.id=showId;
   /* Set identity BEFORE rendering so renderCueList sees the correct showId */
   CF.showId=showId; CF.isOwner=true; CF.role='owner';
   saveSession(showId);
