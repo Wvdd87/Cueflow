@@ -4300,7 +4300,7 @@ function _ownerMobileLive(){
   state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});
   state.cameraTrackVisible=false;
 
-  if(window.CF&&CF._onEnterLive)CF._onEnterLive();
+  if(window.CF&&CF._onEnterMobileLive)CF._onEnterMobileLive();
   setTimeout(function(){if(window.redrawActive)redrawActive();},400);
 
   // Informational notice (one-liner, auto-dismisses)
@@ -4338,7 +4338,7 @@ function _ownerMobileExitLive(){
     }
   }
 
-  if(window.CF&&CF._onExitLive)CF._onExitLive();
+  if(window.CF&&CF._onExitMobileLive)CF._onExitMobileLive();
 }
 
 // ─── TC UTILS ───
@@ -17305,6 +17305,14 @@ CF._onEnterLive=function(){
 CF._onExitLive=function(){
   CF._tcRelayActive=false;
   if(CF._presChan){ CF._presChan.unsubscribe(); CF._presChan=null; }
+};
+/* Owner on mobile/tablet: subscribe to TC relay as a receiver instead of broadcaster */
+CF._onEnterMobileLive=function(){
+  if(CF._tcChan){ CF._tcChan.unsubscribe(); CF._tcChan=null; CF._viewerTcSubOk=false; }
+  if(CF.showId) subscribeTc();
+};
+CF._onExitMobileLive=function(){
+  if(CF._tcChan){ CF._tcChan.unsubscribe(); CF._tcChan=null; CF._viewerTcSubOk=false; }
 };
 
 boot();
