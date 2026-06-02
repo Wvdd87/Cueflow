@@ -7639,8 +7639,11 @@ function toggleCueFlag(cueId){
   persist();
   if(window.CF)CF._lastEditAt=Date.now();
   // Direct DOM update — no full re-render needed
-  document.querySelectorAll('.cue-flag-btn[data-cid="'+cueId+'"],.wf-flag-btn[data-cid="'+cueId+'"],.ck-flag-btn[data-cid="'+cueId+'"]').forEach(btn=>{
+  document.querySelectorAll('.cue-flag-btn[data-cid="'+cueId+'"],.wf-flag-btn[data-cid="'+cueId+'"],.ck-flag-btn[data-cid="'+cueId+'"],.me-cue-flag[data-cid="'+cueId+'"]').forEach(btn=>{
     btn.classList.toggle('on',nowFlagged);
+  });
+  document.querySelectorAll('.me-cue-row[data-cid="'+cueId+'"]').forEach(row=>{
+    row.classList.toggle('flagged',nowFlagged);
   });
   // Instant broadcast to all connected clients — bypasses the quiet window entirely
   if(window.CF&&CF._tcChan&&CF.showId){
@@ -15126,8 +15129,9 @@ function _onFlagBroadcast(msg){
   });
   if(!changed) return;
   document.querySelectorAll(
-    '.cue-flag-btn[data-cid="'+p.cueId+'"],.wf-flag-btn[data-cid="'+p.cueId+'"],.ck-flag-btn[data-cid="'+p.cueId+'"]'
+    '.cue-flag-btn[data-cid="'+p.cueId+'"],.wf-flag-btn[data-cid="'+p.cueId+'"],.ck-flag-btn[data-cid="'+p.cueId+'"],.me-cue-flag[data-cid="'+p.cueId+'"]'
   ).forEach(function(btn){btn.classList.toggle('on',!!p.flagged);});
+  document.querySelectorAll('.me-cue-row[data-cid="'+p.cueId+'"]').forEach(function(row){row.classList.toggle('flagged',!!p.flagged);});
   ['live-next-flag','test-next-flag','vw-next-flag'].forEach(function(id){
     var fl=document.getElementById(id);
     if(fl&&fl.dataset.cid===p.cueId) fl.classList.toggle('on',!!p.flagged);
