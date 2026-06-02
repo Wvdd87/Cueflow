@@ -12637,48 +12637,49 @@ function _meRenderDrawer(){
   if(!body)return;
   body.innerHTML='';
 
-  // PROJECTS
-  var projSec=_meDrawerSection('PROJECTS');
-  var localProjs=[];
-  try{localProjs=JSON.parse(localStorage.getItem('cf12_projects')||'[]');}catch(e){}
-  localProjs.sort(function(a,b){return(b.updated||0)-(a.updated||0);});
-  var cfShowList=window.CF&&CF._showList?CF._showList:[];
-  // Merge: prefer collab show list if logged in, else local
-  var showItems=cfShowList.length?cfShowList:localProjs;
-  showItems.forEach(function(p){
-    // Match by local projectId OR Supabase showId — in connected mode both may differ
-    var isActive=(state.projectId&&p.id===state.projectId)||(window.CF&&CF.showId&&p.id===CF.showId);
-    var item=document.createElement('div');
-    item.className='me-drawer-item'+(isActive?' active':'');
-    item.innerHTML='<span class="me-drawer-item-name">'+escH(p.name||'Untitled')+'</span>'+
-      (isActive?'<span class="me-drawer-pip"></span>':'');
-    item.addEventListener('click',function(){
-      if(isActive)return;
-      // Show mobile confirmation — don't close drawer yet, modal appears on top
-      _meSwitchProjId=p.id;
-      _meSwitchIsSupabase=!!(window.CF&&CF._showList&&CF._showList.length);
-      var nameEl=document.getElementById('me-spc-name');
-      if(nameEl)nameEl.textContent=p.name||'this project';
-      var m=document.getElementById('me-switch-proj-modal');
-      if(m)m.classList.add('show');
-    });
-    projSec.body.appendChild(item);
-  });
-  if(!showItems.length){
-    var empty=document.createElement('div');
-    empty.className='me-drawer-empty';
-    empty.textContent='No saved projects';
-    projSec.body.appendChild(empty);
-  }
-  var newBtn=document.createElement('button');
-  newBtn.className='me-drawer-add-btn amber';
-  newBtn.textContent='+ New project';
-  newBtn.addEventListener('click',function(){meOpenNewProj();});
-  projSec.body.appendChild(newBtn);
-  body.appendChild(projSec.el);
+  var _isEditorDrawer=window.CF&&CF.showId&&!CF.isOwner;
 
-  // SHARE LINKS (owner only when collab active)
-  if(window.CF&&CF.showId){
+  // PROJECTS — hidden for editors (they cannot switch or create projects)
+  if(!_isEditorDrawer){
+    var projSec=_meDrawerSection('PROJECTS');
+    var localProjs=[];
+    try{localProjs=JSON.parse(localStorage.getItem('cf12_projects')||'[]');}catch(e){}
+    localProjs.sort(function(a,b){return(b.updated||0)-(a.updated||0);});
+    var cfShowList=window.CF&&CF._showList?CF._showList:[];
+    var showItems=cfShowList.length?cfShowList:localProjs;
+    showItems.forEach(function(p){
+      var isActive=(state.projectId&&p.id===state.projectId)||(window.CF&&CF.showId&&p.id===CF.showId);
+      var item=document.createElement('div');
+      item.className='me-drawer-item'+(isActive?' active':'');
+      item.innerHTML='<span class="me-drawer-item-name">'+escH(p.name||'Untitled')+'</span>'+
+        (isActive?'<span class="me-drawer-pip"></span>':'');
+      item.addEventListener('click',function(){
+        if(isActive)return;
+        _meSwitchProjId=p.id;
+        _meSwitchIsSupabase=!!(window.CF&&CF._showList&&CF._showList.length);
+        var nameEl=document.getElementById('me-spc-name');
+        if(nameEl)nameEl.textContent=p.name||'this project';
+        var m=document.getElementById('me-switch-proj-modal');
+        if(m)m.classList.add('show');
+      });
+      projSec.body.appendChild(item);
+    });
+    if(!showItems.length){
+      var empty=document.createElement('div');
+      empty.className='me-drawer-empty';
+      empty.textContent='No saved projects';
+      projSec.body.appendChild(empty);
+    }
+    var newBtn=document.createElement('button');
+    newBtn.className='me-drawer-add-btn amber';
+    newBtn.textContent='+ New project';
+    newBtn.addEventListener('click',function(){meOpenNewProj();});
+    projSec.body.appendChild(newBtn);
+    body.appendChild(projSec.el);
+  }
+
+  // SHARE LINKS — owner only
+  if(window.CF&&CF.showId&&CF.isOwner){
     var shareSec=_meDrawerSection('SHARE LINKS');
     var shareHint=document.createElement('div');
     shareHint.style.cssText='padding:6px 16px 10px;font-family:var(--sans);font-size:11px;color:var(--txt-low);border-bottom:1px solid var(--hair);';
@@ -12689,7 +12690,7 @@ function _meRenderDrawer(){
     var _meShareBase=location.origin+location.pathname;
     var pins=CF._pinList||[];
     pins.forEach(function(pin){
-      if(pin.role==='owner') return; // skip owner entry
+      if(pin.role==='owner') return;
       var item=document.createElement('div');
       item.className='me-drawer-item';
       var rawPin=pin.display_pin||pin.pin||'';
@@ -12710,13 +12711,11 @@ function _meRenderDrawer(){
       })(linkUrl,item));
       shareSec.body.appendChild(item);
     });
-    if(CF.isOwner){
-      var addPin=document.createElement('button');
-      addPin.className='me-drawer-add-btn amber';
-      addPin.textContent='+ New share link';
-      addPin.addEventListener('click',function(){meOpenNewShare();});
-      shareSec.body.appendChild(addPin);
-    }
+    var addPin=document.createElement('button');
+    addPin.className='me-drawer-add-btn amber';
+    addPin.textContent='+ New share link';
+    addPin.addEventListener('click',function(){meOpenNewShare();});
+    shareSec.body.appendChild(addPin);
     body.appendChild(shareSec.el);
   }
 
