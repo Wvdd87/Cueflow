@@ -4181,6 +4181,10 @@ function switchMode(mode){
     const hasTC=tcListening&&(mtc.locked||ltc.locked);
     if(!hasTC){_awaitingTCForLive=true;openSettingsModal('tc');return;}
   }
+  // Mobile/tablet (<1024px): owners see read-only viewer cockpit instead of full steering UI
+  if(mode==='live'&&window.innerWidth<1024){
+    if(!window.CF||CF.isOwner){_ownerMobileLive();return;}
+  }
   // Update all tab instances (3 topbars each with edit/test/live)
   ['edit','test','live'].forEach(m=>{
     ['e','t','l'].forEach(suffix=>{
@@ -4257,6 +4261,85 @@ window._restoreMode=function(mode){
   switchMode(mode);
   _skipLiveGuard=false;
 };
+
+// ─── OWNER MOBILE LIVE ───
+// On mobile/tablet (<1024px) owners see the read-only viewer cockpit.
+function _ownerMobileLive(){
+  var vs=document.getElementById('cf-viewer-screen');
+  if(vs)vs.style.display='flex';
+  var pn=document.getElementById('cf-v-project');
+  if(pn)pn.textContent=state.name||'';
+
+  // Full-viewer layout: all tracks, no camera/track filter cells
+  ['vw-cam-cell','vw-cam-name-cell','vw-track-following-cell','vw-cam-crumb-cell'].forEach(function(id){
+    var e=document.getElementById(id);if(e)e.style.display='none';
+  });
+  var seqCell=document.getElementById('vw-seq-grow-cell');
+  if(seqCell)seqCell.style.display='flex';
+  var camCock=document.getElementById('cam-cockpit');
+  if(camCock)camCock.style.display='none';
+  var livBody=document.querySelector('#cf-viewer-screen .live-body');
+  if(livBody)livBody.style.display='flex';
+
+  // Hide notes btn; show Edit back button wired to mobile exit
+  var notesBtn=document.getElementById('vw-cam-notes-btn');
+  if(notesBtn)notesBtn.style.display='none';
+  var backDiv=document.getElementById('editor-back-btn');
+  if(backDiv){
+    backDiv.style.display='flex';
+    var backBtnEl=backDiv.querySelector('button');
+    if(backBtnEl)backBtnEl.onclick=function(){_ownerMobileExitLive();};
+  }
+
+  // Hide mobile edit overlay while viewing
+  var mobileEd=document.getElementById('mobile-edit-screen');
+  if(mobileEd)mobileEd.style.display='none';
+
+  // State: all streams visible
+  state.appMode='live';
+  state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});
+  state.cameraTrackVisible=false;
+
+  if(window.CF&&CF._onEnterLive)CF._onEnterLive();
+  setTimeout(function(){if(window.redrawActive)redrawActive();},400);
+
+  // Informational notice (one-liner, auto-dismisses)
+  var toast=document.getElementById('undo-toast');
+  var toastMsg=document.getElementById('undo-msg');
+  if(toast&&toastMsg){
+    toastMsg.textContent='Live Mode on mobile shows a read-only view. To steer the show, use a desktop.';
+    var undoBtn=toast.querySelector('.undo-btn');
+    if(undoBtn)undoBtn.style.display='none';
+    toast.classList.add('show');
+    clearTimeout(window._mobileLiveNoticeTimer);
+    window._mobileLiveNoticeTimer=setTimeout(function(){
+      toast.classList.remove('show');
+      if(undoBtn)undoBtn.style.display='';
+    },5000);
+  }
+}
+
+function _ownerMobileExitLive(){
+  var vs=document.getElementById('cf-viewer-screen');
+  if(vs)vs.style.display='none';
+  var backDiv=document.getElementById('editor-back-btn');
+  if(backDiv)backDiv.style.display='none';
+
+  state.appMode='edit';
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  var es=document.getElementById('edit-screen');
+  if(es)es.classList.add('active');
+
+  if(isMobileEditMode()){
+    var mobileEd=document.getElementById('mobile-edit-screen');
+    if(mobileEd){
+      mobileEd.style.display='flex';
+      if(window.renderMobileEditScreen)renderMobileEditScreen();
+    }
+  }
+
+  if(window.CF&&CF._onExitLive)CF._onExitLive();
+}
 
 // ─── TC UTILS ───
 function tcF(tc){
