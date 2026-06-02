@@ -2016,6 +2016,380 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
 
+/* ═══════════════════════════════════════════════════════
+   MOBILE EDITOR — Phone & tablet cue list editor
+   ═══════════════════════════════════════════════════════ */
+.me-topbar {
+  display:flex; align-items:center;
+  height:56px; flex-shrink:0; padding:0 12px 0 4px;
+  background:var(--surface); border-bottom:1px solid var(--hair);
+}
+.me-burger {
+  width:48px; height:56px; background:none; border:none;
+  color:var(--txt-mid); display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; transition:color .12s; cursor:pointer;
+}
+.me-burger:hover { color:var(--txt-hi); }
+.me-topbar-text { flex:1; min-width:0; padding:0 8px; }
+.me-proj-name {
+  font-family:var(--cond); font-size:13px; font-weight:700;
+  color:var(--txt-hi); letter-spacing:.02em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.me-pl-name {
+  font-family:var(--cond); font-size:10px; font-weight:700;
+  color:var(--amber); letter-spacing:.1em; text-transform:uppercase;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.me-go-live {
+  height:36px; padding:0 16px; flex-shrink:0;
+  background:var(--amber); border:none; color:#000;
+  font-family:var(--cond); font-size:11px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; cursor:pointer; transition:filter .12s;
+}
+.me-go-live:hover { filter:brightness(1.1); }
+.me-body { flex:1; display:flex; min-height:0; overflow:hidden; }
+
+/* Sequence sidebar — tablet only */
+.me-seq-sidebar {
+  display:none; flex-direction:column; width:240px; flex-shrink:0;
+  border-right:1px solid var(--hair); overflow:hidden; background:var(--canvas);
+}
+.me-seq-sidebar-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 14px; border-bottom:1px solid var(--hair);
+  font-family:var(--cond); font-size:10px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--txt-mid); flex-shrink:0;
+}
+.me-seq-sidebar-add {
+  background:none; border:none; color:var(--amber);
+  font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.08em; cursor:pointer; padding:4px;
+}
+.me-seq-sidebar-list { flex:1; overflow-y:auto; }
+.me-seq-row {
+  display:flex; align-items:center; gap:10px;
+  padding:12px 14px; border-bottom:1px solid var(--hair);
+  cursor:pointer; transition:background .1s; border-left:2px solid transparent;
+}
+.me-seq-row:hover { background:var(--surface2); }
+.me-seq-row.active { border-left-color:var(--amber); background:var(--surface); }
+.me-seq-row.active .me-seq-row-num { color:var(--amber); }
+.me-seq-row.active .me-seq-row-name { color:var(--txt-hi); }
+.me-seq-row-num {
+  font-family:var(--cond); font-size:11px; font-weight:700;
+  color:var(--txt-low); letter-spacing:.05em; flex-shrink:0; width:20px;
+}
+.me-seq-row-name {
+  flex:1; min-width:0; font-family:var(--cond); font-size:12px; font-weight:700;
+  color:var(--txt); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.01em;
+}
+.me-seq-row-dur { font-family:var(--mono); font-size:11px; color:var(--txt-low); flex-shrink:0; }
+.me-main { flex:1; display:flex; flex-direction:column; min-width:0; overflow:hidden; }
+
+/* Sequence selector strip (phone) */
+.me-seq-hdr {
+  display:flex; align-items:stretch; border-bottom:1px solid var(--hair);
+  background:var(--surface); flex-shrink:0;
+}
+.me-seq-hdr-inner { flex:1; padding:12px 16px; cursor:pointer; }
+.me-seq-hdr-top {
+  font-family:var(--cond); font-size:9px; font-weight:700;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--txt-low); margin-bottom:4px;
+}
+.me-seq-hdr-top span { color:var(--amber); }
+.me-seq-hdr-name {
+  font-family:var(--cond); font-size:22px; font-weight:700;
+  color:var(--txt-hi); letter-spacing:.02em; text-transform:uppercase; line-height:1.1;
+}
+.me-seq-hdr-nav {
+  display:flex; align-items:center; gap:6px; padding:0 16px;
+  background:none; border:none; border-left:1px solid var(--hair);
+  color:var(--amber); font-family:var(--mono); font-size:13px; font-weight:700; cursor:pointer; flex-shrink:0;
+}
+.me-seq-hdr-nav:hover { background:var(--surface2); }
+
+/* Cue count bar */
+.me-cue-hdr {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 16px; border-bottom:1px solid var(--hair);
+  background:var(--canvas); flex-shrink:0;
+}
+.me-cue-hdr-count {
+  font-family:var(--cond); font-size:10px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--txt-mid);
+}
+.me-cue-hint { font-family:var(--cond); font-size:9px; color:var(--txt-low); letter-spacing:.04em; }
+.me-cue-list { flex:1; overflow-y:auto; background:var(--bg); }
+.me-cue-row {
+  display:flex; align-items:stretch; border-bottom:1px solid var(--hair);
+  background:var(--bg); transition:background .1s; min-height:64px;
+}
+.me-cue-row:active { background:var(--surface); }
+.me-cue-row.flagged { background:var(--amber-bg); }
+.me-cue-flag {
+  width:44px; flex-shrink:0; background:none; border:none;
+  color:var(--txt-dim); font-size:17px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:color .12s; padding:0;
+}
+.me-cue-flag.on { color:var(--amber); }
+.me-cue-flag:hover { color:var(--amber-dim); }
+.me-cue-body { flex:1; min-width:0; padding:13px 4px 11px 0; }
+.me-cue-top { display:flex; align-items:baseline; gap:8px; margin-bottom:5px; }
+.me-cue-num {
+  font-family:var(--cond); font-size:11px; font-weight:700;
+  color:var(--txt-low); letter-spacing:.05em; flex-shrink:0; width:24px;
+}
+.me-cue-name {
+  font-family:var(--sans); font-size:16px; font-weight:600; color:var(--txt-hi);
+  min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.me-cue-bot { display:flex; align-items:center; gap:7px; padding-left:32px; }
+.me-cue-tc { font-family:var(--mono); font-size:12px; color:var(--txt-mid); }
+.me-cue-del {
+  width:44px; flex-shrink:0; background:none; border:none;
+  color:var(--txt-dim); font-size:14px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:color .12s; padding:0;
+}
+.me-cue-del:hover { color:var(--red); }
+.me-empty {
+  padding:32px 20px; text-align:center;
+  font-family:var(--cond); font-size:12px; color:var(--txt-low); letter-spacing:.04em;
+}
+.me-add-cue {
+  height:56px; width:100%; flex-shrink:0;
+  background:var(--amber); border:none; color:#000;
+  font-family:var(--cond); font-size:13px; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase; cursor:pointer; transition:filter .12s;
+}
+.me-add-cue:hover { filter:brightness(1.08); }
+.me-add-cue:active { filter:brightness(.9); }
+
+/* Drawer */
+.me-backdrop { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.55); }
+.me-backdrop.show { display:block; }
+.me-drawer {
+  position:fixed; top:0; left:0; bottom:0; z-index:10000;
+  width:min(320px,90vw); background:var(--surface); border-right:1px solid var(--hair);
+  display:flex; flex-direction:column; overflow:hidden;
+  transform:translateX(-100%); transition:transform .22s ease;
+  box-shadow:4px 0 32px rgba(0,0,0,.5);
+}
+.me-drawer.open { transform:translateX(0); }
+.me-drawer-head {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding:18px 16px 14px; border-bottom:1px solid var(--hair); flex-shrink:0;
+}
+.me-drawer-super {
+  font-family:var(--cond); font-size:9px; font-weight:700;
+  letter-spacing:.18em; text-transform:uppercase; color:var(--txt-low); margin-bottom:4px;
+}
+.me-drawer-proj { font-family:var(--cond); font-size:18px; font-weight:700; color:var(--txt-hi); letter-spacing:.02em; }
+.me-drawer-close {
+  width:32px; height:32px; background:var(--surface2); border:1px solid var(--hair2);
+  color:var(--txt-mid); cursor:pointer; font-size:14px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.me-drawer-body { flex:1; overflow-y:auto; }
+.me-drawer-section { border-bottom:1px solid var(--hair); }
+.me-drawer-section-head {
+  padding:11px 16px 7px;
+  font-family:var(--cond); font-size:9px; font-weight:700;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--txt-low);
+}
+.me-drawer-item {
+  display:flex; align-items:center; gap:10px;
+  padding:13px 16px; border-bottom:1px solid var(--hair);
+  cursor:pointer; transition:background .1s; border-left:3px solid transparent;
+}
+.me-drawer-item:last-child { border-bottom:none; }
+.me-drawer-item:hover { background:var(--surface2); }
+.me-drawer-item.active { border-left-color:var(--amber); }
+.me-drawer-item.active .me-drawer-item-name { color:var(--txt-hi); font-weight:700; }
+.me-drawer-item-name {
+  flex:1; min-width:0; font-family:var(--sans); font-size:13px; font-weight:600;
+  color:var(--txt); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.me-drawer-pip { width:7px; height:7px; border-radius:50%; background:var(--amber); flex-shrink:0; }
+.me-drawer-pin-info { font-family:var(--mono); font-size:10px; color:var(--txt-low); letter-spacing:.04em; flex-shrink:0; }
+.me-drawer-eye {
+  background:none; border:none; color:var(--txt-mid); cursor:pointer;
+  padding:4px; display:flex; align-items:center; justify-content:center;
+  transition:color .12s; flex-shrink:0;
+}
+.me-drawer-eye:hover { color:var(--txt-hi); }
+.me-drawer-eye.hidden { color:var(--txt-dim); opacity:.4; }
+.me-drawer-add-btn {
+  display:block; width:100%; padding:12px 16px; background:none; border:none;
+  color:var(--txt-mid); font-family:var(--sans); font-size:13px; font-weight:600;
+  text-align:left; cursor:pointer; transition:color .12s;
+}
+.me-drawer-add-btn:hover { color:var(--txt-hi); }
+.me-drawer-add-btn.amber { color:var(--amber); }
+.me-drawer-empty {
+  padding:10px 16px; font-family:var(--cond); font-size:10px;
+  color:var(--txt-low); border-bottom:1px solid var(--hair);
+}
+
+/* Modals */
+.me-modal-head {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding:18px 20px 14px; border-bottom:1px solid var(--hair);
+  flex-shrink:0; background:var(--surface);
+}
+.me-modal-ctx {
+  font-family:var(--cond); font-size:10px; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--txt-low); margin-bottom:4px;
+}
+.me-modal-title {
+  font-family:var(--cond); font-size:22px; font-weight:700;
+  color:var(--txt-hi); letter-spacing:.04em; text-transform:uppercase;
+}
+.me-modal-close {
+  width:36px; height:36px; background:var(--surface2); border:1px solid var(--hair2);
+  color:var(--txt-mid); cursor:pointer; font-size:16px; flex-shrink:0; margin-top:2px;
+  display:flex; align-items:center; justify-content:center;
+}
+.me-modal-body {
+  flex:1; overflow-y:auto; padding:20px 20px 12px;
+  display:flex; flex-direction:column; gap:18px;
+}
+.me-field-group { display:flex; flex-direction:column; gap:8px; }
+.me-field-lbl-row { display:flex; align-items:center; justify-content:space-between; }
+.me-field-lbl {
+  font-family:var(--cond); font-size:10px; font-weight:700;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--txt-mid);
+}
+.me-field-opt,.me-field-hint { font-family:var(--cond); font-size:9px; color:var(--txt-low); letter-spacing:.1em; text-transform:uppercase; }
+.me-field-flag-lbl {
+  font-family:var(--cond); font-size:10px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--amber);
+}
+.me-tc-inp {
+  width:100%; padding:14px 16px; background:var(--surface2);
+  border:2px solid var(--amber); color:var(--txt-hi);
+  font-family:var(--mono); font-size:22px; font-weight:600;
+  letter-spacing:.04em; outline:none; transition:border-color .15s;
+}
+.me-tc-inp:focus { box-shadow:var(--focus); }
+.me-text-inp {
+  width:100%; padding:13px 16px; background:var(--surface2);
+  border:1.5px solid var(--hair2); color:var(--txt-hi);
+  font-family:var(--sans); font-size:16px; outline:none; transition:border-color .15s;
+}
+.me-text-inp:focus { border-color:var(--amber); box-shadow:var(--focus); }
+.me-select {
+  width:100%; padding:13px 16px; background:var(--surface2);
+  border:1.5px solid var(--hair2); color:var(--txt-hi);
+  font-family:var(--sans); font-size:16px; outline:none;
+  transition:border-color .15s; appearance:none; cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237c7e8a' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 14px center; padding-right:40px;
+}
+.me-select:focus { border-color:var(--amber); box-shadow:var(--focus); }
+.me-textarea {
+  width:100%; padding:13px 16px; background:var(--surface2);
+  border:1.5px solid var(--hair2); color:var(--txt-hi);
+  font-family:var(--sans); font-size:16px; outline:none;
+  transition:border-color .15s; resize:vertical; min-height:100px; line-height:1.5;
+}
+.me-textarea:focus { border-color:var(--amber); box-shadow:var(--focus); }
+.me-toggle-row {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:14px 16px; background:var(--surface2); border:1px solid var(--hair);
+}
+.me-toggle-label { font-family:var(--sans); font-size:14px; font-weight:600; color:var(--txt-hi); }
+.me-toggle-sub { font-family:var(--sans); font-size:12px; color:var(--txt-low); margin-top:3px; }
+.me-toggle-btn {
+  width:48px; height:28px; background:var(--surface3); border:1.5px solid var(--hair2);
+  border-radius:14px; cursor:pointer; position:relative; transition:background .2s,border-color .2s;
+  flex-shrink:0; padding:0;
+}
+.me-toggle-btn.on { background:var(--amber); border-color:var(--amber); }
+.me-toggle-thumb {
+  display:block; width:20px; height:20px; border-radius:50%;
+  background:var(--txt-low); position:absolute; top:2px; left:2px;
+  transition:transform .2s,background .2s;
+}
+.me-toggle-btn.on .me-toggle-thumb { transform:translateX(20px); background:#000; }
+.me-flag-state {
+  font-family:var(--cond); font-size:11px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase;
+}
+.me-modal-footer {
+  display:flex; align-items:center; gap:8px;
+  padding:12px 20px; border-top:1px solid var(--hair);
+  flex-shrink:0; background:var(--surface);
+}
+.me-btn {
+  height:48px; padding:0 20px; cursor:pointer;
+  font-family:var(--cond); font-size:12px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  transition:filter .12s,background .12s; border:none;
+}
+.me-btn-cancel {
+  flex:1; background:none; border:1px solid var(--hair2); color:var(--txt-mid);
+}
+.me-btn-cancel:hover { border-color:var(--hair3); color:var(--txt-hi); }
+.me-btn-primary { flex:2; background:var(--amber); color:#000; }
+.me-btn-primary:hover { filter:brightness(1.08); }
+.me-btn-danger { flex:1; background:var(--red); color:#fff; }
+.me-btn-danger:hover { filter:brightness(1.1); }
+.me-btn-danger-icon {
+  width:48px; height:48px; padding:0; flex-shrink:0;
+  background:none; border:1.5px solid rgba(255,40,72,.5); color:var(--red); font-size:16px;
+}
+.me-btn-danger-icon:hover { background:var(--red-bg); border-color:var(--red); }
+
+/* Sequence picker list */
+.me-seq-picker-list { flex:1; overflow-y:auto; }
+.me-sp-row {
+  display:flex; align-items:center; gap:12px;
+  padding:16px 20px; border-bottom:1px solid var(--hair);
+  cursor:pointer; transition:background .1s; border-left:3px solid transparent;
+}
+.me-sp-row:hover { background:var(--surface2); }
+.me-sp-row.active { border-left-color:var(--amber); background:var(--surface); }
+.me-sp-row.active .me-sp-num { color:var(--amber); }
+.me-sp-row.active .me-sp-name { color:var(--txt-hi); }
+.me-sp-num {
+  font-family:var(--cond); font-size:13px; font-weight:700;
+  color:var(--txt-low); letter-spacing:.05em; width:24px; flex-shrink:0;
+}
+.me-sp-name {
+  flex:1; min-width:0; font-family:var(--cond); font-size:15px; font-weight:700;
+  color:var(--txt); letter-spacing:.01em; text-transform:uppercase;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.me-sp-dur { font-family:var(--mono); font-size:13px; color:var(--txt-low); flex-shrink:0; }
+
+/* Delete confirm card */
+.me-del-box {
+  background:var(--surface); border:1px solid var(--hair2);
+  padding:24px; max-width:380px; width:calc(100% - 40px);
+  box-shadow:0 16px 48px rgba(0,0,0,.6);
+}
+.me-del-title {
+  font-family:var(--cond); font-size:24px; font-weight:700;
+  color:var(--txt-hi); letter-spacing:.04em; margin-bottom:12px;
+}
+.me-del-msg {
+  font-family:var(--sans); font-size:14px; color:var(--txt-mid);
+  line-height:1.5; margin-bottom:20px;
+}
+.me-del-actions { display:flex; gap:8px; }
+
+/* Tablet: show seq sidebar, hide phone-only header */
+@media (min-width:640px) {
+  .me-seq-sidebar { display:flex; }
+  .me-seq-hdr { display:none; }
+  .me-topbar { height:48px; }
+}
+@media (max-width:380px) {
+  .me-cue-name { font-size:14px; }
+  .me-seq-hdr-name { font-size:18px; }
+}
+
 /* ── ntm-btn danger variant ── */
 .ntm-btn.danger { border-color:rgba(255,40,72,.4); color:var(--danger); }
 .ntm-btn.danger:hover { background:var(--danger-bg); border-color:var(--danger); }
@@ -3782,6 +4156,16 @@ function switchMode(mode){
     updateProgressBar();
     // Notify collab layer: owner left live mode — stop TC broadcast
     if(window.CF && CF._onExitLive) CF._onExitLive();
+  }
+  // Mobile editor overlay: show on edit mode for narrow screens (owner/editor)
+  var _mobileEd=document.getElementById('mobile-edit-screen');
+  if(_mobileEd){
+    if(mode==='edit'&&isMobileEditMode()){
+      _mobileEd.style.display='flex';
+      renderMobileEditScreen();
+    } else {
+      _mobileEd.style.display='none';
+    }
   }
   if(window.saveSessionState) saveSessionState();
 }
@@ -6499,6 +6883,12 @@ function renderSongList(){
   });
   el.scrollTop=_st; // set immediately...
   requestAnimationFrame(()=>{ el.scrollTop=_st; }); // ...and again after reflow
+  // Refresh mobile editor: show/update if in edit mode on a narrow screen
+  if(state.appMode==='edit'&&isMobileEditMode()){
+    var _msSl=document.getElementById('mobile-edit-screen');
+    if(_msSl){if(_msSl.style.display!=='flex'){_msSl.style.display='flex';_meRenderTopbar();}
+    _meRenderSeqSidebar();_meRenderSeqHeader();}
+  }
 }
 function startSongRename(songId,rowEl){
   const song=state.songs.find(s=>s.id===songId);if(!song)return;
@@ -6888,6 +7278,11 @@ function renderCueList(){
     }
   }
   if(ETL.visible)requestAnimationFrame(renderEditTimeline);
+  // Refresh mobile editor: show it if we're in edit mode on a narrow screen
+  if(state.appMode==='edit'&&isMobileEditMode()){
+    var _msEl=document.getElementById('mobile-edit-screen');
+    if(_msEl){if(_msEl.style.display!=='flex')_msEl.style.display='flex';_meRenderCueList();_meRenderSeqHeader();}
+  }
 }
 // Global state for column resizing — prevents multiple simultaneous drags
 
@@ -11882,6 +12277,538 @@ window.CfSelect=(function(){
 
   return{init:init,byId:byId,initIn:initIn};
 })();
+
+// ══════════════════════════════════════════════════════════════
+// MOBILE EDITOR — Phone & tablet cue list editor for owner/editor
+// ══════════════════════════════════════════════════════════════
+
+function isMobileEditMode(){
+  // Show mobile editor for screens ≤1100px wide
+  return window.innerWidth<=1100;
+}
+
+function meGoLive(){
+  // Editor in collab mode → go online/follow live
+  if(window.CF&&CF.showId&&!CF.isOwner){
+    if(window._editorGoOnline)_editorGoOnline();
+  } else {
+    switchMode('live');
+  }
+}
+
+function renderMobileEditScreen(){
+  _meRenderTopbar();
+  _meRenderSeqSidebar();
+  _meRenderSeqHeader();
+  _meRenderCueList();
+}
+
+function _meRenderTopbar(){
+  var nameEl=document.getElementById('me-proj-name');
+  var plEl=document.getElementById('me-pl-name');
+  var drawerProjEl=document.getElementById('me-drawer-proj-name');
+  if(nameEl) nameEl.textContent=state.name||'CueFlow';
+  if(drawerProjEl) drawerProjEl.textContent=state.name||'CueFlow';
+  if(plEl){var pl=getActivePlaylist();plEl.textContent=pl?pl.name:'—';}
+}
+
+function _meRenderSeqSidebar(){
+  var listEl=document.getElementById('me-seq-sidebar-list');
+  var countEl=document.getElementById('me-seq-sidebar-count');
+  if(!listEl)return;
+  var songs=getActivePlaylistSongs();
+  if(countEl)countEl.textContent='SEQUENCES · '+songs.length;
+  listEl.innerHTML='';
+  songs.forEach(function(song,i){
+    var isActive=song.id===state.activeSongId;
+    var dur=_meSongDuration(song);
+    var row=document.createElement('div');
+    row.className='me-seq-row'+(isActive?' active':'');
+    row.innerHTML='<div class="me-seq-row-num">'+String(i+1).padStart(2,'0')+'</div>'+
+      '<div class="me-seq-row-name">'+escH(song.name)+'</div>'+
+      '<div class="me-seq-row-dur">'+escH(dur)+'</div>';
+    row.addEventListener('click',function(){meSelectSeq(song.id);});
+    listEl.appendChild(row);
+  });
+}
+
+function _meRenderSeqHeader(){
+  var songs=getActivePlaylistSongs();
+  var song=getActiveSong();
+  var idx=songs.findIndex(function(s){return s.id===state.activeSongId;});
+  var numEl=document.getElementById('me-seq-num');
+  var nameEl=document.getElementById('me-seq-hdr-name');
+  var posEl=document.getElementById('me-seq-pos');
+  if(numEl)numEl.textContent=idx>=0?String(idx+1).padStart(2,'0'):'—';
+  if(nameEl)nameEl.textContent=song?song.name:'No sequence';
+  if(posEl)posEl.textContent=(idx>=0?String(idx+1).padStart(2,'0'):'—')+' / '+songs.length;
+}
+
+function _meRenderCueList(){
+  var el=document.getElementById('me-cue-list');
+  var countEl=document.getElementById('me-cue-count-lbl');
+  if(!el)return;
+  var song=getActiveSong();
+  if(!song){
+    el.innerHTML='<div class="me-empty">No sequence selected.</div>';
+    if(countEl)countEl.textContent='CUES · 0';
+    return;
+  }
+  var cues=getSortedCues(song.id,true);
+  if(countEl)countEl.textContent='CUES · '+cues.length;
+  el.innerHTML='';
+  cues.forEach(function(cue,i){
+    var isCamCue=!!(cue.cameraId&&state.cameraTrack);
+    var cam=isCamCue?getCameraById(cue.cameraId):null;
+    var camHex=isCamCue?getCameraColor(cam?cam.colorIdx:0):null;
+    var stream=state.streams.find(function(s){return s.id===cue.streamId;});
+    var shortName=stream?(stream.shortName||stream.name||'?').slice(0,3).toUpperCase():'?';
+    var trackBadge=isCamCue
+      ?'<span class="me-cue-track cam-badge-sq xs" style="background:'+camHex+';color:#06060a;">'+escH(String(cam?cam.number:'?').padStart(2,'0'))+'</span>'
+      :'<span class="me-cue-track track-glyph xs" style="background:#06060a;color:#fff;">'+escH(shortName)+'</span>';
+    var row=document.createElement('div');
+    row.className='me-cue-row'+(cue.flagged?' flagged':'');
+    row.dataset.cid=cue.id;
+    row.innerHTML=
+      '<button class="me-cue-flag'+(cue.flagged?' on':'')+'" data-cid="'+cue.id+'" aria-label="Toggle flag">⚑</button>'+
+      '<div class="me-cue-body">'+
+        '<div class="me-cue-top">'+
+          '<span class="me-cue-num">'+String(i+1).padStart(2,'0')+'</span>'+
+          '<span class="me-cue-name">'+escH(cue.name)+'</span>'+
+        '</div>'+
+        '<div class="me-cue-bot">'+
+          '<span class="me-cue-tc">'+escH(cue.tc)+'</span>'+
+          trackBadge+
+        '</div>'+
+      '</div>'+
+      '<button class="me-cue-del" data-cid="'+cue.id+'" aria-label="Delete cue">✕</button>';
+    (function(c,rowEl){
+      var flagBtn=rowEl.querySelector('.me-cue-flag');
+      flagBtn.addEventListener('click',function(e){
+        e.stopPropagation();
+        toggleCueFlag(c.id);
+        _meRenderCueList();
+      });
+      var delBtn=rowEl.querySelector('.me-cue-del');
+      delBtn.addEventListener('click',function(e){
+        e.stopPropagation();
+        meOpenDeleteConfirm(c.id);
+      });
+      rowEl.addEventListener('click',function(e){
+        if(e.target.classList.contains('me-cue-flag')||e.target.classList.contains('me-cue-del'))return;
+        meOpenEditCue(c.id);
+      });
+    })(cue,row);
+    el.appendChild(row);
+  });
+  if(!cues.length){
+    el.innerHTML='<div class="me-empty">No cues yet — tap + ADD CUE to start.</div>';
+  }
+}
+
+function meSelectSeq(songId){
+  selectSong(songId);
+  _meRenderSeqSidebar();
+  _meRenderSeqHeader();
+  _meRenderCueList();
+}
+
+function _meSongDuration(song){
+  var cues=getSortedCues(song.id,false);
+  if(cues.length<2)return '';
+  var diffF=cues[cues.length-1]._f-cues[0]._f;
+  var diffS=Math.round(diffF/(state.fps||25));
+  return Math.floor(diffS/60)+':'+String(diffS%60).padStart(2,'0');
+}
+
+// ── HAMBURGER DRAWER ──
+function meDrawerOpen(){
+  var drawer=document.getElementById('me-drawer');
+  var backdrop=document.getElementById('me-backdrop');
+  if(drawer)drawer.classList.add('open');
+  if(backdrop)backdrop.classList.add('show');
+  _meRenderDrawer();
+}
+function meDrawerClose(){
+  var drawer=document.getElementById('me-drawer');
+  var backdrop=document.getElementById('me-backdrop');
+  if(drawer)drawer.classList.remove('open');
+  if(backdrop)backdrop.classList.remove('show');
+}
+function _meRenderDrawer(){
+  _meRenderTopbar();
+  var body=document.getElementById('me-drawer-body');
+  if(!body)return;
+  body.innerHTML='';
+
+  // PROJECTS
+  var projSec=_meDrawerSection('PROJECTS');
+  var localProjs=[];
+  try{localProjs=JSON.parse(localStorage.getItem('cf12_projects')||'[]');}catch(e){}
+  localProjs.sort(function(a,b){return(b.updated||0)-(a.updated||0);});
+  var cfShowList=window.CF&&CF._showList?CF._showList:[];
+  // Merge: prefer collab show list if logged in, else local
+  var showItems=cfShowList.length?cfShowList:localProjs;
+  showItems.forEach(function(p){
+    var isActive=state.projectId?p.id===state.projectId:(window.CF&&CF.showId&&p.id===CF.showId);
+    var item=document.createElement('div');
+    item.className='me-drawer-item'+(isActive?' active':'');
+    item.innerHTML='<span class="me-drawer-item-name">'+escH(p.name||'Untitled')+'</span>'+
+      (isActive?'<span class="me-drawer-pip"></span>':'');
+    item.addEventListener('click',function(){
+      meDrawerClose();
+      if(isActive)return;
+      if(window.CF&&CF._switchProject)CF._switchProject(p.id);
+      else{var d=loadProjectData(p.id);if(d)applyProject(d);}
+    });
+    projSec.body.appendChild(item);
+  });
+  if(!showItems.length){
+    var empty=document.createElement('div');
+    empty.className='me-drawer-empty';
+    empty.textContent='No saved projects';
+    projSec.body.appendChild(empty);
+  }
+  var newBtn=document.createElement('button');
+  newBtn.className='me-drawer-add-btn amber';
+  newBtn.textContent='+ New project';
+  newBtn.addEventListener('click',function(){meDrawerClose();openNewProjectModal();});
+  projSec.body.appendChild(newBtn);
+  body.appendChild(projSec.el);
+
+  // SHARE LINKS (owner only when collab active)
+  if(window.CF&&CF.showId){
+    var shareSec=_meDrawerSection('SHARE LINKS');
+    var pins=CF._pinList||[];
+    pins.forEach(function(pin){
+      var item=document.createElement('div');
+      item.className='me-drawer-item';
+      var pinCode=pin.pin?String(pin.pin).replace(/(\d{3})(\d{3})/,'$1 $2'):'';
+      item.innerHTML='<span class="me-drawer-item-name">'+escH(pin.label||pin.role||'Link')+'</span>'+
+        '<span class="me-drawer-pin-info">'+escH((pin.role||'crew').toUpperCase())+' '+escH(pinCode)+'</span>';
+      shareSec.body.appendChild(item);
+    });
+    if(CF.isOwner){
+      var addPin=document.createElement('button');
+      addPin.className='me-drawer-add-btn amber';
+      addPin.textContent='+ New share link';
+      addPin.addEventListener('click',function(){meDrawerClose();if(window.sbOpen)sbOpen('online');});
+      shareSec.body.appendChild(addPin);
+    }
+    body.appendChild(shareSec.el);
+  }
+
+  // PLAYLISTS
+  var plSec=_meDrawerSection('PLAYLISTS');
+  (state.playlists||[]).forEach(function(pl){
+    var isActive=pl.id===state.activePlaylistId;
+    var item=document.createElement('div');
+    item.className='me-drawer-item'+(isActive?' active':'');
+    item.innerHTML='<span class="me-drawer-item-name">'+escH(pl.name||'Untitled')+'</span>'+
+      (isActive?'<span class="me-drawer-pip"></span>':'');
+    item.addEventListener('click',function(){
+      if(isActive){meDrawerClose();return;}
+      state.activePlaylistId=pl.id;
+      if(state.playlists){
+        var pl2=state.playlists.find(function(p){return p.id===pl.id;});
+        if(pl2&&pl2.songIds&&pl2.songIds.length)state.activeSongId=pl2.songIds[0];
+      }
+      persist();meDrawerClose();renderMobileEditScreen();
+    });
+    plSec.body.appendChild(item);
+  });
+  body.appendChild(plSec.el);
+
+  // TRACKS
+  var trkSec=_meDrawerSection('TRACKS');
+  (state.streams||[]).forEach(function(stream){
+    var isVisible=!state.visibleStreamIds||state.visibleStreamIds.indexOf(stream.id)>=0;
+    var item=document.createElement('div');
+    item.className='me-drawer-item';
+    item.style.cssText='display:flex;align-items:center;gap:10px;';
+    var shortN=((stream.shortName||stream.name||'?').slice(0,3)).toUpperCase();
+    var badge='<span class="track-glyph xs" style="background:#06060a;color:#fff;flex-shrink:0;">'+escH(shortN)+'</span>';
+    var eyeSvg=isVisible
+      ?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+      :'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+    item.innerHTML=badge+'<span class="me-drawer-item-name">'+escH(stream.name||'Track')+'</span>'+
+      '<button class="me-drawer-eye'+(isVisible?'':' hidden')+'" aria-label="'+(isVisible?'Hide':'Show')+'">'+eyeSvg+'</button>';
+    var eyeBtn=item.querySelector('.me-drawer-eye');
+    (function(sid,visible){
+      eyeBtn.addEventListener('click',function(e){
+        e.stopPropagation();
+        if(visible&&state.visibleStreamIds.length<=1)return;
+        state.visibleStreamIds=visible
+          ?state.visibleStreamIds.filter(function(id){return id!==sid;})
+          :[].concat(state.visibleStreamIds||[],[sid]);
+        persist();renderStreamsBar();_meRenderDrawer();
+      });
+    })(stream.id,isVisible);
+    trkSec.body.appendChild(item);
+  });
+  body.appendChild(trkSec.el);
+}
+function _meDrawerSection(title){
+  var el=document.createElement('div');
+  el.className='me-drawer-section';
+  var head=document.createElement('div');
+  head.className='me-drawer-section-head';
+  head.textContent=title;
+  el.appendChild(head);
+  var bodyEl=document.createElement('div');
+  bodyEl.className='me-drawer-section-body';
+  el.appendChild(bodyEl);
+  return{el:el,body:bodyEl};
+}
+
+// ── SEQUENCE PICKER ──
+function meSeqPickerOpen(){
+  var el=document.getElementById('me-seq-picker');
+  if(!el)return;
+  var songs=getActivePlaylistSongs();
+  var pl=getActivePlaylist();
+  var ctxEl=document.getElementById('me-sp-ctx');
+  if(ctxEl)ctxEl.textContent=(pl?pl.name:'')+' · '+songs.length+' SEQUENCES';
+  var listEl=document.getElementById('me-seq-picker-list');
+  if(listEl){
+    listEl.innerHTML='';
+    songs.forEach(function(song,i){
+      var isActive=song.id===state.activeSongId;
+      var dur=_meSongDuration(song);
+      var row=document.createElement('div');
+      row.className='me-sp-row'+(isActive?' active':'');
+      row.innerHTML='<span class="me-sp-num">'+String(i+1).padStart(2,'0')+'</span>'+
+        '<span class="me-sp-name">'+escH(song.name)+'</span>'+
+        '<span class="me-sp-dur">'+escH(dur)+'</span>';
+      row.addEventListener('click',function(){meSelectSeq(song.id);meSeqPickerClose();});
+      listEl.appendChild(row);
+    });
+  }
+  el.style.display='flex';
+}
+function meSeqPickerClose(){
+  var el=document.getElementById('me-seq-picker');
+  if(el)el.style.display='none';
+}
+
+// ── ADD CUE ──
+var _meAddFlag=false;
+function meOpenAddCue(){
+  if(window.CF&&!CF.showId){openNewProjectModal();return;}
+  var song=getActiveSong();
+  if(!song)return;
+  _meAddFlag=false;
+  var songs=getActivePlaylistSongs();
+  var idx=songs.findIndex(function(s){return s.id===state.activeSongId;});
+  var ctxEl=document.getElementById('me-ac-ctx');
+  if(ctxEl)ctxEl.textContent='SEQUENCE '+(idx>=0?String(idx+1).padStart(2,'0'):'—')+' · '+escH((song.name||'').toUpperCase().slice(0,24));
+  var sorted=getSortedCues(song.id,false);
+  var defaultTc=sorted.length?fTC(sorted[sorted.length-1]._f+8*(state.fps||25)):(song.startTc||'01:00:00:00');
+  var tcInp=document.getElementById('me-ac-tc');
+  if(tcInp){tcInp.value=defaultTc;tcInp.style.borderColor='';}
+  var nameInp=document.getElementById('me-ac-name');
+  if(nameInp)nameInp.value='';
+  var descInp=document.getElementById('me-ac-desc');
+  if(descInp)descInp.value='';
+  var flagBtn=document.getElementById('me-ac-flag-btn');
+  if(flagBtn){flagBtn.classList.remove('on');flagBtn.setAttribute('aria-checked','false');}
+  _mePopulateTrackSel('me-ac-track',state.activeStreamId||state.streams[0]?.id||'');
+  var modal=document.getElementById('me-add-cue-modal');
+  if(modal){modal.style.display='flex';setTimeout(function(){if(nameInp)nameInp.focus();},60);}
+}
+function meCloseAddCue(){
+  var modal=document.getElementById('me-add-cue-modal');
+  if(modal)modal.style.display='none';
+}
+function meToggleAddFlag(){
+  _meAddFlag=!_meAddFlag;
+  var btn=document.getElementById('me-ac-flag-btn');
+  if(btn){btn.classList.toggle('on',_meAddFlag);btn.setAttribute('aria-checked',_meAddFlag?'true':'false');}
+}
+function meSubmitAddCue(){
+  var song=getActiveSong();if(!song)return;
+  var tcInp=document.getElementById('me-ac-tc');
+  var nameInp=document.getElementById('me-ac-name');
+  var trackSel=document.getElementById('me-ac-track');
+  var descInp=document.getElementById('me-ac-desc');
+  var rawTc=tcInp?tcInp.value.trim():'';
+  var tc=normalizeTcInput(rawTc);
+  if(!validateTc(tc)){if(tcInp){tcInp.style.borderColor='var(--red)';tcInp.focus();}return;}
+  var name=(nameInp?nameInp.value.trim():'')||'NEW CUE';
+  var streamId=trackSel?trackSel.value:(state.streams[0]?.id||'');
+  var desc=descInp?descInp.value.trim():'';
+  snapshot();
+  var newCue={id:uid(),tc:tc,name:name,desc:desc,streamId:streamId};
+  if(_meAddFlag)newCue.flagged=true;
+  song.cues.push(newCue);
+  persist();renderCueList();
+  meCloseAddCue();
+  meShowToast('Cue added');
+}
+
+// ── EDIT CUE ──
+var _meEditCueId=null;
+function meOpenEditCue(cueId){
+  var cue=null;
+  state.songs.forEach(function(s){s.cues.forEach(function(c){if(c.id===cueId)cue=c;});});
+  if(!cue)return;
+  var song=getActiveSong();
+  var songs=getActivePlaylistSongs();
+  var idx=songs.findIndex(function(s){return s.id===state.activeSongId;});
+  var sortedCues=getSortedCues(state.activeSongId||'',false);
+  var cueIdx=sortedCues.findIndex(function(c){return c.id===cueId;});
+  _meEditCueId=cueId;
+  var ctxEl=document.getElementById('me-ec-ctx');
+  if(ctxEl)ctxEl.textContent='SEQUENCE '+(idx>=0?String(idx+1).padStart(2,'0'):'—')+' · '+escH((song?song.name:'').toUpperCase().slice(0,24));
+  var titleEl=document.getElementById('me-ec-title');
+  if(titleEl)titleEl.textContent='EDIT CUE '+(cueIdx>=0?String(cueIdx+1).padStart(2,'0'):'');
+  var tcInp=document.getElementById('me-ec-tc');
+  if(tcInp){tcInp.value=cue.tc;tcInp.style.borderColor='';}
+  var nameInp=document.getElementById('me-ec-name');
+  if(nameInp)nameInp.value=cue.name||'';
+  var descInp=document.getElementById('me-ec-desc');
+  if(descInp)descInp.value=cue.desc||'';
+  _mePopulateTrackSel('me-ec-track',cue.streamId||(state.streams[0]?.id||''));
+  var flagLbl=document.getElementById('me-ec-flag-lbl');
+  if(flagLbl)flagLbl.style.display=cue.flagged?'':'none';
+  _meRefreshEditFlagState(cue);
+  var modal=document.getElementById('me-edit-cue-modal');
+  if(modal)modal.style.display='flex';
+}
+function _meRefreshEditFlagState(cue){
+  var flagState=document.getElementById('me-ec-flag-state');
+  if(flagState){
+    flagState.textContent=cue.flagged?'⚑ ON · NEEDS ATTENTION':'OFF';
+    flagState.style.color=cue.flagged?'var(--amber)':'var(--txt-low)';
+  }
+  var flagLbl=document.getElementById('me-ec-flag-lbl');
+  if(flagLbl)flagLbl.style.display=cue.flagged?'':'none';
+}
+function meCloseEditCue(){
+  var modal=document.getElementById('me-edit-cue-modal');
+  if(modal)modal.style.display='none';
+  _meEditCueId=null;
+}
+function meEditToggleFlag(){
+  if(!_meEditCueId)return;
+  toggleCueFlag(_meEditCueId);
+  var cue=null;
+  state.songs.forEach(function(s){s.cues.forEach(function(c){if(c.id===_meEditCueId)cue=c;});});
+  if(cue)_meRefreshEditFlagState(cue);
+  _meRenderCueList();
+}
+function meSubmitEditCue(){
+  if(!_meEditCueId)return;
+  var cue=null;
+  state.songs.forEach(function(s){s.cues.forEach(function(c){if(c.id===_meEditCueId)cue=c;});});
+  if(!cue)return;
+  var tcInp=document.getElementById('me-ec-tc');
+  var nameInp=document.getElementById('me-ec-name');
+  var trackSel=document.getElementById('me-ec-track');
+  var descInp=document.getElementById('me-ec-desc');
+  var rawTc=tcInp?tcInp.value.trim():'';
+  var tc=normalizeTcInput(rawTc);
+  if(!validateTc(tc)){if(tcInp){tcInp.style.borderColor='var(--red)';tcInp.focus();}return;}
+  snapshot();
+  cue.tc=tc;
+  cue.name=(nameInp?nameInp.value.trim():'')||cue.name;
+  if(trackSel&&trackSel.value)cue.streamId=trackSel.value;
+  cue.desc=descInp?descInp.value.trim():'';
+  persist();renderCueList();
+  meCloseEditCue();
+  meShowToast('Cue saved');
+}
+
+// ── DELETE CUE ──
+var _meDeleteCueId=null;
+function meOpenDeleteConfirm(cueId){
+  _meDeleteCueId=cueId;
+  var cue=null;
+  var sortedCues=getSortedCues(state.activeSongId||'',false);
+  var cueIdx=sortedCues.findIndex(function(c){return c.id===cueId;});
+  state.songs.forEach(function(s){s.cues.forEach(function(c){if(c.id===cueId)cue=c;});});
+  var msgEl=document.getElementById('me-del-msg');
+  if(msgEl&&cue){
+    msgEl.innerHTML='Cue <strong>'+String(cueIdx>=0?cueIdx+1:'').padStart(2,'0')+' · '+escH(cue.name)+'</strong> will be removed from this sequence. This can\'t be undone.';
+  }
+  var modal=document.getElementById('me-del-confirm');
+  if(modal)modal.style.display='flex';
+}
+function meDeleteCancel(){
+  var modal=document.getElementById('me-del-confirm');
+  if(modal)modal.style.display='none';
+  _meDeleteCueId=null;
+}
+function meDeleteConfirm(){
+  if(!_meDeleteCueId)return;
+  var id=_meDeleteCueId;
+  snapshot();
+  state.songs.forEach(function(s){var i=s.cues.findIndex(function(c){return c.id===id;});if(i>=0)s.cues.splice(i,1);});
+  if(window.ETL&&ETL.selId===id)ETL.selId=null;
+  persist();renderCueList();
+  showUndoToast('Cue deleted');
+  meDeleteCancel();
+  if(_meEditCueId===id)meCloseEditCue();
+}
+function meDeleteFromEdit(){
+  if(!_meEditCueId)return;
+  var cueId=_meEditCueId;
+  meCloseEditCue();
+  meOpenDeleteConfirm(cueId);
+}
+
+// ── TRACK SELECTOR ──
+function _mePopulateTrackSel(selId,currentStreamId){
+  var sel=document.getElementById(selId);
+  if(!sel)return;
+  var streams=state.streams||[];
+  if(window.CF&&CF.role==='track-editor'&&CF.tracks)
+    streams=streams.filter(function(s){return CF.tracks.indexOf(s.id)>=0;});
+  sel.innerHTML=streams.map(function(s){
+    var sn=(s.shortName||s.name||'?').slice(0,3).toUpperCase();
+    return '<option value="'+escH(s.id)+'"'+(s.id===currentStreamId?' selected':'')+'>'+escH(sn)+'  '+escH(s.name||'')+'</option>';
+  }).join('');
+}
+
+// ── TOAST ──
+function meShowToast(msg){
+  var toast=document.getElementById('me-toast');
+  if(!toast){
+    toast=document.createElement('div');
+    toast.id='me-toast';
+    toast.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--hair2);color:var(--txt-hi);padding:10px 20px;font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.08em;z-index:10001;pointer-events:none;transition:opacity .3s;white-space:nowrap;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent=msg;
+  toast.style.opacity='1';
+  clearTimeout(toast._t);
+  toast._t=setTimeout(function(){toast.style.opacity='0';},1600);
+}
+
+// ── RESIZE HANDLER ──
+window.addEventListener('resize',function(){
+  var mobileScreen=document.getElementById('mobile-edit-screen');
+  if(!mobileScreen||state.appMode!=='edit')return;
+  if(isMobileEditMode()){
+    if(mobileScreen.style.display!=='flex'){mobileScreen.style.display='flex';renderMobileEditScreen();}
+  } else {
+    mobileScreen.style.display='none';
+  }
+});
+
+// ── INIT: show mobile editor on first load if on narrow screen ──
+document.addEventListener('DOMContentLoaded',function(){
+  // Run after all other DOMContentLoaded handlers (Block 2 init) via setTimeout
+  setTimeout(function(){
+    if(isMobileEditMode()&&state.appMode==='edit'){
+      var mobileScreen=document.getElementById('mobile-edit-screen');
+      if(mobileScreen&&mobileScreen.style.display!=='flex'){
+        mobileScreen.style.display='flex';
+        renderMobileEditScreen();
+      }
+    }
+  },50);
+});
 </script>
 
 <!-- ADD SEQUENCE MODAL -->
@@ -12463,6 +13390,201 @@ window.CfSelect=(function(){
   <button class="io-item" onclick="openCSVModal();closeIoMenu()"><span style="opacity:.5;margin-right:8px;">↑</span>Paste CSV text</button>
   <div style="height:1px;background:var(--border);margin:4px 0;"></div>
   <button class="io-item" onclick="exportCSV();closeIoMenu()"><span style="opacity:.5;margin-right:8px;">↓</span>Export cues as CSV</button>
+</div>
+
+<!-- ═══ MOBILE EDIT SCREEN (owner/editor on phone/tablet) ═══ -->
+<div id="mobile-edit-screen" style="display:none;position:fixed;inset:0;z-index:9994;background:var(--bg);flex-direction:column;overflow:hidden;">
+
+  <!-- Topbar -->
+  <div class="me-topbar">
+    <button class="me-burger" onclick="meDrawerOpen()" aria-label="Menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="me-topbar-text">
+      <div class="me-proj-name" id="me-proj-name">CueFlow</div>
+      <div class="me-pl-name" id="me-pl-name">—</div>
+    </div>
+    <button class="me-go-live" id="me-go-live" onclick="meGoLive()">Go Live</button>
+  </div>
+
+  <!-- Body -->
+  <div class="me-body">
+
+    <!-- Sequence sidebar (tablet only) -->
+    <div class="me-seq-sidebar" id="me-seq-sidebar">
+      <div class="me-seq-sidebar-head">
+        <span id="me-seq-sidebar-count">SEQUENCES · 0</span>
+        <button class="me-seq-sidebar-add" onclick="openAddSeqModal()">+ Add</button>
+      </div>
+      <div class="me-seq-sidebar-list" id="me-seq-sidebar-list"></div>
+    </div>
+
+    <!-- Main cue panel -->
+    <div class="me-main">
+
+      <!-- Sequence selector strip (phone) -->
+      <div class="me-seq-hdr" id="me-seq-hdr">
+        <div class="me-seq-hdr-inner" onclick="meSeqPickerOpen()">
+          <div class="me-seq-hdr-top">EDITING SEQUENCE <span id="me-seq-num">—</span></div>
+          <div class="me-seq-hdr-name" id="me-seq-hdr-name">No sequence</div>
+        </div>
+        <button class="me-seq-hdr-nav" onclick="meSeqPickerOpen()">
+          <span id="me-seq-pos">— / —</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+
+      <!-- Cue count header -->
+      <div class="me-cue-hdr">
+        <span class="me-cue-hdr-count" id="me-cue-count-lbl">CUES · 0</span>
+        <span class="me-cue-hint">tap a cue to edit · tap ⚑ to flag</span>
+      </div>
+
+      <!-- Cue list -->
+      <div class="me-cue-list" id="me-cue-list"></div>
+
+      <!-- Add cue button -->
+      <button class="me-add-cue" onclick="meOpenAddCue()">+ ADD CUE</button>
+
+    </div>
+  </div>
+
+  <!-- Drawer backdrop -->
+  <div class="me-backdrop" id="me-backdrop" onclick="meDrawerClose()"></div>
+
+  <!-- Hamburger drawer -->
+  <div class="me-drawer" id="me-drawer">
+    <div class="me-drawer-head">
+      <div>
+        <div class="me-drawer-super">MENU</div>
+        <div class="me-drawer-proj" id="me-drawer-proj-name">—</div>
+      </div>
+      <button class="me-drawer-close" onclick="meDrawerClose()">✕</button>
+    </div>
+    <div class="me-drawer-body" id="me-drawer-body"></div>
+  </div>
+
+</div>
+
+<!-- Mobile: Add Cue Modal -->
+<div id="me-add-cue-modal" style="display:none;position:fixed;inset:0;z-index:9995;background:var(--bg);flex-direction:column;overflow:hidden;">
+  <div class="me-modal-head">
+    <div>
+      <div class="me-modal-ctx" id="me-ac-ctx">SEQUENCE · NAME</div>
+      <div class="me-modal-title">NEW CUE</div>
+    </div>
+    <button class="me-modal-close" onclick="meCloseAddCue()">✕</button>
+  </div>
+  <div class="me-modal-body">
+    <div class="me-field-group">
+      <label class="me-field-lbl" for="me-ac-tc">TIMECODE</label>
+      <input class="me-tc-inp" id="me-ac-tc" type="text" inputmode="text" placeholder="01:00:00:00" autocomplete="off">
+    </div>
+    <div class="me-field-group">
+      <label class="me-field-lbl" for="me-ac-name">CUE NAME</label>
+      <input class="me-text-inp" id="me-ac-name" type="text" placeholder="e.g. Wide pull · stage left" autocomplete="off" maxlength="80">
+    </div>
+    <div class="me-field-group">
+      <label class="me-field-lbl" for="me-ac-track">TRACK</label>
+      <select class="me-select" id="me-ac-track"></select>
+    </div>
+    <div class="me-field-group">
+      <div class="me-field-lbl-row">
+        <label class="me-field-lbl" for="me-ac-desc">DESCRIPTION</label>
+        <span class="me-field-opt">OPTIONAL</span>
+      </div>
+      <textarea class="me-textarea" id="me-ac-desc" placeholder="Notes for this cue..." rows="4"></textarea>
+    </div>
+    <div class="me-toggle-row">
+      <div>
+        <div class="me-toggle-label">Flag for attention</div>
+        <div class="me-toggle-sub">Mark this cue amber to revisit later</div>
+      </div>
+      <button class="me-toggle-btn" id="me-ac-flag-btn" onclick="meToggleAddFlag()" role="switch" aria-checked="false">
+        <span class="me-toggle-thumb"></span>
+      </button>
+    </div>
+  </div>
+  <div class="me-modal-footer">
+    <button class="me-btn me-btn-cancel" onclick="meCloseAddCue()">CANCEL</button>
+    <button class="me-btn me-btn-primary" onclick="meSubmitAddCue()">✓ ADD CUE</button>
+  </div>
+</div>
+
+<!-- Mobile: Edit Cue Modal -->
+<div id="me-edit-cue-modal" style="display:none;position:fixed;inset:0;z-index:9995;background:var(--bg);flex-direction:column;overflow:hidden;">
+  <div class="me-modal-head">
+    <div>
+      <div class="me-modal-ctx" id="me-ec-ctx">SEQUENCE · NAME</div>
+      <div class="me-modal-title" id="me-ec-title">EDIT CUE</div>
+    </div>
+    <button class="me-modal-close" onclick="meCloseEditCue()">✕</button>
+  </div>
+  <div class="me-modal-body">
+    <div class="me-field-group">
+      <div class="me-field-lbl-row">
+        <label class="me-field-lbl" for="me-ec-tc">TIMECODE</label>
+        <span class="me-field-flag-lbl" id="me-ec-flag-lbl" style="display:none;">FLAGGED — CHECK</span>
+      </div>
+      <input class="me-tc-inp" id="me-ec-tc" type="text" inputmode="text" placeholder="01:00:00:00" autocomplete="off">
+    </div>
+    <div class="me-field-group">
+      <label class="me-field-lbl" for="me-ec-name">CUE NAME</label>
+      <input class="me-text-inp" id="me-ec-name" type="text" placeholder="Cue name" autocomplete="off" maxlength="80">
+    </div>
+    <div class="me-field-group">
+      <div class="me-field-lbl-row">
+        <label class="me-field-lbl" for="me-ec-track">TRACK</label>
+        <span class="me-field-hint">TAP TO CHANGE</span>
+      </div>
+      <select class="me-select" id="me-ec-track"></select>
+    </div>
+    <div class="me-field-group">
+      <div class="me-field-lbl-row">
+        <label class="me-field-lbl" for="me-ec-desc">DESCRIPTION</label>
+        <span class="me-field-opt">OPTIONAL</span>
+      </div>
+      <textarea class="me-textarea" id="me-ec-desc" placeholder="Notes for this cue..." rows="4"></textarea>
+    </div>
+    <div class="me-toggle-row" onclick="meEditToggleFlag()" style="cursor:pointer;">
+      <div class="me-field-lbl" style="font-size:10px;letter-spacing:.12em;">FLAG</div>
+      <div class="me-flag-state" id="me-ec-flag-state">OFF</div>
+    </div>
+  </div>
+  <div class="me-modal-footer">
+    <button class="me-btn me-btn-cancel" onclick="meCloseEditCue()">CLOSE</button>
+    <button class="me-btn me-btn-danger-icon" onclick="meDeleteFromEdit()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    </button>
+    <button class="me-btn me-btn-primary" onclick="meSubmitEditCue()">✓ SAVE</button>
+  </div>
+</div>
+
+<!-- Mobile: Sequence Picker -->
+<div id="me-seq-picker" style="display:none;position:fixed;inset:0;z-index:9995;background:var(--bg);flex-direction:column;overflow:hidden;">
+  <div class="me-modal-head">
+    <div>
+      <div class="me-modal-ctx" id="me-sp-ctx">PLAYLIST · SEQUENCES</div>
+      <div class="me-modal-title">SELECT SEQUENCE</div>
+    </div>
+    <button class="me-modal-close" onclick="meSeqPickerClose()">✕</button>
+  </div>
+  <div class="me-seq-picker-list" id="me-seq-picker-list"></div>
+</div>
+
+<!-- Mobile: Delete confirm -->
+<div id="me-del-confirm" style="display:none;position:fixed;inset:0;z-index:9996;align-items:center;justify-content:center;background:rgba(0,0,0,.7);">
+  <div class="me-del-box">
+    <div class="me-del-title">DELETE CUE?</div>
+    <div class="me-del-msg" id="me-del-msg">This cue will be removed.</div>
+    <div class="me-del-actions">
+      <button class="me-btn me-btn-cancel" onclick="meDeleteCancel()">CANCEL</button>
+      <button class="me-btn me-btn-danger" onclick="meDeleteConfirm()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+        DELETE
+      </button>
+    </div>
+  </div>
 </div>
 
 </div><!-- /cf-screens -->
