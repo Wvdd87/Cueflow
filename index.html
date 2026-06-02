@@ -12548,30 +12548,39 @@ function _meRenderDrawer(){
 
   // TRACKS
   var trkSec=_meDrawerSection('TRACKS');
+  var visIds=state.visibleStreamIds||[];
   (state.streams||[]).forEach(function(stream){
-    var isVisible=!state.visibleStreamIds||state.visibleStreamIds.indexOf(stream.id)>=0;
+    var isVis=visIds.indexOf(stream.id)>=0;
+    var shortN=((stream.shortName||stream.name||'?').slice(0,3)).toUpperCase();
     var item=document.createElement('div');
     item.className='me-drawer-item';
-    item.style.cssText='display:flex;align-items:center;gap:10px;';
-    var shortN=((stream.shortName||stream.name||'?').slice(0,3)).toUpperCase();
-    var badge='<span class="track-glyph xs" style="background:#06060a;color:#fff;flex-shrink:0;">'+escH(shortN)+'</span>';
-    var eyeSvg=isVisible
-      ?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
-      :'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
-    item.innerHTML=badge+'<span class="me-drawer-item-name">'+escH(stream.name||'Track')+'</span>'+
-      '<button class="me-drawer-eye'+(isVisible?'':' hidden')+'" aria-label="'+(isVisible?'Hide':'Show')+'">'+eyeSvg+'</button>';
-    var eyeBtn=item.querySelector('.me-drawer-eye');
-    (function(sid,visible){
-      eyeBtn.addEventListener('click',function(e){
-        e.stopPropagation();
-        if(visible&&state.visibleStreamIds.length<=1)return;
-        state.visibleStreamIds=visible
-          ?state.visibleStreamIds.filter(function(id){return id!==sid;})
-          :[].concat(state.visibleStreamIds||[],[sid]);
-        persist();renderStreamsBar();_meRenderCueList();_meRenderDrawer();
-      });
-    })(stream.id,isVisible);
+    item.dataset.sid=stream.id;
+    item.innerHTML=
+      '<span class="track-glyph xs" style="background:#06060a;color:#fff;flex-shrink:0;">'+escH(shortN)+'</span>'+
+      '<span class="me-drawer-item-name">'+escH(stream.name||'Track')+'</span>'+
+      '<button class="me-drawer-eye'+(isVis?'':' hidden')+'" data-sid="'+escH(stream.id)+'" aria-label="'+(isVis?'Hide':'Show')+'" type="button">'+
+        (isVis
+          ?'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+          :'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>')+
+      '</button>';
     trkSec.body.appendChild(item);
+  });
+  // Delegated click on the tracks section — toggles visibility
+  trkSec.body.addEventListener('click',function(e){
+    var btn=e.target.closest('.me-drawer-eye');
+    if(!btn)return;
+    e.stopPropagation();
+    var sid=btn.dataset.sid;
+    if(!sid)return;
+    var cur=state.visibleStreamIds||[];
+    var nowVis=cur.indexOf(sid)>=0;
+    state.visibleStreamIds=nowVis
+      ?cur.filter(function(id){return id!==sid;})
+      :cur.concat([sid]);
+    persist();
+    renderStreamsBar();
+    _meRenderCueList();
+    _meRenderDrawer(); // re-render to update eye icons
   });
   body.appendChild(trkSec.el);
 }
@@ -12811,21 +12820,24 @@ function meCloseNewProj(){
   if(m)m.classList.remove('show');
 }
 function meSubmitNewProj(){
-  var nameVal=(document.getElementById('me-np-name')||{}).value;
-  var trackVal=(document.getElementById('me-np-track')||{}).value;
-  if(!nameVal||!nameVal.trim())return;
-  // Build a fresh project state
+  var nameVal=((document.getElementById('me-np-name')||{}).value||'').trim();
+  var trackVal=((document.getElementById('me-np-track')||{}).value||'').trim()||'Track 1';
+  if(!nameVal)return;
   var trackId='stream_'+Date.now();
   var songId='s_'+Date.now();
   var plId='pl_'+Date.now();
+  var projId='p_'+Date.now();
+  var shortN=trackVal.slice(0,3).toUpperCase();
   var proj={
-    id:'p_'+Date.now(), name:nameVal.trim(), fps:25, warnSec:10, autoAdvanceSec:10, visibleCount:6,
+    id:projId, name:nameVal, fps:25, warnSec:10, autoAdvanceSec:10, visibleCount:6,
     activeSongId:songId, activePlaylistId:plId,
     playlists:[{id:plId,name:'Main',songIds:[songId]}],
-    streams:[{id:trackId,name:(trackVal||'Track 1').trim(),colorId:'blue',shortName:(trackVal||'T1').trim().slice(0,3).toUpperCase()}],
+    streams:[{id:trackId,name:trackVal,colorId:'blue',shortName:shortN}],
     visibleStreamIds:[trackId],
     songs:[{id:songId,name:'Sequence 1',description:'',startTc:'01:00:00:00',cues:[],chapters:[]}]
   };
+  // Save to localStorage before applying so it appears in the project list
+  saveProjectData(proj);
   applyProject(proj);
   meCloseNewProj();
   renderMobileEditScreen();
@@ -12848,18 +12860,70 @@ function meCloseNewShare(){
   if(m)m.classList.remove('show');
 }
 function meSubmitNewShare(){
-  if(!window.CF||!CF.showId){meCloseNewShare();meShowToast('Save project to Supabase first');return;}
-  // Delegate to the existing addPin flow
+  if(!window.CF||!CF.showId){meCloseNewShare();meShowToast('Connect to a project first');return;}
   var labelVal=((document.getElementById('me-ns-label')||{}).value||'').trim();
   var roleVal=((document.getElementById('me-ns-role')||{}).value)||'viewer';
-  var labelEl=document.getElementById('cf-pin-label');
-  var roleEl=document.getElementById('cf-pin-role');
-  if(labelEl)labelEl.value=labelVal;
-  if(roleEl)roleEl.value=roleVal;
-  if(window.CF&&CF._onRoleChange)CF._onRoleChange();
-  if(window.addPin){addPin();}
-  meCloseNewShare();
-  meDrawerOpen(); // re-open drawer to show new pin
+  if(!labelVal){var li=document.getElementById('me-ns-label');if(li){li.style.borderColor='var(--red)';li.focus();}return;}
+  var pin=String(Math.floor(100000+Math.random()*900000));
+  var base=location.origin+location.pathname;
+  var linkUrl=base+'?show='+CF.showId+'&pin='+pin;
+  // Show creating state
+  var createBtn=document.querySelector('#me-new-share-modal .me-btn-primary');
+  if(createBtn)createBtn.textContent='Creating…';
+  hashPin(pin).then(function(h){
+    return db().from('show_access').insert({
+      show_id:CF.showId,pin_hash:h,display_pin:pin,
+      role:roleVal,label:labelVal||roleVal,track_ids:null
+    }).select().single();
+  }).then(function(r){
+    if(createBtn)createBtn.textContent='✓ CREATE LINK';
+    if(r.error){meShowToast('Error: '+r.error.message);return;}
+    CF._pinList.push(r.data);
+    // Copy link to clipboard
+    navigator.clipboard.writeText(linkUrl).catch(function(){});
+    meCloseNewShare();
+    // Show PIN confirmation
+    _meShowPinConfirm(labelVal,pin,linkUrl);
+    // Refresh drawer with new pin
+    meDrawerOpen();
+  }).catch(function(err){
+    if(createBtn)createBtn.textContent='✓ CREATE LINK';
+    meShowToast('Error creating link');
+  });
+}
+function _meShowPinConfirm(label,pin,url){
+  // Show a brief overlay with the PIN and copy confirmation
+  var el=document.getElementById('me-pin-confirm');
+  if(!el){
+    el=document.createElement('div');
+    el.id='me-pin-confirm';
+    el.style.cssText='display:none;position:fixed;inset:0;z-index:10003;align-items:center;justify-content:center;background:rgba(0,0,0,.8);padding:20px;';
+    el.innerHTML=
+      '<div style="background:var(--surface);border:1px solid var(--hair2);max-width:380px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,.6);">'+
+        '<div style="padding:20px 20px 12px;border-bottom:1px solid var(--hair);">'+
+          '<div style="font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--green);margin-bottom:6px;">✓ LINK COPIED TO CLIPBOARD</div>'+
+          '<div id="mpc-label" style="font-family:var(--cond);font-size:18px;font-weight:700;color:var(--txt-hi);"></div>'+
+        '</div>'+
+        '<div style="padding:20px;">'+
+          '<div style="font-family:var(--cond);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--txt-low);margin-bottom:8px;">PIN CODE</div>'+
+          '<div id="mpc-pin" style="font-family:var(--mono);font-size:36px;font-weight:700;letter-spacing:.2em;color:var(--amber);"></div>'+
+          '<div style="font-family:var(--sans);font-size:12px;color:var(--txt-low);margin-top:6px;">Share this PIN with the crew member.</div>'+
+        '</div>'+
+        '<div style="padding:0 20px 16px;display:flex;gap:8px;">'+
+          '<button id="mpc-copy" class="me-btn me-btn-cancel" style="flex:1;" onclick="_meCopyPin()">Copy Link Again</button>'+
+          '<button class="me-btn me-btn-primary" style="flex:1;" onclick="document.getElementById(\'me-pin-confirm\').style.display=\'none\'">DONE</button>'+
+        '</div>'+
+      '</div>';
+    document.body.appendChild(el);
+  }
+  document.getElementById('mpc-label').textContent=label;
+  document.getElementById('mpc-pin').textContent=pin.slice(0,3)+' '+pin.slice(3);
+  el._url=url;
+  el.style.display='flex';
+}
+function _meCopyPin(){
+  var el=document.getElementById('me-pin-confirm');
+  if(el&&el._url) navigator.clipboard.writeText(el._url).then(function(){meShowToast('Copied!');}).catch(function(){});
 }
 
 // ── NEW PLAYLIST ──
@@ -12878,10 +12942,16 @@ function meCloseNewPlaylist(){
 function meSubmitNewPlaylist(){
   var nameVal=((document.getElementById('me-npl-name')||{}).value||'').trim();
   if(!nameVal)return;
-  var id='pl_'+Date.now();
+  var plId='pl_'+Date.now();
+  var songId='s_'+Date.now();
+  // Create a default "Sequence 1" for the new playlist
+  var newSong={id:songId,name:'Sequence 1',description:'',startTc:'01:00:00:00',cues:[],chapters:[]};
+  if(!state.songs)state.songs=[];
+  state.songs.push(newSong);
   if(!state.playlists)state.playlists=[];
-  state.playlists.push({id:id,name:nameVal,songIds:[]});
-  state.activePlaylistId=id;
+  state.playlists.push({id:plId,name:nameVal,songIds:[songId]});
+  state.activePlaylistId=plId;
+  state.activeSongId=songId;
   persist();
   meCloseNewPlaylist();
   renderMobileEditScreen();
@@ -13549,7 +13619,7 @@ document.addEventListener('DOMContentLoaded',function(){
         </div>
         <button class="me-seq-hdr-nav" onclick="meSeqPickerOpen()">
           <span id="me-seq-pos">— / —</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
       </div>
 
