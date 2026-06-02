@@ -17294,12 +17294,62 @@ CF._onExitLive=function(){
   CF._tcRelayActive=false;
   if(CF._presChan){ CF._presChan.unsubscribe(); CF._presChan=null; }
 };
+/* Scan all known shows in parallel for active TC; lock onto the first broadcasting.
+   Handles the case where mobile has a different project loaded than the steering desktop. */
+function _ownerMobileScanTc(){
+  var ids=(CF._showList||[]).map(function(s){return s.id;}).filter(Boolean);
+  if(CF.showId&&ids.indexOf(CF.showId)<0) ids.unshift(CF.showId);
+  if(!ids.length) return;
+
+  var scanChans=[],locked=false;
+  CF._mobileScanChans=scanChans;
+
+  function lock(id){
+    if(locked) return;
+    locked=true;
+    (CF._mobileScanChans||[]).forEach(function(c){try{c.unsubscribe();}catch(e){}});
+    CF._mobileScanChans=null;
+    var wasId=CF.showId;
+    CF.showId=id;
+    subscribeTc();
+    /* If a different show was loaded, fetch its project data and apply it */
+    if(id!==wasId&&navigator.onLine){
+      db().from('shows').select('project_data').eq('id',id).single()
+        .then(function(r){
+          if(CF.showId!==id) return;
+          if(r.data&&r.data.project_data&&window.applyProject) applyProject(r.data.project_data);
+        });
+    }
+  }
+
+  ids.forEach(function(id){
+    var ch=db().channel('tc:'+id)
+      .on('broadcast',{event:'tc'},function(){lock(id);})
+      .subscribe(function(status){
+        if(status==='SUBSCRIBED'){CF._viewerTcSubOk=true;_updateViewerStatus();}
+      });
+    scanChans.push(ch);
+  });
+
+  /* Fallback: if no TC within 8 s, settle on current showId */
+  setTimeout(function(){
+    if(locked) return;
+    (CF._mobileScanChans||[]).forEach(function(c){try{c.unsubscribe();}catch(e){}});
+    CF._mobileScanChans=null;
+    if(CF.showId) subscribeTc();
+  },8000);
+}
+
 /* Owner on mobile/tablet: subscribe to TC relay as a receiver instead of broadcaster */
 CF._onEnterMobileLive=function(){
   if(CF._tcChan){ CF._tcChan.unsubscribe(); CF._tcChan=null; CF._viewerTcSubOk=false; }
-  if(CF.showId) subscribeTc();
+  _ownerMobileScanTc();
 };
 CF._onExitMobileLive=function(){
+  if(CF._mobileScanChans){
+    CF._mobileScanChans.forEach(function(c){try{c.unsubscribe();}catch(e){}});
+    CF._mobileScanChans=null;
+  }
   if(CF._tcChan){ CF._tcChan.unsubscribe(); CF._tcChan=null; CF._viewerTcSubOk=false; }
 };
 
