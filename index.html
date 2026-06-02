@@ -17309,17 +17309,8 @@ function _ownerMobileScanTc(){
     locked=true;
     (CF._mobileScanChans||[]).forEach(function(c){try{c.unsubscribe();}catch(e){}});
     CF._mobileScanChans=null;
-    var wasId=CF.showId;
     CF.showId=id;
     subscribeTc();
-    /* If a different show was loaded, fetch its project data and apply it */
-    if(id!==wasId&&navigator.onLine){
-      db().from('shows').select('project_data').eq('id',id).single()
-        .then(function(r){
-          if(CF.showId!==id) return;
-          if(r.data&&r.data.project_data&&window.applyProject) applyProject(r.data.project_data);
-        });
-    }
   }
 
   ids.forEach(function(id){
