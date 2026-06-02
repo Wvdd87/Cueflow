@@ -463,7 +463,7 @@ body.mode-live #edit-mode-banner { display: none; }
 .sbp-body { flex: 1; overflow-y: auto; padding: 0; }
 
 /* Sequence rows in panel */
-.sbp-seq { display: flex; align-items: center; height: 44px; padding: 0 14px 0 16px; border-bottom: 1px solid var(--hair); cursor: pointer; border-left: 3px solid transparent; transition: background .1s; }
+.sbp-seq { display: flex; align-items: center; height: 44px; padding: 0 14px 0 16px; border-bottom: 1px solid var(--hair); cursor: default; border-left: 3px solid transparent; transition: background .1s; }
 .sbp-seq:hover { background: var(--surface2); }
 .sbp-seq.active { border-left-color: var(--primary); padding-left: 13px; }
 .sbp-seq.active .sbp-seq-n { color: var(--primary); }
@@ -544,7 +544,7 @@ body.mode-live #edit-mode-banner { display: none; }
 .song-row {
   display: flex; align-items: center; gap: 7px;
   padding: 10px 14px; border-bottom: 1px solid var(--hair);
-  cursor: pointer; border-left: 2px solid transparent;
+  cursor: default; border-left: 2px solid transparent;
   transition: background .1s; user-select: none;
 }
 .song-row:hover { background: var(--surface2); }
@@ -1130,7 +1130,10 @@ body.mode-live #edit-mode-banner { display: none; }
 .seq-audio-badge { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; background: var(--primary-bg); border: 1px solid var(--primary); font-size: 9px; font-weight: 700; letter-spacing: .05em; color: var(--primary); flex-shrink: 0; }
 .seq-audio-missing { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); }
 .seq-audio-loading { background: var(--surface3); border-color: var(--hair2); color: var(--txt-mid); }
-.seq-overlap-warn { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; background: var(--red-bg); border: 1px solid rgba(255,40,72,.4); font-size: 9px; font-weight: 700; color: var(--red); flex-shrink: 0; }
+.seq-overlap-warn { display: inline-flex; align-items: center; font-size: 15px; color: var(--red); flex-shrink: 0; line-height: 1; }
+.seq-overlap-tip { position: relative; }
+.seq-overlap-tip::after { content: attr(data-tooltip); position: absolute; right: calc(100% + 8px); top: 50%; transform: translateY(-50%); background: var(--surface); border: 1px solid var(--hair2); color: var(--txt); padding: 7px 11px; font-size: 11px; font-family: var(--cond); letter-spacing: .02em; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .15s; z-index: 500; box-shadow: 0 4px 16px rgba(0,0,0,.5); }
+.seq-overlap-tip:hover::after { opacity: 1; }
 .seq-audio-dur { font-family: var(--mono); font-size: 9px; color: var(--txt-mid); margin-top: 1px; }
 .audio-attach-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--surface3); border: 1px dashed var(--hair2); cursor: pointer; transition: border-color .12s, background .12s; margin-bottom: 4px; }
 .audio-attach-row:hover { border-color: var(--primary); background: var(--primary-bg); }
@@ -1390,7 +1393,7 @@ body.mode-live #edit-mode-banner { display: none; }
 .imp-section{padding:14px 20px;border-bottom:1px solid var(--hair);}
 .imp-section-lbl{font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.16em;color:var(--txt-low);text-transform:uppercase;margin-bottom:10px;}
 .imp-tracks-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
-.imp-options{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--hair2);}
+.imp-options{display:grid;grid-template-columns:repeat(2,1fr);border:1px solid var(--hair2);}
 .imp-option-btn{padding:10px 6px;border:none;border-right:1px solid var(--hair2);background:none;color:var(--txt-low);font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:color .12s,background .12s;text-align:center;}
 .imp-option-btn:last-child{border-right:none;}
 .imp-option-btn:hover{color:var(--txt-hi);background:var(--surface2);}
@@ -2519,11 +2522,10 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       </div>
       <div class="imp-tracks-row" id="imp-tracks-row"></div>
     </div>
-    <div class="imp-section" id="imp-conflict-section" style="display:none;">
-      <div class="imp-section-lbl">If show exists</div>
+    <div class="imp-section" id="imp-conflict-section">
+      <div class="imp-section-lbl">What to do</div>
       <div class="imp-options">
-        <button class="imp-option-btn" id="imp-opt-replace" onclick="_setImportMode('replace')">Replace</button>
-        <button class="imp-option-btn" id="imp-opt-merge" onclick="_setImportMode('merge')">Merge by name</button>
+        <button class="imp-option-btn" id="imp-opt-merge" onclick="_setImportMode('merge')">Merge into current</button>
         <button class="imp-option-btn" id="imp-opt-new" onclick="_setImportMode('new')">Add as new project</button>
       </div>
       <div class="imp-option-desc" id="imp-option-desc"></div>
@@ -2713,12 +2715,12 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <!-- Filter panel (toggled by funnel button) -->
         <div class="cl-filter-panel" id="cl-filter-panel" style="display:none;"></div>
         <div class="batch-bar" id="batch-bar">
-          <button class="batch-cancel-btn" onclick="toggleBatchMode()" title="Exit selection" aria-label="Cancel selection"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           <span class="batch-count" id="batch-count">0 selected</span>
           <button class="batch-all-btn" onclick="batchSelectAll()">All</button>
           <div class="batch-sep"></div>
           <select class="batch-track-sel" id="batch-track-sel" onchange="batchMoveToTrack(this.value)"><option value="">Move to…</option></select>
           <button class="batch-del-btn" id="batch-del-btn" onclick="batchDeleteStage()">Delete</button>
+          <button class="batch-cancel-btn" onclick="toggleBatchMode()" title="Exit selection" aria-label="Cancel selection"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
         <div class="cue-list-header"><span style="justify-content:center;padding:0;">#</span><span style="padding:0 4px;justify-content:center;border-right:1px solid var(--hair);">TRK</span><span>Timecode</span><span>Cue</span><span>Description</span><span>Type</span><span>Next</span><span style="justify-content:center;padding:0;">⚑</span><span style="justify-content:center;padding:0;">×</span></div>
         <div id="cue-list-wrap"></div>
@@ -6445,6 +6447,7 @@ function renderSongList(){
   const el=document.getElementById('seq-list-scroll');if(!el)return;
   const _st=el.scrollTop;
   el.innerHTML='';
+  const _overlappingIds=getOverlappingSongs();
   getActivePlaylistSongs().forEach((song,i)=>{
     const isSel=song.id===state.activeSongId;
     const div=document.createElement('div');
@@ -6463,10 +6466,8 @@ function renderSongList(){
         audioBadge=`<span class="seq-audio-icon" title="Audio linked: ${escH(song.audioFilename||'')}">♫</span>`;
       }
     }
-    // Overlap warning
-    const overlaps=getOverlappingSongs();
-    const hasOverlap=overlaps.some(o=>o.songA===song.name||o.songB===song.name);
-    const overlapBadge=hasOverlap?`<span class="seq-overlap-warn">⚠ Overlap</span>`:'';
+    const _overlapNames=_overlappingIds.get(song.id);
+    const overlapBadge=_overlapNames?`<span class="seq-overlap-warn" data-tooltip="TC overlap with: ${escH(_overlapNames.join(', '))}">⚠</span>`:'';
     div.innerHTML=`<div class="drag-grip" title="Drag"><span></span><span></span><span></span></div>
       <div class="song-row-num">${i+1}</div>
       <div class="song-row-meta">
@@ -7149,11 +7150,12 @@ function addCue(){
   const defaultTc=sorted.length?fTC(sorted[sorted.length-1]._f+8*state.fps):(song.startTc||'01:00:00:00');
   const newCueId=uid();
   song.cues.push({id:newCueId,tc:defaultTc,name:'NEW CUE',desc:'',streamId});
+  ETL.selId=newCueId;
   persist();renderCueList();redrawActive();
   // Auto-focus the name field of the new cue
   setTimeout(()=>{
-    const inp=document.querySelector(`.cue-row[data-cid="${newCueId}"] .cue-field:not(.tc)`);
-    if(inp){inp.focus();inp.select();}
+    const inp=document.querySelector(`.cue-row[data-cid="${newCueId}"] .cue-field:not(.tc):not(.desc)`);
+    if(inp){inp.classList.remove('cue-readonly');inp.removeAttribute('readonly');inp.focus();inp.select();}
   },50);
 }
 
@@ -7941,18 +7943,8 @@ function _openImportModal(proj,fileName,fileSize,exportedAt){
       g.textContent=short;tracksRow.appendChild(g);
     });
   }
-  // Conflict section
-  const existing=_findExistingProjectByName(proj.name);
-  const cflSec=document.getElementById('imp-conflict-section');
-  const impBtn=document.getElementById('imp-import-btn');
-  if(existing){
-    if(cflSec)cflSec.style.display='';
-    _setImportMode('merge');
-  }else{
-    if(cflSec)cflSec.style.display='none';
-    _importMode='fresh';
-    if(impBtn)impBtn.textContent='Add as new project';
-  }
+  // Always show the options section; default to 'new' (safest)
+  _setImportMode('new');
   const modal=document.getElementById('cf-import-modal');
   if(modal)modal.classList.add('show');
 }
@@ -7974,13 +7966,12 @@ function _findExistingProjectByName(name){
   return allProjects().find(p=>p.name&&p.name.toLowerCase().trim()===lower)||null;
 }
 const _IMP_DESCS={
-  replace:'Completely replace the existing project with this file. All current data in that project will be overwritten.',
-  merge:'Add sequences to the existing project. New cues are added; cues at the same timecode and track are flagged as conflicts to resolve.',
-  new:'Save as a separate new project with "(imported)" added to the name, keeping both projects intact.'
+  merge:'Add sequences from this file into the current project. Sequences with matching names will have their cues merged. The current project name is kept.',
+  new:'Save as a separate new project alongside the current one.'
 };
 function _setImportMode(mode){
   _importMode=mode;
-  ['replace','merge','new'].forEach(m=>{
+  ['merge','new'].forEach(m=>{
     const btn=document.getElementById('imp-opt-'+m);
     if(btn)btn.classList.toggle('active',m===mode);
   });
@@ -7990,38 +7981,45 @@ function _setImportMode(mode){
   if(impBtn){
     const proj=_pendingImportProj;
     const tot=proj?(proj.songs||[]).reduce((n,s)=>n+(s.cues?s.cues.length:0),0):0;
-    if(mode==='replace')impBtn.textContent='Replace project';
-    else if(mode==='merge')impBtn.textContent='Merge '+tot+' cues';
+    if(mode==='merge')impBtn.textContent='Merge '+tot+' cues';
     else impBtn.textContent='Add as new project';
   }
 }
 function _executeImport(){
   const proj=_pendingImportProj;if(!proj)return;
-  if(_importMode==='fresh'||_importMode==='new')_doImportAsNew(proj,_importMode==='new');
-  else if(_importMode==='replace')_doImportReplace(proj);
-  else if(_importMode==='merge')_doImportMerge(proj);
+  if(_importMode==='merge')_doImportMerge(proj);
+  else _doImportAsNew(proj,true);
 }
 function _doImportAsNew(proj,addSuffix){
   const p=JSON.parse(JSON.stringify(proj));
-  p.id='proj_'+Date.now();
   if(addSuffix&&p.name)p.name=p.name+' (imported)';
-  saveProjectData(p);applyProject(p);persist();
-  renderProjectList();_closeImportModal();closeModal('proj-modal');
+  if(window.CF&&CF._importShow){
+    CF._importShow(p);
+  }else{
+    p.id='proj_'+Date.now();
+    saveProjectData(p);applyProject(p);persist();
+    renderProjectList();
+  }
+  _closeImportModal();closeModal('proj-modal');
 }
 function _doImportReplace(importedProj){
-  const existing=_findExistingProjectByName(importedProj.name);
   const p=JSON.parse(JSON.stringify(importedProj));
-  p.id=existing?existing.id:'proj_'+Date.now();
+  p.id=state.projectId; // overwrite current project in-place
   saveProjectData(p);applyProject(p);persist();
-  renderProjectList();_closeImportModal();closeModal('proj-modal');
+  renderProjectList();if(window._sbRender)_sbRender('save');
+  _closeImportModal();closeModal('proj-modal');
 }
 function _doImportMerge(importedProj){
-  const existing=_findExistingProjectByName(importedProj.name);
-  if(!existing){_doImportAsNew(importedProj,false);return;}
-  const existingFull=loadProjectData(existing.id);
-  if(!existingFull){_doImportAsNew(importedProj,false);return;}
-  const merged=JSON.parse(JSON.stringify(existingFull));
-  const fps=existingFull.fps||importedProj.fps||25;
+  // Always merge into the current project — keep its name, ID and settings
+  const merged=JSON.parse(JSON.stringify({
+    id:state.projectId, name:state.name, fps:state.fps,
+    visibleCount:state.visibleCount, warnSec:state.warnSec, autoAdvanceSec:state.autoAdvanceSec,
+    activeSongId:state.activeSongId, activePlaylistId:state.activePlaylistId,
+    playlists:state.playlists, songs:state.songs, streams:state.streams,
+    visibleStreamIds:state.visibleStreamIds,
+    cameraTrack:state.cameraTrack||null
+  }));
+  const fps=merged.fps||importedProj.fps||25;
   // Merge streams by name
   const streamIdMap={};
   (importedProj.streams||[]).forEach(is=>{
@@ -8045,7 +8043,8 @@ function _doImportMerge(importedProj){
       ns.cues=(ns.cues||[]).map(c=>{const nc=JSON.parse(JSON.stringify(c));nc.id=uid();if(nc.streamId&&streamIdMap[nc.streamId])nc.streamId=streamIdMap[nc.streamId];return nc;});
       if(!merged.songs)merged.songs=[];
       merged.songs.push(ns);
-      if(merged.playlists&&merged.playlists[0])merged.playlists[0].songIds.push(ns.id);
+      if(!merged.playlists||!merged.playlists.length)merged.playlists=[{id:uid(),name:'Main',songIds:[]}];
+      merged.playlists[0].songIds.push(ns.id);
     }else{
       const existingCues=matchSong.cues||[];
       (impSong.cues||[]).forEach(ic=>{
@@ -8064,7 +8063,7 @@ function _doImportMerge(importedProj){
   });
   if(!conflicts.length){
     saveProjectData(merged);applyProject(merged);persist();
-    renderProjectList();_closeImportModal();closeModal('proj-modal');
+    renderProjectList();renderSongList();_closeImportModal();closeModal('proj-modal');
   }else{
     _importMergedProj=merged;_importConflicts=conflicts;
     _importConflictChoices={};
@@ -8117,7 +8116,7 @@ function _impCfApply(){
   });
   (_importMergedProj.songs||[]).forEach(s=>{s.cues=(s.cues||[]).sort((a,b)=>(window.tcF?tcF(a.tc):0)-(window.tcF?tcF(b.tc):0));});
   saveProjectData(_importMergedProj);applyProject(_importMergedProj);persist();
-  renderProjectList();
+  renderProjectList();renderSongList();if(window._sbRender)_sbRender('save');
   const m=document.getElementById('cf-import-conflict-modal');if(m)m.classList.remove('show');
   closeModal('proj-modal');
   _importMergedProj=null;_importConflicts=[];
@@ -8141,7 +8140,17 @@ function renderProjectList(){
           ()=>{applyProject(d);closeModal('proj-modal');},null,'Switch now','primary','Switch Project');
       }
     });
-    div.querySelector('.proj-entry-del').addEventListener('click',e=>{e.stopPropagation();if(!confirm('Delete "'+p.name+'"?'))return;deleteProjectData(p.id);renderProjectList();});
+    div.querySelector('.proj-entry-del').addEventListener('click',e=>{
+      e.stopPropagation();
+      if(!confirm('Delete "'+p.name+'"?'))return;
+      const wasCurrent=p.id===state.projectId;
+      deleteProjectData(p.id);
+      if(wasCurrent){
+        const remaining=allProjects().sort((a,b)=>(b.updated||0)-(a.updated||0));
+        if(remaining.length){const d=loadProjectData(remaining[0].id);if(d)applyProject(d);}
+      }
+      renderProjectList();
+    });
     el.appendChild(div);
   });
 }
@@ -8328,10 +8337,8 @@ function confirmAddSeq(){
     showAudioLoading(_pendingAudioFile.name);
   }
   asmClearAudio();
-  const overlaps=getOverlappingSongs();
-  if(overlaps.length){
-    const msg=overlaps.map(o=>`"${o.songA}" and "${o.songB}"`).join(', ');
-    openConfirmModal(`Warning: Sequences overlap in time: ${msg}. This may cause issues.`,null,null);
+  if(getOverlappingSongs().size){
+    openConfirmModal('Warning: this sequence overlaps in time with one or more existing sequences.',null,null);
   }
   closeModal('add-seq-modal');
 }
@@ -9847,19 +9854,27 @@ function getSeqMaxFrames(song){
 
 // ── Overlap detection ─────────────────────────────────────────────
 function getOverlappingSongs(){
-  const overlaps = [];
-  const songs    = getActivePlaylistSongs();
-  for(let i = 0; i < songs.length; i++){
-    for(let j = i + 1; j < songs.length; j++){
-      const a = songs[i], b = songs[j];
-      const aStart = tcF(a.startTc || '01:00:00:00');
-      const aEnd   = getSeqMaxFrames(a);
-      const bStart = tcF(b.startTc || '01:00:00:00');
-      const bEnd   = getSeqMaxFrames(b);
-      if(aStart < bEnd && aEnd > bStart) overlaps.push({ songA: a.name, songB: b.name });
+  // Returns Map<songId, string[]> — conflicting song names for each affected song
+  const songs = getActivePlaylistSongs();
+  const conflicts = new Map();
+  const ranges = songs.map(song=>{
+    const sorted = getSortedCues(song.id, false);
+    return sorted.length ? {id:song.id, name:song.name, start:sorted[0]._f, end:sorted[sorted.length-1]._f} : null;
+  });
+  for(let i = 0; i < ranges.length; i++){
+    if(!ranges[i]) continue;
+    for(let j = i + 1; j < ranges.length; j++){
+      if(!ranges[j]) continue;
+      const ra = ranges[i], rb = ranges[j];
+      if(ra.start === rb.start || (ra.start <= rb.end && ra.end >= rb.start)){
+        if(!conflicts.has(ra.id)) conflicts.set(ra.id, []);
+        if(!conflicts.has(rb.id)) conflicts.set(rb.id, []);
+        conflicts.get(ra.id).push(rb.name);
+        conflicts.get(rb.id).push(ra.name);
+      }
     }
   }
-  return overlaps;
+  return conflicts;
 }
 
 // ── Render audio status in cue-editor-header ──────────────────────
@@ -11919,7 +11934,7 @@ window.CfSelect=(function(){
           <div class="asm-dur-wrap">
             <input class="asm-dur-inp" id="add-seq-tc" placeholder="01:00:00:00" maxlength="11" autocomplete="off"
               onkeydown="if(event.key==='Enter')confirmAddSeq();if(event.key==='Escape')closeModal('add-seq-modal');"
-              onblur="const n=normalizeTcInput(this.value);if(validateTc(n)){this.value=n;this.style.borderColor='';}else if(this.value){this.style.borderColor='var(--red)';}">
+              onblur="var n=normalizeTcInput(this.value);if(validateTc(n)){this.value=n;this.style.borderColor='';}else if(this.value){this.style.borderColor='var(--red)';}">
             <span class="asm-dur-hint">HH:MM:SS:FF</span>
           </div>
         </div>
@@ -12399,7 +12414,7 @@ window.CfSelect=(function(){
     <div class="mrow">
       <label class="mlabel" for="ssp-tc" style="min-width:110px;">Start timecode</label>
       <input class="minp mono" id="ssp-tc" placeholder="01:00:00:00" style="margin:0;flex:1;"
-             onblur="const n=normalizeTcInput(this.value);if(validateTc(n)){this.value=n;this.style.borderColor='';}else{this.style.borderColor='var(--red)';}">
+             onblur="var n=normalizeTcInput(this.value);if(validateTc(n)){this.value=n;this.style.borderColor='';}else{this.style.borderColor='var(--red)';}">
     </div>
 
     <hr class="modal-sep">
@@ -12834,6 +12849,7 @@ window.CF = {
 
   /* actions */
   _createShow: createShow,
+  _importShow: importShow,
   _onRoleChange: onRoleChange,
   _addPin: addPin,
   _deletePin: deletePin,
@@ -14129,7 +14145,7 @@ function openViewerDescEdit(){
   var seqListHtml='';
   songs.forEach(function(s,i){
     var isCur=s.id===firstSongId;
-    seqListHtml+='<div class="sbp-seq'+(isCur?' active':'')+'" data-seq-id="'+s.id+'" id="vde-seq-'+s.id+'" style="cursor:pointer;">'+
+    seqListHtml+='<div class="sbp-seq'+(isCur?' active':'')+'" data-seq-id="'+s.id+'" id="vde-seq-'+s.id+'">'+
       '<span class="sbp-seq-n">'+(i+1)+'</span>'+
       '<span class="sbp-seq-nm">'+escH(s.name)+'</span>'+
       '</div>';
@@ -14733,18 +14749,29 @@ function deleteProject(id){
             /* Remove local project data using the correct cf12_ key */
             if(localProjId && window.deleteProjectData) deleteProjectData(localProjId);
             localStorage.removeItem('cf12_current');
-            /* Reset state to blank so no stale content remains */
-            if(window.applyProject){
-              var blank=JSON.parse(JSON.stringify(DEFAULT_PROJECT));
-              blank.id='proj_'+Date.now();
-              if(window.saveProjectData) saveProjectData(blank);
-              applyProject(blank);
+            /* Auto-select first remaining project, or show empty state */
+            var next=CF._showList[0];
+            if(next){
+              CF.showId=next.id; CF.isOwner=true; CF.role='owner';
+              saveSession(next.id);
+              if(window._sbRender) _sbRender('save');
+              openTcChan();
+              ownerRestoreShow(next.id);
+            } else {
+              if(window.applyProject){
+                var blank=JSON.parse(JSON.stringify(DEFAULT_PROJECT));
+                blank.id='proj_'+Date.now();
+                if(window.saveProjectData) saveProjectData(blank);
+                applyProject(blank);
+              }
+              if(window.renderSongList) renderSongList();
+              if(window.renderCueList) renderCueList();
+              if(window.redrawActive) redrawActive();
+              if(window._sbRender) _sbRender('save');
             }
-            if(window.renderSongList) renderSongList();
-            if(window.renderCueList) renderCueList();
-            if(window.redrawActive) redrawActive();
+          } else {
+            if(window._sbRender) _sbRender('save');
           }
-          if(window._sbRender) _sbRender('save');
         });
     },null);
   }
@@ -14812,6 +14839,33 @@ function createShow(name, trackName, fps){
       }).then(function(){
         if(window._sbRender) _sbRender('save');
       });
+    });
+}
+
+function importShow(proj){
+  var showId=crypto.randomUUID();
+  var p=JSON.parse(JSON.stringify(proj));
+  p.id=showId;
+  if(CF._projChan){CF._projChan.unsubscribe();CF._projChan=null;}
+  CF.showId=showId;CF.isOwner=true;CF.role='owner';
+  saveSession(showId);
+  if(window.applyProject){applyProject(p);if(window.saveProjectData)saveProjectData(p);}
+  if(window.renderSongList)renderSongList();
+  if(window.renderCueList)renderCueList();
+  if(window.redrawActive)redrawActive();
+  CF._showList.unshift({id:showId,name:p.name});
+  saveShowCache(CF._showList);
+  openTcChan();
+  subscribeProject();
+  if(window._sbRender)_sbRender('save');
+  var ownerId=authUser?authUser.id:null;
+  db().from('shows').insert({id:showId,name:p.name,owner_id:ownerId,project_data:snapshot()})
+    .then(function(r){
+      if(r.error){CF.dirty=true;if(window.updateSyncBtn)updateSyncBtn();return;}
+      var pin=String(Math.floor(100000+Math.random()*900000));
+      hashPin(pin).then(function(h){
+        return db().from('show_access').insert({show_id:showId,pin_hash:h,display_pin:pin,role:'owner',label:'Owner',track_ids:null});
+      }).then(function(){if(window._sbRender)_sbRender('save');});
     });
 }
 
@@ -15412,6 +15466,7 @@ CF._plDrop=function(toIdx){
       }
 
       /* Sequence rows */
+      var _sbOverlapIds=window.getOverlappingSongs?getOverlappingSongs():new Set();
       var rows='';
       songs.forEach(function(song,i){
         var isAct=song.id===state.activeSongId;
@@ -15436,6 +15491,8 @@ CF._plDrop=function(toIdx){
         }
         rows+='<span class="sbp-seq-n">'+numStr+'</span>';
         rows+='<span class="sbp-seq-nm" title="'+escH(song.name)+'">'+escH(song.name)+'</span>';
+        var _ovNames=_sbOverlapIds.get(song.id);
+        if(_ovNames) rows+='<span class="seq-overlap-warn seq-overlap-tip" data-tooltip="TC overlap with: '+escH(_ovNames.join(', '))+'" style="margin-left:auto;cursor:default;">⚠</span>';
         rows+='</div>';
       });
 
