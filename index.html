@@ -2158,12 +2158,11 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 }
 .me-add-cue {
   height:56px; width:100%; flex-shrink:0;
-  background:var(--amber); border:none; color:#000;
+  background:#000; border:none; border-top:1px solid var(--hair); color:var(--amber);
   font-family:var(--cond); font-size:13px; font-weight:700;
-  letter-spacing:.12em; text-transform:uppercase; cursor:pointer; transition:filter .12s;
+  letter-spacing:.12em; text-transform:uppercase; cursor:pointer; transition:opacity .12s;
 }
-.me-add-cue:hover { filter:brightness(1.08); }
-.me-add-cue:active { filter:brightness(.9); }
+.me-add-cue:active { opacity:.7; }
 
 /* Drawer */
 .me-backdrop { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.55); }
@@ -13842,7 +13841,7 @@ document.addEventListener('DOMContentLoaded',function(){
 </div>
 
 <!-- ═══ MOBILE EDIT SCREEN (owner/editor on phone/tablet) ═══ -->
-<div id="mobile-edit-screen" style="display:none;position:fixed;inset:0;z-index:9994;background:var(--bg);flex-direction:column;overflow:hidden;">
+<div id="mobile-edit-screen" style="display:none;position:fixed;inset:0;z-index:9994;background:#000;flex-direction:column;overflow:hidden;">
 
   <!-- Topbar -->
   <div class="me-topbar">
