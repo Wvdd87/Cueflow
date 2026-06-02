@@ -1781,6 +1781,12 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 .ntm-cam-badge { display:inline-flex; align-items:center; justify-content:center; font-family:var(--cond); font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--txt); background:transparent; border:1px solid var(--hair3); flex-shrink:0; width:32px; height:32px; }
 #ntm-name-rows { display:flex; flex-direction:column; gap:18px; }
 .ntm-cam-stepper { display:flex; align-items:center; gap:12px; }
+/* Per-camera name inputs (camera type, new track modal) */
+.ntm-cam-names { display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; }
+.ntm-cam-name-row { display:flex; align-items:center; gap:10px; }
+.ntm-cam-name-row .ntm-inp { flex:1; }
+/* cf-sel option with HTML (badge + label) */
+.cf-sel-opt-inner { display:flex; align-items:center; gap:7px; }
 .ntm-step-btn { width:32px; height:32px; background:none; border:1.5px solid var(--hair2); color:var(--txt-mid); cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; line-height:1; transition:border-color .12s, color .12s; }
 .ntm-step-btn:hover { border-color:var(--primary); color:var(--primary); }
 .ntm-step-val { font-family:var(--mono); font-size:20px; font-weight:700; color:var(--txt-hi); min-width:36px; text-align:center; }
@@ -2478,6 +2484,40 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 .sbp-section-head { padding:9px 14px 7px; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); border-bottom:1px solid var(--hair); }
 
 /* ── Sidebar Sharing panel ── */
+/* ── Version-conflict modal ── */
+#cf-version-conflict-modal { position:fixed; inset:0; background:rgba(0,0,0,.78); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:9999; padding:16px; box-sizing:border-box; }
+#cf-version-conflict-modal.show { display:flex; }
+.vcm-box { background:var(--surface); border:1px solid var(--hair2); width:100%; max-width:500px; max-height:90vh; overflow-y:auto; box-shadow:0 32px 80px rgba(0,0,0,.9); display:flex; flex-direction:column; }
+.vcm-header { padding:18px 20px 14px; border-bottom:1px solid var(--hair); flex-shrink:0; }
+.vcm-title { font-family:var(--cond); font-size:15px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--amber); }
+.vcm-subtitle { font-size:12px; color:var(--txt-mid); margin-top:4px; line-height:1.5; }
+.vcm-cards { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:16px 20px; }
+@media (max-width:480px) { .vcm-cards { grid-template-columns:1fr; } }
+.vcm-card { border:1px solid var(--hair2); border-radius:4px; padding:12px 14px; background:var(--surface2); }
+.vcm-card-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); margin-bottom:6px; }
+.vcm-card-stat { font-family:var(--cond); font-size:13px; font-weight:700; color:var(--txt-hi); line-height:1.4; }
+.vcm-card-sub { font-size:11px; color:var(--txt-mid); margin-top:2px; }
+.vcm-card.highlight { border-color:var(--amber); background:var(--amber-bg); }
+.vcm-card.highlight .vcm-card-lbl { color:var(--amber); }
+.vcm-footer { display:flex; flex-direction:column; gap:8px; padding:14px 20px 18px; border-top:1px solid var(--hair); flex-shrink:0; }
+.vcm-btn { height:40px; padding:0 20px; cursor:pointer; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; border:none; transition:filter .12s; width:100%; }
+.vcm-btn.keep { background:var(--amber); color:#000; }
+.vcm-btn.keep:hover { filter:brightness(1.1); }
+.vcm-btn.cloud { background:var(--surface3); border:1px solid var(--hair2); color:var(--txt-mid); }
+.vcm-btn.cloud:hover { color:var(--txt-hi); border-color:var(--hair3); }
+.vcm-btn.cancel { background:none; color:var(--txt-low); font-size:10px; height:32px; }
+.vcm-btn.cancel:hover { color:var(--txt-mid); }
+/* ── Version history in save panel ── */
+.sbp-hist-row { display:flex; align-items:center; gap:8px; padding:6px 14px; border-bottom:1px solid var(--hair); }
+.sbp-hist-row:last-child { border-bottom:none; }
+.sbp-hist-time { font-family:var(--mono); font-size:10px; color:var(--txt-mid); flex-shrink:0; }
+.sbp-hist-desc { flex:1; font-size:11px; color:var(--txt-low); }
+.sbp-hist-btn { background:none; border:1px solid var(--hair2); color:var(--txt-mid); font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; padding:3px 9px; flex-shrink:0; }
+.sbp-hist-btn:hover { color:var(--txt-hi); border-color:var(--hair3); }
+/* ── Edit-mode sync status chip ── */
+.et-sync-chip { display:flex; align-items:center; gap:5px; padding:0 10px; border-right:1px solid var(--hair); flex-shrink:0; min-width:0; }
+.et-sync-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.et-sync-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; }
 .sbp-sync-row { display:flex; align-items:center; height:44px; padding:0 14px; border-bottom:1px solid var(--hair); gap:10px; }
 .sbp-sync-state { flex:1; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
 .sbp-sync-state.dirty { color:var(--primary); }
@@ -2919,6 +2959,33 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   </div>
 </div>
 
+<!-- ── Version Conflict Modal ── -->
+<div id="cf-version-conflict-modal" role="dialog" aria-modal="true" aria-label="Version conflict">
+  <div class="vcm-box">
+    <div class="vcm-header">
+      <div class="vcm-title">Version conflict</div>
+      <div class="vcm-subtitle" id="vcm-subtitle">This device and the cloud have different versions of this project.</div>
+    </div>
+    <div class="vcm-cards">
+      <div class="vcm-card highlight" id="vcm-local-card">
+        <div class="vcm-card-lbl">This device</div>
+        <div class="vcm-card-stat" id="vcm-local-stat">—</div>
+        <div class="vcm-card-sub" id="vcm-local-sub"></div>
+      </div>
+      <div class="vcm-card" id="vcm-remote-card">
+        <div class="vcm-card-lbl">Cloud copy</div>
+        <div class="vcm-card-stat" id="vcm-remote-stat">—</div>
+        <div class="vcm-card-sub" id="vcm-remote-sub"></div>
+      </div>
+    </div>
+    <div class="vcm-footer">
+      <button class="vcm-btn keep" id="vcm-keep-btn">Keep this device's version</button>
+      <button class="vcm-btn cloud" id="vcm-cloud-btn">Use cloud version</button>
+      <button class="vcm-btn cancel" id="vcm-cancel-btn">Decide later</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── Import Show Modal ── -->
 <div id="cf-import-modal" class="ntm-bg" role="dialog" aria-modal="true">
   <div class="ntm-box" style="width:560px;padding:0;gap:0;">
@@ -3010,7 +3077,11 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <button class="et-crumb-sq" id="et-crumb-seq" onclick="sbOpen('seqs')" title="Open sequences">—</button>
   </div>
   <div style="flex:1;min-width:0;"></div>
-  <span class="save-indicator" id="save-indicator">Saved</span>
+  <span class="save-indicator" id="save-indicator" style="display:none;">Saved</span>
+  <div class="et-sync-chip" id="et-sync-chip">
+    <div class="et-sync-dot" id="et-sync-dot" style="background:var(--txt-low);"></div>
+    <span class="et-sync-lbl" id="et-sync-lbl" style="color:var(--txt-low);">Saved</span>
+  </div>
   <div class="et-item et-online" id="et-online-cell">
     <div class="tc-pip idle" id="et-online-dot"></div>
     <span class="et-status-lbl" id="et-online-lbl">OFFLINE</span>
@@ -3397,6 +3468,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <div class="live-sb-cell" id="live-tc-sb-cell" onclick="openSettingsModal()" title="Timecode Settings">
       <div class="tc-pip" id="live-tc-pip"></div>
       <span class="live-tc-src" id="live-tc-src-lbl">—</span>
+      <span id="live-tc-status-txt" style="font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-low);"></span>
       <span class="sb-val" id="tc-disp-live" style="font-size:13px;letter-spacing:-0.01em;">--:--:--:--</span>
     </div>
     <!-- Sequence/playlist header -->
@@ -3833,7 +3905,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         </div>
         <div id="ntm-prev-cams" style="display:none;flex-wrap:wrap;gap:6px;"></div>
       </div>
-      <!-- Camera count (camera type only) -->
+      <!-- Camera count stepper + per-camera name inputs (camera type only) -->
       <div class="ntm-fg" id="ntm-cam-row" style="display:none;">
         <label class="ntm-lbl">Cameras</label>
         <div class="ntm-cam-stepper">
@@ -3843,6 +3915,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
           <span class="ntm-hint" style="margin:0;">You can add more later</span>
         </div>
       </div>
+      <!-- Per-camera name inputs (built dynamically by ntmBuildCamNames) -->
+      <div id="ntm-cam-names" class="ntm-cam-names" style="display:none;"></div>
       <!-- Camera-exists warning (shown only when camera tab active + track exists) -->
       <div id="ntm-cam-warn" style="display:none;padding:10px 14px;background:rgba(255,40,72,.08);border:1px solid rgba(255,40,72,.25);font-size:11px;color:var(--red);font-family:var(--cond);letter-spacing:.04em;">
         A camera track already exists. Only one is allowed per project.
@@ -4906,6 +4980,7 @@ function openNewTrackModal(){
   document.getElementById('ntm-prev-sm').textContent='—';
   document.getElementById('ntm-cam-val').textContent='4';
   const cp=document.getElementById('ntm-prev-cams'); if(cp) cp.innerHTML='';
+  const cn=document.getElementById('ntm-cam-names'); if(cn) cn.innerHTML='';
   // Start in normal mode
   ntmSetType('normal');
   m.classList.add('show');
@@ -4920,8 +4995,16 @@ function ntmSetType(type){
   // Name fields hidden for camera (fixed name 'CAMERA', no short name)
   const nameRows=document.getElementById('ntm-name-rows');
   if(nameRows) nameRows.style.display=(type==='camera')?'none':'';
+  // Preview hidden for camera — replaced by per-camera name inputs
+  const prev=document.querySelector('#new-track-modal .ntm-preview');
+  if(prev) prev.style.display=(type==='camera')?'none':'';
   // Camera-specific rows
-  document.getElementById('ntm-cam-row').style.display=(type==='camera'&&!hasCamTrack)?'':'none';
+  const camRow=document.getElementById('ntm-cam-row');
+  const camNames=document.getElementById('ntm-cam-names');
+  const showCam=(type==='camera'&&!hasCamTrack);
+  if(camRow)  camRow.style.display  = showCam ? '' : 'none';
+  if(camNames) camNames.style.display = showCam ? '' : 'none';
+  if(showCam) ntmBuildCamNames();
   document.getElementById('ntm-cam-warn').style.display=(type==='camera'&&hasCamTrack)?'':'none';
   // Create button disabled if camera already exists
   const createBtn=document.getElementById('ntm-create-btn');
@@ -4955,7 +5038,28 @@ function ntmUpdatePreview(){
 function ntmStepCam(delta){
   _ntmCamCount=Math.max(1,Math.min(16,_ntmCamCount+delta));
   document.getElementById('ntm-cam-val').textContent=_ntmCamCount;
+  ntmBuildCamNames();
   ntmUpdatePreview();
+}
+
+function ntmBuildCamNames(){
+  const el=document.getElementById('ntm-cam-names');
+  if(!el) return;
+  // Preserve any names already typed
+  const existing={};
+  el.querySelectorAll('input[data-cam-idx]').forEach(i=>{ existing[i.dataset.camIdx]=i.value; });
+  el.innerHTML='';
+  for(let i=1;i<=_ntmCamCount;i++){
+    const hex=getCameraColor((i-1)%CAMERA_COLORS.length);
+    const row=document.createElement('div');
+    row.className='ntm-cam-name-row';
+    row.innerHTML=
+      '<div class="cam-badge-sq sm" style="background:'+hex+';color:#06060a;flex-shrink:0;">'+i+'</div>'+
+      '<input class="ntm-inp" type="text" data-cam-idx="'+i+'" placeholder="Camera '+i+'" maxlength="40" autocomplete="off">';
+    const inp=row.querySelector('input');
+    if(existing[i]) inp.value=existing[i];
+    el.appendChild(row);
+  }
 }
 
 function ntmClose(){
@@ -4977,9 +5081,14 @@ function ntmCreate(){
   snapshot();
   if(_ntmType==='camera'){
     if(state.cameraTrack){ntmClose();return;}
+    // Collect any names the operator typed
+    const _camNameInputs={};
+    document.querySelectorAll('#ntm-cam-names input[data-cam-idx]').forEach(inp=>{
+      _camNameInputs[inp.dataset.camIdx]=inp.value.trim();
+    });
     const cameras=[];
     for(let i=1;i<=_ntmCamCount;i++){
-      cameras.push({id:uid(),number:i,label:'',colorIdx:(i-1)%CAMERA_COLORS.length});
+      cameras.push({id:uid(),number:i,label:_camNameInputs[i]||'',colorIdx:(i-1)%CAMERA_COLORS.length});
     }
     state.cameraTrack={id:uid(),name:fullName,shortName,cameras};
     persist();renderStreamsBar();renderCueList();updateStreamDots();if(typeof updateCamTrackBar==='function')updateCamTrackBar();
@@ -6172,9 +6281,15 @@ function _activateCamCockpit(){
   if(camSel&&state.cameraTrack&&state.cameraTrack.cameras){
     const activeCamId=cam?cam.id:null;
     camSel.innerHTML=state.cameraTrack.cameras.map(function(c){
-      return '<option value="'+c.id+'"'+(c.id===activeCamId?' selected':'')+'>'+
-        (window.escH?escH(c.label||'CAM '+c.number):(c.label||'CAM '+c.number))+'</option>';
+      var hex=window.getCameraColor?getCameraColor(c.colorIdx||0):'#888';
+      var label=window.escH?escH(c.label||'Camera '+c.number):(c.label||'Camera '+c.number);
+      var badgeHtml='<div class="cam-badge-sq xs" style="background:'+hex+';color:#06060a;flex-shrink:0;">'+c.number+'</div>'+label;
+      var opt='<option value="'+c.id+'"'+(c.id===activeCamId?' selected':'')+
+        ' data-html="'+badgeHtml.replace(/"/g,'&quot;')+'">'+(c.label||'Camera '+c.number)+'</option>';
+      return opt;
     }).join('');
+    /* Rebuild the cf-sel UI to pick up the new data-html attributes */
+    if(camSel.__cfSel&&camSel.__cfSel.buildOpts) camSel.__cfSel.buildOpts();
   }
   _show('vw-cam-cell');
 
@@ -7866,13 +7981,19 @@ function updateTCStatus(status,label){
       pip.className='tc-pip'+(status==='receiving'?' ok pulse':status==='waiting'?' warn pulse':' idle');
     }
   }
-  // TC source label (LTC / MTC / FREE RUN / —)
+  // TC source label (LTC / MTC / FREE RUN / —) + status text
   const srcLbl=document.getElementById('live-tc-src-lbl');
+  const statusTxt=document.getElementById('live-tc-status-txt');
   if(srcLbl){
     if(status==='freerun')srcLbl.textContent='FREE RUN';
     else if(label&&label.startsWith('LTC'))srcLbl.textContent='LTC';
     else if(label&&label.startsWith('MTC'))srcLbl.textContent='MTC';
     else srcLbl.textContent='—';
+  }
+  if(statusTxt){
+    const tcStatusMap={receiving:{txt:'Receiving',col:'var(--green)'},waiting:{txt:'Waiting…',col:'var(--amber)'},freerun:{txt:'Free run',col:'var(--txt-low)'},none:{txt:'No input',col:'var(--txt-low)'}};
+    const s=tcStatusMap[status]||{txt:'',col:'var(--txt-low)'};
+    statusTxt.textContent=s.txt; statusTxt.style.color=s.col;
   }
   // setup icon
   const si=document.getElementById('setup-tc-icon');if(si)si.classList.toggle('active',status==='receiving');
@@ -9572,6 +9693,8 @@ function sbOpen(name){
   document.querySelectorAll('.sb-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('sb-'+name)?.classList.add('active');
   _sbRender(name);
+  /* Load version history whenever the project panel is opened */
+  if(name === 'save' && window._refreshHistoryPanel) _refreshHistoryPanel();
 }
 
 // ── Sidebar sequence drag-reorder ──────────────────────
@@ -9690,7 +9813,17 @@ function _sbRender(name){
     <button class="sbp-add" onclick="exportShowFile()" style="width:100%;margin-bottom:4px;">↓ Export show file</button>
     <label class="sbp-add" style="width:100%;display:block;text-align:center;cursor:pointer;margin-bottom:4px;">↑ Import show file<input type="file" accept=".cueflow,.json" style="display:none" onchange="importShowFile(event);sbClose()"></label>
     <hr style="border:none;border-top:1px solid var(--hair);margin:6px 0;">
-    <button class="sbp-add" onclick="openProjectSettingsModal()" style="width:100%;margin-bottom:4px;">⚙ Project settings</button>`;
+    <button class="sbp-add" onclick="openProjectSettingsModal()" style="width:100%;margin-bottom:4px;">⚙ Project settings</button>
+    <hr style="border:none;border-top:1px solid var(--hair);margin:6px 0 0;">
+    <div id="sbp-hist-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px 4px;">
+        <span style="font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-low);">Version History</span>
+        <button style="background:none;border:none;color:var(--txt-low);cursor:pointer;font-size:10px;padding:2px 4px;" onclick="if(window._refreshHistoryPanel)_refreshHistoryPanel()" title="Refresh">↻</button>
+      </div>
+      <div id="sbp-hist-list" style="padding-bottom:4px;">
+        <div style="padding:6px 14px;font-size:11px;color:var(--txt-low);">Loading…</div>
+      </div>
+    </div>`;
   } else if(name === 'playlists'){
     html = ''; // Block 2 override handles full render
   } else if(name === 'seqs'){
@@ -9818,7 +9951,7 @@ function trkRenameConfirm(){
   const short=(rawShort.slice(0,3).toUpperCase())||full.slice(0,3).toUpperCase();
   const s=state.streams.find(x=>x.id===_trkRenameSid); if(!s) return;
   s.name=full; s.shortName=short;
-  persist(); renderStreamsBar(); if(ETL.visible) renderEditTimeline();
+  persist(); renderStreamsBar(); renderCueList(); if(ETL.visible) renderEditTimeline();
   _sbRender('tracks');
   trkRenameClose();
 }
@@ -12344,7 +12477,8 @@ window.CfSelect=(function(){
           +(opt.value===cv?' selected':'')
           +(opt.disabled?' disabled':'');
         item.dataset.value=opt.value;
-        item.textContent=opt.text;
+        if(opt.dataset.html){ item.innerHTML='<span class="cf-sel-opt-inner">'+opt.dataset.html+'</span>'; }
+        else item.textContent=opt.text;
         if(!opt.disabled){
           item.addEventListener('mousedown',function(e){
             e.preventDefault();
@@ -12362,7 +12496,8 @@ window.CfSelect=(function(){
     /* ── Sync displayed label from native select's current value ── */
     function _syncVal(){
       var so=el.options[el.selectedIndex];
-      valEl.textContent=so?so.text:(opts.placeholder||'—');
+      if(so&&so.dataset.html){ valEl.innerHTML='<span class="cf-sel-opt-inner">'+so.dataset.html+'</span>'; }
+      else valEl.textContent=so?so.text:(opts.placeholder||'—');
       panel.querySelectorAll('.cf-sel-opt').forEach(function(item){
         item.classList.toggle('selected',item.dataset.value===el.value);
       });
@@ -13852,6 +13987,11 @@ document.addEventListener('DOMContentLoaded',function(){
       <div class="me-proj-name" id="me-proj-name">CueFlow</div>
       <div class="me-pl-name" id="me-pl-name">—</div>
     </div>
+    <!-- Sync status chip (mobile) -->
+    <div style="display:flex;align-items:center;gap:4px;padding:0 8px;flex-shrink:0;">
+      <div id="me-sync-dot" style="width:5px;height:5px;border-radius:50%;background:var(--txt-low);flex-shrink:0;"></div>
+      <span id="me-sync-lbl" style="font-family:var(--cond);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-low);white-space:nowrap;">Saved</span>
+    </div>
     <button class="me-go-live" id="me-go-live" onclick="meGoLive()">Go Live</button>
   </div>
 
@@ -14630,6 +14770,7 @@ function snapshot(){
 function pushProject(cb, _retry){
   if(!CF.showId) return;
   if(!navigator.onLine){ CF.dirty=true; updateSyncBtn(); return; }
+  if(window._updateSyncChip) _updateSyncChip('saving');
 
   /* Non-owner (editor / track-editor): push via SECURITY DEFINER RPC — bypasses RLS */
   if(!CF.isOwner && CF._pinHash){
@@ -14658,7 +14799,9 @@ function pushProject(cb, _retry){
     .then(function(r){
       if(r.error){
         console.warn('[CF] push error', r.error.message);
-        CF.dirty=true; updateSyncBtn(); return;
+        CF.dirty=true; updateSyncBtn();
+        if(window._updateSyncChip) _updateSyncChip('error');
+        return;
       }
       if(!r.data||!r.data.length){
         if(!CF.isOwner){
@@ -14688,6 +14831,8 @@ function pushProject(cb, _retry){
       clearTimeout(CF._pendingRemoteTimer);
       localStorage.removeItem(DIRTY_KEY);
       updateSyncBtn(); if(cb) cb();
+      /* Save a history snapshot (fire-and-forget; never blocks the push flow) */
+      _saveShowSnapshot();
     });
 }
 
@@ -14707,6 +14852,106 @@ function updateSyncBtn(){
     if(btn){ btn.className='sbp-sync-btn clean'; btn.disabled=true; btn.textContent='↑ SYNC'; }
     if(stateLbl){ stateLbl.className='sbp-sync-state clean'; stateLbl.textContent='ALL CHANGES SAVED'; }
   }
+  /* Also update the persistent topbar chip */
+  _updateSyncChip(navigator.onLine ? (CF.dirty ? 'dirty' : 'saved') : 'offline');
+}
+
+function _updateSyncChip(state, label){
+  var dot = document.getElementById('et-sync-dot');
+  var lbl = document.getElementById('et-sync-lbl');
+  /* Mobile edit topbar chip */
+  var mdot = document.getElementById('me-sync-dot');
+  var mlbl = document.getElementById('me-sync-lbl');
+  var colors = {
+    saving: {dot:'var(--amber)', lbl:'var(--amber)', text: label||'Saving…'},
+    dirty:  {dot:'var(--amber)', lbl:'var(--amber)', text: label||'Unsaved'},
+    saved:  {dot:'var(--txt-low)', lbl:'var(--txt-low)', text: label||'Saved'},
+    offline:{dot:'#f97316',     lbl:'#f97316',      text: label||'Offline'},
+    error:  {dot:'var(--red)',  lbl:'var(--red)',    text: label||'Sync error'}
+  };
+  var c = colors[state] || colors.saved;
+  if(dot){ dot.style.background = c.dot; }
+  if(lbl){ lbl.style.color = c.lbl; lbl.textContent = c.text; }
+  if(mdot){ mdot.style.background = c.dot; }
+  if(mlbl){ mlbl.style.color = c.lbl; mlbl.textContent = c.text; }
+}
+
+/* Save a snapshot to show_history after a successful owner push. Fire-and-forget. */
+function _saveShowSnapshot(){
+  if(!CF.showId || !CF.isOwner) return;
+  var songs = state.songs || [];
+  var songCount = songs.length;
+  var cueCount  = songs.reduce(function(n,s){ return n+(s.cues||[]).length; }, 0);
+  db().rpc('save_show_snapshot',{
+    p_show_id:      CF.showId,
+    p_project_data: snapshot(),
+    p_song_count:   songCount,
+    p_cue_count:    cueCount
+  }).then(function(r){
+    if(r.error) console.warn('[CF] snapshot save:', r.error.message);
+    else _refreshHistoryPanel();
+  });
+}
+
+/* Fetch show_history for the current show and re-render the panel list. */
+function _refreshHistoryPanel(){
+  var listEl = document.getElementById('sbp-hist-list');
+  if(!listEl || !CF.showId) return;
+  if(!window._sbPanel || window._sbPanel !== 'save') return; /* only when panel is open */
+  listEl.innerHTML = '<div style="padding:6px 14px;font-size:11px;color:var(--txt-low);">Loading…</div>';
+  db().from('show_history')
+    .select('id,song_count,cue_count,created_at')
+    .eq('show_id', CF.showId)
+    .order('created_at', {ascending:false})
+    .limit(10)
+    .then(function(r){
+      if(r.error||!r.data||!r.data.length){
+        listEl.innerHTML = '<div style="padding:6px 14px;font-size:11px;color:var(--txt-low);">No saved snapshots yet.</div>';
+        return;
+      }
+      listEl.innerHTML = '';
+      r.data.forEach(function(row){
+        var d = new Date(row.created_at);
+        var timeStr = d.toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' ' +
+                      d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+        var desc = row.song_count + ' seq, ' + row.cue_count + ' cues';
+        var el = document.createElement('div');
+        el.className = 'sbp-hist-row';
+        el.innerHTML =
+          '<span class="sbp-hist-time">' + timeStr + '</span>' +
+          '<span class="sbp-hist-desc">' + desc + '</span>' +
+          '<button class="sbp-hist-btn" data-hid="' + row.id + '">Restore</button>';
+        el.querySelector('.sbp-hist-btn').addEventListener('click', function(){
+          _restoreFromHistory(row.id, timeStr, desc);
+        });
+        listEl.appendChild(el);
+      });
+    });
+}
+window._refreshHistoryPanel = _refreshHistoryPanel;
+
+/* Restore a project from a history snapshot after owner confirmation. */
+function _restoreFromHistory(historyId, timeStr, desc){
+  if(!CF.showId || !CF.isOwner) return;
+  openConfirmModal(
+    'Restore the snapshot from ' + timeStr + ' (' + desc + ')?\nThis will overwrite your current project.',
+    function(){
+      db().from('show_history').select('project_data').eq('id', historyId).single()
+        .then(function(r){
+          if(r.error || !r.data || !r.data.project_data){
+            alert('Could not load snapshot.'); return;
+          }
+          if(window.applyProject) applyProject(r.data.project_data);
+          CF.dirty = true;
+          if(window.updateSyncBtn) updateSyncBtn();
+          if(window.pushProject) setTimeout(pushProject, 300);
+        });
+    },
+    null,
+    'Restore snapshot',
+    'danger',
+    'Restore from history'
+  );
 }
 
 /* ── Subscribe to project Realtime changes ───────────────── */
@@ -14735,6 +14980,12 @@ function _fetchAndCheckConflicts(noConflictCb){
       CF._pendingConflictProj=remote;
       CF._conflictChoices={};
       showConflictModal(conflicts);
+    } else if(_versionsDiffer(state.songs, remote.songs)){
+      CF._conflictCheckInProgress=false;
+      var _r=remote;
+      _showVersionConflict(state.songs, _r.songs,
+        function(){ if(noConflictCb) noConflictCb(); else pushProject(); },
+        function(){ applyRemote(_r); });
     } else {
       CF._conflictCheckInProgress=false;
       if(noConflictCb) noConflictCb();
@@ -14841,8 +15092,18 @@ function subscribeProject(){
           CF._pendingConflictProj = proj;
           CF._conflictChoices = {};
           var conflicts = findConflicts(state.songs, proj.songs);
-          if(conflicts.length){ showConflictModal(conflicts); }
-          else { applyRemote(proj); }
+          if(conflicts.length){
+            showConflictModal(conflicts);
+          } else if(_versionsDiffer(state.songs, proj.songs)){
+            /* Structural difference (e.g. local has new songs remote doesn't) —
+               never silently overwrite; always let the operator choose. */
+            var _localS=state.songs, _remoteS=proj.songs, _rProj=proj;
+            _showVersionConflict(_localS, _remoteS,
+              function(){ pushProject(); },          /* keep local → push to cloud */
+              function(){ applyRemote(_rProj); });   /* use cloud */
+          } else {
+            applyRemote(proj); /* versions are structurally identical, safe */
+          }
           return;
         }
         applyRemote(proj);
@@ -14907,6 +15168,72 @@ function findConflicts(localSongs, remoteSongs){
     });
   });
   return conflicts;
+}
+
+/* Returns true when local and remote have meaningfully different structure —
+   different song count, different song IDs, or different cue counts.
+   findConflicts() only catches field-level conflicts on cues that exist in BOTH
+   versions; _versionsDiffer() catches additions and deletions that it misses. */
+function _versionsDiffer(localSongs, remoteSongs){
+  var ls = localSongs  || [];
+  var rs = remoteSongs || [];
+  if(ls.length !== rs.length) return true;
+  var lMap = {};
+  ls.forEach(function(s){ lMap[s.id] = s; });
+  for(var i = 0; i < rs.length; i++){
+    var r = rs[i];
+    var l = lMap[r.id];
+    if(!l) return true;                                     // remote has song local doesn't
+    if((l.cues||[]).length !== (r.cues||[]).length) return true;
+  }
+  // Also check for local songs that don't appear in remote
+  var rMap = {};
+  rs.forEach(function(s){ rMap[s.id] = true; });
+  for(var j = 0; j < ls.length; j++){
+    if(!rMap[ls[j].id]) return true;
+  }
+  return false;
+}
+
+/* Describe a project snapshot for the version-conflict modal. */
+function _projDesc(songs){
+  var s = songs || [];
+  var cues = s.reduce(function(n, sg){ return n + (sg.cues||[]).length; }, 0);
+  return s.length + ' sequence' + (s.length===1?'':'s') + ', ' + cues + ' cue' + (cues===1?'':'s');
+}
+
+/* Show a responsive "two versions, pick one" modal when versions differ structurally
+   but findConflicts() found no field-level conflicts to resolve per-cue. */
+function _showVersionConflict(localSongs, remoteSongs, onKeepLocal, onUseRemote){
+  var m     = document.getElementById('cf-version-conflict-modal');
+  var lStat = document.getElementById('vcm-local-stat');
+  var rStat = document.getElementById('vcm-remote-stat');
+  var lSub  = document.getElementById('vcm-local-sub');
+  var rSub  = document.getElementById('vcm-remote-sub');
+  var keepBtn   = document.getElementById('vcm-keep-btn');
+  var cloudBtn  = document.getElementById('vcm-cloud-btn');
+  var cancelBtn = document.getElementById('vcm-cancel-btn');
+  if(!m) return;
+
+  if(lStat) lStat.textContent = _projDesc(localSongs);
+  if(rStat) rStat.textContent = _projDesc(remoteSongs);
+  if(lSub)  lSub.textContent  = 'Unsaved changes on this device';
+  if(rSub)  rSub.textContent  = 'Last cloud save';
+
+  function close(){ m.classList.remove('show'); }
+
+  if(keepBtn) keepBtn.onclick = function(){ close(); if(onKeepLocal) onKeepLocal(); };
+  if(cloudBtn) cloudBtn.onclick = function(){
+    close();
+    if(onUseRemote) onUseRemote();
+  };
+  if(cancelBtn) cancelBtn.onclick = function(){
+    close();
+    /* Mark dirty so the operator sees the save indicator and can decide later */
+    if(window.CF) CF.dirty = true;
+    if(window.updateSyncBtn) updateSyncBtn();
+  };
+  m.classList.add('show');
 }
 
 /* ── Conflict modal rendering helpers ───────────────────── */
@@ -15487,8 +15814,16 @@ function ownerRestoreShow(showId){
           CF._conflictChoices={};
           showConflictModal(_conflicts);
           /* restoreSessionState() is called inside resolveConflicts() after the modal */
+        } else if(_versionsDiffer(state.songs, _remote.songs)){
+          /* Structural difference with no cue-level conflicts — e.g. remote has
+             new sequences that local is missing, or vice versa. Never auto-push;
+             always ask the operator which version to keep. */
+          var _loc=state.songs, _rem=_remote;
+          _showVersionConflict(_loc, _rem.songs,
+            function(){ CF.dirty=true; pushProject(); restoreSessionState(); },
+            function(){ applyRemote(_rem); restoreSessionState(); });
         } else {
-          /* No conflicts: local is definitively newer, push it */
+          /* Versions are structurally identical — local is definitively newer, push it */
           CF.dirty=true;
           pushProject();
           restoreSessionState();
@@ -17280,6 +17615,7 @@ window.addEventListener('offline',function(){
   var bar=document.getElementById('cf-offline-bar'); if(bar) bar.classList.add('show');
   if(window._syncEditTopbarOnline) _syncEditTopbarOnline(false);
   updateSyncBtn();
+  if(window._updateSyncChip) _updateSyncChip('offline');
 });
 /* ── Initial online state sync ───────────────────────────── */
 (function(){
