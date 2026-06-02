@@ -2103,8 +2103,8 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 }
 .me-seq-hdr-nav {
   display:flex; align-items:center; gap:6px; padding:0 16px;
-  background:none; border:none; border-left:1px solid var(--hair);
-  color:var(--amber); font-family:var(--mono); font-size:13px; font-weight:700; cursor:pointer; flex-shrink:0;
+  background:none; border:none;
+  color:var(--amber); font-family:var(--mono); font-size:10px; font-weight:700; cursor:pointer; flex-shrink:0;
 }
 .me-seq-hdr-nav:hover { background:var(--surface2); }
 
@@ -2125,7 +2125,7 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
   background:var(--bg); transition:background .1s; min-height:64px;
 }
 .me-cue-row:active { background:var(--surface); }
-.me-cue-row.flagged { background:var(--amber-bg); }
+.me-cue-row.flagged { background:none; }
 .me-cue-flag {
   width:44px; flex-shrink:0; background:none; border:none;
   color:var(--txt-dim); font-size:17px; cursor:pointer;
@@ -2143,7 +2143,7 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
   font-family:var(--sans); font-size:16px; font-weight:600; color:var(--txt-hi);
   min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
-.me-cue-bot { display:flex; align-items:center; gap:7px; padding-left:32px; }
+.me-cue-bot { display:flex; align-items:center; gap:7px; padding-left:0; }
 .me-cue-tc { font-family:var(--mono); font-size:12px; color:var(--txt-mid); }
 .me-cue-del {
   width:44px; flex-shrink:0; background:none; border:none;
@@ -2388,6 +2388,31 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 @media (max-width:380px) {
   .me-cue-name { font-size:14px; }
   .me-seq-hdr-name { font-size:18px; }
+}
+/* Mobile mini-modals (new project / share link / playlist) */
+.me-mini-modal {
+  display:none; position:fixed; inset:0; z-index:10002;
+  align-items:center; justify-content:center;
+  background:rgba(0,0,0,.75); padding:20px;
+}
+.me-mini-modal.show { display:flex; }
+.me-mini-box {
+  background:var(--surface); border:1px solid var(--hair2);
+  width:100%; max-width:420px; display:flex; flex-direction:column;
+  box-shadow:0 16px 48px rgba(0,0,0,.6);
+}
+.me-mini-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 20px; border-bottom:1px solid var(--hair); flex-shrink:0;
+}
+.me-mini-title {
+  font-family:var(--cond); font-size:18px; font-weight:700;
+  color:var(--txt-hi); letter-spacing:.04em; text-transform:uppercase;
+}
+.me-mini-body { padding:20px; display:flex; flex-direction:column; gap:14px; }
+.me-mini-footer {
+  display:flex; gap:8px; padding:12px 20px;
+  border-top:1px solid var(--hair);
 }
 
 /* ── ntm-btn danger variant ── */
@@ -12288,7 +12313,8 @@ function isMobileEditMode(){
 }
 
 function meGoLive(){
-  // Editor in collab mode → go online/follow live
+  // On mobile, owner sees responsive live cockpit (read-only — no MIDI/LTC on phones)
+  // Editor in collab mode → go to live follow view
   if(window.CF&&CF.showId&&!CF.isOwner){
     if(window._editorGoOnline)_editorGoOnline();
   } else {
@@ -12336,10 +12362,8 @@ function _meRenderSeqHeader(){
   var songs=getActivePlaylistSongs();
   var song=getActiveSong();
   var idx=songs.findIndex(function(s){return s.id===state.activeSongId;});
-  var numEl=document.getElementById('me-seq-num');
   var nameEl=document.getElementById('me-seq-hdr-name');
   var posEl=document.getElementById('me-seq-pos');
-  if(numEl)numEl.textContent=idx>=0?String(idx+1).padStart(2,'0'):'—';
   if(nameEl)nameEl.textContent=song?song.name:'No sequence';
   if(posEl)posEl.textContent=(idx>=0?String(idx+1).padStart(2,'0'):'—')+' / '+songs.length;
 }
@@ -12377,8 +12401,8 @@ function _meRenderCueList(){
           '<span class="me-cue-name">'+escH(cue.name)+'</span>'+
         '</div>'+
         '<div class="me-cue-bot">'+
-          '<span class="me-cue-tc">'+escH(cue.tc)+'</span>'+
           trackBadge+
+          '<span class="me-cue-tc">'+escH(cue.tc)+'</span>'+
         '</div>'+
       '</div>'+
       '<button class="me-cue-del" data-cid="'+cue.id+'" aria-label="Delete cue">✕</button>';
@@ -12472,7 +12496,7 @@ function _meRenderDrawer(){
   var newBtn=document.createElement('button');
   newBtn.className='me-drawer-add-btn amber';
   newBtn.textContent='+ New project';
-  newBtn.addEventListener('click',function(){meDrawerClose();openNewProjectModal();});
+  newBtn.addEventListener('click',function(){meDrawerClose();meOpenNewProj();});
   projSec.body.appendChild(newBtn);
   body.appendChild(projSec.el);
 
@@ -12492,7 +12516,7 @@ function _meRenderDrawer(){
       var addPin=document.createElement('button');
       addPin.className='me-drawer-add-btn amber';
       addPin.textContent='+ New share link';
-      addPin.addEventListener('click',function(){meDrawerClose();if(window.sbOpen)sbOpen('online');});
+      addPin.addEventListener('click',function(){meDrawerClose();meOpenNewShare();});
       shareSec.body.appendChild(addPin);
     }
     body.appendChild(shareSec.el);
@@ -12509,14 +12533,17 @@ function _meRenderDrawer(){
     item.addEventListener('click',function(){
       if(isActive){meDrawerClose();return;}
       state.activePlaylistId=pl.id;
-      if(state.playlists){
-        var pl2=state.playlists.find(function(p){return p.id===pl.id;});
-        if(pl2&&pl2.songIds&&pl2.songIds.length)state.activeSongId=pl2.songIds[0];
-      }
+      var pl2=state.playlists&&state.playlists.find(function(p){return p.id===pl.id;});
+      if(pl2&&pl2.songIds&&pl2.songIds.length)state.activeSongId=pl2.songIds[0];
       persist();meDrawerClose();renderMobileEditScreen();
     });
     plSec.body.appendChild(item);
   });
+  var addPlBtn=document.createElement('button');
+  addPlBtn.className='me-drawer-add-btn amber';
+  addPlBtn.textContent='+ New playlist';
+  addPlBtn.addEventListener('click',function(){meDrawerClose();meOpenNewPlaylist();});
+  plSec.body.appendChild(addPlBtn);
   body.appendChild(plSec.el);
 
   // TRACKS
@@ -12541,7 +12568,7 @@ function _meRenderDrawer(){
         state.visibleStreamIds=visible
           ?state.visibleStreamIds.filter(function(id){return id!==sid;})
           :[].concat(state.visibleStreamIds||[],[sid]);
-        persist();renderStreamsBar();_meRenderDrawer();
+        persist();renderStreamsBar();_meRenderCueList();_meRenderDrawer();
       });
     })(stream.id,isVisible);
     trkSec.body.appendChild(item);
@@ -12594,7 +12621,6 @@ function meSeqPickerClose(){
 // ── ADD CUE ──
 var _meAddFlag=false;
 function meOpenAddCue(){
-  if(window.CF&&!CF.showId){openNewProjectModal();return;}
   var song=getActiveSong();
   if(!song)return;
   _meAddFlag=false;
@@ -12765,9 +12791,102 @@ function _mePopulateTrackSel(selId,currentStreamId){
   if(window.CF&&CF.role==='track-editor'&&CF.tracks)
     streams=streams.filter(function(s){return CF.tracks.indexOf(s.id)>=0;});
   sel.innerHTML=streams.map(function(s){
-    var sn=(s.shortName||s.name||'?').slice(0,3).toUpperCase();
-    return '<option value="'+escH(s.id)+'"'+(s.id===currentStreamId?' selected':'')+'>'+escH(sn)+'  '+escH(s.name||'')+'</option>';
+    return '<option value="'+escH(s.id)+'"'+(s.id===currentStreamId?' selected':'')+'>'+escH(s.name||'Track')+'</option>';
   }).join('');
+}
+
+// ── NEW PROJECT ──
+function meOpenNewProj(){
+  var m=document.getElementById('me-new-proj-modal');
+  if(!m)return;
+  var ni=document.getElementById('me-np-name');
+  var ti=document.getElementById('me-np-track');
+  if(ni)ni.value='';
+  if(ti)ti.value='';
+  m.classList.add('show');
+  setTimeout(function(){if(ni)ni.focus();},60);
+}
+function meCloseNewProj(){
+  var m=document.getElementById('me-new-proj-modal');
+  if(m)m.classList.remove('show');
+}
+function meSubmitNewProj(){
+  var nameVal=(document.getElementById('me-np-name')||{}).value;
+  var trackVal=(document.getElementById('me-np-track')||{}).value;
+  if(!nameVal||!nameVal.trim())return;
+  // Build a fresh project state
+  var trackId='stream_'+Date.now();
+  var songId='s_'+Date.now();
+  var plId='pl_'+Date.now();
+  var proj={
+    id:'p_'+Date.now(), name:nameVal.trim(), fps:25, warnSec:10, autoAdvanceSec:10, visibleCount:6,
+    activeSongId:songId, activePlaylistId:plId,
+    playlists:[{id:plId,name:'Main',songIds:[songId]}],
+    streams:[{id:trackId,name:(trackVal||'Track 1').trim(),colorId:'blue',shortName:(trackVal||'T1').trim().slice(0,3).toUpperCase()}],
+    visibleStreamIds:[trackId],
+    songs:[{id:songId,name:'Sequence 1',description:'',startTc:'01:00:00:00',cues:[],chapters:[]}]
+  };
+  applyProject(proj);
+  meCloseNewProj();
+  renderMobileEditScreen();
+  meShowToast('Project created');
+}
+
+// ── NEW SHARE LINK ──
+function meOpenNewShare(){
+  var m=document.getElementById('me-new-share-modal');
+  if(!m)return;
+  var li=document.getElementById('me-ns-label');
+  if(li)li.value='';
+  var ri=document.getElementById('me-ns-role');
+  if(ri)ri.value='viewer';
+  m.classList.add('show');
+  setTimeout(function(){if(li)li.focus();},60);
+}
+function meCloseNewShare(){
+  var m=document.getElementById('me-new-share-modal');
+  if(m)m.classList.remove('show');
+}
+function meSubmitNewShare(){
+  if(!window.CF||!CF.showId){meCloseNewShare();meShowToast('Save project to Supabase first');return;}
+  // Delegate to the existing addPin flow
+  var labelVal=((document.getElementById('me-ns-label')||{}).value||'').trim();
+  var roleVal=((document.getElementById('me-ns-role')||{}).value)||'viewer';
+  var labelEl=document.getElementById('cf-pin-label');
+  var roleEl=document.getElementById('cf-pin-role');
+  if(labelEl)labelEl.value=labelVal;
+  if(roleEl)roleEl.value=roleVal;
+  if(window.CF&&CF._onRoleChange)CF._onRoleChange();
+  if(window.addPin){addPin();}
+  meCloseNewShare();
+  meDrawerOpen(); // re-open drawer to show new pin
+}
+
+// ── NEW PLAYLIST ──
+function meOpenNewPlaylist(){
+  var m=document.getElementById('me-new-playlist-modal');
+  if(!m)return;
+  var ni=document.getElementById('me-npl-name');
+  if(ni)ni.value='';
+  m.classList.add('show');
+  setTimeout(function(){if(ni)ni.focus();},60);
+}
+function meCloseNewPlaylist(){
+  var m=document.getElementById('me-new-playlist-modal');
+  if(m)m.classList.remove('show');
+}
+function meSubmitNewPlaylist(){
+  var nameVal=((document.getElementById('me-npl-name')||{}).value||'').trim();
+  if(!nameVal)return;
+  var id='pl_'+Date.now();
+  if(!state.playlists)state.playlists=[];
+  state.playlists.push({id:id,name:nameVal,songIds:[]});
+  state.activePlaylistId=id;
+  persist();
+  meCloseNewPlaylist();
+  renderMobileEditScreen();
+  meDrawerOpen();
+  meShowToast('Playlist created');
 }
 
 // ── TOAST ──
@@ -13425,12 +13544,12 @@ document.addEventListener('DOMContentLoaded',function(){
       <!-- Sequence selector strip (phone) -->
       <div class="me-seq-hdr" id="me-seq-hdr">
         <div class="me-seq-hdr-inner" onclick="meSeqPickerOpen()">
-          <div class="me-seq-hdr-top">EDITING SEQUENCE <span id="me-seq-num">—</span></div>
+          <div class="me-seq-hdr-top">EDITING SEQUENCE</div>
           <div class="me-seq-hdr-name" id="me-seq-hdr-name">No sequence</div>
         </div>
         <button class="me-seq-hdr-nav" onclick="meSeqPickerOpen()">
           <span id="me-seq-pos">— / —</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
       </div>
 
@@ -13570,6 +13689,83 @@ document.addEventListener('DOMContentLoaded',function(){
     <button class="me-modal-close" onclick="meSeqPickerClose()">✕</button>
   </div>
   <div class="me-seq-picker-list" id="me-seq-picker-list"></div>
+</div>
+
+<!-- Mobile: New Project mini-modal -->
+<div id="me-new-proj-modal" class="me-mini-modal">
+  <div class="me-mini-box">
+    <div class="me-mini-head">
+      <span class="me-mini-title">NEW PROJECT</span>
+      <button class="me-modal-close" onclick="meCloseNewProj()">✕</button>
+    </div>
+    <div class="me-mini-body">
+      <div class="me-field-group">
+        <label class="me-field-lbl" for="me-np-name">PROJECT NAME</label>
+        <input class="me-text-inp" id="me-np-name" type="text" placeholder="e.g. Arena Tour 2026" maxlength="60" autocomplete="off"
+          onkeydown="if(event.key==='Enter')meSubmitNewProj();if(event.key==='Escape')meCloseNewProj();">
+      </div>
+      <div class="me-field-group">
+        <label class="me-field-lbl" for="me-np-track">FIRST TRACK NAME</label>
+        <input class="me-text-inp" id="me-np-track" type="text" placeholder="e.g. Lighting" maxlength="40" autocomplete="off"
+          onkeydown="if(event.key==='Enter')meSubmitNewProj();if(event.key==='Escape')meCloseNewProj();">
+      </div>
+    </div>
+    <div class="me-mini-footer">
+      <button class="me-btn me-btn-cancel" onclick="meCloseNewProj()">CANCEL</button>
+      <button class="me-btn me-btn-primary" onclick="meSubmitNewProj()">✓ CREATE</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile: New Share Link mini-modal -->
+<div id="me-new-share-modal" class="me-mini-modal">
+  <div class="me-mini-box">
+    <div class="me-mini-head">
+      <span class="me-mini-title">NEW SHARE LINK</span>
+      <button class="me-modal-close" onclick="meCloseNewShare()">✕</button>
+    </div>
+    <div class="me-mini-body">
+      <div class="me-field-group">
+        <label class="me-field-lbl" for="me-ns-label">LABEL</label>
+        <input class="me-text-inp" id="me-ns-label" type="text" placeholder="e.g. LX Operator, Camera 02" maxlength="60" autocomplete="off"
+          onkeydown="if(event.key==='Escape')meCloseNewShare();">
+      </div>
+      <div class="me-field-group">
+        <label class="me-field-lbl" for="me-ns-role">ROLE</label>
+        <select class="me-select" id="me-ns-role">
+          <option value="viewer">Viewer — waterfall, all tracks</option>
+          <option value="crew">Crew — waterfall, assigned track</option>
+          <option value="editor">Editor — full edit access</option>
+          <option value="tc">TC — timecode display only</option>
+        </select>
+      </div>
+    </div>
+    <div class="me-mini-footer">
+      <button class="me-btn me-btn-cancel" onclick="meCloseNewShare()">CANCEL</button>
+      <button class="me-btn me-btn-primary" onclick="meSubmitNewShare()">✓ CREATE LINK</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile: New Playlist mini-modal -->
+<div id="me-new-playlist-modal" class="me-mini-modal">
+  <div class="me-mini-box">
+    <div class="me-mini-head">
+      <span class="me-mini-title">NEW PLAYLIST</span>
+      <button class="me-modal-close" onclick="meCloseNewPlaylist()">✕</button>
+    </div>
+    <div class="me-mini-body">
+      <div class="me-field-group">
+        <label class="me-field-lbl" for="me-npl-name">PLAYLIST NAME</label>
+        <input class="me-text-inp" id="me-npl-name" type="text" placeholder="e.g. Encore / alternates" maxlength="60" autocomplete="off"
+          onkeydown="if(event.key==='Enter')meSubmitNewPlaylist();if(event.key==='Escape')meCloseNewPlaylist();">
+      </div>
+    </div>
+    <div class="me-mini-footer">
+      <button class="me-btn me-btn-cancel" onclick="meCloseNewPlaylist()">CANCEL</button>
+      <button class="me-btn me-btn-primary" onclick="meSubmitNewPlaylist()">✓ CREATE</button>
+    </div>
+  </div>
 </div>
 
 <!-- Mobile: Delete confirm -->
