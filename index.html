@@ -15332,18 +15332,12 @@ function subscribeProject(){
 
 function applyRemote(proj){
   if(window._cfCleanupPending) return;
-  /* Snapshot local flag states before remote overwrites them. Flags are authoritative
-     on the local device (synced via TC-channel broadcast, not postgres_changes echo). */
-  var _localFlags={};
-  (state.songs||[]).forEach(function(s){(s.cues||[]).forEach(function(c){_localFlags[c.id]=!!c.flagged;});});
   var prev = state.activeSongId;
   var prevFrames = state.simFrames;
   var prevVisible = state.visibleStreamIds ? state.visibleStreamIds.slice() : null;
   var prevCamVis = state.cameraTrackVisible;
   var prevStreamSel = state.activeStreamId;
   applyProject(proj);
-  /* Restore local flag states — prevents stale echoes from toggling flags back */
-  state.songs.forEach(function(s){s.cues.forEach(function(c){if(c.id in _localFlags)c.flagged=_localFlags[c.id];});});
   // Never move the playhead — preserve the local TC position across remote updates
   state.simFrames = prevFrames;
   // Preserve the selected stream (UI pick, not a visibility flag)
