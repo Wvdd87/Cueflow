@@ -2135,11 +2135,10 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 .me-cue-row.flagged { background:none; }
 .me-cue-flag {
   width:44px; flex-shrink:0; background:none; border:none;
-  color:var(--txt-dim); font-size:17px; cursor:pointer;
-  display:flex; align-items:center; justify-content:center; transition:color .12s; padding:0;
+  color:var(--txt-dim); font-size:17px; opacity:.25;
+  display:flex; align-items:center; justify-content:center; padding:0; pointer-events:none;
 }
-.me-cue-flag.on { color:var(--amber); }
-.me-cue-flag:hover { color:var(--amber-dim); }
+.me-cue-flag.on { color:var(--amber); opacity:1; }
 .me-cue-body { flex:1; min-width:0; padding:13px 4px 11px 0; }
 .me-cue-top { display:flex; align-items:baseline; gap:8px; margin-bottom:5px; }
 .me-cue-num {
@@ -2616,6 +2615,35 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 .sbp-camhint { padding:8px 14px; font-family:var(--cond); font-size:10px; color:var(--txt-low); letter-spacing:.03em; border-bottom:1px solid var(--hair); display:none; }
 .sbp-camhint.show { display:block; }
 
+/* ── Field-conflict modal ── */
+#cf-conflict-modal { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.78); backdrop-filter:blur(4px); align-items:center; justify-content:center; overscroll-behavior:contain; padding:12px; box-sizing:border-box; }
+.cfcm-box { background:var(--surface); border:1px solid var(--border2); border-radius:12px; width:min(860px,100%); max-height:90vh; overflow:hidden; display:flex; flex-direction:column; }
+.cfcm-head { padding:20px 24px 14px; border-bottom:1px solid var(--border); position:relative; flex-shrink:0; }
+.cfcm-tag { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+.cfcm-dot { width:7px; height:7px; border-radius:50%; background:var(--amber); flex-shrink:0; }
+.cfcm-title { font-family:var(--cond); font-size:20px; font-weight:700; color:var(--txt-hi); letter-spacing:.04em; }
+.cfcm-desc { font-size:12px; color:var(--txt-mid); margin-top:5px; max-width:540px; line-height:1.5; }
+.cfcm-close { position:absolute; top:14px; right:14px; width:28px; height:28px; border:1px solid var(--border2); border-radius:4px; background:var(--surface2); color:var(--txt-mid); font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.cfcm-body { flex:1; overflow-y:auto; padding:16px 24px 4px; }
+#cf-cm-cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+.cfcm-perfield-lbl { font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; color:var(--txt-mid); margin-bottom:10px; }
+.cfcm-foot { padding:14px 24px; border-top:1px solid var(--border); display:flex; align-items:center; gap:8px; flex-shrink:0; flex-wrap:wrap; }
+.cfcm-btn { padding:0 14px; height:34px; border:1px solid var(--border2); border-radius:6px; background:var(--surface2); color:var(--txt-hi); font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.06em; cursor:pointer; white-space:nowrap; }
+.cfcm-btn-ghost { background:transparent; border-color:transparent; color:var(--txt-mid); }
+.cfcm-btn-primary { background:var(--amber); color:#06060a; border:none; padding:0 20px; font-size:12px; }
+.cfcm-nav { display:none; align-items:center; gap:5px; }
+.cfcm-nav-btn { width:28px; height:28px; border:1px solid var(--border2); border-radius:4px; background:var(--surface2); color:var(--txt-hi); cursor:pointer; font-size:17px; line-height:1; padding:0; }
+.cfcm-nav-lbl { font-family:var(--mono); font-size:11px; color:var(--txt-mid); min-width:40px; text-align:center; white-space:nowrap; }
+.cfcm-spacer { flex:1; min-width:0; }
+@media (max-width:600px) {
+  .cfcm-head { padding:14px 16px 12px; }
+  .cfcm-body { padding:12px 16px 4px; }
+  #cf-cm-cards { grid-template-columns:1fr; }
+  .cfcm-foot { padding:12px 16px; }
+  .cfcm-spacer { display:none; }
+  .cfcm-btn-primary { order:1; flex:1 1 100%; text-align:center; }
+  .cfcm-btn-ghost { order:3; }
+}
 
 </style>
   <script>/* Supabase SDK v2 */
@@ -2699,6 +2727,14 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <div class="vw-cell" id="vw-tc-val-cell">
       TIMECODE
       <span class="vw-val vw-tc-val" id="cf-v-tc" aria-live="polite">--:--:--:--</span>
+    </div>
+    <!-- Steer-following indicator: shown when this owner device is following another device's show -->
+    <div class="vw-cell" id="cf-steer-cell" style="display:none;gap:5px;">
+      <div class="tc-pip ok pulse" style="--pip-color:var(--green);"></div>
+      <div style="display:flex;flex-direction:column;gap:1px;min-width:0;">
+        <span style="font-family:var(--cond);font-size:8px;font-weight:700;letter-spacing:.12em;color:var(--green);">FOLLOWING</span>
+        <span id="cf-steer-show-name" style="font-family:var(--cond);font-size:11px;font-weight:700;color:var(--txt-hi);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;"></span>
+      </div>
     </div>
     <!-- Camera: breadcrumb (cam-viewer + track-viewer) -->
     <div class="vw-cam-crumb" id="vw-cam-crumb-cell">
@@ -2923,38 +2959,35 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   </div>
 </div>
 <!-- Conflict resolution modal -->
-<div id="cf-conflict-modal" role="dialog" aria-modal="true" aria-labelledby="cf-conflict-modal-title" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.78);align-items:center;justify-content:center;overscroll-behavior:contain;backdrop-filter:blur(4px);">
-  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;width:min(860px,95vw);max-height:90vh;overflow:hidden;display:flex;flex-direction:column;">
-    <!-- Header -->
-    <div style="padding:20px 24px 14px;border-bottom:1px solid var(--border);position:relative;flex-shrink:0;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
-        <div style="width:7px;height:7px;border-radius:50%;background:var(--amber);flex-shrink:0;"></div>
+<div id="cf-conflict-modal" role="dialog" aria-modal="true" aria-labelledby="cf-conflict-modal-title">
+  <div class="cfcm-box">
+    <div class="cfcm-head">
+      <div class="cfcm-tag">
+        <div class="cfcm-dot"></div>
         <span id="cf-cm-tagline" style="font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--txt-mid);">CONFLICT</span>
       </div>
-      <div id="cf-conflict-modal-title" style="font-family:var(--cond);font-size:20px;font-weight:700;color:var(--txt-hi);letter-spacing:.04em;">RESOLVE CONFLICT</div>
-      <div style="font-size:12px;color:var(--txt-mid);margin-top:5px;max-width:540px;">Both you and an editor changed the same cue while offline. Pick a winner per-field, or take one side wholesale.</div>
-      <button onclick="CF._conflictCancel()" style="position:absolute;top:14px;right:14px;width:28px;height:28px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--txt-mid);font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>
+      <div id="cf-conflict-modal-title" class="cfcm-title">RESOLVE CONFLICT</div>
+      <div class="cfcm-desc">Both you and an editor changed the same cue. Pick a winner per-field, or take one side wholesale.</div>
+      <button class="cfcm-close" onclick="CF._conflictCancel()" aria-label="Close">×</button>
     </div>
-    <!-- Scrollable body: version cards + per-field pick -->
-    <div style="flex:1;overflow-y:auto;padding:16px 24px 4px;">
-      <div id="cf-cm-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;"></div>
+    <div class="cfcm-body">
+      <div id="cf-cm-cards"></div>
       <div id="cf-cm-perfield" style="display:none;">
-        <div style="font-family:var(--cond);font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--txt-mid);margin-bottom:10px;">PER-FIELD PICK</div>
+        <div class="cfcm-perfield-lbl">PER-FIELD PICK</div>
         <div id="cf-cm-field-rows"></div>
       </div>
     </div>
-    <!-- Footer -->
-    <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;">
-      <button onclick="CF._conflictKeepMine()" style="padding:0 14px;height:34px;border:1px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--txt-hi);font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.06em;cursor:pointer;">KEEP MINE</button>
-      <button onclick="CF._conflictTakeTheirs()" style="padding:0 14px;height:34px;border:1px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--txt-hi);font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.06em;cursor:pointer;">TAKE THEIRS</button>
-      <div id="cf-cm-nav" style="display:none;align-items:center;gap:5px;margin-left:8px;">
-        <button id="cf-cm-prev" onclick="CF._conflictNav(-1)" style="width:28px;height:28px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--txt-hi);cursor:pointer;font-size:17px;line-height:1;padding:0;">‹</button>
-        <span id="cf-cm-nav-label" style="font-family:var(--mono);font-size:11px;color:var(--txt-mid);min-width:40px;text-align:center;white-space:nowrap;"></span>
-        <button id="cf-cm-next" onclick="CF._conflictNav(1)" style="width:28px;height:28px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--txt-hi);cursor:pointer;font-size:17px;line-height:1;padding:0;">›</button>
+    <div class="cfcm-foot">
+      <button class="cfcm-btn" onclick="CF._conflictKeepMine()">KEEP MINE</button>
+      <button class="cfcm-btn" onclick="CF._conflictTakeTheirs()">TAKE THEIRS</button>
+      <div id="cf-cm-nav" class="cfcm-nav">
+        <button id="cf-cm-prev" class="cfcm-nav-btn" onclick="CF._conflictNav(-1)">‹</button>
+        <span id="cf-cm-nav-label" class="cfcm-nav-lbl"></span>
+        <button id="cf-cm-next" class="cfcm-nav-btn" onclick="CF._conflictNav(1)">›</button>
       </div>
-      <div style="flex:1;"></div>
-      <button onclick="CF._conflictCancel()" style="padding:0 14px;height:34px;border:1px solid var(--border2);border-radius:6px;background:transparent;color:var(--txt-mid);font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.06em;cursor:pointer;">CANCEL</button>
-      <button onclick="CF.resolveConflicts()" style="padding:0 20px;height:34px;border:none;border-radius:6px;background:var(--amber);color:#06060a;font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.06em;cursor:pointer;">RESOLVE · SAVE MERGED</button>
+      <div class="cfcm-spacer"></div>
+      <button class="cfcm-btn cfcm-btn-ghost" onclick="CF._conflictCancel()">CANCEL</button>
+      <button class="cfcm-btn cfcm-btn-primary" onclick="CF.resolveConflicts()">RESOLVE · SAVE MERGED</button>
     </div>
   </div>
 </div>
@@ -12699,12 +12732,11 @@ function _meRenderCueList(){
         markerRow.innerHTML=
           '<div style="width:44px;flex-shrink:0;"></div>'+
           '<div class="me-cue-body">'+
-            '<div class="me-cue-top">'+
-              '<span class="me-cue-num" style="color:rgba(240,168,56,.5);">◆</span>'+
+            '<div class="me-cue-top" style="padding-left:32px;">'+
               '<span class="me-cue-name" style="font-size:11px;font-family:var(--cond);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);">'+escH(_ch.name)+'</span>'+
             '</div>'+
             '<div class="me-cue-bot">'+
-              '<span class="track-glyph xs cl-marker-badge">◆</span>'+
+              '<span class="track-glyph xs" style="background:#06060a;color:#fff;">◆</span>'+
               '<span class="me-cue-tc">'+escH(_ch.tc)+'</span>'+
             '</div>'+
           '</div>'+
@@ -12724,7 +12756,7 @@ function _meRenderCueList(){
     row.className='me-cue-row'+(cue.flagged?' flagged':'');
     row.dataset.cid=cue.id;
     row.innerHTML=
-      '<button class="me-cue-flag'+(cue.flagged?' on':'')+'" data-cid="'+cue.id+'" aria-label="Toggle flag">⚑</button>'+
+      '<span class="me-cue-flag'+(cue.flagged?' on':'')+'" data-cid="'+cue.id+'">⚑</span>'+
       '<div class="me-cue-body">'+
         '<div class="me-cue-top">'+
           '<span class="me-cue-num">'+String(i+1).padStart(2,'0')+'</span>'+
@@ -12737,19 +12769,13 @@ function _meRenderCueList(){
       '</div>'+
       '<button class="me-cue-del" data-cid="'+cue.id+'" aria-label="Delete cue">✕</button>';
     (function(c,rowEl){
-      var flagBtn=rowEl.querySelector('.me-cue-flag');
-      flagBtn.addEventListener('click',function(e){
-        e.stopPropagation();
-        toggleCueFlag(c.id);
-        _meRenderCueList();
-      });
       var delBtn=rowEl.querySelector('.me-cue-del');
       delBtn.addEventListener('click',function(e){
         e.stopPropagation();
         meOpenDeleteConfirm(c.id);
       });
       rowEl.addEventListener('click',function(e){
-        if(e.target.classList.contains('me-cue-flag')||e.target.classList.contains('me-cue-del'))return;
+        if(e.target.classList.contains('me-cue-del'))return;
         meOpenEditCue(c.id);
       });
     })(cue,row);
@@ -15157,11 +15183,17 @@ function subscribeProject(){
 
 function applyRemote(proj){
   if(window._cfCleanupPending) return;
+  /* Snapshot local flag states before remote overwrites them. Flags are authoritative
+     on the local device (synced via TC-channel broadcast, not postgres_changes echo). */
+  var _localFlags={};
+  (state.songs||[]).forEach(function(s){(s.cues||[]).forEach(function(c){_localFlags[c.id]=!!c.flagged;});});
   var prev = state.activeSongId;
   var prevFrames = state.simFrames;
   var prevVisible = state.visibleStreamIds ? state.visibleStreamIds.slice() : null;
   var prevStreamSel = state.activeStreamId;
   applyProject(proj);
+  /* Restore local flag states — prevents stale echoes from toggling flags back */
+  state.songs.forEach(function(s){s.cues.forEach(function(c){if(c.id in _localFlags)c.flagged=_localFlags[c.id];});});
   // Never move the playhead — preserve the local TC position across remote updates
   state.simFrames = prevFrames;
   // Preserve the selected stream (UI pick, not a visibility flag)
@@ -15203,11 +15235,8 @@ function findConflicts(localSongs, remoteSongs){
           conflicts.push({cueId:rc.id,cueName:rc.name||rc.tc,field:field,local:lc[field],remote:rc[field]});
         }
       });
-      /* flagged is stored as boolean or undefined — normalise before comparing */
-      var rcF=!!rc.flagged, lcF=!!lc.flagged;
-      if(rcF!==lcF){
-        conflicts.push({cueId:rc.id,cueName:rc.name||rc.tc,field:'flagged',local:lcF,remote:rcF});
-      }
+      /* flagged is intentionally excluded — flags sync via broadcast and must never
+         trigger the conflict modal or be overwritten by a stale postgres_changes echo */
     });
   });
   return conflicts;
@@ -17716,7 +17745,24 @@ CF._onExitLive=function(){
   if(CF._presChan){ CF._presChan.unsubscribe(); CF._presChan=null; }
 };
 /* Scan all known shows in parallel for active TC; lock onto the first broadcasting.
-   Handles the case where mobile has a different project loaded than the steering desktop. */
+   When the active show differs from the locally-open project, load and apply its
+   data so the waterfall, cues, and playlist all reflect what's actually playing. */
+var _mobileSteeredId=null;   /* show we locked onto (null if same as local show) */
+var _mobileOrigSnap=null;    /* saved {showId, proj} for restoration on exit       */
+
+function _setMobileSteerIndicator(showName){
+  var cell=document.getElementById('cf-steer-cell');
+  var lbl=document.getElementById('cf-steer-show-name');
+  if(!cell) return;
+  if(showName){
+    if(lbl) lbl.textContent=showName;
+    cell.style.display='flex';
+  } else {
+    cell.style.display='none';
+    if(lbl) lbl.textContent='';
+  }
+}
+
 function _ownerMobileScanTc(){
   var ids=(CF._showList||[]).map(function(s){return s.id;}).filter(Boolean);
   if(CF.showId&&ids.indexOf(CF.showId)<0) ids.unshift(CF.showId);
@@ -17730,7 +17776,33 @@ function _ownerMobileScanTc(){
     locked=true;
     (CF._mobileScanChans||[]).forEach(function(c){try{c.unsubscribe();}catch(e){}});
     CF._mobileScanChans=null;
-    CF.showId=id;
+
+    var origId=CF.showId;
+
+    if(id!==origId){
+      /* Different show is steering — save local state and load the steered project */
+      _mobileSteeredId=id;
+      _mobileOrigSnap={showId:origId, proj:window.snapshot?snapshot():null};
+
+      CF.showId=id;
+      /* Subscribe to postgres_changes for the steered show so live edits come through */
+      if(window.subscribeProject) subscribeProject();
+
+      db().from('shows').select('name,project_data').eq('id',id).single()
+        .then(function(r){
+          if(r.data&&r.data.project_data&&window.applyProject){
+            applyProject(r.data.project_data);
+            /* Make all tracks visible so the full waterfall is shown */
+            state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});
+            state.cameraTrackVisible=true;
+            if(window.redrawActive) redrawActive();
+          }
+          _setMobileSteerIndicator(r.data?r.data.name:null);
+        });
+    } else {
+      CF.showId=id;
+    }
+
     subscribeTc();
   }
 
@@ -17743,7 +17815,7 @@ function _ownerMobileScanTc(){
     scanChans.push(ch);
   });
 
-  /* Fallback: if no TC within 8 s, settle on current showId */
+  /* Fallback: if no TC within 8 s, stay on current show */
   setTimeout(function(){
     if(locked) return;
     (CF._mobileScanChans||[]).forEach(function(c){try{c.unsubscribe();}catch(e){}});
@@ -17763,6 +17835,22 @@ CF._onExitMobileLive=function(){
     CF._mobileScanChans=null;
   }
   if(CF._tcChan){ CF._tcChan.unsubscribe(); CF._tcChan=null; CF._viewerTcSubOk=false; }
+
+  /* If we were following a different show, restore the original project */
+  if(_mobileSteeredId&&_mobileOrigSnap){
+    CF.showId=_mobileOrigSnap.showId;
+    if(window.applyProject&&_mobileOrigSnap.proj){
+      applyProject(_mobileOrigSnap.proj);
+    } else {
+      /* No saved snapshot — reload from Supabase */
+      if(window.ownerRestoreShow) ownerRestoreShow(CF.showId);
+    }
+    if(window.subscribeProject) subscribeProject();   /* re-subscribe to local show */
+    if(window.openTcChan) openTcChan();               /* re-open local TC channel   */
+    _setMobileSteerIndicator(null);
+  }
+  _mobileSteeredId=null;
+  _mobileOrigSnap=null;
 };
 
 boot();
