@@ -7206,7 +7206,7 @@ function startSongRename(songId,rowEl){
   const nameEl=rowEl.querySelector('.song-row-name');
   const inp=document.createElement('input');inp.className='song-name-inp';inp.value=song.name;
   nameEl.replaceWith(inp);inp.focus();inp.select();
-  const commit=()=>{const v=inp.value.trim()||song.name;song.name=v;persist();renderSongList();renderCueList();};
+  const commit=()=>{const v=inp.value.trim()||song.name;song.name=v;persist();if(window._flushPersist)_flushPersist();renderSongList();renderCueList();};
   inp.addEventListener('blur',commit);
   inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape'){inp.value=song.name;inp.blur();}});
 }
@@ -9433,6 +9433,9 @@ function saveProjectSettings(){
   _syncEditTopbar();
   persist();
   redrawActive();
+  // Flush to Supabase immediately — don't rely on the 400ms debounce which a
+  // page refresh could cancel before it fires.
+  if(window._flushPersist) _flushPersist();
   // Update clock display in live view
   _updateLiveClock();
   closeModal('settings-modal');
@@ -12351,6 +12354,7 @@ function saveSeqSettings(){
   song.name = newName;
   song.startTc = normTc;
   persist();
+  if(window._flushPersist) _flushPersist();
   renderSongList();renderCueList();redrawActive();
   closeSeqSettingsPanel();
 }
@@ -14939,6 +14943,16 @@ function ownerSync(){
   clearTimeout(CF._pushTimer);
   pushProject();
 }
+/* Immediate push — cancels any pending debounce timer and pushes right away.
+   Called after explicit user-initiated saves (name changes, renames) so they
+   reach Supabase before any page navigation or refresh can cancel the timer. */
+function _flushPersist(){
+  if(!CF.showId||!CF.isOwner||!CF.dirty) return;
+  clearTimeout(CF._pushTimer);
+  CF._pushTimer=null;
+  pushProject(function(){ CF.dirty=false; updateSyncBtn(); });
+}
+window._flushPersist=_flushPersist;
 
 function updateSyncBtn(){
   /* Sharing panel sync button + state label */
@@ -15257,6 +15271,7 @@ function applyRemote(proj){
   try{ localStorage.removeItem(DIRTY_KEY); }catch(e){}
   CF.dirty=false;
   renderSongList(); renderCueList(); redrawActive();
+  if(window._syncEditTopbar) _syncEditTopbar();
   if(window.isMobileEditMode && isMobileEditMode() && window.renderMobileEditScreen) renderMobileEditScreen();
 }
 
@@ -17529,6 +17544,7 @@ function renamePlaylist(id){
   if(!name||!name.trim())return;
   pl.name=name.trim();
   if(window.persist)persist();
+  _flushPersist();
   if(window._sbRender)_sbRender('playlists');
 }
 function deletePlaylist(id){
