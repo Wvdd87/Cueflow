@@ -10373,6 +10373,13 @@ function _ensureCtx(){
 
 // ── Load audio for a song (from File object) ────────────────────
 async function loadAudioForSong(songId, file){
+  // Resume AudioContext NOW — still inside the user-gesture stack frame.
+  // Browsers with strict autoplay policies (Safari, Chrome on non-localhost) suspend
+  // the context on creation; once we hit the first await below the gesture is gone
+  // and decodeAudioData silently fails on a suspended context.
+  _ensureCtx();
+  if(audio.ctx.state !== 'running') audio.ctx.resume();
+
   _teardownSource();
   if(audio.meta[songId]) audio.meta[songId] = null;
   delete audio.buffers[songId];
@@ -10398,6 +10405,7 @@ async function loadAudioForSong(songId, file){
 async function _decodeAndStore(songId, arrayBuffer, filename){
   try{
     _ensureCtx();
+    if(audio.ctx.state !== 'running'){ try{ await audio.ctx.resume(); }catch(e){} }
     const buf = await audio.ctx.decodeAudioData(arrayBuffer);
     audio.buffers[songId] = buf;
     audio.meta[songId] = { filename, durationSec: buf.duration, loading: false, ready: true };
