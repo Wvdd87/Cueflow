@@ -2890,7 +2890,6 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 
       <!-- Mobile: full-width section toggle bar replaces small desktop button -->
       <button class="cam-all-toggle-bar" id="cam-all-toggle-bar" onclick="toggleCamPanel()">
-        <div class="tc-pip live pulse"></div>
         <span class="cam-panel-title" style="flex:1;">ALL CAMERAS · UPCOMING</span>
         <span id="cam-all-toggle-count" style="font-size:10px;color:var(--txt-low);margin-right:6px;"></span>
         <svg id="cam-all-toggle-chev" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3l3 4 3-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -6140,7 +6139,7 @@ function _updateCamCockpit(frames){
       // ON CAMERA: countdown ends when the next ANY-camera cue fires (not just mine).
       hero.className='cam-hero oncam';
       const pip=_e('cam-hero-pip');if(pip)pip.style.display='';
-      const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent='ON CAMERA · CAM '+(cam?.number||'?');
+      const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent='ON AIR';
       const hb=_e('cam-hero-badge');
       if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#06060a;">${cam?.number||'?'}</div>`;
       const hn=_e('cam-hero-name');if(hn)hn.textContent=myCurCue.name||'—';
