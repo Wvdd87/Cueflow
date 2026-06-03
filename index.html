@@ -13442,8 +13442,13 @@ function meNsSelectRole(role){
   if(wrap) wrap.style.display=needsTracks?'block':'none';
   var lbl=document.getElementById('me-ns-tracks-lbl');
   if(lbl) lbl.textContent=role==='editor'?'EDITING RIGHTS — WHICH TRACKS?':'VISIBLE TRACKS';
-  var hint=wrap&&wrap.querySelector('div[style*="Leave"]');
+  var hint=document.getElementById('me-ns-tracks-hint');
   if(hint) hint.style.display=role==='editor'?'none':'block';
+  var hasCam=!!(state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.length);
+  var camAllWrap=document.getElementById('me-ns-cam-all-wrap');
+  if(camAllWrap) camAllWrap.style.display=(role==='viewer'&&hasCam)?'flex':'none';
+  var camTrackWrap=document.getElementById('me-ns-cam-track-wrap');
+  if(camTrackWrap) camTrackWrap.style.display=(role==='editor'&&hasCam)?'flex':'none';
 }
 function meOpenNewShare(){
   var m=document.getElementById('me-new-share-modal');
@@ -13452,6 +13457,11 @@ function meOpenNewShare(){
   if(li)li.value='';
   // Reset role selection to viewer
   meNsSelectRole('viewer');
+  // Reset camera checkboxes
+  var camAllCb=document.getElementById('me-ns-cam-all');
+  var camTrackCb=document.getElementById('me-ns-cam-track');
+  if(camAllCb) camAllCb.checked=false;
+  if(camTrackCb) camTrackCb.checked=false;
   // Populate track checkboxes from current state
   var list=document.getElementById('me-ns-tracks-list');
   if(list){
@@ -13487,6 +13497,16 @@ function meSubmitNewShare(){
   } else if(roleVal==='viewer'||roleVal==='editor'){
     var boxes=document.querySelectorAll('#me-ns-tracks-list input:checked');
     if(boxes.length) trackIds=Array.from(boxes).map(function(b){return b.value;});
+    var camAllBox=document.getElementById('me-ns-cam-all');
+    if(roleVal==='viewer'&&camAllBox&&camAllBox.checked){
+      if(!trackIds) trackIds=[];
+      trackIds.push('cam:all');
+    }
+    var camTrackBox=document.getElementById('me-ns-cam-track');
+    if(roleVal==='editor'&&camTrackBox&&camTrackBox.checked){
+      if(!trackIds) trackIds=[];
+      trackIds.push('cam:track');
+    }
   }
   var createBtn=document.querySelector('#me-new-share-modal .me-btn-primary');
   if(createBtn)createBtn.textContent='Creating…';
@@ -14451,7 +14471,15 @@ document.addEventListener('DOMContentLoaded',function(){
       <div id="me-ns-tracks-wrap" style="display:none;">
         <div class="me-field-lbl" id="me-ns-tracks-lbl" style="margin-bottom:10px;">VISIBLE TRACKS</div>
         <div id="me-ns-tracks-list"></div>
-        <div style="font-family:var(--cond);font-size:9px;color:var(--txt-low);letter-spacing:.08em;margin-top:8px;">Leave all unchecked to show all tracks</div>
+        <div id="me-ns-tracks-hint" style="font-family:var(--cond);font-size:9px;color:var(--txt-low);letter-spacing:.08em;margin-top:8px;">Leave all unchecked to show all tracks</div>
+        <label id="me-ns-cam-all-wrap" class="me-ns-track-row" style="display:none;margin-top:10px;border-top:1px solid var(--hair);padding-top:10px;">
+          <input type="checkbox" id="me-ns-cam-all">
+          <span class="me-ns-track-row-name">Also show camera cues</span>
+        </label>
+        <label id="me-ns-cam-track-wrap" class="me-ns-track-row" style="display:none;margin-top:10px;border-top:1px solid var(--hair);padding-top:10px;">
+          <input type="checkbox" id="me-ns-cam-track">
+          <span class="me-ns-track-row-name">Camera track access</span>
+        </label>
       </div>
     </div>
     <div class="me-mini-footer">
