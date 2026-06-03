@@ -12686,7 +12686,32 @@ function _meRenderCueList(){
   var cues=getSortedCues(song.id,true);
   if(countEl)countEl.textContent='CUES · '+cues.length;
   el.innerHTML='';
+  var _meRenderedChapIds=new Set();
   cues.forEach(function(cue,i){
+    // Insert chapter marker divider before the first cue of each chapter section
+    if(song.chapters&&song.chapters.length&&typeof getChapterForCue==='function'){
+      var _ch=getChapterForCue(song,cue);
+      if(_ch&&!_meRenderedChapIds.has(_ch.id)){
+        _meRenderedChapIds.add(_ch.id);
+        var markerRow=document.createElement('div');
+        markerRow.className='me-cue-row';
+        markerRow.style.cssText='border-top:1px solid rgba(240,168,56,.25);min-height:0;pointer-events:none;';
+        markerRow.innerHTML=
+          '<div style="width:44px;flex-shrink:0;"></div>'+
+          '<div class="me-cue-body">'+
+            '<div class="me-cue-top">'+
+              '<span class="me-cue-num" style="color:rgba(240,168,56,.5);">◆</span>'+
+              '<span class="me-cue-name" style="font-size:11px;font-family:var(--cond);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);">'+escH(_ch.name)+'</span>'+
+            '</div>'+
+            '<div class="me-cue-bot">'+
+              '<span class="track-glyph xs cl-marker-badge">◆</span>'+
+              '<span class="me-cue-tc">'+escH(_ch.tc)+'</span>'+
+            '</div>'+
+          '</div>'+
+          '<div style="width:44px;flex-shrink:0;"></div>';
+        el.appendChild(markerRow);
+      }
+    }
     var isCamCue=!!(cue.cameraId&&state.cameraTrack);
     var cam=isCamCue?getCameraById(cue.cameraId):null;
     var camHex=isCamCue?getCameraColor(cam?cam.colorIdx:0):null;
@@ -12981,7 +13006,10 @@ function meOpenAddCue(){
   if(descInp)descInp.value='';
   var flagBtn=document.getElementById('me-ac-flag-btn');
   if(flagBtn){flagBtn.classList.remove('on');flagBtn.setAttribute('aria-checked','false');}
-  _mePopulateTrackSel('me-ac-track',state.activeStreamId||state.streams[0]?.id||'');
+  var _acDefault=(state.activeStreamId==='CAMERA'&&state.cameraTrack&&state.cameraTrack.cameras[0])
+    ?'cam:'+state.cameraTrack.cameras[0].id
+    :(state.activeStreamId||state.streams[0]?.id||'');
+  _mePopulateTrackSel('me-ac-track',_acDefault);
   var modal=document.getElementById('me-add-cue-modal');
   if(modal){modal.style.display='flex';setTimeout(function(){if(nameInp)nameInp.focus();},60);}
 }
@@ -13004,10 +13032,12 @@ function meSubmitAddCue(){
   var tc=normalizeTcInput(rawTc);
   if(!validateTc(tc)){if(tcInp){tcInp.style.borderColor='var(--red)';tcInp.focus();}return;}
   var name=(nameInp?nameInp.value.trim():'')||'NEW CUE';
-  var streamId=trackSel?trackSel.value:(state.streams[0]?.id||'');
+  var trackVal=trackSel?trackSel.value:(state.streams[0]?.id||'');
   var desc=descInp?descInp.value.trim():'';
   snapshot();
-  var newCue={id:uid(),tc:tc,name:name,desc:desc,streamId:streamId};
+  var newCue={id:uid(),tc:tc,name:name,desc:desc};
+  if(trackVal&&trackVal.indexOf('cam:')===0){newCue.cameraId=trackVal.slice(4);}
+  else{newCue.streamId=trackVal;}
   if(_meAddFlag)newCue.flagged=true;
   song.cues.push(newCue);
   persist();renderCueList();
@@ -13037,7 +13067,8 @@ function meOpenEditCue(cueId){
   if(nameInp)nameInp.value=cue.name||'';
   var descInp=document.getElementById('me-ec-desc');
   if(descInp)descInp.value=cue.desc||'';
-  _mePopulateTrackSel('me-ec-track',cue.streamId||(state.streams[0]?.id||''));
+  var _ecDefault=cue.cameraId?('cam:'+cue.cameraId):(cue.streamId||(state.streams[0]?.id||''));
+  _mePopulateTrackSel('me-ec-track',_ecDefault);
   var flagLbl=document.getElementById('me-ec-flag-lbl');
   if(flagLbl)flagLbl.style.display=cue.flagged?'':'none';
   _meRefreshEditFlagState(cue);
@@ -13081,7 +13112,11 @@ function meSubmitEditCue(){
   snapshot();
   cue.tc=tc;
   cue.name=(nameInp?nameInp.value.trim():'')||cue.name;
-  if(trackSel&&trackSel.value)cue.streamId=trackSel.value;
+  if(trackSel&&trackSel.value){
+    var _tv=trackSel.value;
+    if(_tv.indexOf('cam:')===0){cue.cameraId=_tv.slice(4);delete cue.streamId;}
+    else{cue.streamId=_tv;delete cue.cameraId;}
+  }
   cue.desc=descInp?descInp.value.trim():'';
   persist();renderCueList();
   meCloseEditCue();
@@ -13127,15 +13162,23 @@ function meDeleteFromEdit(){
 }
 
 // ── TRACK SELECTOR ──
-function _mePopulateTrackSel(selId,currentStreamId){
+function _mePopulateTrackSel(selId,currentVal){
   var sel=document.getElementById(selId);
   if(!sel)return;
   var streams=state.streams||[];
   if(window.CF&&CF.role==='track-editor'&&CF.tracks)
     streams=streams.filter(function(s){return CF.tracks.indexOf(s.id)>=0;});
-  sel.innerHTML=streams.map(function(s){
-    return '<option value="'+escH(s.id)+'"'+(s.id===currentStreamId?' selected':'')+'>'+escH(s.name||'Track')+'</option>';
-  }).join('');
+  var opts=streams.map(function(s){
+    return '<option value="'+escH(s.id)+'"'+(s.id===currentVal?' selected':'')+'>'+escH(s.name||'Track')+'</option>';
+  });
+  if(state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.length){
+    state.cameraTrack.cameras.forEach(function(cam){
+      var val='cam:'+cam.id;
+      var lbl='CAM '+String(cam.number||'?').padStart(2,'0')+(cam.label?' — '+cam.label:'');
+      opts.push('<option value="'+escH(val)+'"'+(val===currentVal?' selected':'')+'>'+escH(lbl)+'</option>');
+    });
+  }
+  sel.innerHTML=opts.join('');
 }
 
 // ── SWITCH PROJECT CONFIRM ──
@@ -16446,23 +16489,37 @@ function buildTrackPills(){
       };
       vtfc.appendChild(btn);
     });
-    // CAM toggle: same track-glyph style as track badges
+    // Camera badges: one per camera instead of a generic CAM glyph
     if(CF.viewerShowAllCams){
       var camVis=state.cameraTrackVisible!==false;
-      var camBtn=document.createElement('button');
-      camBtn.className='track-glyph xs';
-      camBtn.style.cssText=
-        'background:'+(camVis?'#06060a':'transparent')+
-        ';color:'+(camVis?'#fff':'var(--txt-low)')+
-        ';border-color:var(--hair3);cursor:pointer;'+
-        'transition:background .12s,color .12s;';
-      camBtn.textContent='CAM';
-      camBtn.onclick=function(){
+      var _camToggle=function(){
         state.cameraTrackVisible=state.cameraTrackVisible===false?true:false;
         if(window.buildTrackPills) buildTrackPills();
         if(window.redrawActive) redrawActive();
       };
-      vtfc.appendChild(camBtn);
+      var _cams=state.cameraTrack&&state.cameraTrack.cameras;
+      if(_cams&&_cams.length){
+        _cams.forEach(function(cam){
+          var hex=typeof getCameraColor==='function'?getCameraColor(cam.colorIdx||0):'#06b6d4';
+          var camBtn=document.createElement('button');
+          camBtn.className='cam-badge xs';
+          camBtn.style.cssText='background:'+hex+';color:#06060a;cursor:pointer;flex-shrink:0;'+
+            'opacity:'+(camVis?'1':'0.35')+';transition:opacity .12s;';
+          camBtn.textContent=String(cam.number||'?').padStart(2,'0');
+          camBtn.title='CAM '+cam.number+(cam.label?' — '+cam.label:'');
+          camBtn.onclick=_camToggle;
+          vtfc.appendChild(camBtn);
+        });
+      } else {
+        var camBtn=document.createElement('button');
+        camBtn.className='track-glyph xs';
+        camBtn.style.cssText='background:'+(camVis?'#06060a':'transparent')+
+          ';color:'+(camVis?'#fff':'var(--txt-low)')+
+          ';border-color:var(--hair3);cursor:pointer;transition:background .12s,color .12s;';
+        camBtn.textContent='CAM';
+        camBtn.onclick=_camToggle;
+        vtfc.appendChild(camBtn);
+      }
     }
   }
   var isSingle = visible.length===1;
