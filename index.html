@@ -1251,7 +1251,7 @@ body.mode-live #edit-mode-banner { display: none; }
 .vw-cam-notes-btn { display:none; align-items:center; justify-content:center; gap:0; padding:0; width:56px; height:100%; margin-left:auto; border-left:1px solid var(--hair); border-right:none; border-top:none; border-bottom:none; background:none; font-size:0; color:var(--txt-mid); cursor:pointer; transition:color .12s,background .12s; flex-shrink:0; }
 .vw-cam-notes-btn:hover { color:var(--txt-hi); background:var(--surface2); }
 /* ── Unified visibility button in viewer topbar ── */
-.vw-vis-btn { display:flex; align-items:center; gap:8px; padding:0 16px; height:100%; border:none; border-right:1px solid var(--hair); background:none; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; flex-shrink:0; white-space:nowrap; transition:background .12s,color .12s; }
+.vw-vis-btn { display:flex; align-items:center; gap:8px; padding:0 16px; height:100%; border:none; border-left: 1px solid var(--hair); border-right:1px solid var(--hair); background:none; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; flex-shrink:0; white-space:nowrap; transition:background .12s,color .12s; }
 .vw-vis-btn:hover { background:var(--surface2); color:var(--txt-hi); }
 .vw-vis-btn svg { flex-shrink:0; }
 /* Track visibility modal */
@@ -2832,10 +2832,26 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <!-- Setlist rail -->
     <div class="live-setlist" id="vw-setlist-rail">
       <div class="live-setlist-head">
-        <span>Setlist</span>
+        <span id="vw-rail-head-lbl">Setlist</span>
         <span class="vw-setlist-count" id="vw-setlist-count"></span>
       </div>
       <div class="live-setlist-body" id="vw-mini-seqs"></div>
+      <!-- Notes view (hidden until Notes tab selected) -->
+      <div class="live-rail-notes" id="vw-rail-notes" style="display:none;">
+        <div class="live-rail-notes-half">
+          <div class="live-rail-notes-label" id="vw-rail-cur-label">CURRENT</div>
+          <div class="live-rail-notes-body" id="vw-rail-cur-notes"><span class="live-rail-notes-empty">No notes for this sequence</span></div>
+        </div>
+        <div class="live-rail-notes-half">
+          <div class="live-rail-notes-label" id="vw-rail-next-label">NEXT</div>
+          <div class="live-rail-notes-body" id="vw-rail-next-notes"><span class="live-rail-notes-empty">No next sequence</span></div>
+        </div>
+      </div>
+      <!-- Tab bar -->
+      <div class="live-rail-tabs">
+        <button class="live-rail-tab active" id="vw-rail-tab-setlist" onclick="switchVwRailTab('setlist')">Setlist</button>
+        <button class="live-rail-tab" id="vw-rail-tab-notes" onclick="switchVwRailTab('notes')">Notes</button>
+      </div>
     </div>
 
   </div><!-- /live-body -->
@@ -6075,6 +6091,7 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
     }
     const cnt=_e('vw-setlist-count');
     if(cnt)cnt.textContent=liveSongId?`${liveIdx+1}/${songs.length}`:'';
+    _updateVwRailNotes(songs,liveIdx);
   }
 
   // ── Topbar: TC pip + seq crumb ──
@@ -6692,6 +6709,61 @@ function _updateLiveRailNotes(songs,liveIdx){
   const curBody=document.getElementById('live-rail-cur-notes');
   const nxtLbl=document.getElementById('live-rail-next-label');
   const nxtBody=document.getElementById('live-rail-next-notes');
+  if(curLbl) curLbl.textContent='CURRENT'+(curSong?': '+curSong.name:'');
+  if(curBody){
+    const html=curSong&&curSong.description&&curSong.description.trim()?curSong.description:
+      '<span class="live-rail-notes-empty">No notes for this sequence</span>';
+    if(curBody.innerHTML!==html) curBody.innerHTML=html;
+  }
+  if(nxtLbl) nxtLbl.textContent='NEXT'+(nextSong?': '+nextSong.name:'');
+  if(nxtBody){
+    const html=!nextSong?'<span class="live-rail-notes-empty">No next sequence</span>':
+      nextSong.description&&nextSong.description.trim()?nextSong.description:
+      '<span class="live-rail-notes-empty">No notes for this sequence</span>';
+    if(nxtBody.innerHTML!==html) nxtBody.innerHTML=html;
+  }
+}
+
+/* ─── Viewer rail notes panel (cf-viewer-screen — editors, track-viewers) ── */
+let _vwRailTab='setlist';
+function switchVwRailTab(tab){
+  _vwRailTab=tab;
+  const setlistBody=document.getElementById('vw-mini-seqs');
+  const notesView=document.getElementById('vw-rail-notes');
+  const tabSetlist=document.getElementById('vw-rail-tab-setlist');
+  const tabNotes=document.getElementById('vw-rail-tab-notes');
+  const headLbl=document.getElementById('vw-rail-head-lbl');
+  const countEl=document.getElementById('vw-setlist-count');
+  if(tab==='notes'){
+    if(setlistBody) setlistBody.style.display='none';
+    if(notesView) notesView.style.display='flex';
+    if(tabSetlist) tabSetlist.classList.remove('active');
+    if(tabNotes) tabNotes.classList.add('active');
+    if(headLbl) headLbl.textContent='Notes';
+    if(countEl) countEl.textContent='';
+    const songs=getActivePlaylistSongs();
+    const allCues=getAllCues(true);
+    let curIdx=-1;
+    for(let i=allCues.length-1;i>=0;i--){if((state.currentFrames||state.simFrames)>=allCues[i]._f){curIdx=i;break;}}
+    const liveSongId=curIdx>=0?allCues[curIdx]?.songId:null;
+    const liveIdx=Math.max(0,songs.findIndex(s=>s.id===liveSongId));
+    _updateVwRailNotes(songs,liveIdx);
+  } else {
+    if(setlistBody) setlistBody.style.display='';
+    if(notesView) notesView.style.display='none';
+    if(tabSetlist) tabSetlist.classList.add('active');
+    if(tabNotes) tabNotes.classList.remove('active');
+    if(headLbl) headLbl.textContent='Setlist';
+  }
+}
+function _updateVwRailNotes(songs,liveIdx){
+  if(_vwRailTab!=='notes') return;
+  const curSong=songs&&liveIdx>=0?songs[liveIdx]:null;
+  const nextSong=songs&&liveIdx>=0&&liveIdx<songs.length-1?songs[liveIdx+1]:null;
+  const curLbl=document.getElementById('vw-rail-cur-label');
+  const curBody=document.getElementById('vw-rail-cur-notes');
+  const nxtLbl=document.getElementById('vw-rail-next-label');
+  const nxtBody=document.getElementById('vw-rail-next-notes');
   if(curLbl) curLbl.textContent='CURRENT'+(curSong?': '+curSong.name:'');
   if(curBody){
     const html=curSong&&curSong.description&&curSong.description.trim()?curSong.description:
@@ -17023,6 +17095,7 @@ function deleteProject(id){
         .then(function(){ return db().from('shows').delete().eq('id',id); })
         .then(function(){
           CF._showList=CF._showList.filter(function(s){return s.id!==id;});
+          saveShowCache(CF._showList);
           if(wasActive){
             CF.showId=null; CF.isOwner=false; CF.role=null;
             if(CF._projChan){ CF._projChan.unsubscribe(); CF._projChan=null; }
@@ -17064,6 +17137,7 @@ function renameProject(id){
     openRenameModal(s?s.name:'',function(name){
       db().from('shows').update({name:name}).eq('id',id).then(function(){
         if(s) s.name=name;
+        saveShowCache(CF._showList);
         if(id===CF.showId){ state.name=name; if(window.persist) persist(); }
         if(window._sbRender) _sbRender('save');
       });
