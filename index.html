@@ -356,13 +356,13 @@ body.mode-live #edit-mode-banner { display: none; }
 
 /* ── Viewer Cockpit topbar ── */
 .vw-topbar {
-  display: flex; align-items: stretch; height: 36px;
+  display: flex; align-items: stretch; height: 56px;
   background: var(--surface); border-bottom: 1px solid var(--hair); flex-shrink: 0;
 }
 .vw-cell {
   display: flex; align-items: center; gap: 6px;
-  padding: 0 14px; border-right: 1px solid var(--hair);
-  font-family: var(--cond); font-size: 10px; font-weight: 700;
+  padding: 0 16px; border-right: 1px solid var(--hair);
+  font-family: var(--cond); font-size: 11px; font-weight: 700;
   letter-spacing: .08em; text-transform: uppercase;
   color: var(--txt-low); white-space: nowrap; flex-shrink: 0;
 }
@@ -388,7 +388,7 @@ body.mode-live #edit-mode-banner { display: none; }
 
 /* Sequence nav in topbar */
 .seq-nav { display: flex; align-items: center; gap: 4px; }
-.seq-nav-chev { background: none; border: none; color: var(--txt-mid); cursor: pointer; font-size: 18px; padding: 0 6px; line-height: 1; height: 36px; transition: color .1s; }
+.seq-nav-chev { background: none; border: none; color: var(--txt-mid); cursor: pointer; font-size: 18px; padding: 0 6px; line-height: 1; height: 56px; transition: color .1s; }
 .seq-nav-chev:hover { color: var(--txt-hi); }
 #topbar-seq-name { font-family: var(--cond); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--txt-hi); max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -1441,11 +1441,11 @@ body.mode-live #edit-mode-banner { display: none; }
   #vw-cam-notes-btn { padding:0 12px; gap:0; font-size:0; }
 }
 #cf-cam-notes-screen { display:none; position:fixed; inset:0; z-index:9997; background:var(--bg); flex-direction:column; overflow:hidden; }
-.cn-topbar { display:flex; align-items:stretch; height:36px; background:var(--surface); border-bottom:1px solid var(--hair); flex-shrink:0; }
-.cn-back-btn { display:flex; align-items:center; gap:8px; padding:0 16px; border-right:1px solid var(--hair); background:none; border-top:none; border-bottom:none; border-left:none; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; transition:color .12s; flex-shrink:0; white-space:nowrap; }
+.cn-topbar { display:flex; align-items:stretch; height:56px; background:var(--surface); border-bottom:1px solid var(--hair); flex-shrink:0; }
+.cn-back-btn { display:flex; align-items:center; gap:8px; padding:0 18px; border-right:1px solid var(--hair); background:none; border-top:none; border-bottom:none; border-left:none; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; transition:color .12s; flex-shrink:0; white-space:nowrap; }
 .cn-back-btn:hover { color:var(--txt-hi); }
-.cn-topbar-title { display:flex; align-items:center; padding:0 16px; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-mid); flex-shrink:0; }
-.cn-topbar-cam { display:flex; align-items:center; gap:8px; padding:0 16px; border-left:1px solid var(--hair); font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); flex-shrink:0; }
+.cn-topbar-title { display:flex; align-items:center; padding:0 18px; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-mid); flex-shrink:0; }
+.cn-topbar-cam { display:flex; align-items:center; gap:8px; padding:0 18px; border-left:1px solid var(--hair); font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); flex-shrink:0; }
 .cn-mode-banner { height:4px; background:var(--primary); flex-shrink:0; opacity:.7; }
 .cn-body { flex:1; display:flex; min-height:0; overflow:hidden; }
 /* Left: sequence list */
@@ -2116,16 +2116,6 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 .me-seq-hdr-nav:hover { background:var(--surface2); }
 
 /* Cue count bar */
-.me-cue-hdr {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:8px 16px; border-bottom:1px solid var(--hair);
-  background:var(--canvas); flex-shrink:0;
-}
-.me-cue-hdr-count {
-  font-family:var(--cond); font-size:10px; font-weight:700;
-  letter-spacing:.1em; text-transform:uppercase; color:var(--txt-mid);
-}
-.me-cue-hint { font-family:var(--cond); font-size:9px; color:var(--txt-low); letter-spacing:.04em; }
 .me-cue-list { flex:1; overflow-y:auto; background:var(--bg); }
 .me-cue-row {
   display:flex; align-items:stretch; border-bottom:1px solid var(--hair);
@@ -2133,13 +2123,17 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 }
 .me-cue-row:active { background:var(--surface); }
 .me-cue-row.flagged { background:none; }
+.me-cue-right {
+  width:44px; flex-shrink:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:space-between; padding:10px 0;
+}
 .me-cue-flag {
-  width:44px; flex-shrink:0; background:none; border:none;
-  color:var(--txt-dim); font-size:17px; opacity:.25;
-  display:flex; align-items:center; justify-content:center; padding:0; pointer-events:none;
+  color:var(--txt-dim); font-size:14px; opacity:.25;
+  display:flex; align-items:center; justify-content:center;
+  padding:4px; pointer-events:none;
 }
 .me-cue-flag.on { color:var(--amber); opacity:1; }
-.me-cue-body { flex:1; min-width:0; padding:13px 4px 11px 0; }
+.me-cue-body { flex:1; min-width:0; padding:13px 4px 11px 12px; }
 .me-cue-top { display:flex; align-items:baseline; gap:8px; margin-bottom:5px; }
 .me-cue-num {
   font-family:var(--cond); font-size:11px; font-weight:700;
@@ -2152,9 +2146,9 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 .me-cue-bot { display:flex; align-items:center; gap:7px; padding-left:0; }
 .me-cue-tc { font-family:var(--mono); font-size:12px; color:var(--txt-mid); }
 .me-cue-del {
-  width:44px; flex-shrink:0; background:none; border:none;
+  background:none; border:none;
   color:var(--txt-dim); font-size:14px; cursor:pointer;
-  display:flex; align-items:center; justify-content:center; transition:color .12s; padding:0;
+  display:flex; align-items:center; justify-content:center; transition:color .12s; padding:4px;
 }
 .me-cue-del:hover { color:var(--red); }
 .me-empty {
@@ -2391,7 +2385,6 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 @media (min-width:640px) {
   .me-seq-sidebar { display:flex; }
   .me-seq-hdr { display:none; }
-  .me-topbar { height:48px; }
 }
 @media (max-width:380px) {
   .me-cue-name { font-size:14px; }
@@ -2750,7 +2743,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <!-- Camera: Following + badge + select (cam-viewer only) -->
     <div class="vw-cam-following" id="vw-cam-cell">
       <span class="vw-cam-fol-lbl" style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-low);">Following</span>
-      <span id="vw-cam-badge-topbar"></span>
+      
       <select id="vw-cam-select" class="vw-cam-select" onchange="if(window.CF)CF._switchViewerCamera(this.value)"></select>
     </div>
     <!-- Sequence crumb (grows) — hidden in camera mode -->
@@ -2764,7 +2757,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     </button>
     <!-- Editor: back to edit screen (shown only in editor follow mode) -->
     <div class="vw-cell right" id="editor-back-btn" style="display:none;padding:0 10px;">
-      <button class="mbtn primary" onclick="if(window._editorEnterEditMode)_editorEnterEditMode()" style="height:26px;padding:0 14px;font-size:10px;">Edit</button>
+      <button class="mbtn primary" onclick="if(window._editorEnterEditMode)_editorEnterEditMode()" style="height:36px;padding:0 16px;font-size:11px;">Edit</button>
     </div>
   </div>
 
@@ -4404,10 +4397,9 @@ function _ownerMobileLive(){
   // Apply live body class so mode-specific CSS (hides edit-mode-banner etc.) fires correctly
   document.body.className='mode-live';
 
-  // State: all streams visible
+  // State: all streams visible; preserve camera track visibility as-is
   state.appMode='live';
   state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});
-  state.cameraTrackVisible=false;
 
   if(window.CF&&CF._onEnterMobileLive)CF._onEnterMobileLive();
   setTimeout(function(){if(window.redrawActive)redrawActive();},400);
@@ -8024,7 +8016,7 @@ function updateTCStatus(status,label){
     else srcLbl.textContent='—';
   }
   if(statusTxt){
-    const tcStatusMap={receiving:{txt:'Receiving',col:'var(--green)'},waiting:{txt:'Waiting…',col:'var(--amber)'},freerun:{txt:'Free run',col:'var(--txt-low)'},none:{txt:'No input',col:'var(--txt-low)'}};
+    const tcStatusMap={receiving:{txt:'',col:'var(--green)'},waiting:{txt:'Waiting…',col:'var(--amber)'},freerun:{txt:'Free run',col:'var(--txt-low)'},none:{txt:'No input',col:'var(--txt-low)'}};
     const s=tcStatusMap[status]||{txt:'',col:'var(--txt-low)'};
     statusTxt.textContent=s.txt; statusTxt.style.color=s.col;
   }
@@ -12708,16 +12700,13 @@ function _meRenderSeqHeader(){
 
 function _meRenderCueList(){
   var el=document.getElementById('me-cue-list');
-  var countEl=document.getElementById('me-cue-count-lbl');
   if(!el)return;
   var song=getActiveSong();
   if(!song){
     el.innerHTML='<div class="me-empty">No sequence selected.</div>';
-    if(countEl)countEl.textContent='CUES · 0';
     return;
   }
   var cues=getSortedCues(song.id,true);
-  if(countEl)countEl.textContent='CUES · '+cues.length;
   el.innerHTML='';
   var _meRenderedChapIds=new Set();
   cues.forEach(function(cue,i){
@@ -12730,7 +12719,6 @@ function _meRenderCueList(){
         markerRow.className='me-cue-row';
         markerRow.style.cssText='border-top:1px solid rgba(240,168,56,.25);min-height:0;pointer-events:none;';
         markerRow.innerHTML=
-          '<div style="width:44px;flex-shrink:0;"></div>'+
           '<div class="me-cue-body">'+
             '<div class="me-cue-top" style="padding-left:32px;">'+
               '<span class="me-cue-name" style="font-size:11px;font-family:var(--cond);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);">'+escH(_ch.name)+'</span>'+
@@ -12740,7 +12728,7 @@ function _meRenderCueList(){
               '<span class="me-cue-tc">'+escH(_ch.tc)+'</span>'+
             '</div>'+
           '</div>'+
-          '<div style="width:44px;flex-shrink:0;"></div>';
+          '<div class="me-cue-right"></div>';
         el.appendChild(markerRow);
       }
     }
@@ -12756,7 +12744,6 @@ function _meRenderCueList(){
     row.className='me-cue-row'+(cue.flagged?' flagged':'');
     row.dataset.cid=cue.id;
     row.innerHTML=
-      '<span class="me-cue-flag'+(cue.flagged?' on':'')+'" data-cid="'+cue.id+'">⚑</span>'+
       '<div class="me-cue-body">'+
         '<div class="me-cue-top">'+
           '<span class="me-cue-num">'+String(i+1).padStart(2,'0')+'</span>'+
@@ -12767,7 +12754,10 @@ function _meRenderCueList(){
           '<span class="me-cue-tc">'+escH(cue.tc)+'</span>'+
         '</div>'+
       '</div>'+
-      '<button class="me-cue-del" data-cid="'+cue.id+'" aria-label="Delete cue">✕</button>';
+      '<div class="me-cue-right">'+
+        '<button class="me-cue-del" data-cid="'+cue.id+'" aria-label="Delete cue">✕</button>'+
+        '<span class="me-cue-flag'+(cue.flagged?' on':'')+'" data-cid="'+cue.id+'">⚑</span>'+
+      '</div>';
     (function(c,rowEl){
       var delBtn=rowEl.querySelector('.me-cue-del');
       delBtn.addEventListener('click',function(e){
@@ -12775,7 +12765,7 @@ function _meRenderCueList(){
         meOpenDeleteConfirm(c.id);
       });
       rowEl.addEventListener('click',function(e){
-        if(e.target.classList.contains('me-cue-del'))return;
+        if(e.target.closest&&e.target.closest('.me-cue-del'))return;
         meOpenEditCue(c.id);
       });
     })(cue,row);
@@ -12950,11 +12940,38 @@ function _meRenderDrawer(){
       '</button>';
     trkSec.body.appendChild(item);
   });
+  // Camera track entry (if configured) — single toggle for state.cameraTrackVisible
+  if(state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.length){
+    var _camVis=state.cameraTrackVisible!==false;
+    var camItem=document.createElement('div');
+    camItem.className='me-drawer-item';
+    camItem.innerHTML=
+      '<span class="track-glyph xs" style="background:#06060a;color:#fff;flex-shrink:0;">CAM</span>'+
+      '<span class="me-drawer-item-name">'+escH(state.cameraTrack.name||'Camera')+'</span>'+
+      '<button class="me-drawer-eye'+(_camVis?'':' hidden')+'" data-camtrack="1" aria-label="'+(_camVis?'Hide':'Show')+'" type="button">'+
+        (_camVis
+          ?'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+          :'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>')+
+      '</button>';
+    trkSec.body.appendChild(camItem);
+  }
   // Delegated click on the tracks section — toggles visibility
   trkSec.body.addEventListener('click',function(e){
     var btn=e.target.closest('.me-drawer-eye');
     if(!btn)return;
     e.stopPropagation();
+    /* When following a steering device, visibility changes are device-local only —
+       do not persist to Supabase (that would overwrite the steering device's state) */
+    var _followingNow=!!(window.CF&&CF._steeredId);
+    // Camera track toggle
+    if(btn.dataset.camtrack){
+      state.cameraTrackVisible=state.cameraTrackVisible===false?true:false;
+      if(!_followingNow) persist();
+      if(window.updateCamTrackBar)updateCamTrackBar();
+      _meRenderCueList();
+      _meRenderDrawer();
+      return;
+    }
     var sid=btn.dataset.sid;
     if(!sid)return;
     var cur=state.visibleStreamIds||[];
@@ -12962,7 +12979,7 @@ function _meRenderDrawer(){
     state.visibleStreamIds=nowVis
       ?cur.filter(function(id){return id!==sid;})
       :cur.concat([sid]);
-    persist();
+    if(!_followingNow) persist();
     renderStreamsBar();
     _meRenderCueList();
     _meRenderDrawer(); // re-render to update eye icons
@@ -14091,12 +14108,6 @@ document.addEventListener('DOMContentLoaded',function(){
         </button>
       </div>
 
-      <!-- Cue count header -->
-      <div class="me-cue-hdr">
-        <span class="me-cue-hdr-count" id="me-cue-count-lbl">CUES · 0</span>
-        <span class="me-cue-hint">tap a cue to edit · tap ⚑ to flag</span>
-      </div>
-
       <!-- Cue list -->
       <div class="me-cue-list" id="me-cue-list"></div>
 
@@ -15190,6 +15201,7 @@ function applyRemote(proj){
   var prev = state.activeSongId;
   var prevFrames = state.simFrames;
   var prevVisible = state.visibleStreamIds ? state.visibleStreamIds.slice() : null;
+  var prevCamVis = state.cameraTrackVisible;
   var prevStreamSel = state.activeStreamId;
   applyProject(proj);
   /* Restore local flag states — prevents stale echoes from toggling flags back */
@@ -15199,16 +15211,25 @@ function applyRemote(proj){
   // Preserve the selected stream (UI pick, not a visibility flag)
   if(prevStreamSel==='CAMERA'||state.streams.find(function(s){return s.id===prevStreamSel;}))
     state.activeStreamId = prevStreamSel;
-  // Viewers/crew with assigned tracks keep their own filter; everyone else gets remote visibility
-  if(CF.tracks && CF.tracks.length){
+  // Track/camera visibility is a per-device UI preference — never overwrite from remote.
+  // Three cases in priority order:
+  if(CF.tracks&&CF.tracks.length){
+    // Crew / track-editor with restricted track list
     var _allowed=CF.tracks;
     var _kept=prevVisible?prevVisible.filter(function(id){return _allowed.indexOf(id)!==-1;}):[];
     state.visibleStreamIds=_kept.length?_kept:_allowed.slice();
-  }
-  // Camera-only viewer: keep normal tracks hidden
-  if(CF.cameraIds&&CF.cameraIds.length&&(!CF.tracks||!CF.tracks.length)){
+  } else if(CF.cameraIds&&CF.cameraIds.length&&(!CF.tracks||!CF.tracks.length)){
+    // Camera-only viewer
     state.visibleStreamIds=[];
     state.cameraTrackVisible=true;
+  } else if(prevVisible){
+    // All other clients (owners, editors, regular viewers):
+    // restore local choices; auto-add newly-added streams; drop deleted ones.
+    var _remIds=(state.streams||[]).map(function(s){return s.id;});
+    var _localKept=prevVisible.filter(function(id){return _remIds.indexOf(id)>=0;});
+    var _newStreams=_remIds.filter(function(id){return prevVisible.indexOf(id)<0;});
+    state.visibleStreamIds=_localKept.concat(_newStreams);
+    state.cameraTrackVisible=prevCamVis;
   }
   var validPrev = prev && state.songs.find(function(s){return s.id===prev;});
   state.activeSongId = (validPrev ? prev : null) || (state.songs[0]&&state.songs[0].id);
@@ -16669,8 +16690,8 @@ function showEditorApp(show){
   } else {
     state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});
   }
-  /* Camera track visible only when explicitly granted — overrides owner's saved state */
-  state.cameraTrackVisible=!!CF.viewerShowCamTrack;
+  /* Camera track: editors see it and can toggle it from the tracks panel just like a
+     normal track — applyProject already set cameraTrackVisible from saved project data */
 
   /* Track-restricted editors: hide PREVIEW tab (list, media, notes only) */
   if(hasTrackRestriction){
@@ -17782,6 +17803,7 @@ function _ownerMobileScanTc(){
     if(id!==origId){
       /* Different show is steering — save local state and load the steered project */
       _mobileSteeredId=id;
+      CF._steeredId=id;   /* expose so Block 1 can skip persist() while following */
       _mobileOrigSnap={showId:origId, proj:window.snapshot?snapshot():null};
 
       CF.showId=id;
@@ -17850,6 +17872,7 @@ CF._onExitMobileLive=function(){
     _setMobileSteerIndicator(null);
   }
   _mobileSteeredId=null;
+  CF._steeredId=null;
   _mobileOrigSnap=null;
 };
 
