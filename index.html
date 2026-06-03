@@ -1248,8 +1248,25 @@ body.mode-live #edit-mode-banner { display: none; }
 .vw-cam-crumb-sq { color:var(--txt-mid); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .vw-cam-following { display:none; align-items:center; gap:7px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); flex-shrink:0; }
 .vw-cam-name-cell { display:none; align-items:center; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--txt-hi); flex-shrink:0; white-space:nowrap; }
-.vw-cam-notes-btn { display:none; align-items:center; gap:7px; padding:0 16px; margin-left:auto; border-left:1px solid var(--hair); border-right:none; border-top:none; border-bottom:none; height:100%; background:none; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; transition:color .12s,background .12s; flex-shrink:0; white-space:nowrap; }
+.vw-cam-notes-btn { display:none; align-items:center; justify-content:center; gap:0; padding:0; width:56px; height:100%; margin-left:auto; border-left:1px solid var(--hair); border-right:none; border-top:none; border-bottom:none; background:none; font-size:0; color:var(--txt-mid); cursor:pointer; transition:color .12s,background .12s; flex-shrink:0; }
 .vw-cam-notes-btn:hover { color:var(--txt-hi); background:var(--surface2); }
+/* ── Unified visibility button in viewer topbar ── */
+.vw-vis-btn { display:flex; align-items:center; gap:8px; padding:0 16px; height:100%; border:none; border-right:1px solid var(--hair); background:none; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; flex-shrink:0; white-space:nowrap; transition:background .12s,color .12s; }
+.vw-vis-btn:hover { background:var(--surface2); color:var(--txt-hi); }
+.vw-vis-btn svg { flex-shrink:0; }
+/* Track visibility modal */
+.vw-trk-modal-box { max-width:400px; }
+.vw-trk-modal-row { display:flex; align-items:center; gap:12px; padding:12px 20px; border-bottom:1px solid var(--hair); cursor:pointer; transition:background .08s; }
+.vw-trk-modal-row:last-child { border-bottom:none; }
+.vw-trk-modal-row:hover { background:var(--surface2); }
+.vw-trk-modal-name { flex:1; font-family:var(--cond); font-size:13px; font-weight:700; letter-spacing:.02em; color:var(--txt-hi); }
+.vw-trk-modal-eye { color:var(--txt-mid); flex-shrink:0; transition:color .12s; }
+.vw-trk-modal-row.off .vw-trk-modal-name { color:var(--txt-low); }
+.vw-trk-modal-row.off .vw-trk-modal-eye { color:var(--txt-low); opacity:.4; }
+@media (max-width:640px){
+  #vw-trk-modal { align-items:flex-end; }
+  .vw-trk-modal-box { width:100%; max-width:100%; border-radius:16px 16px 0 0; }
+}
 /* Camera panel collapse toggle */
 .cam-panel-toggle { background:none; border:1px solid var(--hair2); color:var(--txt-low); width:24px; height:24px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:color .12s,border-color .12s; padding:0; flex-shrink:0; }
 .cam-panel-toggle:hover { color:var(--txt-hi); border-color:var(--hair3); }
@@ -1437,8 +1454,7 @@ body.mode-live #edit-mode-banner { display: none; }
   .vw-cam-fol-lbl, .vw-trk-fol-lbl { display:none; }
   /* TC value redundant on phone — the cockpit shows it large below */
   #vw-tc-val-cell { display:none; }
-  /* Notes button: icon only */
-  #vw-cam-notes-btn { padding:0 12px; gap:0; font-size:0; }
+  /* Notes button is already a 56px square (set in base CSS) */
 }
 #cf-cam-notes-screen { display:none; position:fixed; inset:0; z-index:9997; background:var(--bg); flex-direction:column; overflow:hidden; }
 .cn-topbar { display:flex; align-items:stretch; height:56px; background:var(--surface); border-bottom:1px solid var(--hair); flex-shrink:0; }
@@ -2735,25 +2751,19 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <span class="vw-cam-crumb-arr">›</span>
       <span class="vw-cam-crumb-sq" id="vw-cam-crumb-sq">—</span>
     </div>
-    <!-- Track viewer: Following + track badges -->
-    <div class="vw-cam-following" id="vw-track-following-cell" style="display:none;">
-      <span class="vw-trk-fol-lbl">Following</span>
-      <span id="vw-track-badges-topbar" style="display:flex;align-items:center;gap:5px;"></span>
-    </div>
-    <!-- Camera: Following + badge + select (cam-viewer only) -->
-    <div class="vw-cam-following" id="vw-cam-cell">
-      <span class="vw-cam-fol-lbl" style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-low);">Following</span>
-      
-      <select id="vw-cam-select" class="vw-cam-select" onchange="if(window.CF)CF._switchViewerCamera(this.value)"></select>
-    </div>
+    <!-- Unified visibility button — populated by buildTrackPills() for all roles -->
+    <div id="vw-vis-cell" style="display:none;align-items:stretch;height:100%;flex-shrink:0;"></div>
+    <!-- Legacy cam select kept in DOM (hidden) — CF._switchViewerCamera still references it -->
+    <select id="vw-cam-select" class="vw-cam-select" style="display:none;" onchange="if(window.CF)CF._switchViewerCamera(this.value)"></select>
+    <!-- Legacy compat spans (hidden, referenced by Block 2) -->
+    <span id="vw-track-badges-topbar" style="display:none;"></span>
     <!-- Sequence crumb (grows) — hidden in camera mode -->
     <div class="vw-cell grow" id="vw-seq-grow-cell">
       <span id="vw-seq-crumb" style="color:var(--txt-mid);font-size:11px;">—</span>
     </div>
     <!-- Camera: Notes button (cam-viewer only, right side) -->
     <button class="vw-cam-notes-btn" id="vw-cam-notes-btn" onclick="openCamNotesScreen()">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.4"/><line x1="3" y1="4" x2="9" y2="4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="3" y1="6.5" x2="9" y2="6.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="3" y1="9" x2="6.5" y2="9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-      Edit Notes
+      <svg width="18" height="18" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.4"/><line x1="3" y1="4" x2="9" y2="4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="3" y1="6.5" x2="9" y2="6.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="3" y1="9" x2="6.5" y2="9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
     </button>
     <!-- Editor: back to edit screen (shown only in editor follow mode) -->
     <div class="vw-cell right" id="editor-back-btn" style="display:none;padding:0 10px;">
@@ -4369,12 +4379,13 @@ function _ownerMobileLive(){
   var pn=document.getElementById('cf-v-project');
   if(pn)pn.textContent=state.name||'';
 
-  // Full-viewer layout: all tracks, no camera/track filter cells
-  ['vw-cam-cell','vw-cam-name-cell','vw-track-following-cell','vw-cam-crumb-cell'].forEach(function(id){
+  // Full-viewer layout: seq name grows; vis button via buildTrackPills
+  ['vw-cam-name-cell','vw-cam-crumb-cell'].forEach(function(id){
     var e=document.getElementById(id);if(e)e.style.display='none';
   });
   var seqCell=document.getElementById('vw-seq-grow-cell');
   if(seqCell)seqCell.style.display='flex';
+  if(window.buildTrackPills) buildTrackPills();
   var camCock=document.getElementById('cam-cockpit');
   if(camCock)camCock.style.display='none';
   var livBody=document.querySelector('#cf-viewer-screen .live-body');
@@ -6302,21 +6313,7 @@ function _activateCamCockpit(){
   } else if(camBadge){
     camBadge.innerHTML='';
   }
-  const camSel=document.getElementById('vw-cam-select');
-  if(camSel&&state.cameraTrack&&state.cameraTrack.cameras){
-    const activeCamId=cam?cam.id:null;
-    camSel.innerHTML=state.cameraTrack.cameras.map(function(c){
-      var hex=window.getCameraColor?getCameraColor(c.colorIdx||0):'#888';
-      var label=window.escH?escH(c.label||'Camera '+c.number):(c.label||'Camera '+c.number);
-      var badgeHtml='<div class="cam-badge-sq xs" style="background:'+hex+';color:#06060a;flex-shrink:0;">'+c.number+'</div>'+label;
-      var opt='<option value="'+c.id+'"'+(c.id===activeCamId?' selected':'')+
-        ' data-html="'+badgeHtml.replace(/"/g,'&quot;')+'">'+(c.label||'Camera '+c.number)+'</option>';
-      return opt;
-    }).join('');
-    /* Rebuild the cf-sel UI to pick up the new data-html attributes */
-    if(camSel.__cfSel&&camSel.__cfSel.buildOpts) camSel.__cfSel.buildOpts();
-  }
-  _show('vw-cam-cell');
+  /* vw-cam-cell is replaced by the vw-vis-cell camera badge (built by buildTrackPills below) */
 
   // Camera name (if label available)
   const nameTxt=document.getElementById('vw-cam-name-txt');
@@ -6376,15 +6373,24 @@ function openCamNotesScreen(){
   scr.style.display='flex';
   const liveSong=_getCamNotesLiveSong();
   _camNotesActiveSongId=liveSong?liveSong.id:(getActivePlaylistSongs()[0]?.id||null);
-  // For cam-viewer: move vw-cam-cell into the notes topbar instead of showing track badges
+  // For cam-viewer: show the assigned camera badge in the notes topbar
   const isCamViewer=window.CF&&CF.cameraIds&&CF.cameraIds.length===1;
   const cnTrack=document.getElementById('cn-track-following');
-  const vwCamCell=document.getElementById('vw-cam-cell');
-  const cnStatusCell=document.getElementById('cn-status-cell');
-  if(isCamViewer&&cnTrack&&vwCamCell&&cnStatusCell&&cnStatusCell.parentNode){
-    cnTrack.style.display='none';
-    cnStatusCell.parentNode.insertBefore(vwCamCell,cnStatusCell.nextSibling);
-    vwCamCell.style.display='flex';
+  if(isCamViewer){
+    if(cnTrack){
+      cnTrack.style.display='flex';
+      const badges=document.getElementById('cn-track-badges-topbar');
+      if(badges){
+        badges.innerHTML='';
+        const cam=state.cameraTrack&&state.cameraTrack.cameras&&
+          state.cameraTrack.cameras.find(function(c){return c.id===CF.cameraIds[0];});
+        if(cam){
+          const hex=typeof getCameraColor==='function'?getCameraColor(cam.colorIdx||0):'#888';
+          badges.innerHTML='<div class="cam-badge xs" style="background:'+hex+';color:#06060a;">'+
+            String(cam.number||'?').padStart(2,'0')+'</div>';
+        }
+      }
+    }
   } else {
     if(cnTrack)cnTrack.style.display='flex';
     buildCamNotesTrackBadges();
@@ -6451,13 +6457,6 @@ function closeCamNotesScreen(){
   const scr=document.getElementById('cf-cam-notes-screen');
   if(scr)scr.style.display='none';
   if(window.closeCnSeqPanel)closeCnSeqPanel();
-  // Restore vw-cam-cell to its original place in the viewer topbar.
-  // vw-seq-grow-cell is a stable anchor that never moves out of the viewer topbar.
-  const vwCamCell=document.getElementById('vw-cam-cell');
-  const anchor=document.getElementById('vw-seq-grow-cell')||document.getElementById('vw-cam-notes-btn');
-  if(vwCamCell&&anchor&&anchor.parentNode){
-    anchor.parentNode.insertBefore(vwCamCell,anchor);
-  }
   const cnTrack=document.getElementById('cn-track-following');
   if(cnTrack)cnTrack.style.display='';
   // Refresh live topbar badges to reflect any visibility changes made in notes mode
@@ -12611,8 +12610,7 @@ window.CfSelect=(function(){
 
   /* ── Boot: init all visible selects on DOMContentLoaded ── */
   document.addEventListener('DOMContentLoaded',function(){
-    /* Camera dropdown — compact topbar, auto-width so it fits in flex cell */
-    byId('vw-cam-select',{cls:'compact auto'});
+    /* vw-cam-select is hidden (replaced by vw-vis-cell badge button); no CfSelect needed */
     /* Add-seq modal insert-after */
     byId('add-seq-after',{cls:'lg'});
     /* Camera cue editor */
@@ -16212,8 +16210,7 @@ function showViewerScreen(show){
     if(camCock) camCock.style.display='none';
 
     if(isTrackViewer){
-      // Track viewer: show breadcrumb + following cell + notes btn
-      _hide('vw-cam-cell');
+      // Track viewer: breadcrumb + vis button (buildTrackPills) + notes btn
       _hide('vw-cam-name-cell');
       _hide('vw-seq-grow-cell');
       var pl=window.getActivePlaylist?getActivePlaylist():null;
@@ -16223,21 +16220,16 @@ function showViewerScreen(show){
       var seedSong=window.getActiveSong?getActiveSong():null;
       if(crumbSq)crumbSq.textContent=seedSong?seedSong.name:'—';
       _show('vw-cam-crumb-cell');
-      _show('vw-track-following-cell');
       _show('vw-cam-notes-btn');
     } else if(window.CF&&CF.viewerShowAllCams){
-      // Viewer with camera cue access: show notes button for editing camera descriptions
-      _hide('vw-cam-cell');
+      // Viewer with camera cue access: seq grow + vis button (buildTrackPills) + notes btn
       _hide('vw-cam-name-cell');
-      _hide('vw-track-following-cell');
       _show('vw-seq-grow-cell');
       _show('vw-cam-notes-btn');
     } else {
-      // Full viewer (all tracks visible, no camera access)
+      // Owner / editor / full viewer — seq name grows; vis button via buildTrackPills
       _hide('vw-cam-crumb-cell');
-      _hide('vw-cam-cell');
       _hide('vw-cam-name-cell');
-      _hide('vw-track-following-cell');
       _hide('vw-cam-notes-btn');
       _show('vw-seq-grow-cell');
     }
@@ -16245,17 +16237,19 @@ function showViewerScreen(show){
   }
 
   setTimeout(function(){
+    var _isEditorRole=window.CF&&(CF.role==='editor'||CF.role==='track-editor');
     state.appMode='live';
     if(isCamViewer){
       state.visibleStreamIds=[];
       state.cameraTrackVisible=true;
     } else if(isTrackViewer){
       state.visibleStreamIds=CF.tracks.slice();
-      // Camera cues visible only if explicitly granted via cam:all
-      state.cameraTrackVisible=window.CF&&CF.viewerShowAllCams?true:false;
+      // Camera cues: editors preserve their toggle; viewers need explicit cam:all grant
+      state.cameraTrackVisible=_isEditorRole?state.cameraTrackVisible:(window.CF&&CF.viewerShowAllCams?true:false);
     } else {
       state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});
-      state.cameraTrackVisible=false;
+      // Editors preserve camera track visibility they set in edit mode
+      if(!_isEditorRole) state.cameraTrackVisible=false;
     }
     if(window.redrawActive) redrawActive();
   },400);
@@ -16483,129 +16477,169 @@ function toggleViewerOverview(){
 function refreshViewerOverview(){ /* _doRedraw keeps #live-right current */ }
 
 function buildTrackPills(){
-  var c=document.getElementById('cf-v-tracks'); if(!c) return;
-  c.innerHTML='';
+  /* ── Legacy hidden container (Block 1 compat) ── */
+  var legacyC=document.getElementById('cf-v-tracks');
+  if(legacyC) legacyC.innerHTML='';
 
-  // Camera-only viewer: show the active camera as a single pill
+  var cell=document.getElementById('vw-vis-cell');
+  if(!cell) return;
+  cell.innerHTML='';
+  cell.style.display='none';
+
+  /* ── Camera-viewer: single camera badge → opens camera switcher ── */
   if(CF.cameraIds&&CF.cameraIds.length){
-    var cam=state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.find(function(c){return c.id===CF.cameraIds[0];});
+    var cam=state.cameraTrack&&state.cameraTrack.cameras&&
+      state.cameraTrack.cameras.find(function(c){return c.id===CF.cameraIds[0];});
     if(cam){
-      var hex=typeof getCameraColor==='function'?getCameraColor(cam.colorIdx||0):'#06b6d4';
-      c.style.display='flex';
-      var p=document.createElement('div');
-      p.style.cssText='padding:3px 12px;border-radius:12px;font-size:12px;font-weight:900;font-family:var(--mono);'+
-        'background:'+hex+';color:#fff;border:1px solid '+hex+';user-select:none;letter-spacing:.04em;';
-      p.textContent='CAM '+cam.number;
-      c.appendChild(p);
+      var hex=typeof getCameraColor==='function'?getCameraColor(cam.colorIdx||0):'#888';
+      var camBtn=document.createElement('button');
+      camBtn.style.cssText='display:flex;align-items:center;justify-content:center;'+
+        'padding:0 16px;height:100%;border:none;border-right:1px solid var(--hair);'+
+        'background:none;cursor:pointer;flex-shrink:0;transition:background .12s;';
+      camBtn.innerHTML='<div class="cam-badge sm" style="background:'+hex+';color:#06060a;">'+
+        String(cam.number||'?').padStart(2,'0')+'</div>';
+      camBtn.title='Switch camera';
+      camBtn.onclick=function(){ openCameraSwitcher(); };
+      camBtn.addEventListener('mouseenter',function(){this.style.background='var(--surface2)';});
+      camBtn.addEventListener('mouseleave',function(){this.style.background='none';});
+      cell.style.display='flex';
+      cell.style.alignItems='stretch';
+      cell.appendChild(camBtn);
       return;
     }
   }
 
+  /* ── Track visibility button (owners, editors, track viewers) ── */
   var streams=state.streams||[];
   var allowed=CF.tracks;
-  var visible=streams.filter(function(s){ return !allowed||allowed.indexOf(s.id)!==-1; });
-  if(!visible.length){c.style.display='none';return;}
-  c.style.display='flex';
-  /* Track viewer following cell: always interactive */
-  var vtfc=document.getElementById('vw-track-badges-topbar');
-  if(vtfc){
-    vtfc.innerHTML='';
-    visible.forEach(function(s){
-      var short=(s.shortName||s.name||'?').slice(0,3).toUpperCase();
-      var col=window.getStreamColor?getStreamColor(s.id):{hex:'#3b7bdd'};
-      var vis=state.visibleStreamIds.indexOf(s.id)!==-1;
-      var btn=document.createElement('button');
-      btn.className='track-glyph xs';
-      btn.style.cssText=
-        'background:'+(vis?'#06060a':'transparent')+
-        ';color:'+(vis?'#fff':'var(--txt-mid)')+
-        ';border-color:var(--hair3);'+
-        ';opacity:'+(vis?'1':'0.45')+';'+
-        'cursor:pointer;'+
-        'transition:background .12s,color .12s,opacity .12s;';
-      btn.textContent=short;
-      btn.dataset.sid=s.id;
-      btn.onclick=function(){
-        var id=this.dataset.sid;
-        var idx=state.visibleStreamIds.indexOf(id);
-        if(idx>=0) state.visibleStreamIds.splice(idx,1);
-        else state.visibleStreamIds.push(id);
-        if(window.buildTrackPills) buildTrackPills();
-        var notesScr=document.getElementById('cf-cam-notes-screen');
-        if(notesScr&&notesScr.style.display!=='none'&&window.renderCamNotesCues){
-          renderCamNotesCues(window._camNotesActiveSongId);
-        }
-        if(window.redrawActive) redrawActive();
-      };
-      vtfc.appendChild(btn);
-    });
-    // Camera badges: one per camera instead of a generic CAM glyph
-    if(CF.viewerShowAllCams){
-      var camVis=state.cameraTrackVisible!==false;
-      var _camToggle=function(){
-        state.cameraTrackVisible=state.cameraTrackVisible===false?true:false;
-        if(window.buildTrackPills) buildTrackPills();
-        if(window.redrawActive) redrawActive();
-      };
-      var _cams=state.cameraTrack&&state.cameraTrack.cameras;
-      if(_cams&&_cams.length){
-        _cams.forEach(function(cam){
-          var hex=typeof getCameraColor==='function'?getCameraColor(cam.colorIdx||0):'#06b6d4';
-          var camBtn=document.createElement('button');
-          camBtn.className='cam-badge xs';
-          camBtn.style.cssText='background:'+hex+';color:#06060a;cursor:pointer;flex-shrink:0;'+
-            'opacity:'+(camVis?'1':'0.35')+';transition:opacity .12s;';
-          camBtn.textContent=String(cam.number||'?').padStart(2,'0');
-          camBtn.title='CAM '+cam.number+(cam.label?' — '+cam.label:'');
-          camBtn.onclick=_camToggle;
-          vtfc.appendChild(camBtn);
-        });
-      } else {
-        var camBtn=document.createElement('button');
-        camBtn.className='track-glyph xs';
-        camBtn.style.cssText='background:'+(camVis?'#06060a':'transparent')+
-          ';color:'+(camVis?'#fff':'var(--txt-low)')+
-          ';border-color:var(--hair3);cursor:pointer;transition:background .12s,color .12s;';
-        camBtn.textContent='CAM';
-        camBtn.onclick=_camToggle;
-        vtfc.appendChild(camBtn);
-      }
-    }
-  }
-  var isSingle = visible.length===1;
-  visible.forEach(function(s){
-    var col=window.getStreamColor?getStreamColor(s.id):{hex:'#3b7bdd'};
+  var trackList=streams.filter(function(s){return !allowed||allowed.indexOf(s.id)!==-1;});
+  var isEditorRole=CF.role==='editor'||CF.role==='track-editor';
+  var hasCamTrackAccess=!!(state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.length&&
+    (CF.viewerShowAllCams||isEditorRole||CF.isOwner));
+
+  if(!trackList.length&&!hasCamTrackAccess) return;
+
+  /* Count visible tracks to show in button label */
+  var visCount=trackList.filter(function(s){return state.visibleStreamIds.indexOf(s.id)!==-1;}).length;
+  var camVis=state.cameraTrackVisible!==false;
+  var visTotal=visCount+(hasCamTrackAccess&&camVis?1:0);
+  var totalAll=trackList.length+(hasCamTrackAccess?1:0);
+
+  var layersIcon='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>';
+
+  var btn=document.createElement('button');
+  btn.className='vw-vis-btn';
+  btn.innerHTML=layersIcon+'<span>'+visTotal+' / '+totalAll+'</span>';
+  btn.title='Track visibility';
+  btn.onclick=function(){ openTrackVisModal(); };
+  cell.style.display='flex';
+  cell.style.alignItems='stretch';
+  cell.appendChild(btn);
+
+  /* Keep the live modal in sync if it's open */
+  var modal=document.getElementById('vw-trk-modal');
+  if(modal) _refreshTrackVisModal(modal);
+}
+window.buildTrackPills = buildTrackPills; /* expose for Block 1 (_activateCamCockpit) */
+
+/* ── Track visibility modal ───────────────────────────────── */
+function _eyeOpen(){ return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'; }
+function _eyeOff(){ return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'; }
+
+function _buildTrackVisRows(container){
+  container.innerHTML='';
+  var streams=state.streams||[];
+  var allowed=CF.tracks;
+  var trackList=streams.filter(function(s){return !allowed||allowed.indexOf(s.id)!==-1;});
+  var isEditorRole=CF.role==='editor'||CF.role==='track-editor';
+  var hasCamTrackAccess=!!(state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.length&&
+    (CF.viewerShowAllCams||isEditorRole||CF.isOwner));
+
+  trackList.forEach(function(s){
     var vis=state.visibleStreamIds.indexOf(s.id)!==-1;
-    var p=document.createElement('div');
-    if(isSingle){
-      /* Non-interactive label */
-      p.style.cssText='padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;'+
-        'background:#06060a;color:#fff;border:1px solid var(--hair3);user-select:none;';
-      p.textContent=s.name;
-      c.appendChild(p);
-      return;
-    }
-    /* Multi-track: toggleable with clearly visible off state */
-    p.style.cssText='padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;'+
-      'cursor:pointer;user-select:none;border:1px solid var(--hair3);transition:background .15s,color .15s,opacity .15s;'+
-      (vis
-        ? 'background:#06060a;color:#fff;opacity:1;'
-        : 'background:transparent;color:var(--txt-low);opacity:0.5;');
-    p.textContent=s.name;
-    p.dataset.sid=s.id;
-    p.addEventListener('click',function(){
+    var short=(s.shortName||s.name||'?').slice(0,3).toUpperCase();
+    var row=document.createElement('div');
+    row.className='vw-trk-modal-row'+(vis?'':' off');
+    row.dataset.sid=s.id;
+    row.innerHTML=
+      '<span class="track-glyph xs" style="background:#06060a;color:#fff;flex-shrink:0;">'+
+        (window.escH?escH(short):short)+
+      '</span>'+
+      '<span class="vw-trk-modal-name">'+(window.escH?escH(s.name||'Track'):s.name||'Track')+'</span>'+
+      '<span class="vw-trk-modal-eye">'+(vis?_eyeOpen():_eyeOff())+'</span>';
+    row.addEventListener('click',function(){
       var id=this.dataset.sid;
       var idx=state.visibleStreamIds.indexOf(id);
       if(idx>=0) state.visibleStreamIds.splice(idx,1);
       else state.visibleStreamIds.push(id);
-      buildTrackPills();
-      if(CF._viewerInEditMode && CF._renderViewerCues) CF._renderViewerCues(CF._viewerEditSongId);
-      else if(window.redrawActive) redrawActive();
+      if(window.buildTrackPills) buildTrackPills();
+      var notesScr=document.getElementById('cf-cam-notes-screen');
+      if(notesScr&&notesScr.style.display!=='none'&&window.renderCamNotesCues)
+        renderCamNotesCues(window._camNotesActiveSongId);
+      if(window.redrawActive) redrawActive();
     });
-    c.appendChild(p);
+    container.appendChild(row);
   });
+
+  if(hasCamTrackAccess){
+    var camVis=state.cameraTrackVisible!==false;
+    var camName=(state.cameraTrack&&state.cameraTrack.name)||'Camera';
+    var camRow=document.createElement('div');
+    camRow.className='vw-trk-modal-row'+(camVis?'':' off');
+    camRow.id='vw-trk-modal-camrow';
+    camRow.innerHTML=
+      '<span class="track-glyph xs" style="background:#06060a;color:#fff;flex-shrink:0;">CAM</span>'+
+      '<span class="vw-trk-modal-name">'+(window.escH?escH(camName):camName)+'</span>'+
+      '<span class="vw-trk-modal-eye">'+(camVis?_eyeOpen():_eyeOff())+'</span>';
+    camRow.addEventListener('click',function(){
+      state.cameraTrackVisible=state.cameraTrackVisible===false?true:false;
+      if(window.buildTrackPills) buildTrackPills();
+      if(window.updateCamTrackBar) updateCamTrackBar();
+      if(window.redrawActive) redrawActive();
+    });
+    container.appendChild(camRow);
+  }
 }
-window.buildTrackPills = buildTrackPills; /* expose for Block 1 (_activateCamCockpit) */
+
+function _refreshTrackVisModal(modal){
+  var body=modal&&modal.querySelector('.vw-trk-modal-body');
+  if(body) _buildTrackVisRows(body);
+}
+
+function openTrackVisModal(){
+  var existing=document.getElementById('vw-trk-modal');
+  if(existing){existing.remove();return;}
+
+  var modal=document.createElement('div');
+  modal.id='vw-trk-modal';
+  modal.className='ntm-bg show';
+  modal.style.cssText='position:fixed;inset:0;z-index:10200;';
+  modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
+
+  var box=document.createElement('div');
+  box.className='ntm-box vw-trk-modal-box';
+  box.style.overflow='hidden';
+
+  var hdr=document.createElement('div');
+  hdr.className='ntm-header';
+  hdr.innerHTML='<span class="ntm-title">TRACK VISIBILITY</span>';
+  var closeBtn=document.createElement('button');
+  closeBtn.className='tcs-close';
+  closeBtn.innerHTML='✕';
+  closeBtn.onclick=function(){modal.remove();};
+  hdr.appendChild(closeBtn);
+
+  var body=document.createElement('div');
+  body.className='ntm-body vw-trk-modal-body';
+  body.style.cssText='padding:0;';
+  _buildTrackVisRows(body);
+
+  box.appendChild(hdr);
+  box.appendChild(body);
+  modal.appendChild(box);
+  document.body.appendChild(modal);
+}
+window.openTrackVisModal=openTrackVisModal;
 
 /* ── EDITOR APP ──────────────────────────────────────────── */
 function _editorEnterFollowMode(){
