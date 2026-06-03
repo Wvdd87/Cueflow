@@ -4201,7 +4201,11 @@ function applyProject(proj){
   const _assigned=new Set(state.playlists.flatMap(p=>p.songIds));
   const _hadOrphans=state.songs.some(s=>!_assigned.has(s.id));
   state.songs=state.songs.filter(s=>_assigned.has(s.id));
-  if(_hadOrphans){ window._cfCleanupPending=true; setTimeout(()=>{window._cfCleanupPending=false;if(window.persist)persist();},0); }
+  // Orphan removal is memory-only at load time — never persist here.
+  // Scheduling persist() via setTimeout(0) runs AFTER Block 2 replaces window.persist,
+  // which sets DIRTY_KEY and triggers a Supabase push of stale localStorage data before
+  // ownerRestoreShow() can fetch the authoritative remote state. The cleanup is written
+  // to Supabase on the next real user action instead.
   // Migrate legacy media fields to unified system
   state.songs.forEach(s=>{
     if(!s.chapters)s.chapters=[];
@@ -4903,7 +4907,10 @@ function updateCamTrackBar(){
     btn.style.cssText=`background:${hex};color:#06060a;cursor:pointer;flex-shrink:0;`;
     btn.textContent=cam.number;
     btn.title=cam.label||`CAM ${cam.number}`;
-    btn.onclick=()=>openCameraCueModal(cam.id);
+    btn.onclick=()=>{
+      _ncSelTarget={type:'camera',id:cam.id};
+      _ncOpenModal(state.appMode==='live'?state.currentFrames:state.simFrames);
+    };
     bar.appendChild(btn);
   });
 }
