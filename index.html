@@ -1458,6 +1458,7 @@ body.mode-live #edit-mode-banner { display: none; }
 }
 #cf-cam-notes-screen { display:none; position:fixed; inset:0; z-index:9997; background:var(--bg); flex-direction:column; overflow:hidden; }
 .cn-topbar { display:flex; align-items:stretch; height:56px; background:var(--surface); border-bottom:1px solid var(--hair); flex-shrink:0; }
+.cn-topbar .me-go-live { align-self:center; margin:0 12px; }
 .cn-back-btn { display:flex; align-items:center; gap:8px; padding:0 18px; border-right:1px solid var(--hair); background:none; border-top:none; border-bottom:none; border-left:none; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; transition:color .12s; flex-shrink:0; white-space:nowrap; }
 .cn-back-btn:hover { color:var(--txt-hi); }
 .cn-topbar-title { display:flex; align-items:center; padding:0 18px; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-mid); flex-shrink:0; }
@@ -1514,12 +1515,15 @@ body.mode-live #edit-mode-banner { display: none; }
   /* Toggle bar replaces the panel's own header on mobile */
   #cam-panel-all .cam-panel-head { display:none; }
 }
+/* Sequence selector strip for camera notes screen (phone) */
+.cn-seq-hdr { display:none; align-items:stretch; border-bottom:1px solid var(--hair); background:var(--surface); flex-shrink:0; }
+
 @media (max-width:760px){
-  /* Show seq drawer toggle in topbar */
-  .cn-seq-toggle-btn { display:flex; }
+  /* Show sequence selector strip instead of drawer toggle in topbar */
+  .cn-seq-hdr { display:flex; }
   /* cn-body needs relative positioning for drawer */
   .cn-body { position:relative; }
-  /* Sequence panel becomes slide-in drawer */
+  /* Sequence panel becomes slide-in drawer triggered by the strip */
   .cn-seq-panel {
     position:absolute; left:0; top:0; bottom:0; z-index:10;
     width:220px; transform:translateX(-100%);
@@ -2916,23 +2920,27 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 <!-- ── Camera Edit Notes screen ── -->
 <div id="cf-cam-notes-screen" role="main" aria-label="Edit Notes">
   <div class="cn-topbar">
-    <!-- Mobile drawer toggle (hidden on desktop) -->
-    <button class="cn-seq-toggle-btn" id="cn-seq-toggle-btn" onclick="toggleCnSeqPanel()">
-      <svg width="13" height="10" viewBox="0 0 13 10" fill="none"><line x1="1" y1="1.5" x2="12" y2="1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="1" y1="5" x2="12" y2="5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="1" y1="8.5" x2="12" y2="8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-      Seqs
-    </button>
     <div class="vw-cell" id="cn-status-cell">
       <div class="tc-pip idle" id="cn-status-pip"></div>
       <span class="vw-status-lbl" id="cn-status-lbl" style="color:var(--txt-low)">OFFLINE</span>
     </div>
-    <div class="vw-cam-following" id="cn-track-following" style="display:flex;">
-      <span>Following</span>
-      <span id="cn-track-badges-topbar" style="display:flex;align-items:center;gap:5px;"></span>
-    </div>
+    <!-- Camera badge button — populated by openCamNotesScreen(), opens camera switcher -->
+    <div id="cn-cam-btn-cell" style="display:none;align-items:stretch;height:100%;flex-shrink:0;"></div>
     <div style="flex:1;"></div>
-    <button class="live-toggle" onclick="closeCamNotesScreen()">GO LIVE</button>
+    <button class="me-go-live" onclick="closeCamNotesScreen()">Go Live</button>
   </div>
   <div class="cn-mode-banner"></div>
+  <!-- Sequence selector strip — phone only (≤760px); tablet uses the left sidebar -->
+  <div class="cn-seq-hdr" id="cn-seq-hdr">
+    <div class="me-seq-hdr-inner" onclick="toggleCnSeqPanel()">
+      <div class="me-seq-hdr-top">SEQUENCE</div>
+      <div class="me-seq-hdr-name" id="cn-seq-hdr-name">—</div>
+    </div>
+    <button class="me-seq-hdr-nav" onclick="toggleCnSeqPanel()">
+      <span id="cn-seq-hdr-pos">— / —</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  </div>
   <div class="cn-hint-bar">
     <svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="flex-shrink:0;"><circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1.2"/><line x1="5.5" y1="4" x2="5.5" y2="7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="5.5" cy="2.8" r=".5" fill="currentColor"/></svg>
     <span class="cn-hint-full">Cue names and timecodes are set by the production team. Only the <strong style="color:var(--txt-mid);">Description</strong> column is editable here.</span>
@@ -6373,27 +6381,32 @@ function openCamNotesScreen(){
   scr.style.display='flex';
   const liveSong=_getCamNotesLiveSong();
   _camNotesActiveSongId=liveSong?liveSong.id:(getActivePlaylistSongs()[0]?.id||null);
-  // For cam-viewer: show the assigned camera badge in the notes topbar
+  // Populate camera badge button in topbar — clicking opens the camera switcher
   const isCamViewer=window.CF&&CF.cameraIds&&CF.cameraIds.length===1;
-  const cnTrack=document.getElementById('cn-track-following');
-  if(isCamViewer){
-    if(cnTrack){
-      cnTrack.style.display='flex';
-      const badges=document.getElementById('cn-track-badges-topbar');
-      if(badges){
-        badges.innerHTML='';
-        const cam=state.cameraTrack&&state.cameraTrack.cameras&&
-          state.cameraTrack.cameras.find(function(c){return c.id===CF.cameraIds[0];});
-        if(cam){
-          const hex=typeof getCameraColor==='function'?getCameraColor(cam.colorIdx||0):'#888';
-          badges.innerHTML='<div class="cam-badge xs" style="background:'+hex+';color:#06060a;">'+
-            String(cam.number||'?').padStart(2,'0')+'</div>';
-        }
+  const cnCamCell=document.getElementById('cn-cam-btn-cell');
+  if(cnCamCell){
+    cnCamCell.innerHTML='';
+    cnCamCell.style.display='none';
+    if(isCamViewer){
+      const cam=state.cameraTrack&&state.cameraTrack.cameras&&
+        state.cameraTrack.cameras.find(function(c){return c.id===CF.cameraIds[0];});
+      if(cam){
+        const hex=typeof getCameraColor==='function'?getCameraColor(cam.colorIdx||0):'#888';
+        const camBtn=document.createElement('button');
+        camBtn.style.cssText='display:flex;align-items:center;justify-content:center;'+
+          'padding:0 16px;height:100%;border:none;border-right:1px solid var(--hair);'+
+          'background:none;cursor:pointer;flex-shrink:0;transition:background .12s;';
+        camBtn.innerHTML='<div class="cam-badge sm" style="background:'+hex+';color:#06060a;">'+
+          String(cam.number||'?').padStart(2,'0')+'</div>';
+        camBtn.title='Switch camera';
+        camBtn.onclick=function(){ if(window.openCameraSwitcher)openCameraSwitcher(); };
+        camBtn.addEventListener('mouseenter',function(){this.style.background='var(--surface2)';});
+        camBtn.addEventListener('mouseleave',function(){this.style.background='none';});
+        cnCamCell.appendChild(camBtn);
+        cnCamCell.style.display='flex';
+        cnCamCell.style.alignItems='stretch';
       }
     }
-  } else {
-    if(cnTrack)cnTrack.style.display='flex';
-    buildCamNotesTrackBadges();
   }
   renderCamNotesSeqs();
   renderCamNotesCues(_camNotesActiveSongId);
@@ -6456,9 +6469,7 @@ function buildCamNotesTrackBadges(){
 function closeCamNotesScreen(){
   const scr=document.getElementById('cf-cam-notes-screen');
   if(scr)scr.style.display='none';
-  if(window.closeCnSeqPanel)closeCnSeqPanel();
-  const cnTrack=document.getElementById('cn-track-following');
-  if(cnTrack)cnTrack.style.display='';
+  closeCnSeqPanel();
   // Refresh live topbar badges to reflect any visibility changes made in notes mode
   if(window.buildTrackPills)buildTrackPills();
 }
@@ -6482,11 +6493,21 @@ function _getCamNotesLiveSong(){
   return best||songs[0]||null;
 }
 
+function _cnSyncSeqStrip(songs){
+  const idx=songs.findIndex(function(s){return s.id===_camNotesActiveSongId;});
+  const active=idx>=0?songs[idx]:null;
+  const nameEl=document.getElementById('cn-seq-hdr-name');
+  const posEl=document.getElementById('cn-seq-hdr-pos');
+  if(nameEl)nameEl.textContent=active?active.name:'—';
+  if(posEl)posEl.textContent=(idx>=0?String(idx+1).padStart(2,'0'):'—')+' / '+songs.length;
+}
+
 function renderCamNotesSeqs(){
   const rows=document.getElementById('cn-seq-rows');
   if(!rows)return;
   rows.innerHTML='';
   const songs=getActivePlaylistSongs();
+  _cnSyncSeqStrip(songs);
   songs.forEach(function(song,i){
     const row=document.createElement('div');
     row.className='cn-seq-row'+(song.id===_camNotesActiveSongId?' active':'');
@@ -6495,8 +6516,9 @@ function renderCamNotesSeqs(){
     row.onclick=function(){
       _camNotesActiveSongId=song.id;
       rows.querySelectorAll('.cn-seq-row').forEach(function(r){r.classList.toggle('active',r.dataset.id===song.id);});
+      _cnSyncSeqStrip(songs);
       renderCamNotesCues(song.id);
-      if(window.closeCnSeqPanel&&window.innerWidth<=760)closeCnSeqPanel();
+      if(window.innerWidth<=760)closeCnSeqPanel();
     };
     rows.appendChild(row);
   });
@@ -16541,6 +16563,7 @@ function buildTrackPills(){
   if(modal) _refreshTrackVisModal(modal);
 }
 window.buildTrackPills = buildTrackPills; /* expose for Block 1 (_activateCamCockpit) */
+window.openCameraSwitcher = openCameraSwitcher; /* expose for cn-cam-btn-cell and vw-vis-cell */
 
 /* ── Track visibility modal ───────────────────────────────── */
 function _eyeOpen(){ return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'; }
