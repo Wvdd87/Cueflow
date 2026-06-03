@@ -12078,9 +12078,8 @@ function _initEditTimeline(){
     if(delta===0)return;
     e.preventDefault();
     const frameDelta=Math.round(delta/ETL.zoom*state.fps*0.5);
-    state.simFrames=Math.max(0,state.simFrames+frameDelta);
-    const el2=document.getElementById('sim-tc');if(el2)el2.textContent=fTC(Math.floor(state.simFrames));
-    renderEditTimeline();
+    const newF=Math.max(0,state.simFrames+frameDelta);
+    redrawTest(Math.floor(newF));
   },{passive:false});
 }
 
