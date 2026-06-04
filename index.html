@@ -16074,30 +16074,25 @@ function _updateLiveStatusChip(){
   var lanN = (window.cfLAN && CF._lanStatus && typeof CF._lanStatus.clients==='number') ? CF._lanStatus.clients : 0;
   var total = cloudN + lanN;
   var lanMode = (CF._netMode==='lan');
-  var pipCls, lblTxt, how, howColor, howPip;
+  /* Single consolidated chip: transport (how) + follower count (how many). */
+  var pipCls, lblTxt, title;
   if(lanMode){
     pipCls = total ? 'tc-pip warn pulse' : 'tc-pip warn';
-    lblTxt = total ? (total+(total===1?' FOLLOWER':' FOLLOWERS')) : 'NO FOLLOWERS';
-    how = 'LOCAL NET'; howColor='var(--amber)'; howPip='tc-pip warn';
+    lblTxt = 'LOCAL NET' + (total ? ' · '+total : '');
+    title  = total+' follower'+(total===1?'':'s')+' on the local network';
   } else if(!navigator.onLine){
-    pipCls = 'tc-pip idle'; lblTxt = 'OFFLINE'; how='';
+    pipCls = 'tc-pip idle'; lblTxt = 'OFFLINE'; title='Not connected';
   } else {
     pipCls = total ? 'tc-pip ok pulse' : 'tc-pip ok';
-    lblTxt = total ? (total+(total===1?' FOLLOWER':' FOLLOWERS')) : 'ONLINE';
-    how = lanN ? 'CLOUD + LAN' : 'CLOUD'; howColor='var(--green)'; howPip='tc-pip ok';
+    lblTxt = (lanN ? 'CLOUD+LAN' : 'CLOUD') + (total ? ' · '+total : '');
+    title  = cloudN+' cloud · '+lanN+' local follower'+(total===1?'':'s');
   }
   if(pip) pip.className = pipCls;
   if(lbl) lbl.textContent = lblTxt;
-  /* "how" cell — the transport the owner is sharing over. */
+  var chip=document.getElementById('live-onair-chip'); if(chip) chip.title=title;
+  /* Consolidated into the chip above — never show the separate transport cell. */
   var shareCell = document.getElementById('live-sharing-cell');
-  var shareLbl  = document.getElementById('live-sharing-lbl');
-  if(shareCell){
-    if(how){
-      shareCell.style.display='flex';
-      if(shareLbl){ shareLbl.textContent=how; shareLbl.style.color=howColor||''; }
-      var sp=shareCell.querySelector('.tc-pip'); if(sp) sp.className=howPip||'tc-pip ok';
-    } else { shareCell.style.display='none'; }
-  }
+  if(shareCell) shareCell.style.display='none';
 }
 window._updateLiveStatusChip = _updateLiveStatusChip;
 
