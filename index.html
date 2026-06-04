@@ -16180,11 +16180,25 @@ function subscribeTc(){
       _updateViewerStatus();
     });
 
+  _startViewerTcLoop();
+}
+
+/* Viewer TC interpolation + free-run loop. Idempotent so it runs once whether the
+   viewer joined over the cloud (subscribeTc) or the LAN (_cfLanEnterAsViewer). */
+function _startViewerTcLoop(){
+  if(CF._tcLoopStarted) return; CF._tcLoopStarted=true;
+  var FREERUN_MAX = 1800; /* cap free-run at 30 min so an abandoned tab can't drift forever */
+
   /* Stale TC indicator + overview refresh */
   setInterval(function(){
-    if(!CF._lastTcRx || Date.now()-CF._lastTcRx>=800){
-      var vstxt=document.getElementById('cf-v-status-txt');
-      if(vstxt){vstxt.textContent='Waiting for TC';vstxt.style.display='';}
+    var vstxt=document.getElementById('cf-v-status-txt');
+    if(vstxt){
+      if(!CF._viewerTcSubOk && CF._tcRef){
+        /* disconnected but we have a clock → free-running */
+        vstxt.textContent='FREE RUN'; vstxt.style.color='rgba(240,168,56,1)'; vstxt.style.display='';
+      } else if(!CF._lastTcRx || Date.now()-CF._lastTcRx>=800){
+        vstxt.textContent='Waiting for TC'; vstxt.style.color=''; vstxt.style.display='';
+      }
     }
     _updateViewerStatus();
     refreshViewerOverview();
@@ -16194,30 +16208,42 @@ function subscribeTc(){
   window.addEventListener('online',  _updateViewerStatus);
   window.addEventListener('offline', _updateViewerStatus);
 
-  /* ── RAF interpolation loop — runs every frame for smooth TC display ── */
-  CF._tcRef = null;
+  /* ── RAF interpolation loop — runs every frame for smooth TC display ──
+   * Between 12fps packets we extrapolate (frames + elapsed×fps). On a DISCONNECT
+   * we keep free-running so the countdown stays smooth through an outage, then snap
+   * back the instant packets resume (_applyTcMessage rebases CF._tcRef). When we're
+   * still CONNECTED but packets stop (the source genuinely paused) we hold instead. */
   (function viewerTcRaf(){
     requestAnimationFrame(viewerTcRaf);
     if(!CF._tcRef) return;
     var ref = CF._tcRef;
     var elapsed = ref.recvPerf!=null ? (performance.now()-ref.recvPerf)/1000 : (Date.now()-ref.recvAt)/1000;
-    var stale = elapsed > 5;
-    var displayF = stale ? ref.frames : Math.round(ref.frames + elapsed * ref.fps);
+    var connected = !!CF._viewerTcSubOk;
+    var running = connected ? (elapsed <= 5) : (elapsed <= FREERUN_MAX);
+    var freeRun = !connected && elapsed > 1.2;  /* estimating through a disconnect */
+    var displayF = running ? Math.round(ref.frames + elapsed * ref.fps) : ref.frames;
     var fmtd = window.fTC ? fTC(displayF) : '00:00:00:00';
 
     /* Update TC displays every frame — smooth running numbers */
     var big = document.getElementById('cf-tc-big');
-    if(big && CF.role==='tc') big.textContent = fmtd;
+    if(big && CF.role==='tc'){ big.textContent = fmtd; if(freeRun) big.style.color='rgba(240,168,56,1)'; }
     var vtc = document.getElementById('cf-v-tc');
-    if(vtc && CF.role!=='tc') vtc.textContent = fmtd;
+    if(vtc && CF.role!=='tc'){ vtc.textContent = fmtd; if(freeRun) vtc.style.color='rgba(240,168,56,1)'; }
 
-    /* Drive waterfall at ~30fps (don't need 60fps for waterfall) */
-    if(!stale && CF.role!=='tc' && state.appMode==='live'){
+    /* FREE RUN indicator (toggle only on change) */
+    if(freeRun !== CF._freeRunShown){
+      CF._freeRunShown = freeRun;
+      var st=document.getElementById('cf-v-status-txt');
+      if(st && freeRun){ st.textContent='FREE RUN'; st.style.color='rgba(240,168,56,1)'; st.style.display=''; }
+    }
+
+    /* Drive the waterfall while the clock is moving — including free-run, so
+       "until cue" timers keep counting during an outage. */
+    if(running && CF.role!=='tc' && state.appMode==='live'){
       state.simFrames = displayF;
       state.currentFrames = displayF;
       if(window.redrawActive) redrawActive();
     }
-
   })();
 }
 
@@ -16622,6 +16648,7 @@ function _cfLanEnterAsViewer(snap){
   else if(CF.role==='editor'||CF.role==='track-editor'){ showEditorApp(show); }
   else if(CF._camSelectMode){ showViewerScreen(show); showCameraPickerModal(show); }
   else { showViewerScreen(show); }
+  _startViewerTcLoop(); /* interpolation + free-run (cloud path starts it in subscribeTc) */
   if(window._updateViewerStatus) _updateViewerStatus();
 }
 
