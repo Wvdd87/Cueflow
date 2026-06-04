@@ -17,14 +17,27 @@
     "mac": {
       "category": "public.app-category.music",
       "icon": "build/icon.png",
-      "identity": null
+      "identity": null,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "CueFlow reads LTC (linear timecode) from your audio interface to sync the show."
+      }
     },
     "dmg": {
       "title": "Cueflow"
     },
     "files": [
       "main.js",
-      "cueflow_v18.html"
+      "preload.js",
+      "lan-server.js",
+      "index.html",
+      "build/**",
+      "node_modules/**"
     ]
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4",
+    "ws": "^8.21.0"
   }
 }

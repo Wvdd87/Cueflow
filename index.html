@@ -4069,7 +4069,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <button id="cf-pin-tracks-all" onclick="CF._selectAllTracks()" style="display:none;margin-top:8px;height:30px;padding:0 12px;background:none;border:1px solid var(--hair2);color:var(--txt-low);cursor:pointer;font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;transition:color .12s,border-color .12s;">Add all</button>
         <label id="cf-pin-cam-all-wrap" class="sbp-cl-chk-row" style="display:none;margin-top:10px;border-top:1px solid var(--hair);padding-top:10px;">
           <input type="checkbox" id="cf-pin-cam-all" style="accent-color:var(--primary);margin-right:6px;">
-          Camera
+      
         </label>
         <label id="cf-pin-cam-track-wrap" class="sbp-cl-chk-row" style="display:none;margin-top:10px;border-top:1px solid var(--hair);padding-top:10px;">
           <input type="checkbox" id="cf-pin-cam-track" style="accent-color:var(--primary);margin-right:6px;">
@@ -4171,6 +4171,7 @@ function deleteProjectData(id){
 }
 let persistTimer=null;
 function persist(){
+  if(state.projectId===BOOT_PLACEHOLDER_ID)return; // transient placeholder — never persist
   saveProjectData({id:state.projectId,name:state.name,fps:state.fps,visibleCount:state.visibleCount,
     warnSec:state.warnSec,autoAdvanceSec:state.autoAdvanceSec,
     activeSongId:state.activeSongId,activePlaylistId:state.activePlaylistId,
@@ -4743,6 +4744,39 @@ function getAllCues(visibleOnly){
 }
 function uid(){return'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+/* Clipboard copy that also works in insecure contexts (http://<lan-ip>), where
+   navigator.clipboard is undefined. Falls back to a hidden-textarea + execCommand.
+   Returns a Promise<boolean>. */
+function _cfCopyText(text){
+  function fallback(){
+    try{
+      var ta=document.createElement('textarea'); ta.value=text;
+      ta.setAttribute('readonly','');
+      ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0;';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      var ok=document.execCommand('copy'); document.body.removeChild(ta); return ok;
+    }catch(e){ return false; }
+  }
+  if(navigator.clipboard && window.isSecureContext){
+    return navigator.clipboard.writeText(text).then(function(){return true;}).catch(function(){return fallback();});
+  }
+  return Promise.resolve(fallback());
+}
+window._cfCopyText=_cfCopyText;
+/* Build a crew join link. On the Electron owner the page origin is file://, which
+   is useless to crew — so when we're hosting a LAN server, hand out its reachable
+   address with &lan=1. In a normal browser owner, use the page origin (cloud). */
+function _cfShareLink(pin){
+  var showId=(window.CF&&CF.showId)||'';
+  var st=(window.CF&&CF._lanStatus)||null;
+  var ips=(st&&st.ips)||[];
+  if((location.protocol==='file:'||(window.CF&&window.cfLAN))&&ips.length){
+    var port=st.port||8420;
+    return 'http://'+ips[0]+':'+port+'/?show='+showId+(pin?'&pin='+pin:'')+'&lan=1';
+  }
+  return location.origin+location.pathname+'?show='+showId+(pin?'&pin='+pin:'');
+}
+window._cfShareLink=_cfShareLink;
 
 // ─── UNDO/REDO ───
 function snapshot(){
@@ -7897,8 +7931,8 @@ function toggleCueFlag(cueId){
     row.classList.toggle('flagged',nowFlagged);
   });
   // Instant broadcast to all connected clients — bypasses the quiet window entirely
-  if(window.CF&&CF._tcChan&&CF.showId){
-    try{CF._tcChan.send({type:'broadcast',event:'flag',payload:{cueId:cueId,flagged:nowFlagged}});}catch(e){}
+  if(window.CF&&CF._netSend&&CF.showId){
+    CF._netSend('flag',{cueId:cueId,flagged:nowFlagged});
   }
 }
 
@@ -9036,12 +9070,19 @@ function confirmNewProject(){
 function createProject(){ openNewProjectModal(); }
 
 // ─── INIT ───
+// Transient empty project used only until the authoritative cloud show loads.
+// Carries the '__boot__' sentinel id so persist() never writes or pushes it.
+const BOOT_PLACEHOLDER_ID='__boot__';
+function _bootPlaceholderProject(){
+  return {id:BOOT_PLACEHOLDER_ID,name:'',fps:25,visibleCount:999,warnSec:10,autoAdvanceSec:10,
+    streams:[],songs:[],playlists:[],activePlaylistId:null,visibleStreamIds:[],activeSongId:null};
+}
 function init(){
-  const lastId=localStorage.getItem('cf12_current');let proj=null;
-  if(lastId)proj=loadProjectData(lastId);
-  if(!proj){const list=allProjects();if(list.length)proj=loadProjectData(list[0].id);}
-  if(!proj){proj=JSON.parse(JSON.stringify(DEFAULT_PROJECT));proj.id='proj_'+Date.now();saveProjectData(proj);}
-  applyProject(proj);
+  // Cloud-only: never load or create a project from local storage on boot.
+  // Block 2's ownerBoot() loads the authoritative Supabase show (or its offline
+  // cache); the join flow handles viewers. Apply a transient, non-persisted
+  // placeholder so the UI has valid empty state until then.
+  applyProject(_bootPlaceholderProject());
   updateUndoButtons();updateStreamDots();
   initResize('live-resize-handle','live-right');
   state.tlVisible={edit:false,live:false};
@@ -9574,7 +9615,13 @@ function doCancel(){closeModal('confirm-modal');if(_cancelCb)_cancelCb();}
 var _renameCb=null;
 function openRenameModal(currentName,onConfirm){
   var inp=document.getElementById('rename-modal-input');
-  if(inp){inp.value=currentName||'';}
+  if(inp){
+    inp.value=currentName||'';
+    inp.onkeydown=function(e){
+      if(e.key==='Enter'){e.preventDefault();doRenameConfirm();}
+      else if(e.key==='Escape'){doRenameCancel();}
+    };
+  }
   _renameCb=onConfirm;
   document.getElementById('rename-modal').classList.add('show');
   setTimeout(function(){if(inp){inp.focus();inp.select();}},50);
@@ -9582,8 +9629,9 @@ function openRenameModal(currentName,onConfirm){
 function doRenameConfirm(){
   var inp=document.getElementById('rename-modal-input');
   var name=inp?inp.value.trim():'';
+  if(!name){if(inp)inp.focus();return;}
   closeModal('rename-modal');
-  if(name&&_renameCb)_renameCb(name);
+  if(_renameCb)_renameCb(name);
 }
 function doRenameCancel(){closeModal('rename-modal');}
 
@@ -12951,11 +12999,10 @@ function _meRenderDrawer(){
   // PROJECTS — hidden for editors (they cannot switch or create projects)
   if(!_isEditorDrawer){
     var projSec=_meDrawerSection('PROJECTS');
-    var localProjs=[];
-    try{localProjs=JSON.parse(localStorage.getItem('cf12_projects')||'[]');}catch(e){}
-    localProjs.sort(function(a,b){return(b.updated||0)-(a.updated||0);});
-    var cfShowList=window.CF&&CF._showList?CF._showList:[];
-    var showItems=cfShowList.length?cfShowList:localProjs;
+    /* Cloud-only: the project list comes solely from CF._showList (Supabase, cached
+       offline via cf18_show_cache). Never fall back to the legacy cf12 local list —
+       that's what surfaced deleted/old-named projects. */
+    var showItems=(window.CF&&CF._showList)?CF._showList:[];
     showItems.forEach(function(p){
       var isActive=(state.projectId&&p.id===state.projectId)||(window.CF&&CF.showId&&p.id===CF.showId);
       var item=document.createElement('div');
@@ -14871,6 +14918,8 @@ window.CF = {
   _presChan:null,
   _tcReady: false,
   _lastBcast: 0,
+  _netMode: 'cloud',   // 'cloud' (Supabase) | 'lan' (local-network fallback). Phase 0: always cloud.
+  _lanAddr: null,      // owner LAN base URL (e.g. http://192.168.1.20:8080) when known
   _pendingConflictProj: null,
   _conflictChoices: {},
   _conflictGroups: [],
@@ -14934,8 +14983,7 @@ window.CF = {
     if(typeof trackIds==='function'){callback=trackIds;trackIds=null;}
     if(!CF.showId){callback('No project connected',null);return;}
     var pin=String(Math.floor(100000+Math.random()*900000));
-    var base=location.origin+location.pathname;
-    var linkUrl=base+'?show='+CF.showId+'&pin='+pin;
+        var linkUrl=_cfShareLink(pin);
     hashPin(pin).then(function(h){
       return db().from('show_access').insert({
         show_id:CF.showId,pin_hash:h,display_pin:pin,
@@ -14945,7 +14993,7 @@ window.CF = {
       if(r.error){callback(r.error.message,null);return;}
       CF._pinList.push(r.data);
       if(window.renderPinsList)renderPinsList();
-      navigator.clipboard.writeText(linkUrl).catch(function(){});
+      _cfCopyText(linkUrl);
       callback(null,{pin:pin,url:linkUrl,label:label,data:r.data});
     }).catch(function(err){callback(err&&err.message||'Error',null);});
   },
@@ -15079,6 +15127,8 @@ function pushProject(cb, _retry){
       updateSyncBtn(); if(cb) cb();
       /* Save a history snapshot (fire-and-forget; never blocks the push flow) */
       _saveShowSnapshot();
+      /* Keep the LAN server's served copy current for cold-join / failover. */
+      _cfLanPushSnapshot();
     });
 }
 
@@ -15259,9 +15309,7 @@ function pushCueDesc(cueId, desc){
       if(r.error){ console.warn('[CF] update_cue_desc error',r.error.message); return; }
       if(!r.data){ console.warn('[CF] update_cue_desc: not authorised or cue not found'); return; }
       /* Signal owner (and other viewers) to refresh */
-      if(CF._tcChan&&CF.showId){
-        try{CF._tcChan.send({type:'broadcast',event:'proj_sync',payload:{signal:'refresh'}});}catch(e){}
-      }
+      if(CF.showId) netSend('proj_sync',{signal:'refresh'});
     });
 }
 window.pushCueDesc=pushCueDesc;
@@ -15415,7 +15463,17 @@ function applyRemote(proj){
   }
   renderSongList(); renderCueList(); redrawActive();
   if(window._syncEditTopbar) _syncEditTopbar();
+  /* Refresh project-name displays that the calls above don't cover (mobile topbar/
+     drawer + viewer & TC-only screens) so a remote rename shows live, no mode switch. */
+  if(window._meRenderTopbar) _meRenderTopbar();
+  if(proj.name){
+    ['cf-v-project','cf-tc-project'].forEach(function(id){
+      var el=document.getElementById(id); if(el) el.textContent=proj.name;
+    });
+  }
   if(window.isMobileEditMode && isMobileEditMode() && window.renderMobileEditScreen) renderMobileEditScreen();
+  _cfLanPushSnapshot(); /* refresh LAN-served copy after applying remote data */
+  if(window.cfLAN && CF.isOwner && CF._lanPinsShowId!==CF.showId){ CF._lanPinsShowId=CF.showId; _cfLanRefreshPins(); }
 }
 
 /* ── Field-level conflict detection ─────────────────────── */
@@ -15734,6 +15792,72 @@ function _onFlagBroadcast(msg){
   });
 }
 
+/* ── Realtime transport chokepoint ───────────────────────────────────────────
+ * All owner→viewer realtime messages (tc / flag / proj_sync) go through here so
+ * a second transport (LAN WebSocket via Electron) can be swapped in without
+ * touching call sites. In 'cloud' mode this is byte-for-byte the old Supabase
+ * broadcast. 'lan' dispatch is wired in Phase 2 (owner LAN transport). */
+function netSend(event, payload){
+  /* Owner hosting on Electron: always mirror to the LAN server so any LAN-connected
+     viewer stays live regardless of cloud state. Cheap local IPC; harmless if no
+     LAN viewers are connected. */
+  if(CF.isOwner && window.cfLAN){ try{ cfLAN.broadcast(event, payload); }catch(e){} }
+  /* Cloud transport — skipped only when we've fully switched to LAN-only (cloud down). */
+  if(CF._netMode!=='lan' && CF._tcChan){ try{ CF._tcChan.send({type:'broadcast',event:event,payload:payload}); }catch(e){} }
+}
+CF._netSend = netSend;
+
+/* Push the current full project to the LAN server (serves /snapshot + cold-join). */
+function _cfLanPushSnapshot(){
+  if(!window.cfLAN || !CF.isOwner || !CF.showId) return;
+  try{ cfLAN.setSnapshot({showId:CF.showId, name:state.name, project_data:snapshot()}); }catch(e){}
+}
+
+/* Push the access PIN list (hashes only) to the LAN server so it can validate
+   viewer joins during an outage. Fetched from Supabase while still online. */
+function _cfLanPushPins(){
+  if(!window.cfLAN || !CF.isOwner) return;
+  try{ cfLAN.setPins((CF._pinList||[]).map(function(p){
+    return {pin_hash:p.pin_hash, role:p.role, track_ids:p.track_ids||null, label:p.label||p.role};
+  })); }catch(e){}
+}
+function _cfLanRefreshPins(){
+  if(!window.cfLAN || !CF.isOwner || !CF.showId || !navigator.onLine) return;
+  db().from('show_access').select('pin_hash,role,track_ids,label').eq('show_id',CF.showId)
+    .then(function(r){ if(r&&r.data){ CF._pinList=r.data; _cfLanPushPins(); } });
+}
+
+/* Viewer → owner messages arriving over the LAN WebSocket (Electron main forwards them). */
+function _cfLanOnClientMsg(m){
+  if(!m || !m.event) return;
+  if(m.event==='cue_desc' && m.payload && m.payload.cueId){
+    /* A LAN viewer/editor edited a cue description — apply + re-broadcast snapshot. */
+    var changed=false;
+    (state.songs||[]).forEach(function(s){
+      var c=(s.cues||[]).find(function(x){return x.id===m.payload.cueId;});
+      if(c && c.desc!==m.payload.desc){ c.desc=m.payload.desc; changed=true; }
+    });
+    if(changed){
+      if(window.renderCueList) renderCueList();
+      if(window.persist) persist();
+      _cfLanPushSnapshot();
+      netSend('proj_sync',{signal:'refresh'});
+    }
+  }
+}
+
+/* Wire the LAN bridge once (owner, Electron only). */
+function _cfLanInit(){
+  if(!window.cfLAN || CF._lanWired) return;
+  CF._lanWired = true;
+  CF._lanStatus = null;
+  try{
+    cfLAN.onStatus(function(s){ CF._lanStatus=s; if(window._sbPanel==='online'&&window._sbRender) _sbRender('online'); });
+    cfLAN.onClientMsg(function(m){ _cfLanOnClientMsg(m); });
+    cfLAN.getStatus().then(function(s){ CF._lanStatus=s; _cfLanPushSnapshot(); });
+  }catch(e){}
+}
+
 function openTcChan(){
   if(!CF.showId || CF._tcChan) return;
   CF._tcReady = false;
@@ -15768,9 +15892,8 @@ function relayTC(frames, source){
   }catch(e){}
   var playlistName='';
   try{var _rpl=state.playlists&&state.playlists.find(function(p){return p.id===state.activePlaylistId;});if(_rpl)playlistName=_rpl.name;}catch(e){}
-  CF._tcChan.send({type:'broadcast',event:'tc',
-    payload:{frames:frames,source:source,seqName:seqName,playlistName:playlistName,
-             activePlaylistId:state.activePlaylistId||null,fps:state.fps||25}});
+  netSend('tc',{frames:frames,source:source,seqName:seqName,playlistName:playlistName,
+             activePlaylistId:state.activePlaylistId||null,fps:state.fps||25});
 }
 
 /* ── Viewer status indicator ──────────────────────────────────────────────────
@@ -15853,6 +15976,70 @@ function startPresence(){
 window.addEventListener('online',  _updateLiveStatusChip);
 window.addEventListener('offline', _updateLiveStatusChip);
 
+/* Apply one received TC message to the viewer UI. Transport-agnostic: fed by the
+   Supabase broadcast handler today, and by the LAN WebSocket client (Phase 3). */
+function _applyTcMessage(p){
+  if(typeof p.frames !== 'number') return;
+  var frames = p.frames, src = p.source, seq = p.seqName;
+  var plName = p.playlistName||'';
+  var displayLabel = plName&&seq ? plName+' / '+seq : (seq||plName);
+  if(p.activePlaylistId && state.activePlaylistId !== p.activePlaylistId){
+    state.activePlaylistId = p.activePlaylistId;
+    if(window.renderSongList) renderSongList();
+    if(window._sbPanel==='seqs' && window._sbRender) _sbRender('seqs');
+  }
+  var isLive = src==='mtc';
+  var color  = isLive ? '#4ade80' : 'rgba(240,168,56,1)';
+  var fmtd   = window.fTC ? fTC(frames) : '00:00:00:00';
+
+  /* TC-only screen */
+  var big=document.getElementById('cf-tc-big');
+  if(big){big.textContent=fmtd;big.style.color=color;}
+  var seqEl=document.getElementById('cf-tc-seqname');
+  if(seqEl&&displayLabel) seqEl.textContent=displayLabel;
+
+  /* Viewer screen */
+  var vtc=document.getElementById('cf-v-tc');
+  if(vtc){vtc.textContent=fmtd;vtc.style.color=color;}
+  var vseq=document.getElementById('cf-v-seqname');
+  if(vseq&&displayLabel) vseq.textContent=displayLabel;
+  var vstxt=document.getElementById('cf-v-status-txt');
+  if(vstxt) vstxt.style.display='none';
+  /* Viewer cockpit topbar — TC source */
+  var vsrc=document.getElementById('vw-tc-src');
+  if(vsrc) vsrc.textContent=p.source?p.source.toUpperCase():'—';
+
+  /* Editor live mode — just update TC digit color */
+  var liveDisp=document.getElementById('tc-disp-live');
+  if(liveDisp && CF.role==='editor'){ liveDisp.style.color = color; }
+
+  /* Store reference for interpolation — use performance.now() for sub-ms accuracy */
+  CF._tcRef = {frames:frames, fps:state.fps||25, recvAt:Date.now(), recvPerf:performance.now()};
+  CF._lastTcRx = Date.now();
+
+  /* Update viewer status pip + label */
+  _updateViewerStatus();
+
+  /* Drive waterfall on each received packet + refresh overview */
+  if(CF.role!=='tc'){
+    state.simFrames = frames;
+    state.currentFrames = frames;
+    if(window.redrawActive && state.appMode==='live') redrawActive();
+    refreshViewerOverview();
+  }
+}
+
+/* Single inbound dispatch for viewer realtime messages, regardless of transport.
+   Phase 3's LAN WebSocket client calls this with {event,payload}. */
+function onRealtimeMsg(event, payload){
+  if(event==='tc') _applyTcMessage(payload||{});
+  else if(event==='flag') _onFlagBroadcast({payload:payload||{}});
+  /* Over LAN, project data syncs via full 'snapshot' messages, so the cloud
+     proj_sync re-fetch (which would hit Supabase) is skipped. */
+  else if(event==='proj_sync'){ if(CF._netMode!=='lan') _onProjSyncBroadcast({payload:payload||{}}); }
+}
+CF._onRealtimeMsg = onRealtimeMsg;
+
 function subscribeTc(){
   if(!CF.showId) return;
   CF._viewerTcSubOk = false;
@@ -15861,60 +16048,7 @@ function subscribeTc(){
   // which stops incoming messages from being routed here.
   CF._tcChan = db()
     .channel('tc:'+CF.showId)
-    .on('broadcast',{event:'tc'}, function(msg){
-      var p = msg.payload||{};
-      if(typeof p.frames !== 'number') return;
-      var frames = p.frames, src = p.source, seq = p.seqName;
-      var plName = p.playlistName||'';
-      var displayLabel = plName&&seq ? plName+' / '+seq : (seq||plName);
-      if(p.activePlaylistId && state.activePlaylistId !== p.activePlaylistId){
-        state.activePlaylistId = p.activePlaylistId;
-        if(window.renderSongList) renderSongList();
-        if(window._sbPanel==='seqs' && window._sbRender) _sbRender('seqs');
-      }
-      var isLive = src==='mtc';
-      var color  = isLive ? '#4ade80' : 'rgba(240,168,56,1)';
-      var dot    = isLive ? '#4ade80' : 'rgba(240,168,56,.7)';
-      var fmtd   = window.fTC ? fTC(frames) : '00:00:00:00';
-
-      /* TC-only screen */
-      var big=document.getElementById('cf-tc-big');
-      if(big){big.textContent=fmtd;big.style.color=color;}
-      var seqEl=document.getElementById('cf-tc-seqname');
-      if(seqEl&&displayLabel) seqEl.textContent=displayLabel;
-
-      /* Viewer screen */
-      var vtc=document.getElementById('cf-v-tc');
-      if(vtc){vtc.textContent=fmtd;vtc.style.color=color;}
-      var vseq=document.getElementById('cf-v-seqname');
-      if(vseq&&displayLabel) vseq.textContent=displayLabel;
-      var vstxt=document.getElementById('cf-v-status-txt');
-      if(vstxt) vstxt.style.display='none';
-      /* Viewer cockpit topbar — TC source */
-      var vsrc=document.getElementById('vw-tc-src');
-      if(vsrc) vsrc.textContent=p.source?p.source.toUpperCase():'—';
-
-      /* Editor live mode — just update TC digit color */
-      var liveDisp=document.getElementById('tc-disp-live');
-      if(liveDisp && CF.role==='editor'){
-        liveDisp.style.color = color;
-      }
-
-      /* Store reference for interpolation — use performance.now() for sub-ms accuracy */
-      CF._tcRef = {frames:frames, fps:state.fps||25, recvAt:Date.now(), recvPerf:performance.now()};
-      CF._lastTcRx = Date.now();
-
-      /* Update viewer status pip + label */
-      _updateViewerStatus();
-
-      /* Drive waterfall on each received packet + refresh overview */
-      if(CF.role!=='tc'){
-        state.simFrames = frames;
-        state.currentFrames = frames;
-        if(window.redrawActive && state.appMode==='live') redrawActive();
-        refreshViewerOverview();
-      }
-    })
+    .on('broadcast',{event:'tc'}, function(msg){ _applyTcMessage(msg.payload||{}); })
     .on('broadcast',{event:'flag'},_onFlagBroadcast)
     .on('broadcast',{event:'proj_sync'},_onProjSyncBroadcast)
     .subscribe(function(status, err){
@@ -15983,8 +16117,23 @@ function boot(){
   var showId = params.get('show');
   var urlPin = params.get('pin');
 
-  if(showId){
-    /* Viewer/editor join flow */
+  if(showId && params.get('lan')==='1'){
+    /* LAN cold-join (loaded from the owner's local server, ?lan=1). No Supabase —
+       get the show name from the local /snapshot, reveal the join screen, then
+       auto-join over WebSocket if a PIN was in the URL. */
+    CF.showId = showId; CF._netMode='lan';
+    document.addEventListener('DOMContentLoaded',function(){
+      fetch('/snapshot').then(function(r){return r.status===200?r.json():null;}).catch(function(){return null;})
+        .then(function(snap){
+          var el=document.getElementById('cf-join-show-name');
+          if(el) el.textContent=(snap&&snap.name)||'CueFlow';
+          hideLoading();
+          document.getElementById('cf-join-screen').style.display='flex';
+          if(urlPin){ document.getElementById('cf-join-pin').value=urlPin; cfJoinLan(); }
+        });
+    });
+  } else if(showId){
+    /* Viewer/editor join flow (cloud) */
     CF.showId = showId;
     document.addEventListener('DOMContentLoaded',function(){
       db().from('shows').select('name').eq('id',showId).single()
@@ -16017,6 +16166,9 @@ function ownerBoot(){
   var btn=document.getElementById('sb-online');
   if(btn) btn.style.display='';
 
+  /* Wire the LAN fallback bridge (Electron desktop only; no-op in browser). */
+  _cfLanInit();
+
   /* Auth — restore session + listen for changes; hideLoading() called inside */
   initAuth();
 
@@ -16025,7 +16177,32 @@ function ownerBoot(){
   if(sess&&sess.showId){
     CF.showId=sess.showId; CF.isOwner=true; CF.role='owner';
     openTcChan();
-    if(navigator.onLine){ ownerRestoreShow(sess.showId); }
+    if(navigator.onLine){
+      /* If this show has unpushed offline edits cached (DIRTY_KEY points at it),
+         load that cache FIRST so state.projectId===showId. ownerRestoreShow then
+         takes its same-project path and preserves the edits (push if identical,
+         ask-me conflict modal if they diverge) instead of letting the cloud
+         silently overwrite them. Only ever loads this exact showId — no duplicates. */
+      try{
+        var _di=JSON.parse(localStorage.getItem(DIRTY_KEY)||'null');
+        if(_di&&_di.showId===sess.showId){
+          var _pending=window.loadProjectData?loadProjectData(sess.showId):null;
+          if(_pending&&window.applyProject) applyProject(_pending);
+        }
+      }catch(e){}
+      ownerRestoreShow(sess.showId);
+    } else {
+      /* Offline: load this show from its per-UUID cache so a previously-opened
+         show is editable without connectivity. onComeOnline() flushes edits later. */
+      var _cached=window.loadProjectData?loadProjectData(sess.showId):null;
+      if(_cached&&window.applyProject){
+        applyProject(_cached);
+        if(window.renderSongList) renderSongList();
+        if(window.renderCueList) renderCueList();
+        if(window.redrawActive) redrawActive();
+        if(window._syncEditTopbar) _syncEditTopbar();
+      }
+    }
   }
 
   /* Patch redrawLive — called by name each frame from mtcRafLoop */
@@ -16046,8 +16223,12 @@ function ownerBoot(){
   /* Patch persist — debounced push to Supabase */
   var _origP=window.persist;
   window.persist=function(){
+    if(state&&state.projectId===BOOT_PLACEHOLDER_ID) return; // transient placeholder — never push
     _origP.call(this);
     if(!CF.showId) return;
+    /* Cache + dirty marker must agree with the loaded project. If state isn't the
+       session show (mid-boot/transition), don't mark dirty or it could push wrong content. */
+    if(state.projectId!==CF.showId) return;
     CF.dirty=true;
     CF._lastEditAt=Date.now();
     try{ localStorage.setItem(DIRTY_KEY, JSON.stringify({showId:CF.showId, dirtyAt:CF._lastEditAt})); }catch(e){}
@@ -16087,8 +16268,15 @@ function ownerRestoreShow(showId){
       var hasDirty=dirtyInfo&&dirtyInfo.showId===showId;
       var dirtyAt=hasDirty?dirtyInfo.dirtyAt:0;
       var remoteTs=r.data.updated_at?new Date(r.data.updated_at).getTime():0;
+      /* Only consider pushing local up if the project currently loaded in `state`
+         is unambiguously THIS show (same UUID) — i.e. it came from this show's
+         offline cache, not the boot placeholder or a different project. On a normal
+         online reload state is the placeholder, so the cloud is authoritative and we
+         can never push a stale/duplicate version up. This is the guard that prevents
+         duplicate show rows. */
+      var sameProjectLoaded = state.projectId===showId;
 
-      if(hasDirty && dirtyAt > remoteTs - 5000){
+      if(hasDirty && sameProjectLoaded && dirtyAt > remoteTs - 5000){
         /* Local edits are newer — check field-level conflicts before deciding what to push */
         var _remote=r.data.project_data;
         var _conflicts=findConflicts(state.songs, _remote.songs);
@@ -16121,7 +16309,24 @@ function ownerRestoreShow(showId){
 }
 
 /* ── JOIN (viewer/crew/editor) ───────────────────────────── */
+/* Resolve a show_access row into CF role/track/camera flags. Shared by the cloud
+   join (Supabase row) and the LAN join (row pushed from the owner over WebSocket). */
+function _applyAccessRow(role, accessId, rawTrackIds){
+  CF.role=role; if(accessId) CF._accessId=accessId;
+  CF.viewerShowAllCams=false; CF.viewerShowCamTrack=false; CF._camSelectMode=false;
+  if(rawTrackIds&&rawTrackIds.length){
+    var rawCamIds=rawTrackIds.filter(function(id){return id&&id.indexOf('cam:')===0;}).map(function(id){return id.replace('cam:','');});
+    CF.tracks=rawTrackIds.filter(function(id){return id&&id.indexOf('cam:')!==0;});
+    if(rawCamIds.indexOf('all')!==-1){ CF.viewerShowAllCams=true; rawCamIds=rawCamIds.filter(function(id){return id!=='all';}); }
+    if(rawCamIds.indexOf('track')!==-1){ CF.viewerShowCamTrack=true; rawCamIds=rawCamIds.filter(function(id){return id!=='track';}); }
+    if(rawCamIds.length===1&&rawCamIds[0]==='select'){ CF._camSelectMode=true; CF.cameraIds=null; }
+    else { CF.cameraIds=rawCamIds.length?rawCamIds:null; }
+    if(!CF.tracks.length) CF.tracks=null;
+  } else { CF.tracks=null; CF.cameraIds=null; }
+}
+
 function cfJoin(){
+  if(CF._netMode==='lan') return cfJoinLan(); /* LAN cold-join over WebSocket, no Supabase */
   var pin=((document.getElementById('cf-join-pin')||{}).value||'').trim();
   var err=document.getElementById('cf-join-err');
   var joinBtn=document.querySelector('#cf-join-screen button[onclick]');
@@ -16144,33 +16349,8 @@ function cfJoin(){
       if(err) err.textContent='Wrong PIN — double-check and try again';
       return;
     }
-    CF.role=r.data.role; CF._accessId=r.data.id;
-    var rawTrackIds=r.data.track_ids||null;
-    var _camSelectMode=false;
-    CF.viewerShowAllCams=false;
-    CF.viewerShowCamTrack=false;
-    // Separate camera IDs (prefixed 'cam:') from normal stream IDs
-    if(rawTrackIds&&rawTrackIds.length){
-      var rawCamIds=rawTrackIds.filter(function(id){return id&&id.indexOf('cam:')===0;}).map(function(id){return id.replace('cam:','');});
-      CF.tracks=rawTrackIds.filter(function(id){return id&&id.indexOf('cam:')!==0;});
-      // cam:all sentinel: track viewer gets camera cue visibility
-      if(rawCamIds.indexOf('all')!==-1){
-        CF.viewerShowAllCams=true;
-        rawCamIds=rawCamIds.filter(function(id){return id!=='all';});
-      }
-      // cam:track sentinel: editor gets camera track edit access
-      if(rawCamIds.indexOf('track')!==-1){
-        CF.viewerShowCamTrack=true;
-        rawCamIds=rawCamIds.filter(function(id){return id!=='track';});
-      }
-      if(rawCamIds.length===1&&rawCamIds[0]==='select'){
-        _camSelectMode=true;
-        CF.cameraIds=null;
-      } else {
-        CF.cameraIds=rawCamIds.length?rawCamIds:null;
-      }
-      if(!CF.tracks.length) CF.tracks=null;
-    } else { CF.tracks=null; CF.cameraIds=null; }
+    _applyAccessRow(r.data.role, r.data.id, r.data.track_ids||null);
+    var _camSelectMode=CF._camSelectMode;
     db().from('shows').select('name,project_data').eq('id',CF.showId).single()
       .then(function(r2){
         if(r2.error){
@@ -16223,6 +16403,66 @@ function cfJoin(){
         else { showViewerScreen(show); restoreSessionState(); }
       });
   });
+}
+
+/* ── LAN JOIN (offline / Supabase-down) ──────────────────────────────────────
+ * Loaded from the owner's LAN server (…?lan=1). Validates the PIN and streams
+ * the show over a WebSocket to the owner — no Supabase. */
+function cfJoinLan(){
+  var pin=((document.getElementById('cf-join-pin')||{}).value||'').trim();
+  var err=document.getElementById('cf-join-err');
+  var joinBtn=document.querySelector('#cf-join-screen button[onclick]');
+  if(err) err.textContent='';
+  if(pin.length!==6){if(err)err.textContent='PIN must be exactly 6 digits';return;}
+  if(!/^\d+$/.test(pin)){if(err)err.textContent='PIN must contain numbers only';return;}
+  if(joinBtn){joinBtn.textContent='Joining…';joinBtn.disabled=true;}
+  var base=(location.protocol==='https:'?'wss://':'ws://')+location.host;
+  var ws, done=false;
+  function fail(msg){ if(done)return; done=true; clearTimeout(to);
+    hideLoading(); var js=document.getElementById('cf-join-screen'); if(js) js.style.display='flex';
+    if(joinBtn){joinBtn.textContent='Join Show';joinBtn.disabled=false;} if(err)err.textContent=msg;
+    try{ws&&ws.close();}catch(e){} CF._lanWs=null; }
+  var to=setTimeout(function(){ fail('No response from host — check you are on the same network'); }, 6000);
+  hashPin(pin).then(function(h){
+    CF._pinHash=h;
+    ws=new WebSocket(base); CF._lanWs=ws;
+    ws.onopen=function(){ try{ ws.send(JSON.stringify({event:'join',payload:{pinHash:h}})); }catch(e){} };
+    ws.onmessage=function(ev){
+      var m; try{ m=JSON.parse(ev.data); }catch(e){ return; }
+      if(m.event==='join_error'){ fail('Wrong PIN — double-check and try again'); return; }
+      if(m.event==='joined'){ _applyAccessRow(m.payload.role, null, m.payload.track_ids||null); CF._lanJoined=true; return; }
+      if(m.event==='snapshot'){
+        if(!done){ done=true; clearTimeout(to); _cfLanEnterAsViewer(m.payload); }
+        else if(m.payload&&m.payload.project_data){ /* live project update */
+          applyProject(m.payload.project_data);
+          if(CF.tracks&&CF.tracks.length) state.visibleStreamIds=CF.tracks.slice();
+          if(window.renderCueList) renderCueList(); if(window.redrawActive) redrawActive();
+          if(window.buildTrackPills) buildTrackPills();
+        }
+        return;
+      }
+      if(CF._lanJoined) onRealtimeMsg(m.event, m.payload); /* tc / flag / proj_sync */
+    };
+    ws.onclose=function(){ CF._viewerTcSubOk=false; if(window._updateViewerStatus) _updateViewerStatus(); };
+    ws.onerror=function(){};
+  }).catch(function(){ fail('Could not start join'); });
+}
+
+function _cfLanEnterAsViewer(snap){
+  if(snap&&snap.project_data){
+    applyProject(snap.project_data);
+    if(CF.tracks&&CF.tracks.length) state.visibleStreamIds=CF.tracks.slice();
+    if(CF.cameraIds) state.cameraTrackVisible=true;
+  }
+  CF._viewerTcSubOk=true; /* LAN link is up = connected */
+  hideLoading();
+  var js=document.getElementById('cf-join-screen'); if(js) js.style.display='none';
+  var show={name:(snap&&snap.name)||state.name};
+  if(CF.role==='tc') showTcScreen(show);
+  else if(CF.role==='editor'||CF.role==='track-editor'){ showEditorApp(show); }
+  else if(CF._camSelectMode){ showViewerScreen(show); showCameraPickerModal(show); }
+  else { showViewerScreen(show); }
+  if(window._updateViewerStatus) _updateViewerStatus();
 }
 
 /* ── CAMERA PICKER MODAL (cam:select links) ──────────────── */
@@ -16934,9 +17174,7 @@ function showEditorApp(show){
     clearTimeout(CF._editorPushTimer);
     CF._editorPushTimer=setTimeout(function(){
       pushProject(function(){
-        if(CF._tcChan&&CF.showId){
-          try{CF._tcChan.send({type:'broadcast',event:'proj_sync',payload:{signal:'refresh'}});}catch(e){}
-        }
+        if(CF.showId) netSend('proj_sync',{signal:'refresh'});
       });
     },1200);
   };
@@ -17150,16 +17388,14 @@ function deleteProject(id){
               openTcChan();
               ownerRestoreShow(next.id);
             } else {
-              if(window.applyProject){
-                var blank=JSON.parse(JSON.stringify(DEFAULT_PROJECT));
-                blank.id='proj_'+Date.now();
-                if(window.saveProjectData) saveProjectData(blank);
-                applyProject(blank);
-              }
+              /* No projects left. Cloud-only: never mint a local default (that created
+                 stray rows). Show the transient placeholder and prompt to create one. */
+              if(window.applyProject) applyProject(_bootPlaceholderProject());
               if(window.renderSongList) renderSongList();
               if(window.renderCueList) renderCueList();
               if(window.redrawActive) redrawActive();
               if(window._sbRender) _sbRender('save');
+              if(window.openNewProjectModal) setTimeout(openNewProjectModal,300);
             }
           } else {
             if(window._sbRender) _sbRender('save');
@@ -17176,7 +17412,12 @@ function renameProject(id){
       db().from('shows').update({name:name}).eq('id',id).then(function(){
         if(s) s.name=name;
         saveShowCache(CF._showList);
-        if(id===CF.showId){ state.name=name; if(window.persist) persist(); }
+        if(id===CF.showId){
+          state.name=name;
+          if(window.persist) persist();
+          if(window._syncEditTopbar) _syncEditTopbar();
+          if(window._meRenderTopbar) _meRenderTopbar();
+        }
         if(window._sbRender) _sbRender('save');
       });
     });
@@ -17266,22 +17507,17 @@ function importShow(proj){
 
 function refreshShowList(){
   if(authUser){
-    /* Fetch shows owned by this user OR unclaimed (null/'local') — claim unclaimed ones */
-    return db().from('shows').select('id,name,updated_at,owner_id')
-      .or('owner_id.eq.'+authUser.id+',owner_id.is.null,owner_id.eq.local')
+    /* Strictly this user's shows. Previously also pulled in any null/'local'-owner
+       row and auto-claimed it — but `shows` is world-readable, so that absorbed
+       stray rows from anywhere and was a duplicate magnet. Inserts already set
+       owner_id=auth.uid (RLS-enforced), so owned-only is the complete, correct list. */
+    return db().from('shows').select('id,name,updated_at')
+      .eq('owner_id',authUser.id)
       .order('updated_at',{ascending:false})
       .then(function(r){
-        var rows=r.data||[];
-        var unclaimed=rows.filter(function(s){return s.owner_id!==authUser.id;});
-        if(unclaimed.length){
-          /* Migrate unclaimed shows to this user */
-          unclaimed.forEach(function(s){
-            db().from('shows').update({owner_id:authUser.id}).eq('id',s.id).then(function(){});
-          });
-        }
-        CF._showList=rows;
-        saveShowCache(rows);
-        return rows;
+        CF._showList=r.data||[];
+        saveShowCache(CF._showList);
+        return CF._showList;
       });
   } else {
     return db().from('shows').select('id,name,updated_at')
@@ -17292,6 +17528,35 @@ function refreshShowList(){
 }
 
 /* ── SHARING PANEL (globe icon) ──────────────────────────── */
+/* Local-network fallback section for the Sharing panel (owner). */
+function _cfLanPanelHtml(){
+  var h='<div class="sbp-share-url-block">';
+  h+='<div class="sbp-share-url-lbl">Local Network · Offline Fallback</div>';
+  if(!window.cfLAN){
+    h+='<div style="font-size:11px;color:var(--txt-low);line-height:1.5;">Requires the CueFlow <strong>desktop app</strong>. In a browser, sync always uses the cloud.</div></div>';
+    return h;
+  }
+  var s=CF._lanStatus||{}; var port=s.port||8420;
+  var ips=(s.ips&&s.ips.length)?s.ips:[]; var clients=s.clients||0;
+  var dot=s.running?'var(--green)':'var(--txt-low)';
+  h+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">';
+  h+='<span style="width:8px;height:8px;border-radius:50%;background:'+dot+';flex-shrink:0;"></span>';
+  h+='<span style="font-family:var(--cond);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-mid);">'+(s.running?'Hosting · port '+port:'Starting…')+'</span>';
+  h+='<span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--txt-low);">'+clients+' viewer'+(clients===1?'':'s')+'</span>';
+  h+='</div>';
+  if(ips.length){
+    var joinUrl='http://'+ips[0]+':'+port+'/?show='+CF.showId+'&lan=1';
+    var qrSrc='http://127.0.0.1:'+port+'/qr?text='+encodeURIComponent(joinUrl);
+    h+='<div style="display:flex;justify-content:center;margin:4px 0 10px;"><img src="'+escH(qrSrc)+'" alt="LAN join QR" style="width:160px;height:160px;background:#fff;padding:8px;border-radius:8px;"></div>';
+    ips.forEach(function(ip){
+      h+='<div class="sbp-share-url-val" style="margin-bottom:4px;">http://'+escH(ip)+':'+port+'/?show='+escH(CF.showId)+'&lan=1</div>';
+    });
+  }
+  h+='<div style="font-size:10px;color:var(--txt-low);line-height:1.5;margin-top:8px;">Crew on the same network open this URL or scan the code — no internet needed. Needs a LAN <strong>without client isolation</strong> (most guest/hotel WiFi blocks it; use a dedicated router).</div>';
+  h+='</div>';
+  return h;
+}
+
 function buildRolesPanel(){
   var h='';
   if(!CF.showId){
@@ -17307,8 +17572,7 @@ function buildRolesPanel(){
   h+='</div>';
 
   /* Join URL */
-  var base=location.origin+location.pathname;
-  var joinUrl=base+'?show='+CF.showId;
+  var joinUrl=_cfShareLink(null);
   h+='<div class="sbp-share-url-block">';
   h+='<div class="sbp-share-url-lbl">Join URL</div>';
   h+='<div class="sbp-share-url-val">'+joinUrl+'</div>';
@@ -17330,6 +17594,7 @@ function afterRolesRender(){
     .then(function(r){
       CF._pinList=r.data||[];
       renderPinsList();
+      _cfLanPushPins(); /* keep LAN server's access list current */
     });
 }
 
@@ -17345,9 +17610,8 @@ function renderPinsList(){
   head.className='sbp-section-head';
   head.textContent='ACCESS LINKS';
   c.appendChild(head);
-  var base=location.origin+location.pathname;
   CF._pinList.forEach(function(p){
-    var url=base+'?show='+CF.showId+'&pin='+(p.display_pin||'');
+    var url=_cfShareLink(p.display_pin||'');
     var label=p.label||p.role;
     var isCamPin=p.track_ids&&p.track_ids.length&&p.track_ids[0]&&p.track_ids[0].indexOf('cam:')=== 0;
     var roleTxt=p.role==='tc'?'TC':p.role==='owner'?'OWNER':(p.role==='editor'||p.role==='track-editor'?'EDITOR':isCamPin?'CAMERA':'VIEWER');
@@ -17390,7 +17654,7 @@ function renderPinsList(){
       '<span class="sbp-pin-code">'+(p.display_pin||'——')+'</span>'+
       (trackSummary?'<span style="flex:1;font-family:var(--cond);font-size:9px;color:var(--txt-low);letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">'+(window.escH?escH(trackSummary):trackSummary)+'</span>':'')+
       (canEditTracks?'<button class="sbp-pin-copy" onclick="CF._toggleEditPinTracks(\''+p.id+'\')">Tracks</button>':'')+
-      '<button id="'+copyId+'" class="sbp-pin-copy" onclick="(function(btn,url){navigator.clipboard.writeText(url).then(function(){btn.textContent=\'Copied!\';setTimeout(function(){btn.textContent=\'Copy link\';},1500);});})(document.getElementById(\''+copyId+'\'),\''+url+'\')">Copy link</button>';
+      '<button id="'+copyId+'" class="sbp-pin-copy" onclick="(function(btn,url){_cfCopyText(url).then(function(ok){btn.textContent=ok?\'Copied!\':\'Copy failed\';setTimeout(function(){btn.textContent=\'Copy link\';},1500);});})(document.getElementById(\''+copyId+'\'),\''+url+'\')">Copy link</button>';
     pinRow.appendChild(bottomRow);
 
     /* Edit tracks panel (hidden, not applicable for camera pins) */
@@ -17469,8 +17733,7 @@ function addPin(){
     }
   }
   var pin=String(Math.floor(100000+Math.random()*900000));
-  var base=location.origin+location.pathname;
-  var linkUrl=base+'?show='+CF.showId+'&pin='+pin;
+    var linkUrl=_cfShareLink(pin);
   hashPin(pin).then(function(h){
     return db().from('show_access').insert({
       show_id:CF.showId,pin_hash:h,display_pin:pin,
@@ -17480,8 +17743,9 @@ function addPin(){
     if(r.error){alert('Error: '+r.error.message);return;}
     CF._pinList.push(r.data);
     renderPinsList();
+    _cfLanPushPins();
     var li=document.getElementById('cf-pin-label'); if(li) li.value='';
-    navigator.clipboard.writeText(linkUrl).catch(function(){});
+    _cfCopyText(linkUrl);
   });
 }
 
@@ -17492,6 +17756,7 @@ function deletePin(id){
       db().from('show_access').delete().eq('id',id).then(function(){
         CF._pinList=CF._pinList.filter(function(p){return p.id!==id;});
         renderPinsList();
+        _cfLanPushPins();
       });
     },
     null,'Remove','danger','Remove Link'
