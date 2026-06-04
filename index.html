@@ -16193,10 +16193,10 @@ function _startViewerTcLoop(){
   setInterval(function(){
     var vstxt=document.getElementById('cf-v-status-txt');
     if(vstxt){
-      if(!CF._viewerTcSubOk && CF._tcRef){
-        /* disconnected but we have a clock → free-running */
+      if(CF._tcRef && CF._lastTcRx && Date.now()-CF._lastTcRx>1500){
+        /* have a clock but packets stopped → free-running */
         vstxt.textContent='FREE RUN'; vstxt.style.color='rgba(240,168,56,1)'; vstxt.style.display='';
-      } else if(!CF._lastTcRx || Date.now()-CF._lastTcRx>=800){
+      } else if(!CF._lastTcRx){
         vstxt.textContent='Waiting for TC'; vstxt.style.color=''; vstxt.style.display='';
       }
     }
@@ -16209,18 +16209,19 @@ function _startViewerTcLoop(){
   window.addEventListener('offline', _updateViewerStatus);
 
   /* ── RAF interpolation loop — runs every frame for smooth TC display ──
-   * Between 12fps packets we extrapolate (frames + elapsed×fps). On a DISCONNECT
-   * we keep free-running so the countdown stays smooth through an outage, then snap
-   * back the instant packets resume (_applyTcMessage rebases CF._tcRef). When we're
-   * still CONNECTED but packets stop (the source genuinely paused) we hold instead. */
+   * Drive off packet STALENESS, not the socket flag: a yanked WiFi leaves the TCP
+   * socket "open" for the OS timeout, so CF._viewerTcSubOk lags reality. As long as
+   * we've seen a packet recently we interpolate; once packets stop (clean close,
+   * dropped link, or owner feed loss) we free-run (extrapolate) so the countdown
+   * stays smooth, and snap back the instant packets resume (_applyTcMessage rebases
+   * CF._tcRef). Capped at FREERUN_MAX so an abandoned tab can't drift forever. */
   (function viewerTcRaf(){
     requestAnimationFrame(viewerTcRaf);
     if(!CF._tcRef) return;
     var ref = CF._tcRef;
     var elapsed = ref.recvPerf!=null ? (performance.now()-ref.recvPerf)/1000 : (Date.now()-ref.recvAt)/1000;
-    var connected = !!CF._viewerTcSubOk;
-    var running = connected ? (elapsed <= 5) : (elapsed <= FREERUN_MAX);
-    var freeRun = !connected && elapsed > 1.2;  /* estimating through a disconnect */
+    var running = elapsed <= FREERUN_MAX;        /* keep the clock moving through outages */
+    var freeRun = elapsed > 1.5 && running;      /* no fresh packet → estimating */
     var displayF = running ? Math.round(ref.frames + elapsed * ref.fps) : ref.frames;
     var fmtd = window.fTC ? fTC(displayF) : '00:00:00:00';
 
