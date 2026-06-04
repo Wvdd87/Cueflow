@@ -14669,13 +14669,10 @@ function clearLocalProjectData(){
   /* Disconnect from any live show */
   if(CF._projChan){ CF._projChan.unsubscribe(); CF._projChan=null; }
   CF.showId=null; CF.isOwner=false; CF.role=null; CF._showList=[];
-  /* Load a blank project so the UI shows an empty state */
-  if(window.applyProject){
-    var proj=JSON.parse(JSON.stringify(DEFAULT_PROJECT));
-    proj.id='proj_'+Date.now();
-    if(window.saveProjectData) saveProjectData(proj);
-    applyProject(proj);
-  }
+  /* Show the transient placeholder (never persisted). _afterShowList then opens
+     the user's most recent show, or the new-project modal if they have none.
+     (Cloud-only: don't mint a cf12 default — that created stray local projects.) */
+  if(window.applyProject) applyProject(_bootPlaceholderProject());
   /* Re-render all content panels so nothing stale remains visible */
   if(window.renderSongList) renderSongList();
   if(window.renderCueList) renderCueList();
@@ -14742,10 +14739,19 @@ function onComeOnline(){
 
 function _afterShowList(){
   saveShowCache(CF._showList);
-  if(window._sbPanel==='save'&&window._sbRender) _sbRender('save');
-  if(!CF._showList.length&&!CF.showId&&window.openNewProjectModal){
+  if(!CF.showId && CF._showList.length){
+    /* User has projects but none is open (no session, or it was cleared/expired) —
+       open the most recent instead of leaving a blank screen that looks like
+       "all projects gone". CF._showList is ordered by updated_at desc. */
+    var first=CF._showList[0];
+    CF.showId=first.id; CF.isOwner=true; CF.role='owner';
+    saveSession(first.id);
+    openTcChan();
+    ownerRestoreShow(first.id);
+  } else if(!CF._showList.length && !CF.showId && window.openNewProjectModal){
     setTimeout(window.openNewProjectModal,350);
   }
+  if(window._sbPanel==='save'&&window._sbRender) _sbRender('save');
 }
 
 function initAuth(){
@@ -17355,8 +17361,10 @@ function switchProject(id){
   function doSwitch(){
     /* Cancel any pending debounced push so it doesn't write old content to the new show's row */
     clearTimeout(CF._pushTimer);
-    /* Flush current dirty state to OLD show before switching */
-    if(CF.dirty&&CF.isOwner&&CF.showId&&authUser){
+    /* Flush current dirty state to OLD show before switching. Guard that the loaded
+       state actually IS the old show (not the boot placeholder / a half-loaded
+       project) so we never upsert empty data over a real row. */
+    if(CF.dirty&&CF.isOwner&&CF.showId&&authUser&&state.projectId===CF.showId){
       var _oid=CF.showId, _osnap=snapshot();
       db().from('shows').upsert({id:_oid,name:_osnap.name,owner_id:authUser.id,
         project_data:_osnap,updated_at:new Date().toISOString()});
