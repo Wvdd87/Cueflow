@@ -16509,45 +16509,79 @@ function cfJoinLan(){
   if(pin.length!==6){if(err)err.textContent='PIN must be exactly 6 digits';return;}
   if(!/^\d+$/.test(pin)){if(err)err.textContent='PIN must contain numbers only';return;}
   if(joinBtn){joinBtn.textContent='Joining…';joinBtn.disabled=true;}
+  CF._lanJoinPin=pin;          /* remembered for auto-reconnect */
+  CF._lanReconnect=true;       /* keep retrying while in LAN mode */
+  CF._lanEntered=false;        /* cockpit shown yet? */
+  CF._lanReconnectBackoff=1500;
+  _cfLanConnect(true);
+}
+
+/* Open (or re-open) the LAN WebSocket and (re)join. Reusable for the initial join
+   and for auto-reconnect after a dropped socket. LAN viewers load over http://<ip>
+   (insecure) where crypto.subtle is unavailable, so the PIN is sent plaintext and
+   hashed server-side (the PIN is already in the URL, so no added exposure). */
+function _cfLanConnect(isInitial){
+  if(CF._netMode!=='lan' || !CF._lanReconnect) return;
+  var err=document.getElementById('cf-join-err');
+  var joinBtn=document.querySelector('#cf-join-screen button[onclick]');
   var base=(location.protocol==='https:'?'wss://':'ws://')+location.host;
   var ws, done=false;
-  function fail(msg){ if(done)return; done=true; clearTimeout(to);
-    hideLoading(); var js=document.getElementById('cf-join-screen'); if(js) js.style.display='flex';
-    if(joinBtn){joinBtn.textContent='Join Show';joinBtn.disabled=false;} if(err)err.textContent=msg;
-    try{ws&&ws.close();}catch(e){} CF._lanWs=null; }
-  var to=setTimeout(function(){ fail('No response from host — check you are on the same network'); }, 6000);
-  /* LAN viewers load over http://<ip> (insecure origin) where crypto.subtle is
-     unavailable, so we can't hash the PIN here. Send it plaintext over the LAN
-     socket; the Node server hashes + validates it. (The PIN is already in the URL
-     in plaintext, so this adds no exposure.) */
+  function fail(msg){
+    if(done)return; done=true; clearTimeout(to);
+    try{ws&&ws.close();}catch(e){}
+    if(isInitial && !CF._lanEntered){
+      hideLoading(); var js=document.getElementById('cf-join-screen'); if(js) js.style.display='flex';
+      if(joinBtn){joinBtn.textContent='Join Show';joinBtn.disabled=false;} if(err)err.textContent=msg;
+    } else {
+      _cfLanScheduleReconnect(); /* already in the cockpit — keep trying quietly */
+    }
+  }
+  var to=setTimeout(function(){ fail(CF._lanEntered?'lost':'No response from host — check you are on the same network'); }, 6000);
   try{
     ws=new WebSocket(base); CF._lanWs=ws;
-    ws.onopen=function(){ try{ ws.send(JSON.stringify({event:'join',payload:{pin:pin}})); }catch(e){} };
+    ws.onopen=function(){ try{ ws.send(JSON.stringify({event:'join',payload:{pin:CF._lanJoinPin}})); }catch(e){} };
     ws.onmessage=function(ev){
       var m; try{ m=JSON.parse(ev.data); }catch(e){ return; }
-      if(m.event==='join_error'){ fail('Wrong PIN — double-check and try again'); return; }
+      if(m.event==='join_error'){ if(isInitial&&!CF._lanEntered) fail('Wrong PIN — double-check and try again'); else { done=true; clearTimeout(to); } return; }
       if(m.event==='joined'){
         _applyAccessRow(m.payload.role, null, m.payload.track_ids||null); CF._lanJoined=true;
-        /* PIN accepted — the server is responding. Wait longer for the project data
-           (the host pushes it on a short interval) instead of failing at the join timeout. */
-        clearTimeout(to); to=setTimeout(function(){ fail('Connected, but no project data yet — make sure the show is open on the host'); }, 12000);
+        clearTimeout(to); to=setTimeout(function(){ fail(CF._lanEntered?'lost':'Connected, but no project data yet — make sure the show is open on the host'); }, 12000);
         return;
       }
       if(m.event==='snapshot'){
-        if(!done){ done=true; clearTimeout(to); _cfLanEnterAsViewer(m.payload); }
-        else if(m.payload&&m.payload.project_data){ /* live project update */
+        done=true; clearTimeout(to);
+        CF._lanReconnectBackoff=1500;            /* reset backoff on success */
+        CF._viewerTcSubOk=true;
+        if(!CF._lanEntered){ CF._lanEntered=true; _cfLanEnterAsViewer(m.payload); }
+        else if(m.payload&&m.payload.project_data){ /* reconnected / live update — resync */
           applyProject(m.payload.project_data);
           if(CF.tracks&&CF.tracks.length) state.visibleStreamIds=CF.tracks.slice();
           if(window.renderCueList) renderCueList(); if(window.redrawActive) redrawActive();
           if(window.buildTrackPills) buildTrackPills();
         }
+        if(window._updateViewerStatus) _updateViewerStatus();
         return;
       }
       if(CF._lanJoined) onRealtimeMsg(m.event, m.payload); /* tc / flag / proj_sync */
     };
-    ws.onclose=function(){ CF._viewerTcSubOk=false; if(window._updateViewerStatus) _updateViewerStatus(); };
+    ws.onclose=function(){
+      CF._viewerTcSubOk=false; if(window._updateViewerStatus) _updateViewerStatus();
+      if(CF._lanReconnect && CF._netMode==='lan' && CF._lanEntered) _cfLanScheduleReconnect();
+    };
     ws.onerror=function(){};
   }catch(e){ fail('Could not start join'); }
+}
+
+/* Backoff reconnect loop — heals a dropped LAN socket (brief blip, AP roam) without
+   freezing the viewer. Runs only while in LAN mode and after the cockpit is shown. */
+function _cfLanScheduleReconnect(){
+  if(!CF._lanReconnect || CF._netMode!=='lan' || CF._lanReconnectTimer) return;
+  var delay=CF._lanReconnectBackoff||1500;
+  CF._lanReconnectBackoff=Math.min(delay*1.5, 8000);
+  CF._lanReconnectTimer=setTimeout(function(){
+    CF._lanReconnectTimer=null;
+    _cfLanConnect(false);
+  }, delay);
 }
 
 function _cfLanEnterAsViewer(snap){
