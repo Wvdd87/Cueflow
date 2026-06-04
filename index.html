@@ -15875,6 +15875,69 @@ function _cfLanInit(){
   }catch(e){}
 }
 
+/* ── Phase 4: cloud-down detection + automatic LAN failover ───────────────────
+ * Detects when Supabase becomes unreachable mid-show and switches to LAN-only:
+ *   • Owner (always mirrors to its LAN server already) → flip _netMode to 'lan',
+ *     stop cloud attempts, show a banner. Reverts when the cloud returns.
+ *   • Cloud viewer → reload into the owner's LAN URL (?lan=1). A browser can't open
+ *     ws:// from an https page (mixed content), so failover is a navigation, not an
+ *     in-page swap. Needs the owner's LAN address (pre-seeded in the TC payload) and
+ *     the viewer's PIN. */
+function _cfNetBanner(){
+  var b=document.getElementById('cf-net-banner');
+  if(!b){
+    b=document.createElement('div'); b.id='cf-net-banner';
+    b.style.cssText='display:none;position:fixed;top:0;left:0;right:0;z-index:10050;'+
+      'padding:7px 14px;text-align:center;font-family:var(--cond,sans-serif);font-size:12px;'+
+      'font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#06060a;'+
+      'background:var(--amber,#f0a838);box-shadow:0 2px 10px rgba(0,0,0,.45);';
+    document.body.appendChild(b);
+  }
+  return b;
+}
+function _cfShowBanner(text){ var b=_cfNetBanner(); b.textContent=text; b.style.display='block'; }
+function _cfHideBanner(){ var b=document.getElementById('cf-net-banner'); if(b) b.style.display='none'; }
+
+CF._cloudUp=true; CF._cloudEverUp=false; CF._cloudDownTimer=null;
+/* Debounced health signal — realtime blips shouldn't flip modes. Down is only
+   honoured ~6s after the first failure, and only once we've actually connected. */
+function _cfCloudSignal(up){
+  if(up){
+    CF._cloudEverUp=true;
+    if(CF._cloudDownTimer){ clearTimeout(CF._cloudDownTimer); CF._cloudDownTimer=null; }
+    if(!CF._cloudUp){ CF._cloudUp=true; _cfOnCloudUp(); }
+  } else {
+    if(!CF._cloudEverUp) return;
+    if(CF._cloudUp && !CF._cloudDownTimer){
+      CF._cloudDownTimer=setTimeout(function(){
+        CF._cloudDownTimer=null;
+        if(CF._cloudUp){ CF._cloudUp=false; _cfOnCloudDown(); }
+      }, 6000);
+    }
+  }
+}
+CF._cfCloudSignal=_cfCloudSignal;
+function _cfOnCloudDown(){
+  if(CF.isOwner){
+    CF._netMode='lan';
+    _cfShowBanner('⚠ No internet · Local Network mode — syncing over the local network');
+  } else if(CF._netMode!=='lan'){
+    if(CF._ownerLanUrl && CF._joinPin && CF.showId){
+      _cfShowBanner('Internet lost — switching to the local network…');
+      var u=String(CF._ownerLanUrl).replace(/\/$/,'')+'/?show='+encodeURIComponent(CF.showId)+'&pin='+encodeURIComponent(CF._joinPin)+'&lan=1';
+      setTimeout(function(){ try{ location.href=u; }catch(e){} }, 900);
+    } else {
+      _cfShowBanner('Connection lost — reopen via the local network link to continue');
+    }
+  }
+}
+function _cfOnCloudUp(){
+  if(CF.isOwner) CF._netMode='cloud';
+  _cfHideBanner();
+}
+window.addEventListener('offline', function(){ _cfCloudSignal(false); });
+window.addEventListener('online',  function(){ _cfCloudSignal(true); });
+
 function openTcChan(){
   if(!CF.showId || CF._tcChan) return;
   CF._tcReady = false;
@@ -15885,6 +15948,8 @@ function openTcChan(){
     .subscribe(function(status){
       CF._tcReady = (status === 'SUBSCRIBED');
       console.log('[CF] Owner TC channel:', status);
+      if(status==='SUBSCRIBED') _cfCloudSignal(true);
+      else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED') _cfCloudSignal(false);
     });
 }
 
@@ -15909,8 +15974,13 @@ function relayTC(frames, source){
   }catch(e){}
   var playlistName='';
   try{var _rpl=state.playlists&&state.playlists.find(function(p){return p.id===state.activePlaylistId;});if(_rpl)playlistName=_rpl.name;}catch(e){}
+  /* Pre-seed our LAN address so cloud viewers know where to fail over if the
+     internet drops. Only meaningful when hosting (Electron). */
+  var lanUrl=null;
+  try{ if(window.cfLAN && CF._lanStatus && CF._lanStatus.ips && CF._lanStatus.ips.length){
+    lanUrl='http://'+CF._lanStatus.ips[0]+':'+(CF._lanStatus.port||8420); } }catch(e){}
   netSend('tc',{frames:frames,source:source,seqName:seqName,playlistName:playlistName,
-             activePlaylistId:state.activePlaylistId||null,fps:state.fps||25});
+             activePlaylistId:state.activePlaylistId||null,fps:state.fps||25,lanUrl:lanUrl});
 }
 
 /* ── Viewer status indicator ──────────────────────────────────────────────────
@@ -15997,6 +16067,7 @@ window.addEventListener('offline', _updateLiveStatusChip);
    Supabase broadcast handler today, and by the LAN WebSocket client (Phase 3). */
 function _applyTcMessage(p){
   if(typeof p.frames !== 'number') return;
+  if(p.lanUrl) CF._ownerLanUrl=p.lanUrl; /* remember where to fail over if cloud drops */
   var frames = p.frames, src = p.source, seq = p.seqName;
   var plName = p.playlistName||'';
   var displayLabel = plName&&seq ? plName+' / '+seq : (seq||plName);
@@ -16072,11 +16143,13 @@ function subscribeTc(){
       console.log('[CF] TC channel status:', status, err||'');
       if(status === 'CHANNEL_ERROR'){
         console.error('[CF] TC channel error:', err);
-        CF._viewerTcSubOk = false;
+        CF._viewerTcSubOk = false; _cfCloudSignal(false);
       } else if(status === 'SUBSCRIBED'){
-        CF._viewerTcSubOk = true;
+        CF._viewerTcSubOk = true; _cfCloudSignal(true);
       } else if(status === 'CLOSED'){
-        CF._viewerTcSubOk = false;
+        CF._viewerTcSubOk = false; _cfCloudSignal(false);
+      } else if(status === 'TIMED_OUT'){
+        CF._viewerTcSubOk = false; _cfCloudSignal(false);
       }
       _updateViewerStatus();
     });
@@ -16350,6 +16423,7 @@ function cfJoin(){
   if(err) err.textContent='';
   if(pin.length!==6){if(err)err.textContent='PIN must be exactly 6 digits';return;}
   if(!/^\d+$/.test(pin)){if(err)err.textContent='PIN must contain numbers only';return;}
+  CF._joinPin = pin; /* remembered so we can fail over to the LAN URL if cloud drops */
   if(joinBtn){joinBtn.textContent='Joining…';joinBtn.disabled=true;}
   hashPin(pin).then(function(h){
     CF._pinHash = h;
