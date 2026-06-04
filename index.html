@@ -403,6 +403,11 @@ body.mode-live #edit-mode-banner { display: none; }
 }
 .live-toggle:hover { background: #ff4663; }
 .live-toggle:active { background: #d8001f; }
+/* Amber "Edit" variant — same topbar-button shape as Go Live, different colour.
+   Unifies the owner + editor Edit buttons (UI Kit primary/amber). */
+.live-toggle.edit { background: var(--primary); color: #06060a; }
+.live-toggle.edit:hover { background: var(--primary); filter: brightness(1.08); }
+.live-toggle.edit:active { background: var(--primary); filter: brightness(.92); }
 
 /* Stream popup button */
 .stream-btn { display: flex; align-items: center; gap: 8px; padding: 0 14px; height: 100%; background: none; border: none; border-left: 1px solid var(--hair); color: var(--txt-mid); font-family: var(--cond); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: color .15s, background .15s; }
@@ -1464,7 +1469,7 @@ body.mode-live #edit-mode-banner { display: none; }
   .vw-topbar { height:56px; }
   .cn-topbar { height:56px; }
 }
-.cn-topbar .me-go-live { align-self:center; margin:0 12px; }
+.cn-topbar .me-go-live { align-self:center; }
 .cn-back-btn { display:flex; align-items:center; gap:8px; padding:0 18px; border-right:1px solid var(--hair); background:none; border-top:none; border-bottom:none; border-left:none; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; transition:color .12s; flex-shrink:0; white-space:nowrap; }
 .cn-back-btn:hover { color:var(--txt-hi); }
 .cn-topbar-title { display:flex; align-items:center; padding:0 18px; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-mid); flex-shrink:0; }
@@ -2779,8 +2784,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <svg width="18" height="18" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.4"/><line x1="3" y1="4" x2="9" y2="4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="3" y1="6.5" x2="9" y2="6.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="3" y1="9" x2="6.5" y2="9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
     </button>
     <!-- Editor: back to edit screen (shown only in editor follow mode) -->
-    <div class="vw-cell right" id="editor-back-btn" style="display:none;padding:0 10px;">
-      <button class="mbtn primary" onclick="if(window._editorEnterEditMode)_editorEnterEditMode()" style="height:36px;padding:0 16px;font-size:11px;">Edit</button>
+    <div id="editor-back-btn" style="display:none;margin-left:auto;align-items:stretch;">
+      <button class="live-toggle edit" onclick="if(window._editorEnterEditMode)_editorEnterEditMode()">Edit</button>
     </div>
   </div>
 
@@ -3569,10 +3574,13 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <div class="tc-pip idle" id="live-status-pip"></div>
       <span class="sb-val" id="live-status-lbl">—</span>
     </div>
+    <!-- Track visibility (parity with editor/viewer) -->
+    <button class="vw-vis-btn" id="live-vis-btn" onclick="openTrackVisModal()" title="Track visibility" style="border-right:none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      <span id="live-vis-count">—</span>
+    </button>
     <!-- Edit button -->
-    <div class="live-sb-cell right" style="padding-left:0px;padding-right: 10px;">
-      <button class="mbtn primary" onclick="exitLiveGuard()" style="height:26px;padding:0 14px;font-size:10px;">Edit</button>
-    </div>
+    <button class="live-toggle edit" onclick="exitLiveGuard()">Edit</button>
     <!-- Hidden compat elements -->
     <div style="display:none;">
       <button id="mtab-edit-l"></button><button id="mtab-live-l"></button>
@@ -5634,12 +5642,25 @@ function redrawActive(){
   if(state.appMode==='live') _doRedraw('live',state.currentFrames);
   else _doRedraw('test',state.simFrames);
 }
+/* Owner live-bar track-visibility button count ("visible / total"), parity with
+   the editor/viewer vis button. */
+function _updateLiveVisBtn(){
+  var el=document.getElementById('live-vis-count'); if(!el) return;
+  var streams=state.streams||[], vis=state.visibleStreamIds||[];
+  var visCount=streams.filter(function(s){return vis.indexOf(s.id)!==-1;}).length;
+  var hasCam=!!(state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.length);
+  var camVis=state.cameraTrackVisible!==false;
+  var visTotal=visCount+(hasCam&&camVis?1:0);
+  var total=streams.length+(hasCam?1:0);
+  el.textContent=visTotal+' / '+total;
+}
 
 let _lastCurIdx={live:-1,test:-1};
 function _doRedraw(target,frames){
   const isLive=target==='live';
   const tcEl=document.getElementById(isLive?'tc-disp-live':'tc-disp-test');
   if(tcEl)tcEl.textContent=fTC(frames);
+  if(isLive) _updateLiveVisBtn();
 
   const allCues=getAllCues(true);
   let curIdx=-1;
