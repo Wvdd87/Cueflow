@@ -15063,6 +15063,11 @@ function snapshot(){
 /* ── Push project to Supabase ────────────────────────────── */
 function pushProject(cb, _retry){
   if(!CF.showId) return;
+  /* Hard guard: never write the transient boot placeholder, or state that isn't the
+     loaded show, over a real Supabase row. This is the last line of defence against
+     empty/nameless phantom shows from paths that bypass persist() (onComeOnline,
+     token-refresh, switch-flush). */
+  if(state.projectId===BOOT_PLACEHOLDER_ID || state.projectId!==CF.showId){ return; }
   if(!navigator.onLine){ CF.dirty=true; updateSyncBtn(); return; }
   if(window._updateSyncChip) _updateSyncChip('saving');
 
