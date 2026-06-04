@@ -1794,7 +1794,7 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 .ntm-type-btn.active { background:var(--primary); color:#000; border-color:var(--primary); }
 .ntm-type-btn:not(.active) { background:var(--surface2); color:var(--txt-mid); border-color:var(--hair2); }
 .ntm-type-btn:not(.active):hover { background:var(--surface3); color:var(--txt-hi); border-color:var(--hair3); }
-.ntm-body { padding:22px 24px; display:flex; flex-direction:column; gap:18px; flex:1; }
+.ntm-body { padding:22px 24px; display:flex; flex-direction:column; gap:0px; flex:1; }
 .ntm-fg { display:flex; flex-direction:column; gap:7px; }
 .ntm-lbl { font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-mid); }
 .ntm-iw { position:relative; }
@@ -2086,6 +2086,9 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 }
 .me-go-live:hover { background:#ff4663; }
 .me-go-live:active { background:#d8001f; }
+/* Mobile owner/editor Go Live now uses .live-toggle (matching the viewer) — make it
+   full-height and flush to the right edge inside the centered, right-padded me-topbar. */
+.me-topbar .live-toggle { align-self:stretch; height:auto; margin-right:-12px; }
 .me-body { flex:1; display:flex; min-height:0; overflow:hidden; }
 
 /* Sequence sidebar — tablet only */
@@ -14317,7 +14320,7 @@ document.addEventListener('DOMContentLoaded',function(){
       <div id="me-sync-dot" style="width:5px;height:5px;border-radius:50%;background:var(--txt-low);flex-shrink:0;"></div>
       <span id="me-sync-lbl" style="font-family:var(--cond);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-low);white-space:nowrap;">Saved</span>
     </div>
-    <button class="me-go-live" id="me-go-live" onclick="meGoLive()">Go Live</button>
+    <button class="live-toggle" id="me-go-live" onclick="meGoLive()">Go Live</button>
   </div>
 
   <!-- Body -->
