@@ -356,7 +356,7 @@ body.mode-live #edit-mode-banner { display: none; }
 
 /* ── Viewer Cockpit topbar ── */
 .vw-topbar {
-  display: flex; align-items: stretch; height: 56px;
+  display: flex; align-items: stretch; height: 36px;  /* desktop: match owner (.live-sb / #edit-topbar) */
   background: var(--surface); border-bottom: 1px solid var(--hair); flex-shrink: 0;
 }
 .vw-cell {
@@ -388,7 +388,7 @@ body.mode-live #edit-mode-banner { display: none; }
 
 /* Sequence nav in topbar */
 .seq-nav { display: flex; align-items: center; gap: 4px; }
-.seq-nav-chev { background: none; border: none; color: var(--txt-mid); cursor: pointer; font-size: 18px; padding: 0 6px; line-height: 1; height: 56px; transition: color .1s; }
+.seq-nav-chev { background: none; border: none; color: var(--txt-mid); cursor: pointer; font-size: 18px; padding: 0 6px; line-height: 1; height: 100%; transition: color .1s; }
 .seq-nav-chev:hover { color: var(--txt-hi); }
 #topbar-seq-name { font-family: var(--cond); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--txt-hi); max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -1457,7 +1457,13 @@ body.mode-live #edit-mode-banner { display: none; }
   /* Notes button is already a 56px square (set in base CSS) */
 }
 #cf-cam-notes-screen { display:none; position:fixed; inset:0; z-index:9997; background:var(--bg); flex-direction:column; overflow:hidden; }
-.cn-topbar { display:flex; align-items:stretch; height:56px; background:var(--surface); border-bottom:1px solid var(--hair); flex-shrink:0; }
+.cn-topbar { display:flex; align-items:stretch; height:36px; background:var(--surface); border-bottom:1px solid var(--hair); flex-shrink:0; }  /* desktop: match owner; 56px on mobile via media query */
+/* Phones/tablets (≤1024) keep the taller touch-friendly viewer/notes bars; desktop
+   matches the owner's 36px. Placed after both base rules so source order lets it win. */
+@media (max-width:1024px){
+  .vw-topbar { height:56px; }
+  .cn-topbar { height:56px; }
+}
 .cn-topbar .me-go-live { align-self:center; margin:0 12px; }
 .cn-back-btn { display:flex; align-items:center; gap:8px; padding:0 18px; border-right:1px solid var(--hair); background:none; border-top:none; border-bottom:none; border-left:none; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; transition:color .12s; flex-shrink:0; white-space:nowrap; }
 .cn-back-btn:hover { color:var(--txt-hi); }
