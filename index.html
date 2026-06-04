@@ -8156,13 +8156,20 @@ function updateTCStatus(status,label){
   const srcLbl=document.getElementById('live-tc-src-lbl');
   const statusTxt=document.getElementById('live-tc-status-txt');
   if(srcLbl){
-    if(status==='freerun')srcLbl.textContent='FREE RUN';
-    else if(label&&label.startsWith('LTC'))srcLbl.textContent='LTC';
-    else if(label&&label.startsWith('MTC'))srcLbl.textContent='MTC';
-    else srcLbl.textContent='—';
+    /* Source type. On freerun/waiting keep the last-known source label (LTC/MTC). */
+    if(status==='sim') srcLbl.textContent='SIM';
+    else if(label&&label.indexOf('LTC')===0) srcLbl.textContent='LTC';
+    else if(label&&label.indexOf('MTC')===0) srcLbl.textContent='MTC';
+    else if(status==='none') srcLbl.textContent='—';
   }
   if(statusTxt){
-    const tcStatusMap={receiving:{txt:'',col:'var(--green)'},waiting:{txt:'Waiting…',col:'var(--amber)'},freerun:{txt:'Free run',col:'var(--txt-low)'},none:{txt:'No input',col:'var(--txt-low)'}};
+    const tcStatusMap={
+      receiving:{txt:'RECEIVING',col:'var(--green)'},
+      waiting:{txt:'WAITING',col:'var(--amber)'},
+      freerun:{txt:'FREE RUN',col:'var(--amber)'},
+      sim:{txt:'RUNNING',col:'var(--amber)'},
+      none:{txt:'NO TC',col:'var(--txt-low)'}
+    };
     const s=tcStatusMap[status]||{txt:'',col:'var(--txt-low)'};
     statusTxt.textContent=s.txt; statusTxt.style.color=s.col;
   }
@@ -15863,7 +15870,7 @@ function _cfLanInit(){
   CF._lanWired = true;
   CF._lanStatus = null;
   try{
-    cfLAN.onStatus(function(s){ CF._lanStatus=s; if(window._sbPanel==='online'&&window._sbRender) _sbRender('online'); });
+    cfLAN.onStatus(function(s){ CF._lanStatus=s; if(window._updateLiveStatusChip) _updateLiveStatusChip(); if(window._sbPanel==='online'&&window._sbRender) _sbRender('online'); });
     cfLAN.onClientMsg(function(m){ _cfLanOnClientMsg(m); });
     cfLAN.getStatus().then(function(s){ CF._lanStatus=s; _cfLanPushSnapshot(); _cfLanRefreshPins(); });
     /* Safety net: the show may load after init, or via a path that skips the
@@ -15938,11 +15945,15 @@ function _cfOnCloudDown(){
       _cfShowBanner('Connection lost — reopen via the local network link to continue');
     }
   }
+  if(window._updateLiveStatusChip) _updateLiveStatusChip();
+  if(window._updateViewerStatus) _updateViewerStatus();
 }
 function _cfOnCloudUp(){
   _cfHideBanner();
+  if(CF.isOwner) CF._netMode='cloud';
+  if(window._updateLiveStatusChip) _updateLiveStatusChip();
+  if(window._updateViewerStatus) _updateViewerStatus();
   if(!CF.isOwner) return;
-  CF._netMode='cloud';
   /* Phase 5 — resync: cloud is back, so push any edits made during the outage and
      re-seed the LAN access list. Delay slightly so the realtime socket settles, and
      only push if we actually have unsynced changes. Covers the case where the channel
@@ -16020,26 +16031,32 @@ function _updateViewerStatus(){
   var dot=document.getElementById('cf-v-dot');
   var lbl=document.getElementById('vw-tc-lock');
   if(!dot && !lbl) return;
+  /* Two dimensions: transport (how) + timecode state (what). */
+  var transport = (CF._netMode==='lan') ? 'LOCAL' : 'CLOUD';
+  var hasClock = !!CF._tcRef;
+  var gap = CF._lastTcRx ? (Date.now()-CF._lastTcRx) : Infinity;
+  var receiving = gap < 2000;
+  var freeRunning = hasClock && gap >= 1500;   /* matches the RAF free-run threshold */
   var pipCls, lblTxt, lblColor;
-  if(!navigator.onLine){
+  if(CF._netMode!=='lan' && !navigator.onLine && !hasClock){
     pipCls='tc-pip idle'; lblTxt='OFFLINE'; lblColor='var(--txt-low)';
-  } else if(!CF._viewerTcSubOk){
-    pipCls='tc-pip warn pulse'; lblTxt='WAITING…'; lblColor='var(--amber)';
-  } else if(!CF._lastTcRx || Date.now()-CF._lastTcRx>2000){
-    pipCls='tc-pip ok'; lblTxt='CONNECTED'; lblColor='var(--green)';
+  } else if(receiving){
+    pipCls='tc-pip ok pulse'; lblTxt=transport+' · RECEIVING'; lblColor='var(--green)';
+  } else if(freeRunning){
+    pipCls='tc-pip warn'; lblTxt=transport+' · FREE RUN'; lblColor='var(--amber)';
+  } else if(CF._viewerTcSubOk){
+    pipCls='tc-pip ok'; lblTxt=transport+' · CONNECTED'; lblColor='var(--green)';
   } else {
-    pipCls='tc-pip ok pulse'; lblTxt='RECEIVING'; lblColor='var(--green)';
+    pipCls='tc-pip warn pulse'; lblTxt='CONNECTING…'; lblColor='var(--amber)';
   }
-  if(dot) dot.className=pipCls;
-  if(lbl){lbl.textContent=lblTxt; lbl.style.color=lblColor;}
-  var tcPip=document.getElementById('cf-tc-pip');
-  var tcLbl=document.getElementById('cf-tc-lbl');
-  if(tcPip) tcPip.className=pipCls;
-  if(tcLbl){tcLbl.textContent=lblTxt; tcLbl.style.color=lblColor;}
-  var cnPip=document.getElementById('cn-status-pip');
-  var cnLbl=document.getElementById('cn-status-lbl');
-  if(cnPip) cnPip.className=pipCls;
-  if(cnLbl){cnLbl.textContent=lblTxt; cnLbl.style.color=lblColor;}
+  function set(pipId,lblId){
+    var p=document.getElementById(pipId), l=document.getElementById(lblId);
+    if(p) p.className=pipCls;
+    if(l){ l.textContent=lblTxt; l.style.color=lblColor; }
+  }
+  set('cf-v-dot','vw-tc-lock');   /* viewer cockpit topbar */
+  set('cf-tc-pip','cf-tc-lbl');   /* TC-only screen */
+  set('cn-status-pip','cn-status-lbl'); /* camera-notes screen */
 }
 window._updateViewerStatus = _updateViewerStatus; /* expose for Block 1 */
 
@@ -16048,26 +16065,39 @@ function _updateLiveStatusChip(){
   var pip = document.getElementById('live-status-pip');
   var lbl = document.getElementById('live-status-lbl');
   if(!pip && !lbl) return;
-  var pipCls, lblTxt;
-  if(!navigator.onLine){
-    pipCls = 'tc-pip idle'; lblTxt = 'OFFLINE';
+  /* Cloud followers (Supabase presence) + LAN followers (Electron host). */
+  var cloudN = 0;
+  if(CF._presChan){
+    var ps = CF._presChan.presenceState();
+    Object.keys(ps).forEach(function(k){ (ps[k]||[]).forEach(function(p){ if(p.role!=='owner') cloudN++; }); });
+  }
+  var lanN = (window.cfLAN && CF._lanStatus && typeof CF._lanStatus.clients==='number') ? CF._lanStatus.clients : 0;
+  var total = cloudN + lanN;
+  var lanMode = (CF._netMode==='lan');
+  var pipCls, lblTxt, how, howColor, howPip;
+  if(lanMode){
+    pipCls = total ? 'tc-pip warn pulse' : 'tc-pip warn';
+    lblTxt = total ? (total+(total===1?' FOLLOWER':' FOLLOWERS')) : 'NO FOLLOWERS';
+    how = 'LOCAL NET'; howColor='var(--amber)'; howPip='tc-pip warn';
+  } else if(!navigator.onLine){
+    pipCls = 'tc-pip idle'; lblTxt = 'OFFLINE'; how='';
   } else {
-    var viewerCount = 0;
-    if(CF._presChan){
-      var pState = CF._presChan.presenceState();
-      Object.keys(pState).forEach(function(k){
-        (pState[k]||[]).forEach(function(p){ if(p.role!=='owner') viewerCount++; });
-      });
-    }
-    if(viewerCount === 0){
-      pipCls = 'tc-pip ok'; lblTxt = 'ONLINE';
-    } else {
-      pipCls = 'tc-pip ok pulse';
-      lblTxt = viewerCount + (viewerCount===1?' FOLLOWER':' FOLLOWERS');
-    }
+    pipCls = total ? 'tc-pip ok pulse' : 'tc-pip ok';
+    lblTxt = total ? (total+(total===1?' FOLLOWER':' FOLLOWERS')) : 'ONLINE';
+    how = lanN ? 'CLOUD + LAN' : 'CLOUD'; howColor='var(--green)'; howPip='tc-pip ok';
   }
   if(pip) pip.className = pipCls;
   if(lbl) lbl.textContent = lblTxt;
+  /* "how" cell — the transport the owner is sharing over. */
+  var shareCell = document.getElementById('live-sharing-cell');
+  var shareLbl  = document.getElementById('live-sharing-lbl');
+  if(shareCell){
+    if(how){
+      shareCell.style.display='flex';
+      if(shareLbl){ shareLbl.textContent=how; shareLbl.style.color=howColor||''; }
+      var sp=shareCell.querySelector('.tc-pip'); if(sp) sp.className=howPip||'tc-pip ok';
+    } else { shareCell.style.display='none'; }
+  }
 }
 window._updateLiveStatusChip = _updateLiveStatusChip;
 
