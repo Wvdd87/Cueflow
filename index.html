@@ -16429,10 +16429,13 @@ function cfJoinLan(){
     if(joinBtn){joinBtn.textContent='Join Show';joinBtn.disabled=false;} if(err)err.textContent=msg;
     try{ws&&ws.close();}catch(e){} CF._lanWs=null; }
   var to=setTimeout(function(){ fail('No response from host — check you are on the same network'); }, 6000);
-  hashPin(pin).then(function(h){
-    CF._pinHash=h;
+  /* LAN viewers load over http://<ip> (insecure origin) where crypto.subtle is
+     unavailable, so we can't hash the PIN here. Send it plaintext over the LAN
+     socket; the Node server hashes + validates it. (The PIN is already in the URL
+     in plaintext, so this adds no exposure.) */
+  try{
     ws=new WebSocket(base); CF._lanWs=ws;
-    ws.onopen=function(){ try{ ws.send(JSON.stringify({event:'join',payload:{pinHash:h}})); }catch(e){} };
+    ws.onopen=function(){ try{ ws.send(JSON.stringify({event:'join',payload:{pin:pin}})); }catch(e){} };
     ws.onmessage=function(ev){
       var m; try{ m=JSON.parse(ev.data); }catch(e){ return; }
       if(m.event==='join_error'){ fail('Wrong PIN — double-check and try again'); return; }
@@ -16457,7 +16460,7 @@ function cfJoinLan(){
     };
     ws.onclose=function(){ CF._viewerTcSubOk=false; if(window._updateViewerStatus) _updateViewerStatus(); };
     ws.onerror=function(){};
-  }).catch(function(){ fail('Could not start join'); });
+  }catch(e){ fail('Could not start join'); }
 }
 
 function _cfLanEnterAsViewer(snap){

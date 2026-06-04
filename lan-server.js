@@ -11,6 +11,7 @@ const http = require('http');
 const os   = require('os');
 const fs   = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { WebSocketServer } = require('ws');
 const QRCode = require('qrcode');
 
@@ -93,9 +94,16 @@ function startLanServer(opts) {
     ws._joined = false;
     ws.on('message', function (data) {
       let msg; try { msg = JSON.parse(data.toString()); } catch (e) { return; }
-      /* Join handshake — validate the PIN hash against the owner-pushed access list. */
+      /* Join handshake — validate against the owner-pushed access list. The viewer
+         may send a precomputed pinHash, or the plaintext pin (LAN viewers load over
+         http://<ip>, an insecure origin where crypto.subtle is unavailable, so they
+         can't hash client-side) — in which case we hash it here with Node crypto.
+         Algorithm must match the app's hashPin: sha256(pin) hex, first 16 chars. */
       if (msg && msg.event === 'join') {
-        const h = msg.payload && msg.payload.pinHash;
+        let h = msg.payload && msg.payload.pinHash;
+        if (!h && msg.payload && msg.payload.pin != null) {
+          h = crypto.createHash('sha256').update(String(msg.payload.pin)).digest('hex').slice(0, 16);
+        }
         const pin = (getPins() || []).find(function (p) { return p && p.pin_hash === h; });
         if (pin) {
           ws._joined = true;
