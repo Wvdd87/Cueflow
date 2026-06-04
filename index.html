@@ -15887,10 +15887,12 @@ function _cfNetBanner(){
   var b=document.getElementById('cf-net-banner');
   if(!b){
     b=document.createElement('div'); b.id='cf-net-banner';
-    b.style.cssText='display:none;position:fixed;top:0;left:0;right:0;z-index:10050;'+
-      'padding:7px 14px;text-align:center;font-family:var(--cond,sans-serif);font-size:12px;'+
-      'font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#06060a;'+
-      'background:var(--amber,#f0a838);box-shadow:0 2px 10px rgba(0,0,0,.45);';
+    /* Anchored to the BOTTOM (never covers the topbar / Edit button) and
+       pointer-events:none so it can't block a click even where it overlaps. */
+    b.style.cssText='display:none;position:fixed;bottom:0;left:0;right:0;z-index:10050;'+
+      'pointer-events:none;padding:7px 14px;text-align:center;font-family:var(--cond,sans-serif);'+
+      'font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#06060a;'+
+      'background:var(--amber,#f0a838);box-shadow:0 -2px 10px rgba(0,0,0,.45);';
     document.body.appendChild(b);
   }
   return b;
