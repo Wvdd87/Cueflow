@@ -15897,8 +15897,14 @@ function _cfNetBanner(){
   }
   return b;
 }
-function _cfShowBanner(text){ var b=_cfNetBanner(); b.textContent=text; b.style.display='block'; }
+function _cfShowBanner(text){ var b=_cfNetBanner(); b.style.background='var(--amber,#f0a838)'; b.textContent=text; b.style.display='block'; }
 function _cfHideBanner(){ var b=document.getElementById('cf-net-banner'); if(b) b.style.display='none'; }
+/* Brief coloured confirmation (e.g. green "back online — synced"), then auto-hide. */
+function _cfFlashBanner(text, bg, ms){
+  var b=_cfNetBanner(); b.textContent=text; b.style.background=bg||'var(--amber,#f0a838)'; b.style.display='block';
+  clearTimeout(CF._bannerFlashTimer);
+  CF._bannerFlashTimer=setTimeout(function(){ b.style.display='none'; b.style.background='var(--amber,#f0a838)'; }, ms||2600);
+}
 
 CF._cloudUp=true; CF._cloudEverUp=false; CF._cloudDownTimer=null;
 /* Debounced health signal — realtime blips shouldn't flip modes. Down is only
@@ -15934,8 +15940,26 @@ function _cfOnCloudDown(){
   }
 }
 function _cfOnCloudUp(){
-  if(CF.isOwner) CF._netMode='cloud';
   _cfHideBanner();
+  if(!CF.isOwner) return;
+  CF._netMode='cloud';
+  /* Phase 5 — resync: cloud is back, so push any edits made during the outage and
+     re-seed the LAN access list. Delay slightly so the realtime socket settles, and
+     only push if we actually have unsynced changes. Covers the case where the channel
+     recovers without a navigator 'online' event (Supabase down but device still on
+     the LAN). The 'online' event path (onComeOnline) also pushes — both are safe
+     because the push is an idempotent upsert. */
+  if(!CF.showId) return;
+  setTimeout(function(){
+    if(!(CF.isOwner && CF.showId && navigator.onLine)) return;
+    try{ _cfLanRefreshPins(); }catch(e){}
+    if(CF.dirty){
+      pushProject(function(){
+        try{ updateSyncBtn(); }catch(e){}
+        _cfFlashBanner('✓ Back online — changes synced', '#18d986', 2600);
+      });
+    }
+  }, 1500);
 }
 window.addEventListener('offline', function(){ _cfCloudSignal(false); });
 window.addEventListener('online',  function(){ _cfCloudSignal(true); });
