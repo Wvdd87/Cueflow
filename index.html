@@ -15854,7 +15854,13 @@ function _cfLanInit(){
   try{
     cfLAN.onStatus(function(s){ CF._lanStatus=s; if(window._sbPanel==='online'&&window._sbRender) _sbRender('online'); });
     cfLAN.onClientMsg(function(m){ _cfLanOnClientMsg(m); });
-    cfLAN.getStatus().then(function(s){ CF._lanStatus=s; _cfLanPushSnapshot(); });
+    cfLAN.getStatus().then(function(s){ CF._lanStatus=s; _cfLanPushSnapshot(); _cfLanRefreshPins(); });
+    /* Safety net: the show may load after init, or via a path that skips the
+       applyRemote/pushProject hooks (e.g. import). Keep the LAN server's snapshot
+       + pins current so any viewer that joins always gets the project. */
+    if(!CF._lanKeepalive) CF._lanKeepalive=setInterval(function(){
+      if(CF.showId && CF.isOwner){ _cfLanPushSnapshot(); }
+    }, 4000);
   }catch(e){}
 }
 
@@ -16430,7 +16436,13 @@ function cfJoinLan(){
     ws.onmessage=function(ev){
       var m; try{ m=JSON.parse(ev.data); }catch(e){ return; }
       if(m.event==='join_error'){ fail('Wrong PIN — double-check and try again'); return; }
-      if(m.event==='joined'){ _applyAccessRow(m.payload.role, null, m.payload.track_ids||null); CF._lanJoined=true; return; }
+      if(m.event==='joined'){
+        _applyAccessRow(m.payload.role, null, m.payload.track_ids||null); CF._lanJoined=true;
+        /* PIN accepted — the server is responding. Wait longer for the project data
+           (the host pushes it on a short interval) instead of failing at the join timeout. */
+        clearTimeout(to); to=setTimeout(function(){ fail('Connected, but no project data yet — make sure the show is open on the host'); }, 12000);
+        return;
+      }
       if(m.event==='snapshot'){
         if(!done){ done=true; clearTimeout(to); _cfLanEnterAsViewer(m.payload); }
         else if(m.payload&&m.payload.project_data){ /* live project update */
