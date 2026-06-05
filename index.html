@@ -343,10 +343,10 @@ button.et-item:hover { color: var(--txt-hi); background: var(--surface2); }
 .et-item.et-online { border-right: none; border-left: 1px solid var(--hair); }
 #edit-topbar .save-indicator { padding: 0 14px; border-right: 1px solid var(--hair); border-left: none; display: flex; align-items: center; }
 .et-breadcrumb { gap: 0; min-width: 0; overflow: hidden; }
-.et-crumb-pl { background: none; border: none; font-family: var(--cond); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--txt-low); cursor: pointer; padding: 0; transition: color .12s; white-space: nowrap; flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
-.et-crumb-pl:hover { color: var(--txt-mid); }
-.et-crumb-sep { color: var(--txt-low); font-family: var(--cond); font-size: 11px; font-weight: 400; letter-spacing: 0; flex-shrink: 0; margin: 0 5px; }
-.et-crumb-sq { background: none; border: none; font-family: var(--cond); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--txt-mid); cursor: pointer; padding: 0; transition: color .12s; white-space: nowrap; flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+.et-crumb-pl { background: none; border: none; font-family: var(--cond); font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--txt-mid); cursor: pointer; padding: 0; transition: color .12s; white-space: nowrap; flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+.et-crumb-pl:hover { color: var(--txt-hi); }
+.et-crumb-sep { color: var(--txt-low); font-family: var(--mono); font-size: 11px; font-weight: 400; letter-spacing: 0; flex-shrink: 0; margin: 0 5px; }
+.et-crumb-sq { background: none; border: none; font-family: var(--cond); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--txt-hi); cursor: pointer; padding: 0; transition: color .12s; white-space: nowrap; flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
 .et-crumb-sq:hover { color: var(--txt-hi); }
 .et-status-lbl { font-size: 10px; font-family: var(--mono); font-weight: 600; letter-spacing: .01em; color: var(--txt-hi); }
 
@@ -1247,10 +1247,10 @@ body.mode-live #edit-mode-banner { display: none; }
 
 /* ── Camera view: topbar cells ── */
 .vw-cam-status { display:none; align-items:center; gap:6px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); flex-shrink:0; white-space:nowrap; }
-.vw-cam-crumb { display:none; align-items:center; gap:5px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; flex-shrink:0; min-width:0; max-width:260px; overflow:hidden; }
-.vw-cam-crumb-pl { color:var(--txt-low); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
-.vw-cam-crumb-arr { color:var(--hair3); flex-shrink:0; font-size:11px; letter-spacing:0; }
-.vw-cam-crumb-sq { color:var(--txt-mid); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.vw-cam-crumb { display:none; align-items:center; gap:8px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; flex-shrink:0; min-width:0; max-width:260px; overflow:hidden; }
+.vw-cam-crumb-pl { color:var(--txt-mid); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.vw-cam-crumb-arr { color:var(--txt-low); font-family:var(--mono); flex-shrink:0; font-size:11px; letter-spacing:0; }
+.vw-cam-crumb-sq { color:var(--txt-hi); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .vw-cam-following { display:none; align-items:center; gap:7px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); flex-shrink:0; }
 .vw-cam-name-cell { display:none; align-items:center; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--txt-hi); flex-shrink:0; white-space:nowrap; }
 .vw-cam-notes-btn { display:none; align-items:center; justify-content:center; gap:0; padding:0; width:56px; height:100%; margin-left:auto; border-left:1px solid var(--hair); border-right:none; border-top:none; border-bottom:none; background:none; font-size:0; color:var(--txt-mid); cursor:pointer; transition:color .12s,background .12s; flex-shrink:0; }
@@ -1604,8 +1604,9 @@ body.mode-live #edit-mode-banner { display: none; }
 
 /* Sequence header strip */
 .live-seq-head { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--hair); flex-shrink: 0; }
-.live-seq-head .breadcrumb { font-family: var(--cond); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--txt-mid); }
-.live-seq-head .breadcrumb .cur { color: var(--txt-hi); }
+.live-seq-head .breadcrumb { display: inline-flex; align-items: center; gap: 8px; font-family: var(--cond); font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--txt-mid); }
+.live-seq-head .breadcrumb .sep { color: var(--txt-low); font-family: var(--mono); letter-spacing: 0; }
+.live-seq-head .breadcrumb .cur { color: var(--txt-hi); font-weight: 700; }
 .live-seq-head .seq-steps { display: flex; gap: 4px; margin-left: auto; }
 .live-seq-head.grow { flex: 1; border-right: none; }
 /* When seq-head sits inside the live status bar, suppress its standalone styling */
@@ -2777,8 +2778,10 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <!-- Legacy compat spans (hidden, referenced by Block 2) -->
     <span id="vw-track-badges-topbar" style="display:none;"></span>
     <!-- Sequence crumb (grows) — hidden in camera mode -->
-    <div class="vw-cell grow" id="vw-seq-grow-cell">
-      <span id="vw-seq-crumb" style="color:var(--txt-mid);font-size:11px;">—</span>
+    <div class="vw-cell grow vw-cam-crumb" id="vw-seq-grow-cell" style="border-right:none;max-width:none;">
+      <span class="vw-cam-crumb-pl" id="vw-seq-pl-crumb">—</span>
+      <span class="vw-cam-crumb-arr">›</span>
+      <span class="vw-cam-crumb-sq" id="vw-seq-crumb">—</span>
     </div>
     <!-- Unified visibility button — populated by buildTrackPills() for all roles -->
     <div id="vw-vis-cell" style="display:none;align-items:stretch;height:100%;flex-shrink:0;"></div>
@@ -3550,8 +3553,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <!-- Sequence/playlist header -->
       <div class="live-seq-head grow" id="live-seq-head">
         <div class="breadcrumb">
-          <span id="live-playlist-crumb" onclick="sbOpen('playlists')" style="color:var(--text3);cursor:pointer;" title="Switch playlist">—</span>
-          <span style="margin:0 6px;color:var(--text4);">›</span>
+          <span id="live-playlist-crumb" onclick="sbOpen('playlists')" style="cursor:pointer;" title="Switch playlist">—</span>
+          <span class="sep">›</span>
           <span id="live-seq-crumb" class="cur">—</span>
         </div>
         <!-- Hidden compat -->
@@ -6161,10 +6164,21 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
     _updateVwRailNotes(songs,liveIdx);
   }
 
-  // ── Topbar: TC pip + seq crumb ──
+  // ── Topbar: TC pip + playlist › sequence crumb (all viewer modes) ──
   if(window._updateViewerStatus) _updateViewerStatus();
-  const sc=_e('vw-seq-crumb');
-  if(sc){const liveSongId=curIdx>=0?allCues[curIdx]?.songId:null;const ls=liveSongId?state.songs.find(s=>s.id===liveSongId):null;sc.textContent=ls?ls.name:'—';}
+  {
+    const liveSongId=curIdx>=0?allCues[curIdx]?.songId:null;
+    const ls=liveSongId?state.songs.find(s=>s.id===liveSongId):null;
+    const liveName=ls?ls.name:'—';
+    const pl=window.getActivePlaylist?getActivePlaylist():null;
+    const plName=pl?pl.name:'—';
+    // Lone seq-grow crumb (full viewers)
+    const sc=_e('vw-seq-crumb'); if(sc)sc.textContent=liveName;
+    const scPl=_e('vw-seq-pl-crumb'); if(scPl)scPl.textContent=plName;
+    // Camera breadcrumb (cam-viewer + track-viewer) — track the live sequence, not the seed
+    const cSq=_e('vw-cam-crumb-sq'); if(cSq)cSq.textContent=liveName;
+    const cPl=_e('vw-cam-crumb-pl'); if(cPl)cPl.textContent=plName;
+  }
 }
 
 /* ── Camera Cockpit updater ── */
@@ -6373,11 +6387,14 @@ function _updateCamCockpit(frames){
     if(sub){const cams=new Set(upAll.map(c=>c.cameraId)).size;sub.textContent=upAll.length?upAll.length+' cut'+(upAll.length!==1?'s':'')+(cams>1?' across '+cams+' cams':''):''; }
     const toggleCount=_e('cam-all-toggle-count');if(toggleCount&&sub)toggleCount.textContent=sub.textContent;
   }
-  // ── Topbar: camera breadcrumb (sequence crumb) ──
+  // ── Topbar: camera breadcrumb (playlist › sequence) ──
   const liveCue=myCurCue||myNextCue;
   const liveSong=liveCue?state.songs.find(s=>s.id===liveCue.songId):null;
   const crumbSq=_e('vw-cam-crumb-sq');
   if(crumbSq)crumbSq.textContent=liveSong?liveSong.name:'—';
+  const crumbPl=_e('vw-cam-crumb-pl');
+  const camPl=window.getActivePlaylist?getActivePlaylist():null;
+  if(crumbPl)crumbPl.textContent=camPl?camPl.name:'—';
   // also keep hidden vw-seq-crumb in sync (Block 2 compat)
   const sc=_e('vw-seq-crumb');
   if(sc)sc.textContent=liveSong?liveSong.name:'—';
