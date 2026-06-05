@@ -1188,7 +1188,7 @@ body.mode-live #edit-mode-banner { display: none; }
 .cam-hero-cd-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--txt-low); margin-top:5px; }
 .cam-hero-bar { height:4px; background:var(--hair2); overflow:hidden; }
 .cam-hero-bar-fill { height:100%; background:var(--amber); transition:width .15s linear; }
-.cam-hero.oncam .cam-hero-bar-fill { background:var(--amber); }
+.cam-hero.oncam .cam-hero-bar-fill { background:var(--red); }
 .cam-hero.urgent .cam-hero-bar-fill { background:var(--red); }
 .cam-hero.warn:not(.oncam) .cam-hero-bar { height:6px; }
 .cam-hero.urgent:not(.oncam) .cam-hero-bar { height:6px; }
@@ -1198,8 +1198,7 @@ body.mode-live #edit-mode-banner { display: none; }
 .cam-hero-timer-cutin { text-align:right; }
 .cam-hero-timer-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--txt-low); }
 .cam-hero-timer-val { font-family:var(--mono); font-size:clamp(40px,10vw,72px); font-weight:700; color:var(--txt-hi); line-height:1; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
-.cam-hero.oncam .cam-hero-timer-cutin .cam-hero-timer-val { color:var(--amber); }
-.cam-hero.oncam.urgent .cam-hero-timer-cutin .cam-hero-timer-val { color:var(--red); }
+.cam-hero.oncam .cam-hero-timer-cutin .cam-hero-timer-val { color:var(--red); }
 .cam-hero.warn:not(.oncam) .cam-hero-timer-cutin .cam-hero-timer-val { color:var(--amber); }
 .cam-hero.urgent:not(.oncam) .cam-hero-timer-cutin .cam-hero-timer-val { color:var(--red); }
 /* Split panel */
@@ -6286,8 +6285,7 @@ function _updateCamCockpit(frames){
       const endF=nextAnyCue?nextAnyCue._f:myCurCue._f+fps*600;
       const remF=Math.max(0,endF-frames);
       const remSec=remF/fps;
-      // Amber bar while on air; turns red (urgent) in final 10s before cut
-      hero.className='cam-hero oncam'+(remSec<=10?' urgent':'');
+      hero.className='cam-hero oncam';
       const rm=Math.floor(remSec/60),rs=Math.floor(remSec%60);
       const cutTxt=remF>0?(rm>0?rm+':'+String(rs).padStart(2,'0'):'0:'+String(rs).padStart(2,'0')):'0:00';
       const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=cutTxt;
