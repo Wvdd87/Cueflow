@@ -1245,6 +1245,16 @@ body.mode-live #edit-mode-banner { display: none; }
 .cam-live-row-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--red); flex-shrink:0; margin-left:auto; }
 @keyframes livePulse { 0%,100%{opacity:1}50%{opacity:.35} }
 
+/* ── Waiting-for-go-live overlay (viewer/editor live mode, no incoming timecode) ── */
+#vw-waiting { display:none; position:absolute; left:0; right:0; bottom:0; top:60px; z-index:20; align-items:center; justify-content:center; background:var(--bg); padding:24px; }
+#vw-waiting.show { display:flex; }
+.vw-waiting-card { display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px; max-width:420px; }
+.vw-waiting-pip { width:14px; height:14px; border-radius:50%; background:var(--amber); animation:vwWaitPulse 1.6s ease-out infinite; }
+@keyframes vwWaitPulse { 0%{box-shadow:0 0 0 0 rgba(240,168,56,.45);} 70%{box-shadow:0 0 0 16px rgba(240,168,56,0);} 100%{box-shadow:0 0 0 0 rgba(240,168,56,0);} }
+.vw-waiting-ttl { font-family:var(--cond); font-size:13px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--amber); }
+.vw-waiting-show { font-family:var(--cond); font-size:22px; font-weight:700; letter-spacing:.02em; color:var(--txt-hi); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+.vw-waiting-sub { font-family:var(--sans); font-size:12px; line-height:1.55; color:var(--txt-low); max-width:340px; }
+
 /* ── Camera view: topbar cells ── */
 .vw-cam-status { display:none; align-items:center; gap:6px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); flex-shrink:0; white-space:nowrap; }
 .vw-cam-crumb { display:none; align-items:center; gap:8px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; flex-shrink:0; min-width:0; max-width:260px; overflow:hidden; }
@@ -2797,6 +2807,17 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 
   <!-- 4px mode banner -->
   <div class="live-mode-banner"></div>
+
+  <!-- Waiting-for-go-live overlay: shown when the operator hasn't started this show
+       (no timecode arriving). Editing/notes stay reachable via the topbar above. -->
+  <div id="vw-waiting">
+    <div class="vw-waiting-card">
+      <div class="vw-waiting-pip"></div>
+      <div class="vw-waiting-ttl">Waiting for go&#8209;live</div>
+      <div class="vw-waiting-show" id="vw-waiting-show">—</div>
+      <div class="vw-waiting-sub">The operator hasn’t started this show yet. The live view appears automatically the moment timecode starts — meanwhile you can keep working in Edit.</div>
+    </div>
+  </div>
 
   <!-- ── Body: cockpit layout ── -->
   <div class="live-body">
@@ -15838,6 +15859,43 @@ function _onProjSyncBroadcast(msg){
   _fetchAndApplyRemote();
 }
 
+/* ── Active selection (playlist / sequence) instant sync ──────────────────
+   The full-project push is debounced and postgres_changes-backed; that's too slow
+   for "owner switches playlist → everyone follows now". So whenever the active
+   selection changes we fire a tiny broadcast that viewers apply directly, with no
+   Supabase round-trip. While live, the per-frame TC packet already carries
+   activePlaylistId; this covers the case where TC is stopped. */
+function _cfBroadcastActiveSel(){
+  if(!CF.showId || !state) return;
+  var pid = state.activePlaylistId || null;
+  var sid = state.activeSongId || null;
+  if(pid === CF._lastSelBcastPl && sid === CF._lastSelBcastSong) return; /* unchanged — stay quiet */
+  CF._lastSelBcastPl = pid; CF._lastSelBcastSong = sid;
+  netSend('active_sel', {activePlaylistId: pid, activeSongId: sid});
+}
+CF._broadcastActiveSel = _cfBroadcastActiveSel;
+
+/* Viewer side: follow the owner's active PLAYLIST immediately. We intentionally do
+   not yank the follower's open sequence to the owner's — only the playlist drives
+   followers; the sequence is just kept coherent with the new playlist. */
+function _onActiveSelBroadcast(msg){
+  var p = (msg && msg.payload) || {};
+  if(!p.activePlaylistId) return;
+  if(state.activePlaylistId === p.activePlaylistId) return; /* sequence-only changes don't move followers */
+  state.activePlaylistId = p.activePlaylistId;
+  /* Keep the open sequence valid for the new playlist (reset only if it's no longer in it). */
+  var aplSongs = window.getActivePlaylistSongs ? getActivePlaylistSongs() : (state.songs||[]);
+  if(!state.activeSongId || !aplSongs.find(function(s){return s.id===state.activeSongId;}))
+    state.activeSongId = aplSongs[0] ? aplSongs[0].id : null;
+  if(window.renderSongList) renderSongList();
+  if(window.renderCueList) renderCueList();
+  if(window.redrawActive) redrawActive();
+  if(window._sbPanel==='seqs' && window._sbRender) _sbRender('seqs');
+  if(window._sbPanel==='playlists' && window._sbRender) _sbRender('playlists');
+  var meScreen=document.getElementById('me-screen');
+  if(meScreen && meScreen.style.display!=='none' && window.renderMobileEditScreen) renderMobileEditScreen();
+}
+
 function _onFlagBroadcast(msg){
   var p=msg.payload||{};
   if(!p.cueId) return;
@@ -16029,6 +16087,7 @@ function openTcChan(){
     .channel('tc:'+CF.showId, {config:{broadcast:{self:false}}})
     .on('broadcast',{event:'flag'},_onFlagBroadcast)
     .on('broadcast',{event:'proj_sync'},_onProjSyncBroadcast)
+    .on('broadcast',{event:'active_sel'},_onActiveSelBroadcast)
     .subscribe(function(status){
       CF._tcReady = (status === 'SUBSCRIBED');
       console.log('[CF] Owner TC channel:', status);
@@ -16104,6 +16163,35 @@ function _updateViewerStatus(){
   set('cf-v-dot','vw-tc-lock');   /* viewer cockpit topbar */
   set('cf-tc-pip','cf-tc-lbl');   /* TC-only screen */
   set('cn-status-pip','cn-status-lbl'); /* camera-notes screen */
+
+  /* ── Waiting-for-go-live overlay ──────────────────────────────────────────
+     A non-owner is on the live viewer screen, the transport is up, but no timecode
+     has ever arrived for this show — i.e. the operator hasn't started it (or has a
+     different project open). Show a clear "waiting" panel instead of a dead
+     waterfall. The topbar (Edit / Notes) stays above it, so editing is reachable.
+     Self-manages a 1s heartbeat so the panel still appears while fully idle. */
+  if(!CF.isOwner && !CF._vwHeartbeat){
+    CF._vwHeartbeat = setInterval(function(){ if(window._updateViewerStatus) _updateViewerStatus(); }, 1000);
+  }
+  var ready = !!(CF._viewerTcSubOk || CF._lanJoined);
+  if(ready && !CF._tcSubAt) CF._tcSubAt = Date.now();
+  if(!ready) CF._tcSubAt = 0;
+  var ov = document.getElementById('vw-waiting');
+  if(ov){
+    var vs = document.getElementById('cf-viewer-screen');
+    var vsVisible = !!(vs && vs.style.display && vs.style.display !== 'none');
+    var graceOver = (Date.now() - (CF._tcSubAt || 0)) > 2000; /* avoid a flash on fresh join */
+    var waiting = !CF.isOwner && vsVisible && !hasClock && !receiving && ready && graceOver;
+    if(waiting){
+      var tb = vs.querySelector('.vw-topbar'), bn = vs.querySelector('.live-mode-banner');
+      ov.style.top = ((tb?tb.offsetHeight:56) + (bn?bn.offsetHeight:0)) + 'px';
+      var sn = document.getElementById('vw-waiting-show');
+      if(sn) sn.textContent = (state && state.name) ? state.name : '';
+      ov.classList.add('show');
+    } else {
+      ov.classList.remove('show');
+    }
+  }
 }
 window._updateViewerStatus = _updateViewerStatus; /* expose for Block 1 */
 
@@ -16223,6 +16311,7 @@ function onRealtimeMsg(event, payload){
   /* Over LAN, project data syncs via full 'snapshot' messages, so the cloud
      proj_sync re-fetch (which would hit Supabase) is skipped. */
   else if(event==='proj_sync'){ if(CF._netMode!=='lan') _onProjSyncBroadcast({payload:payload||{}}); }
+  else if(event==='active_sel'){ _onActiveSelBroadcast({payload:payload||{}}); }
 }
 CF._onRealtimeMsg = onRealtimeMsg;
 
@@ -16237,6 +16326,7 @@ function subscribeTc(){
     .on('broadcast',{event:'tc'}, function(msg){ _applyTcMessage(msg.payload||{}); })
     .on('broadcast',{event:'flag'},_onFlagBroadcast)
     .on('broadcast',{event:'proj_sync'},_onProjSyncBroadcast)
+    .on('broadcast',{event:'active_sel'},_onActiveSelBroadcast)
     .subscribe(function(status, err){
       console.log('[CF] TC channel status:', status, err||'');
       if(status === 'CHANNEL_ERROR'){
@@ -16444,6 +16534,8 @@ function ownerBoot(){
     /* Cache + dirty marker must agree with the loaded project. If state isn't the
        session show (mid-boot/transition), don't mark dirty or it could push wrong content. */
     if(state.projectId!==CF.showId) return;
+    /* Instant: tell viewers the active playlist/sequence right away (no debounce). */
+    _cfBroadcastActiveSel();
     CF.dirty=true;
     CF._lastEditAt=Date.now();
     try{ localStorage.setItem(DIRTY_KEY, JSON.stringify({showId:CF.showId, dirtyAt:CF._lastEditAt})); }catch(e){}
@@ -16931,7 +17023,9 @@ function showViewerScreen(show){
       if(!_isEditorRole) state.cameraTrackVisible=false;
     }
     if(window.redrawActive) redrawActive();
+    _updateViewerStatus(); /* evaluate waiting-for-go-live overlay once layout settles */
   },400);
+  _updateViewerStatus(); /* and immediately, so the panel doesn't lag the screen */
 }
 
 /* ── Viewer description edit view (legacy — no-op in cockpit layout) ─────────────────────────────── */
@@ -17329,6 +17423,7 @@ function _editorEnterFollowMode(){
   state.appMode='live';
   if(window.sbClose) sbClose();
   if(window.redrawActive) redrawActive();
+  _updateViewerStatus(); /* evaluate waiting-for-go-live overlay immediately */
 }
 
 function _editorGoOnline(){
@@ -17339,6 +17434,7 @@ function _editorGoOnline(){
   if(notesBtn) notesBtn.style.display='none';
   var backBtn=document.getElementById('editor-back-btn');
   if(backBtn) backBtn.style.display='flex';
+  _updateViewerStatus(); /* evaluate waiting-for-go-live overlay immediately */
 }
 window._editorGoOnline=_editorGoOnline;
 window._editorEnterEditMode=_editorEnterEditMode;
@@ -17431,6 +17527,8 @@ function showEditorApp(show){
   var _origP=window.persist;
   window.persist=function(){
     _origP.call(this);
+    /* Instant: propagate active playlist/sequence to viewers without waiting for push. */
+    _cfBroadcastActiveSel();
     clearTimeout(CF._editorPushTimer);
     CF._editorPushTimer=setTimeout(function(){
       pushProject(function(){
