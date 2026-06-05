@@ -702,6 +702,17 @@ body.mode-live #edit-mode-banner { display: none; }
 .batch-del-btn { padding: 0 10px; height: 28px; background: var(--red-bg); border: 1px solid rgba(255,40,72,.35); color: var(--red); font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; white-space: nowrap; transition: background .1s, border-color .1s; flex-shrink: 0; }
 .batch-del-btn:hover { background: rgba(255,40,72,.15); border-color: var(--red); }
 .batch-del-btn.confirming { background: var(--red); color: #fff; border-color: var(--red); }
+.batch-nudge-group { display:flex; align-items:center; gap:3px; flex-shrink:0; }
+.batch-nudge-sign { width:26px; height:26px; border:1px solid var(--hair2); background:none; color:var(--txt-mid); font-family:var(--mono); font-size:15px; font-weight:700; line-height:1; cursor:pointer; flex-shrink:0; padding:0; display:flex; align-items:center; justify-content:center; transition:color .1s, border-color .1s; }
+.batch-nudge-sign:hover { color:var(--txt-hi); }
+.batch-nudge-sign.minus { color:var(--primary); border-color:var(--primary-dim); }
+.batch-nudge-inp { width:100px; height:26px; background:var(--surface3); border:1px solid var(--hair2); color:var(--txt); font-family:var(--mono); font-size:11px; font-weight:600; padding:0 6px; outline:none; letter-spacing:.05em; text-align:center; flex-shrink:0; }
+.batch-nudge-inp:focus { border-color:var(--primary); }
+.batch-nudge-btn { padding:0 10px; height:26px; background:none; border:1px solid var(--hair2); color:var(--txt-mid); font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; cursor:pointer; white-space:nowrap; transition:color .1s, border-color .1s; flex-shrink:0; }
+.batch-nudge-btn:hover { color:var(--txt-hi); border-color:var(--hair2); }
+.batch-nudge-vsep { width:1px; height:20px; background:var(--hair2); flex-shrink:0; margin:0 2px; }
+@keyframes nudge-flash { 0%,100%{background:transparent} 25%{background:var(--primary-bg)} }
+.cue-row.nudge-flash { animation: nudge-flash .8s ease; }
 
 /* ═══════════════════════════════════════════
    CUE LIST TABLE
@@ -3319,6 +3330,12 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
           <span class="batch-count" id="batch-count">0 selected</span>
           <button class="batch-all-btn" onclick="batchSelectAll()">All</button>
           <div class="batch-sep"></div>
+          <div class="batch-nudge-group">
+            <button class="batch-nudge-sign" id="batch-nudge-sign" onclick="toggleNudgeSign()" title="Forward (+) / Backward (−)">+</button>
+            <input class="batch-nudge-inp" id="batch-nudge-inp" type="text" value="00:00:08:00" maxlength="11" spellcheck="false" autocomplete="off" title="Time offset HH:MM:SS:FF" onkeydown="if(event.key==='Enter')batchNudge()">
+            <button class="batch-nudge-btn" onclick="batchNudge()">Nudge</button>
+          </div>
+          <div class="batch-nudge-vsep"></div>
           <select class="batch-track-sel" id="batch-track-sel" onchange="batchMoveToTrack(this.value)"><option value="">Move to…</option></select>
           <button class="batch-del-btn" id="batch-del-btn" onclick="batchDeleteStage()">Delete</button>
           <button class="batch-cancel-btn" onclick="toggleBatchMode()" title="Exit selection" aria-label="Cancel selection"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -4899,6 +4916,95 @@ function batchMoveToTrack(targetId){
   persist();renderCueList();if(ETL.visible)renderEditTimeline();
   document.getElementById('batch-track-sel').value='';
   showUndoToast('Cues moved');
+}
+
+function toggleNudgeSign(){
+  const btn=document.getElementById('batch-nudge-sign');if(!btn)return;
+  const minus=btn.classList.toggle('minus');
+  btn.textContent=minus?'−':'+';
+}
+
+function batchNudge(){
+  if(!state.selectedCueIds.size)return;
+  const inp=document.getElementById('batch-nudge-inp');
+  const signBtn=document.getElementById('batch-nudge-sign');
+  if(!inp)return;
+  const raw=inp.value.trim();
+  const offsetF=tcF(raw);
+  if(!offsetF){
+    inp.style.borderColor='var(--red)';
+    setTimeout(function(){inp.style.borderColor='';},1200);
+    return;
+  }
+  const isMinus=signBtn&&signBtn.classList.contains('minus');
+  const delta=isMinus?-offsetF:offsetF;
+
+  // Collect selected cues
+  const affected=[];
+  state.songs.forEach(function(song){
+    song.cues.forEach(function(cue){
+      if(state.selectedCueIds.has(cue.id))affected.push({cue:cue,song:song});
+    });
+  });
+  if(!affected.length)return;
+
+  // Edge case: negative TC
+  const negCues=affected.filter(function(x){return tcF(x.cue.tc)+delta<0;});
+  if(negCues.length===affected.length){
+    openConfirmModal('All selected cues would move to a negative timecode. Nudge cancelled.',null,null,'OK','primary','Cannot Nudge');
+    return;
+  }
+  if(negCues.length){
+    openConfirmModal(
+      negCues.length+' cue'+(negCues.length>1?'s':'')+' would move before 00:00:00:00 and will be skipped. Apply nudge to the remaining '+(affected.length-negCues.length)+'?',
+      function(){_applyNudge(affected,delta,true);},null,'Apply','primary','Nudge Warning');
+    return;
+  }
+
+  // Edge case: sequence boundary crossing
+  const plSongs=window.getActivePlaylistSongs?getActivePlaylistSongs():[];
+  const boundary=[];
+  affected.forEach(function(x){
+    const newF=tcF(x.cue.tc)+delta;
+    const songIdx=plSongs.findIndex(function(s){return s.id===x.song.id;});
+    const nextSong=songIdx>=0?plSongs[songIdx+1]:null;
+    if(nextSong&&newF>=tcF(nextSong.startTc))boundary.push(x.cue.name||x.cue.tc);
+  });
+  if(boundary.length){
+    const preview=boundary.slice(0,3).map(function(n){return '"'+n+'"';}).join(', ')+(boundary.length>3?' +more':'');
+    openConfirmModal(
+      'Cue'+(boundary.length>1?'s':'')+' would move past a sequence boundary: '+preview+'. Apply anyway?',
+      function(){_applyNudge(affected,delta,false);},null,'Apply anyway','primary','Sequence Boundary');
+    return;
+  }
+
+  _applyNudge(affected,delta,false);
+}
+
+function _applyNudge(affected,delta,skipNeg){
+  snapshot();
+  var applied=0,skipped=0;
+  affected.forEach(function(x){
+    var newF=tcF(x.cue.tc)+delta;
+    if(skipNeg&&newF<0){skipped++;return;}
+    x.cue.tc=fTC(Math.max(0,newF));
+    applied++;
+  });
+  // Re-sort each affected song's cues by TC
+  var affectedSongIds=new Set(affected.map(function(x){return x.song.id;}));
+  state.songs.forEach(function(s){
+    if(affectedSongIds.has(s.id))
+      s.cues.sort(function(a,b){return tcF(a.tc)-tcF(b.tc);});
+  });
+  persist();renderCueList();redrawActive();
+  if(ETL.visible)renderEditTimeline();
+  // Flash updated rows
+  state.selectedCueIds.forEach(function(id){
+    var row=document.querySelector('.cue-row[data-cid="'+id+'"]');
+    if(row){row.classList.add('nudge-flash');setTimeout(function(){row.classList.remove('nudge-flash');},900);}
+  });
+  var dir=delta>=0?'+':'−';
+  showUndoToast('Nudged '+applied+' cue'+(applied!==1?'s':'')+' by '+dir+fTC(Math.abs(delta))+(skipped?' ('+skipped+' skipped)':''));
 }
 
 function _refreshBatchTrackSel(){
