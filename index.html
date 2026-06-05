@@ -1187,18 +1187,21 @@ body.mode-live #edit-mode-banner { display: none; }
 .cam-hero.oncam .cam-hero-cd-val { color:var(--red); }
 .cam-hero-cd-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--txt-low); margin-top:5px; }
 .cam-hero-bar { height:4px; background:var(--hair2); overflow:hidden; }
-.cam-hero-bar-fill { height:100%; background:var(--txt-hi); transition:width .15s linear; }
-.cam-hero.oncam .cam-hero-bar-fill { background:var(--red); }
+.cam-hero-bar-fill { height:100%; background:var(--amber); transition:width .15s linear; }
+.cam-hero.oncam .cam-hero-bar-fill { background:var(--amber); }
+.cam-hero.urgent .cam-hero-bar-fill { background:var(--red); }
 .cam-hero.warn:not(.oncam) .cam-hero-bar { height:6px; }
-.cam-hero.warn:not(.oncam) .cam-hero-bar-fill { background:var(--primary); box-shadow:0 0 8px var(--primary-dim); }
+.cam-hero.urgent:not(.oncam) .cam-hero-bar { height:6px; }
 /* Hero CUT IN timer row — hidden on desktop, shown at ≤960px */
 .cam-hero-timers { display:none; justify-content:flex-end; align-items:flex-end; padding:14px 0 18px; }
 .cam-hero-timer { display:flex; flex-direction:column; gap:3px; }
 .cam-hero-timer-cutin { text-align:right; }
 .cam-hero-timer-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--txt-low); }
 .cam-hero-timer-val { font-family:var(--mono); font-size:clamp(40px,10vw,72px); font-weight:700; color:var(--txt-hi); line-height:1; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
-.cam-hero.oncam .cam-hero-timer-cutin .cam-hero-timer-val { color:var(--red); }
-.cam-hero.warn:not(.oncam) .cam-hero-timer-cutin .cam-hero-timer-val { color:var(--primary); }
+.cam-hero.oncam .cam-hero-timer-cutin .cam-hero-timer-val { color:var(--amber); }
+.cam-hero.oncam.urgent .cam-hero-timer-cutin .cam-hero-timer-val { color:var(--red); }
+.cam-hero.warn:not(.oncam) .cam-hero-timer-cutin .cam-hero-timer-val { color:var(--amber); }
+.cam-hero.urgent:not(.oncam) .cam-hero-timer-cutin .cam-hero-timer-val { color:var(--red); }
 /* Split panel */
 .cam-split { flex:1; display:flex; min-height:0; overflow:hidden; }
 .cam-panel { flex:1; display:flex; flex-direction:column; overflow:hidden; border-right:1px solid var(--hair); }
@@ -6099,7 +6102,7 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
     if(nhHero)nhHero.classList.toggle('warn',isWarn);
     if(vwFlag&&_ckCanFlagV){vwFlag.style.display='';vwFlag.dataset.cid=nextCue.id;vwFlag.classList.toggle('on',!!nextCue.flagged);}
     const bf=_e('vw-next-bar-fill');
-    if(bf){const FILL_SEC=Math.max(WARN_SEC*3,30);const fp=cdSec<=FILL_SEC?Math.max(0,Math.min(100,(1-cdSec/FILL_SEC)*100)):0;bf.style.width=fp.toFixed(1)+'%';}
+    if(bf){const FILL_SEC=20;const fp=cdSec<=FILL_SEC?Math.max(0,Math.min(100,(1-cdSec/FILL_SEC)*100)):0;bf.style.width=fp.toFixed(1)+'%';}
   } else {
     const e=_e('vw-next-name');if(e)e.textContent='—';
     const b=_e('vw-next-badge');if(b)b.innerHTML='';
@@ -6255,8 +6258,8 @@ function _updateCamCockpit(frames){
       // Another camera has taken over — this camera is now waiting for its next shot.
       const cdF=myNextCue?Math.max(0,myNextCue._f-frames):0;
       const cdSec=cdF/fps;
-      const isWarn=cdSec<=WARN_SEC;
-      hero.className='cam-hero'+(isWarn?' warn':'');
+      const isUrgent=cdSec<=10,isWarn=cdSec<=20;
+      hero.className='cam-hero'+(isUrgent?' urgent':isWarn?' warn':'');
       const pip=_e('cam-hero-pip');if(pip)pip.style.display='none';
       const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent=myNextCue?'NEXT':'NO UPCOMING SHOT';
       const hb=_e('cam-hero-badge');
@@ -6267,13 +6270,12 @@ function _updateCamCockpit(frames){
       const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=cdTxt;
       const cl=_e('cam-hero-cd-lbl');if(cl)cl.textContent='UNTIL CUE';
       const bf=_e('cam-hero-bar-fill');
-      if(bf)bf.style.width=myNextCue&&isWarn?Math.min(100,(1-cdSec/WARN_SEC)*100).toFixed(1)+'%':'0%';
+      if(bf)bf.style.width=myNextCue&&isWarn?Math.min(100,(1-cdSec/20)*100).toFixed(1)+'%':'0%';
       // Timers row (tablet/phone)
       const cv2=_e('cam-hero-cutin-val');if(cv2)cv2.textContent=cdTxt;
       const cl2=_e('cam-hero-cutin-lbl');if(cl2)cl2.textContent='UNTIL CUE';
     } else {
       // ON CAMERA: countdown ends when the next ANY-camera cue fires (not just mine).
-      hero.className='cam-hero oncam';
       const pip=_e('cam-hero-pip');if(pip)pip.style.display='';
       const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent='ON AIR';
       const hb=_e('cam-hero-badge');
@@ -6284,11 +6286,13 @@ function _updateCamCockpit(frames){
       const endF=nextAnyCue?nextAnyCue._f:myCurCue._f+fps*600;
       const remF=Math.max(0,endF-frames);
       const remSec=remF/fps;
+      // Amber bar while on air; turns red (urgent) in final 10s before cut
+      hero.className='cam-hero oncam'+(remSec<=10?' urgent':'');
       const rm=Math.floor(remSec/60),rs=Math.floor(remSec%60);
       const cutTxt=remF>0?(rm>0?rm+':'+String(rs).padStart(2,'0'):'0:'+String(rs).padStart(2,'0')):'0:00';
       const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=cutTxt;
       const cl=_e('cam-hero-cd-lbl');if(cl)cl.textContent='UNTIL CUT';
-      // Red progress bar over full duration (from this cue to next cut)
+      // Progress bar over full duration (amber → red in last 10s)
       const durF=endF-myCurCue._f;
       const prog=durF>0?Math.min(100,((frames-myCurCue._f)/durF)*100):100;
       const bf=_e('cam-hero-bar-fill');if(bf)bf.style.width=prog.toFixed(1)+'%';
@@ -6297,10 +6301,10 @@ function _updateCamCockpit(frames){
       const cl2=_e('cam-hero-cutin-lbl');if(cl2)cl2.textContent='CUT IN';
     }
   } else if(myNextCue){
-    // NEXT: white bar within 10s
+    // NEXT: 20s progress bar — amber 20→10s, red 10→0s
     const cdF=Math.max(0,myNextCue._f-frames),cdSec=cdF/fps;
-    const isWarn=cdSec<=WARN_SEC;
-    hero.className='cam-hero'+(isWarn?' warn':'');
+    const isUrgent=cdSec<=10,isWarn=cdSec<=20;
+    hero.className='cam-hero'+(isUrgent?' urgent':isWarn?' warn':'');
     const pip=_e('cam-hero-pip');if(pip)pip.style.display='none';
     const etxt=_e('cam-hero-eyebrow-txt');if(etxt)etxt.textContent='NEXT';
     const hb=_e('cam-hero-badge');
@@ -6311,7 +6315,7 @@ function _updateCamCockpit(frames){
     const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=cdTxt;
     const cl=_e('cam-hero-cd-lbl');if(cl)cl.textContent='UNTIL CUE';
     const bf=_e('cam-hero-bar-fill');
-    if(bf)bf.style.width=isWarn?Math.min(100,(1-cdSec/WARN_SEC)*100).toFixed(1)+'%':'0%';
+    if(bf)bf.style.width=isWarn?Math.min(100,(1-cdSec/20)*100).toFixed(1)+'%':'0%';
     // Timers row (tablet/phone)
     const cv2=_e('cam-hero-cutin-val');if(cv2)cv2.textContent=cdTxt;
     const cl2=_e('cam-hero-cutin-lbl');if(cl2)cl2.textContent='UNTIL CUE';
@@ -6338,7 +6342,7 @@ function _updateCamCockpit(frames){
     if(upcoming.length){
       upcoming.forEach((cue,i)=>{
         const cdF=Math.max(0,cue._f-frames),cdSec=cdF/fps;
-        const isWarn=cdSec<=WARN_SEC,isUrgent=cdSec<=5;
+        const isWarn=cdSec<=WARN_SEC,isUrgent=cdSec<=10;
         const cdCls='cam-shot-cd'+(isUrgent?' urgent':isWarn?' warn':'');
         const showUrg=cdSec<=URGENCY_SEC;
         const div=document.createElement('div');
@@ -6388,7 +6392,7 @@ function _updateCamCockpit(frames){
     if(upAll.length){
       upAll.forEach((cue,i)=>{
         const cdF=Math.max(0,cue._f-frames),cdSec=cdF/fps;
-        const isWarn=cdSec<=WARN_SEC,isUrgent=cdSec<=5;
+        const isWarn=cdSec<=WARN_SEC,isUrgent=cdSec<=10;
         const cdCls='cam-shot-cd'+(isUrgent?' urgent':isWarn?' warn':'');
         const c=getCameraById(cue.cameraId);
         const h=getCameraColor(c?.colorIdx||0);
