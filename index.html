@@ -372,6 +372,7 @@ body.mode-live #edit-mode-banner { display: none; }
 .vw-tc-val { font-size: 14px; letter-spacing: -.01em; }
 .vw-tc-src { font-size: 10px; font-weight: 700; color: var(--txt-mid); font-family: var(--cond); letter-spacing: .1em; }
 .vw-status-lbl { font-size: 10px; font-family: var(--cond); font-weight: 700; letter-spacing: .08em; }
+#cf-v-dot { display:none; }
 /* Setlist count badge */
 .vw-setlist-count { font-family: var(--mono); font-size: 10px; color: var(--txt-low); margin-left: auto; }
 
@@ -1472,16 +1473,27 @@ body.mode-live #edit-mode-banner { display: none; }
 
 /* ── Viewer topbar: compact camera layout on mobile ── */
 @media (max-width:640px){
+  /* Allow topbar to grow if cells wrap to two lines */
+  .vw-topbar { height:auto; min-height:56px; }
   /* Tighten all cells */
   .vw-cell { padding:0 10px; }
   .vw-cam-following { padding:0 10px; gap:6px; }
   /* Breadcrumb: hide playlist prefix, let it grow to fill space */
   .vw-cam-crumb { padding:0 10px; max-width:none; flex:1; min-width:0; }
   .vw-cam-crumb-pl, .vw-cam-crumb-arr { display:none; }
+  /* Sequence name: allow 2-line wrap instead of single-line ellipsis */
+  .vw-cam-crumb-sq {
+    white-space:normal; overflow:hidden;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+    line-height:1.25; text-overflow:clip;
+  }
   /* Hide "Following" text labels (cam-viewer and track-viewer) */
   .vw-cam-fol-lbl, .vw-trk-fol-lbl { display:none; }
   /* TC value redundant on phone — the cockpit shows it large below */
   #vw-tc-val-cell { display:none; }
+  /* TC status cell: compact, allow label to break across two lines */
+  #vw-tc-cell { white-space:normal; padding:6px 10px; }
+  #vw-tc-cell .vw-status-lbl { white-space:pre-line; line-height:1.25; }
   /* Notes button is already a 56px square (set in base CSS) */
 }
 #cf-cam-notes-screen { display:none; position:fixed; inset:0; z-index:9997; background:var(--bg); flex-direction:column; overflow:hidden; }
@@ -4269,6 +4281,8 @@ function saveSessionState(){
       p:state.activePlaylistId||null,
       s:state.activeSongId||null,
       v:state.visibleStreamIds?state.visibleStreamIds.slice():[],
+      c:state.cameraTrackVisible!==false,
+      k:(state.streams||[]).map(function(s){return s.id;}), /* streams known at save time → detect new ones */
       m:state.appMode||'edit'
     }));
   }catch(e){}
@@ -4331,6 +4345,12 @@ function applyProject(proj){
   const pn=state.name;
   ['edit-proj-btn','test-proj-btn'].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent=pn;el.title=pn;}});
   document.title='CueFlow — '+pn;
+  // Track/camera visibility is a per-device preference. Every applyProject (including
+  // the ones inside applyRemote and the join/refresh paths) flows through here, so this
+  // single chokepoint restores the local choice and stops hidden tracks "jumping back on"
+  // when remote project data carries a different visibility set. Self-guards on identity
+  // and skips track/camera-restricted roles (managed by their own access logic).
+  if(window._cfRestoreVisOnly) _cfRestoreVisOnly();
   resetSimToActiveSong();
   renderSongList();renderStreamsBar();renderCueList();
   redrawActive();updateStreamDots();_updateCamerasTab();_updateLiveOffsetDisplay();_updateLiveClock();
@@ -15309,12 +15329,15 @@ function snapshot(){
     playlists: JSON.parse(JSON.stringify(state.playlists||[])),
     songs: JSON.parse(JSON.stringify(state.songs)),
     streams: JSON.parse(JSON.stringify(state.streams)),
-    visibleStreamIds: state.visibleStreamIds.slice(),
+    /* Track + camera visibility are intentionally NOT pushed: they are per-device,
+       per-user UI preferences kept in each client's own session state (cf_ss_* in
+       localStorage, restored by restoreSessionState / _cfRestoreVisOnly). Including
+       them here made the owner's show/hide toggles override every editor's & viewer's
+       local choice over Realtime. Each user now controls their own visibility. */
     tcSource: state.tcSource||'midi',
     ltcDeviceId: state.ltcDeviceId||'',
     tcOffset: state.tcOffset||0,
     cameraTrack: state.cameraTrack ? JSON.parse(JSON.stringify(state.cameraTrack)) : null,
-    cameraTrackVisible: state.cameraTrackVisible!==false,
     signalLoss: state.signalLoss||'freerun',
     autoReconnect: state.autoReconnect!==false,
     openModalBeforeLive: !!state.openModalBeforeLive,
@@ -15618,13 +15641,16 @@ function restoreSessionState(){
   }
 
   /* Visible tracks — only for owners and unrestricted editors (track-viewers keep owner-assigned filter) */
-  if(saved.v && saved.v.length && (!CF.tracks||!CF.tracks.length)){
+  if(saved.v && saved.v.length && (!CF.tracks||!CF.tracks.length) && (!CF.cameraIds||!CF.cameraIds.length)){
     var _valid=(state.streams||[]).map(function(s){return s.id;});
     var _filt=saved.v.filter(function(id){return _valid.indexOf(id)!==-1;});
     if(_filt.length){
       var _cur=(state.visibleStreamIds||[]).slice().sort().join(',');
       var _nxt=_filt.slice().sort().join(',');
       if(_cur!==_nxt){ state.visibleStreamIds=_filt; changed=true; }
+    }
+    if(typeof saved.c==='boolean' && (state.cameraTrackVisible!==false)!==saved.c){
+      state.cameraTrackVisible=saved.c; changed=true;
     }
   }
 
@@ -15642,6 +15668,31 @@ function restoreSessionState(){
     if(window._restoreMode) _restoreMode(saved.m);
   }
 }
+
+/* Visibility-only restore — called from applyProject's tail (Block 1) on EVERY load so
+   the per-device track/camera visibility choice survives remote project updates without
+   touching playlist / sequence / mode (which live-following must control). Mutates state
+   in place; the caller re-renders. No-ops for restricted roles and missing identity. */
+function _cfRestoreVisOnly(){
+  if(!window.CF||!CF.showId) return;
+  if((CF.tracks&&CF.tracks.length)||(CF.cameraIds&&CF.cameraIds.length)) return; /* access-managed */
+  var userId=CF.isOwner&&authUser ? authUser.id : CF._pinHash;
+  if(!userId) return;
+  var saved;
+  try{ saved=JSON.parse(localStorage.getItem('cf_ss_'+CF.showId+'_'+userId)||'null'); }
+  catch(e){ return; }
+  if(!saved) return;
+  if(saved.v){
+    var curIds=(state.streams||[]).map(function(s){return s.id;});
+    var kept=saved.v.filter(function(id){return curIds.indexOf(id)>=0;});      /* keep still-existing hidden/shown choices */
+    var known=saved.k||saved.v;
+    var added=curIds.filter(function(id){return known.indexOf(id)<0;});         /* streams created after this user's last choice → show by default */
+    var next=kept.concat(added);
+    if(next.length) state.visibleStreamIds=next;
+  }
+  if(typeof saved.c==='boolean') state.cameraTrackVisible=saved.c;
+}
+window._cfRestoreVisOnly=_cfRestoreVisOnly;
 
 function subscribeProject(){
   if(!CF.showId) return;
@@ -15697,25 +15748,21 @@ function applyRemote(proj){
   // Preserve the selected stream (UI pick, not a visibility flag)
   if(prevStreamSel==='CAMERA'||state.streams.find(function(s){return s.id===prevStreamSel;}))
     state.activeStreamId = prevStreamSel;
-  // Track/camera visibility is a per-device UI preference — never overwrite from remote.
-  // Three cases in priority order:
+  // Track/camera visibility is a per-device, per-user preference and is NOT carried in the
+  // synced project (see snapshot()). Unrestricted roles (owner/editor/viewer) have already
+  // had their local choice restored from session by _cfRestoreVisOnly() inside applyProject.
+  // Only the access-restricted roles need their visibility forced to the assigned set here:
   if(CF.tracks&&CF.tracks.length){
-    // Crew / track-editor with restricted track list
+    // Crew / track-editor with restricted track list — clamp to allowed, keep local subset
     var _allowed=CF.tracks;
     var _kept=prevVisible?prevVisible.filter(function(id){return _allowed.indexOf(id)!==-1;}):[];
     state.visibleStreamIds=_kept.length?_kept:_allowed.slice();
-  } else if(CF.cameraIds&&CF.cameraIds.length&&(!CF.tracks||!CF.tracks.length)){
+    // Camera track is toggleable by editors — keep their local choice, don't reset from remote
+    if(typeof prevCamVis==='boolean') state.cameraTrackVisible=prevCamVis;
+  } else if(CF.cameraIds&&CF.cameraIds.length){
     // Camera-only viewer
     state.visibleStreamIds=[];
     state.cameraTrackVisible=true;
-  } else if(prevVisible){
-    // All other clients (owners, editors, regular viewers):
-    // restore local choices; auto-add newly-added streams; drop deleted ones.
-    var _remIds=(state.streams||[]).map(function(s){return s.id;});
-    var _localKept=prevVisible.filter(function(id){return _remIds.indexOf(id)>=0;});
-    var _newStreams=_remIds.filter(function(id){return prevVisible.indexOf(id)<0;});
-    state.visibleStreamIds=_localKept.concat(_newStreams);
-    state.cameraTrackVisible=prevCamVis;
   }
   var validPrev = prev && state.songs.find(function(s){return s.id===prev;});
   state.activeSongId = (validPrev ? prev : null) || (state.songs[0]&&state.songs[0].id);
@@ -16342,7 +16389,9 @@ function _updateViewerStatus(){
     if(p) p.className=pipCls;
     if(l){ l.textContent=lblTxt; l.style.color=lblColor; }
   }
-  set('cf-v-dot','vw-tc-lock');   /* viewer cockpit topbar */
+  /* Viewer topbar: no pip, break "TRANSPORT · STATE" into two lines */
+  var _vtl=document.getElementById('vw-tc-lock');
+  if(_vtl){ _vtl.textContent=lblTxt.replace(' · ','\n'); _vtl.style.color=lblColor; }
   set('cf-tc-pip','cf-tc-lbl');   /* TC-only screen */
   set('cn-status-pip','cn-status-lbl'); /* camera-notes screen */
 
@@ -17528,6 +17577,7 @@ function _buildTrackVisRows(container){
       var idx=state.visibleStreamIds.indexOf(id);
       if(idx>=0) state.visibleStreamIds.splice(idx,1);
       else state.visibleStreamIds.push(id);
+      if(window.persist) persist();
       if(window.buildTrackPills) buildTrackPills();
       var notesScr=document.getElementById('cf-cam-notes-screen');
       if(notesScr&&notesScr.style.display!=='none'&&window.renderCamNotesCues)
@@ -17549,6 +17599,7 @@ function _buildTrackVisRows(container){
       '<span class="vw-trk-modal-eye">'+(camVis?_eyeOpen():_eyeOff())+'</span>';
     camRow.addEventListener('click',function(){
       state.cameraTrackVisible=state.cameraTrackVisible===false?true:false;
+      if(window.persist) persist();
       if(window.buildTrackPills) buildTrackPills();
       if(window.updateCamTrackBar) updateCamTrackBar();
       if(window.redrawActive) redrawActive();
@@ -17676,14 +17727,17 @@ function showEditorApp(show){
   var lt=document.getElementById('live-toggle'); if(lt) lt.style.display='none';
   var goOnlineBtn=document.getElementById('editor-online-btn'); if(goOnlineBtn) goOnlineBtn.style.display='';
 
-  /* Initialise stream visibility from CF.tracks (overrides owner's saved state) */
+  /* Initialise stream visibility — this editor's OWN default, not the owner's. Visibility
+     is per-device and never synced (see snapshot()); a returning editor's saved choice is
+     reapplied by restoreSessionState() right after this. */
   if(CF.tracks&&CF.tracks.length){
     state.visibleStreamIds=CF.tracks.slice();
   } else {
     state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});
   }
-  /* Camera track: editors see it and can toggle it from the tracks panel just like a
-     normal track — applyProject already set cameraTrackVisible from saved project data */
+  /* Camera track: editors see and can toggle it. Default to visible for a fresh editor so
+     they don't inherit the owner's hide state baked into older project_data blobs. */
+  state.cameraTrackVisible=true;
 
   /* Track-restricted editors: hide PREVIEW tab (list, media, notes only) */
   if(hasTrackRestriction){

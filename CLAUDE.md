@@ -130,12 +130,15 @@ state / project_data (stored as jsonb in shows.project_data)
 ├── activeSongId, activePlaylistId
 ├── playlists[]   ← {id, name, songIds[]}
 ├── streams[]     ← tracks: {id, name, colorId}
-├── visibleStreamIds[]
 └── songs[]       ← sequences: {id, name, description, startTc, cues[], chapters[]}
     └── cues[]    ← {id, tc, name, desc, streamId}
 ```
 
 Songs not referenced in any playlist's `songIds` are orphans — `applyProject()` auto-adopts them into the first playlist on load.
+
+### Per-device visibility (NOT synced)
+
+`state.visibleStreamIds` and `state.cameraTrackVisible` are **per-device, per-user UI preferences** and are deliberately excluded from `snapshot()` (the Realtime push payload). Each client persists its own choice in `localStorage` session state (`cf_ss_<showId>_<userId>` — keys `v`, `c`, `k`) and re-applies it on every load via `_cfRestoreVisOnly()` (called at the tail of `applyProject()`) and `restoreSessionState()`. Access-restricted roles (`CF.tracks` / `CF.cameraIds`) are clamped to their assigned set in `applyRemote()` instead. **Never add these fields back to `snapshot()`** — doing so makes the owner's show/hide toggles override every editor's and viewer's local visibility over Realtime.
 
 ## Roles
 
