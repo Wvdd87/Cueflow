@@ -7439,6 +7439,15 @@ requestAnimationFrame(function _tlSmoothLoop(ts){
     if(_etlCache.rulerScroll)_etlCache.rulerScroll.style.transform=etlTfm;
     if(_etlCache.mkrScroll)_etlCache.mkrScroll.style.transform=etlTfm;
     if(_etlCache.tracksScroll)_etlCache.tracksScroll.style.transform=etlTfm;
+    if(_etlCache.mediaScroll){
+      _etlCache.mediaScroll.style.transform=etlTfm;
+      // Recenter the bounded waveform canvas once the playhead scrolls past the
+      // pre-drawn margin, so the canvas keeps covering the viewport on long scrolls.
+      if(_etlCache.mediaMarginPx&&Math.abs((etlF-(_etlCache.mediaDrawF||0))*_etlCache.pxPF)>_etlCache.mediaMarginPx*0.8){
+        const _c=document.getElementById('edit-tl'),_s=getActiveSong();
+        if(_c&&_s)_etlRebuildMediaRow(_c,_s,state.fps,ETL.zoom,ETL.zoom/state.fps,_c.clientWidth||1000,etlF);
+      }
+    }
   }
 });
 
@@ -11801,6 +11810,8 @@ function _etlUpdateActiveCue(curCueId){
 /* Rebuild the view-dependent media row (waveform/thumbnails) without touching the GPU scroll */
 function _etlRebuildMediaRow(container,song,fps,pxPS,pxPF,tlW,frames){
   const old=container.querySelector('.etl-media-row');if(old)old.remove();
+  // Drop the smooth-scroll handle so the RAF never transforms a detached layer.
+  _etlCache.mediaScroll=null;_etlCache.mediaMarginPx=0;
   // Reset to base height before adding media row (avoids height accumulation across rebuilds)
   if(_etlCache.baseHeight)container.style.height=_etlCache.baseHeight+'px';
   if(!song)return;
@@ -11812,9 +11823,12 @@ function _etlRebuildMediaRow(container,song,fps,pxPS,pxPF,tlW,frames){
   const mediaReady=am?.ready||vm?.ready;
   const durationSec=am?.ready?am.durationSec:(vm?.ready?vm.durationSec:0);
   const songStartSec=tcF(song.startTc||'01:00:00:00')/fps;
+  const songEndSec=songStartSec+durationSec;
   const mRowH=wf.visible?wf.rowH:22;
-  const startSec=frames/fps-(ETL.PH_X-ETL.LBL_W)/pxPS;
-  const endSec=startSec+(tlW-ETL.LBL_W)/pxPS;
+  const pxPF2=pxPS/fps;
+  const viewW=Math.max(100,tlW-ETL.LBL_W);
+  const viewStartSec=frames/fps-(ETL.PH_X-ETL.LBL_W)/pxPS;
+  const viewEndSec=viewStartSec+viewW/pxPS;
   const topPx=parseInt(container.style.height)||0;
   container.style.height=(topPx+mRowH)+'px';
   const mRow=document.createElement('div');
@@ -11828,38 +11842,64 @@ function _etlRebuildMediaRow(container,song,fps,pxPS,pxPF,tlW,frames){
   mTrack.className='etl-media-track';
   mTrack.style.cssText='position:relative;flex:1;height:100%;overflow:hidden;';
   if(mediaReady&&durationSec>0){
-    const barX=(songStartSec-startSec)*pxPS;
-    const barW=durationSec*pxPS;
+    // World-coordinate scroll layer: bar, thumbnails and waveform canvas are placed in
+    // timeline (world) px and the whole layer is GPU-translated every frame by the
+    // smooth-scroll RAF — exactly like the cue/ruler layers. This keeps the waveform
+    // gliding smoothly at 60fps instead of stepping at the rebuild rate.
+    const mScroll=document.createElement('div');
+    mScroll.className='etl-media-scroll';
+    mScroll.style.cssText='position:absolute;top:0;left:0;height:100%;will-change:transform;';
+    mScroll.style.transform='translateX('+((ETL.PH_X-ETL.LBL_W)-frames*pxPF2).toFixed(2)+'px)';
     const bar=document.createElement('div');
     bar.className='etl-media-bar';
-    bar.style.left=Math.max(0,barX)+'px';
-    bar.style.width=Math.max(4,barW-(barX<0?-barX:0))+'px';
+    bar.style.left=(songStartSec*pxPS).toFixed(2)+'px';
+    bar.style.width=Math.max(4,durationSec*pxPS).toFixed(2)+'px';
     if(mediaType==='video'&&vm?.thumbs?.length){
+      const thW=durationSec/vm.thumbs.length*pxPS;
       vm.thumbs.forEach(th=>{
-        const tx=(songStartSec+th.t-startSec)*pxPS;
-        if(tx<0||tx>barX+barW)return;
         const img=document.createElement('img');
         img.className='etl-media-thumb';img.src=th.dataUrl;
-        img.style.cssText=`left:${tx-Math.max(0,barX)}px;width:${durationSec/vm.thumbs.length*pxPS}px;top:0;bottom:0;`;
+        img.style.cssText=`left:${(th.t*pxPS).toFixed(2)}px;width:${thW.toFixed(2)}px;top:0;bottom:0;`;
         bar.appendChild(img);
       });
     }
-    const blbl=document.createElement('div');blbl.className='etl-media-bar-lbl';
-    blbl.textContent=mediaFile;bar.appendChild(blbl);mTrack.appendChild(bar);
+    mScroll.appendChild(bar);
     if(wf.visible){
+      // Canvas spans the visible window plus a margin each side (clamped to the audio
+      // extent), giving the GPU scroll headroom before the next recenter rebuild.
+      const _dpr=Math.min(window.devicePixelRatio||1,2); // cap at 2× for perf on 3×/4× screens
+      const marginPx=Math.round(viewW*0.5);
+      let winStartSec=Math.max(songStartSec,viewStartSec-marginPx/pxPS);
+      let winEndSec=Math.min(songEndSec,viewEndSec+marginPx/pxPS);
+      if(winEndSec<=winStartSec){winStartSec=songStartSec;winEndSec=songEndSec;}
+      // Stay within the browser's max canvas backing-store width.
+      const maxCssW=Math.floor(16000/_dpr);
+      let cssW=(winEndSec-winStartSec)*pxPS;
+      if(cssW>maxCssW){
+        const halfSec=(maxCssW/pxPS)/2,cSec=frames/fps;
+        winStartSec=Math.max(songStartSec,cSec-halfSec);
+        winEndSec=Math.min(songEndSec,cSec+halfSec);
+        cssW=(winEndSec-winStartSec)*pxPS;
+      }
+      cssW=Math.max(1,cssW);
       const canvas=document.createElement('canvas');
       canvas.className='etl-wf-canvas';
-      const _dpr=Math.min(window.devicePixelRatio||1,2); // cap at 2× for perf on 3×/4× screens
-      const _cssW=Math.max(100,tlW-ETL.LBL_W);
-      canvas.width=_cssW*_dpr; canvas.height=mRowH*_dpr;
-      canvas.style.cssText=`position:absolute;top:0;left:0;width:${_cssW}px;height:${mRowH}px;pointer-events:none;`;
+      canvas.width=Math.round(cssW*_dpr); canvas.height=Math.round(mRowH*_dpr);
+      canvas.style.cssText=`position:absolute;top:0;left:${(winStartSec*pxPS).toFixed(2)}px;width:${cssW.toFixed(2)}px;height:${mRowH}px;pointer-events:none;`;
       canvas.getContext('2d').scale(_dpr,_dpr);
-      mTrack.appendChild(canvas);
+      mScroll.appendChild(canvas);
       // Draw if cached; high-res path also fires when audio.buffers is available
       if(wf.cache[song.id]||audio.buffers?.[song.id]){
-        wfDraw(canvas,song.id,startSec,endSec,durationSec,songStartSec);
+        wfDraw(canvas,song.id,winStartSec,winEndSec,durationSec,songStartSec);
       } else {wfGenerateForSong(song.id);}
+      _etlCache.mediaMarginPx=marginPx;
     }
+    mTrack.appendChild(mScroll);
+    // Filename label — pinned to the track's left edge so it stays readable while scrolling.
+    const blbl=document.createElement('div');blbl.className='etl-media-bar-lbl';
+    blbl.style.left='6px';blbl.textContent=mediaFile;mTrack.appendChild(blbl);
+    _etlCache.mediaScroll=mScroll;
+    _etlCache.mediaDrawF=frames;
   } else if(mediaFile){
     const ph=document.createElement('div');
     ph.style.cssText='position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text3);';
@@ -11960,10 +12000,14 @@ function renderEditTimeline(){
     _etlUpdateActiveCue(curCueId);
   }
 
-  // Media row: throttled to ~10fps during playback (wfDraw is expensive)
-  const _now=performance.now();
-  if(!_etlCache._mediaT||_now-_etlCache._mediaT>100){
-    _etlCache._mediaT=_now;
+  // Media row: rebuilt only when its content/layout changes (song, file, readiness,
+  // cache, waveform toggle/height, zoom, width). The smooth-scroll RAF transforms and
+  // recenters it every frame, so it no longer needs a per-frame/timer rebuild here.
+  const _mSig=[song?.id||'',song?.mediaFile||song?.audioFilename||song?.videoFilename||'',
+    ((audio.meta[song?.id]?.ready)||(vid.meta?.[song?.id]?.ready))?1:0,
+    wf.cache[song?.id]?1:0,wf.visible?1:0,wf.rowH,pxPS,tlW].join('|');
+  if(_etlCache._mediaSig!==_mSig||!container.querySelector('.etl-media-row')){
+    _etlCache._mediaSig=_mSig;
     _etlRebuildMediaRow(container,song,fps,pxPS,pxPF,tlW,frames);
   }
 
