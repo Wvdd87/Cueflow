@@ -4239,12 +4239,17 @@ let state={
 function allProjects(){try{return JSON.parse(localStorage.getItem('cf12_projects')||'[]');}catch{return[];}}
 function loadProjectData(id){try{return JSON.parse(localStorage.getItem('cf12_proj_'+id)||'null');}catch{return null;}}
 function saveProjectData(proj){
-  const list=allProjects(),idx=list.findIndex(p=>p.id===proj.id);
-  const meta={id:proj.id,name:proj.name,updated:Date.now()};
-  if(idx>=0)list[idx]=meta;else list.push(meta);
-  localStorage.setItem('cf12_projects',JSON.stringify(list));
-  localStorage.setItem('cf12_proj_'+proj.id,JSON.stringify(proj));
-  localStorage.setItem('cf12_current',proj.id);
+  // Wrapped: the project cache can be large (media-heavy shows) and setItem may throw
+  // QuotaExceededError. Never let that bubble up — callers (persist) must continue to the
+  // cheap, critical saveSessionState() that follows, or per-device prefs would be lost.
+  try{
+    const list=allProjects(),idx=list.findIndex(p=>p.id===proj.id);
+    const meta={id:proj.id,name:proj.name,updated:Date.now()};
+    if(idx>=0)list[idx]=meta;else list.push(meta);
+    localStorage.setItem('cf12_projects',JSON.stringify(list));
+    localStorage.setItem('cf12_proj_'+proj.id,JSON.stringify(proj));
+    localStorage.setItem('cf12_current',proj.id);
+  }catch(e){ console.warn('[CF] saveProjectData failed (cache only, non-fatal):', e&&e.message); }
 }
 function deleteProjectData(id){
   localStorage.setItem('cf12_projects',JSON.stringify(allProjects().filter(p=>p.id!==id)));
@@ -15740,6 +15745,7 @@ function applyRemote(proj){
   var prev = state.activeSongId;
   var prevFrames = state.simFrames;
   var prevVisible = state.visibleStreamIds ? state.visibleStreamIds.slice() : null;
+  var prevStreamIds = (state.streams||[]).map(function(s){return s.id;});
   var prevCamVis = state.cameraTrackVisible;
   var prevStreamSel = state.activeStreamId;
   applyProject(proj);
@@ -15748,21 +15754,29 @@ function applyRemote(proj){
   // Preserve the selected stream (UI pick, not a visibility flag)
   if(prevStreamSel==='CAMERA'||state.streams.find(function(s){return s.id===prevStreamSel;}))
     state.activeStreamId = prevStreamSel;
-  // Track/camera visibility is a per-device, per-user preference and is NOT carried in the
-  // synced project (see snapshot()). Unrestricted roles (owner/editor/viewer) have already
-  // had their local choice restored from session by _cfRestoreVisOnly() inside applyProject.
-  // Only the access-restricted roles need their visibility forced to the assigned set here:
+  // Track/camera visibility is a per-device, per-user preference NOT carried in the synced
+  // project (see snapshot()). It must survive a remote update. Preserve it from the IN-MEMORY
+  // value (prevVisible/prevCamVis) — this is always current and does not depend on localStorage
+  // having been written. (_cfRestoreVisOnly() inside applyProject covers fresh-boot/bare loads.)
   if(CF.tracks&&CF.tracks.length){
     // Crew / track-editor with restricted track list — clamp to allowed, keep local subset
     var _allowed=CF.tracks;
     var _kept=prevVisible?prevVisible.filter(function(id){return _allowed.indexOf(id)!==-1;}):[];
     state.visibleStreamIds=_kept.length?_kept:_allowed.slice();
-    // Camera track is toggleable by editors — keep their local choice, don't reset from remote
     if(typeof prevCamVis==='boolean') state.cameraTrackVisible=prevCamVis;
   } else if(CF.cameraIds&&CF.cameraIds.length){
     // Camera-only viewer
     state.visibleStreamIds=[];
     state.cameraTrackVisible=true;
+  } else if(prevVisible){
+    // Owner / unrestricted editor / regular viewer — keep local choice; auto-show only
+    // streams genuinely created since this client last saw the project (use prevStreamIds,
+    // not prevVisible, so deliberately-hidden tracks are NOT mistaken for new ones).
+    var _remIds=(state.streams||[]).map(function(s){return s.id;});
+    var _localKept=prevVisible.filter(function(id){return _remIds.indexOf(id)>=0;});
+    var _newStreams=_remIds.filter(function(id){return prevStreamIds.indexOf(id)<0;});
+    state.visibleStreamIds=_localKept.concat(_newStreams);
+    if(typeof prevCamVis==='boolean') state.cameraTrackVisible=prevCamVis;
   }
   var validPrev = prev && state.songs.find(function(s){return s.id===prev;});
   state.activeSongId = (validPrev ? prev : null) || (state.songs[0]&&state.songs[0].id);
