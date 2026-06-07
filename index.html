@@ -4133,7 +4133,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         </label>
         <label id="cf-pin-cam-track-wrap" class="sbp-cl-chk-row" style="display:none;margin-top:10px;border-top:1px solid var(--hair);padding-top:10px;">
           <input type="checkbox" id="cf-pin-cam-track" style="accent-color:var(--primary);margin-right:6px;">
-          Camera track access (can view &amp; edit all camera cues)
+          Camera track
         </label>
       </div>
     </div>
@@ -4325,7 +4325,21 @@ function applyProject(proj){
   resetSimToActiveSong();
   renderSongList();renderStreamsBar();renderCueList();
   redrawActive();updateStreamDots();_updateCamerasTab();_updateLiveOffsetDisplay();_updateLiveClock();
+  // Rehydrate attached media (audio/video) from IndexedDB whenever a real project
+  // loads or we switch to a different one. init() only runs this on the empty boot
+  // placeholder, so without this the cloud-loaded project's waveforms never appear
+  // until the operator manually re-attaches each file. Idempotent: both helpers skip
+  // songs whose media is already decoded (`ready`), so remote syncs of the same
+  // project are cheap no-ops.
+  if(proj.id&&proj.id!==BOOT_PLACEHOLDER_ID&&proj.id!==_lastHydratedProjId){
+    _lastHydratedProjId=proj.id;
+    setTimeout(async()=>{
+      try{ checkAndRelinkAudio(); }catch(e){ console.warn('relink audio',e); }
+      try{ await restoreAllVideos(); }catch(e){ console.warn('restore videos',e); }
+    },0);
+  }
 }
+let _lastHydratedProjId=null;
 
 // ─── STREAM HELPERS ───
 function getStreamColor(streamId){
@@ -6594,8 +6608,8 @@ function toggleCamPanel(){
   if(icon){
     // Desktop: left/right chevrons (side-by-side layout)
     icon.innerHTML=hidden
-      ?'<path d="M3 2l4 3-4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
-      :'<path d="M7 2l-4 3 4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+      ?'<path d="M7 2l-4 3 4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
+      :'<path d="M3 2l4 3-4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
   }
   if(allChev){
     // Mobile toggle bar: up chevron = expand, down = collapse
