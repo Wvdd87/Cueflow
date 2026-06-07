@@ -77,6 +77,52 @@ ipcMain.on('lan:snapshot', (_e, snap) => {
 ipcMain.on('lan:pins', (_e, pins) => { latestPins = Array.isArray(pins) ? pins : []; });
 ipcMain.on('lan:broadcast', (_e, msg) => { if (lan && msg) lan.broadcast(msg); });
 
+/* ── Native local-media folder access (owner-only, desktop) ──────────────────
+ * The renderer's media library is sourced from a folder the owner picks. These
+ * handlers provide the desktop fallback to the browser File System Access API. */
+const fs = require('fs');
+const MEDIA_EXTS = ['.mp3', '.wav', '.m4a', '.mp4', '.mov', '.aac', '.flac', '.ogg', '.m4v', '.webm'];
+function isMediaFile(name) {
+  const dot = name.lastIndexOf('.');
+  if (dot < 0) return false;
+  return MEDIA_EXTS.indexOf(name.slice(dot).toLowerCase()) !== -1;
+}
+ipcMain.handle('media:pick-folder', async () => {
+  const { dialog } = require('electron');
+  const res = await dialog.showOpenDialog(win, {
+    title: 'Choose media folder',
+    properties: ['openDirectory']
+  });
+  if (res.canceled || !res.filePaths || !res.filePaths.length) return { canceled: true };
+  const p = res.filePaths[0];
+  return { path: p, name: path.basename(p) };
+});
+ipcMain.handle('media:scan-folder', async (_e, dir) => {
+  try {
+    const names = await fs.promises.readdir(dir);
+    const files = [];
+    for (const n of names) {
+      if (!isMediaFile(n)) continue;
+      try {
+        const st = await fs.promises.stat(path.join(dir, n));
+        if (st.isFile()) files.push({ name: n, size: st.size });
+      } catch (_) { /* skip unreadable entry */ }
+    }
+    return { ok: true, files: files };
+  } catch (e) {
+    return { ok: false, error: (e && e.message) || 'scan failed', files: [] };
+  }
+});
+ipcMain.handle('media:read-file', async (_e, { path: dir, name }) => {
+  /* Guard against path traversal: only read a plain filename inside the folder. */
+  if (!name || name.indexOf('/') !== -1 || name.indexOf('\\') !== -1 || name.indexOf('..') !== -1) {
+    throw new Error('invalid filename');
+  }
+  const buf = await fs.promises.readFile(path.join(dir, name));
+  /* Return a transferable ArrayBuffer slice (Buffer is a Node view over a pool). */
+  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+});
+
 app.whenReady().then(() => {
   createWindow();
   startLan(); // always-on so viewers can connect the moment they need to

@@ -4359,17 +4359,14 @@ function applyProject(proj){
   resetSimToActiveSong();
   renderSongList();renderStreamsBar();renderCueList();
   redrawActive();updateStreamDots();_updateCamerasTab();_updateLiveOffsetDisplay();_updateLiveClock();
-  // Rehydrate attached media (audio/video) from IndexedDB whenever a real project
-  // loads or we switch to a different one. init() only runs this on the empty boot
-  // placeholder, so without this the cloud-loaded project's waveforms never appear
-  // until the operator manually re-attaches each file. Idempotent: both helpers skip
-  // songs whose media is already decoded (`ready`), so remote syncs of the same
-  // project are cheap no-ops.
+  // Rehydrate media whenever a real project loads or we switch to a different one.
+  // Media is sourced from the owner's local media folder (cfMedia) — resolved by
+  // filename, decoded for waveform/playback, never uploaded. No-op for editors,
+  // viewers and mobile owners (cfMediaEnabled() is false there).
   if(proj.id&&proj.id!==BOOT_PLACEHOLDER_ID&&proj.id!==_lastHydratedProjId){
     _lastHydratedProjId=proj.id;
     setTimeout(async()=>{
-      try{ checkAndRelinkAudio(); }catch(e){ console.warn('relink audio',e); }
-      try{ await restoreAllVideos(); }catch(e){ console.warn('restore videos',e); }
+      try{ await cfMediaOnProjectLoad(); }catch(e){ console.warn('media load',e); }
     },0);
   }
 }
@@ -7514,17 +7511,25 @@ function renderSongList(){
     const div=document.createElement('div');
     div.className='song-row'+(isSel?' selected':'');div.dataset.sid=song.id;div.draggable=true;
     const firstCue=getSortedCues(song.id,false)[0];
-    // Audio badge (uses audio.meta in v3 engine)
-    const am=audio.meta[song.id];
+    // Media badge — owner-desktop only (editors/viewers/mobile see no media reference).
     let audioBadge='';
-    if(song.audioFilename){
-      if(!am){
-        // Only show Missing if not in grace period (IDB check done)
-        audioBadge=`<span class="seq-audio-badge seq-audio-missing">⚠ Missing</span>`;
-      } else if(am.loading||am._grace){
-        audioBadge=`<span class="seq-audio-badge seq-audio-loading"><span class="audio-spinner" style="width:8px;height:8px;border-width:1px;display:inline-block;"></span> Loading</span>`;
-      } else if(am.ready){
-        audioBadge=`<span class="seq-audio-icon" title="Audio linked: ${escH(song.audioFilename||'')}">♫</span>`;
+    if(cfMediaEnabled() && song.mediaFile){
+      if(cfMedia.needsReconnect || !cfMedia.ready){
+        // Folder not connected yet (or needs re-grant) — show a neutral linked icon,
+        // not a "missing" warning. The owner sets/reconnects the folder in Settings.
+        const ic=cfMediaKind(song.mediaFile)==='video'?'🎬':'♫';
+        const hint=cfMedia.needsReconnect?'reconnect media folder to load':'set a media folder in Settings to load';
+        audioBadge=`<span class="seq-audio-icon" title="Media: ${escH(song.mediaFile)} (${hint})" style="opacity:.45;">${ic}</span>`;
+      } else if(!cfMediaHas(song.mediaFile)){
+        audioBadge=`<span class="seq-audio-badge seq-audio-missing" data-sid="${song.id}" title="Media file '${escH(song.mediaFile)}' not found in current media folder — click to fix" style="background:var(--amber-bg,rgba(240,168,56,.12));border-color:var(--amber,#f0a838);color:var(--amber,#f0a838);cursor:pointer;">⚠</span>`;
+      } else {
+        const am=audio.meta[song.id], vm=vid.meta?.[song.id];
+        if(am?.ready||vm?.ready){
+          const ic=cfMediaKind(song.mediaFile)==='video'?'🎬':'♫';
+          audioBadge=`<span class="seq-audio-icon" title="Media: ${escH(song.mediaFile)}">${ic}</span>`;
+        } else {
+          audioBadge=`<span class="seq-audio-badge seq-audio-loading"><span class="audio-spinner" style="width:8px;height:8px;border-width:1px;display:inline-block;"></span></span>`;
+        }
       }
     }
     const _overlapNames=_overlappingIds.get(song.id);
@@ -7538,7 +7543,9 @@ function renderSongList(){
       ${audioBadge}${overlapBadge}`;
     div.addEventListener('click',e=>{
       if(e.target.closest('.drag-grip'))return;
-      if(e.target.closest('.seq-audio-badge,.seq-audio-missing,.seq-audio-loading'))return;
+      const miss=e.target.closest('.seq-audio-missing');
+      if(miss){ cfMediaFixMissing(song.id,e); return; }
+      if(e.target.closest('.seq-audio-badge,.seq-audio-loading'))return;
       selectSong(song.id);
     });
     div.addEventListener('dblclick',e=>{if(!e.target.closest('.drag-grip')){selectSong(song.id);openSeqSettingsPanel();}});
@@ -9341,7 +9348,7 @@ function init(){
   if(_snapBtn)_snapBtn.classList.toggle('active',ETL.snapOn);
   // waveform always on
   requestAnimationFrame(()=>{redrawActive();renderEditTimeline();});
-  setTimeout(async()=>{ checkAndRelinkAudio(); await restoreAllVideos(); }, 400);
+  setTimeout(async()=>{ try{ await cfMediaOnProjectLoad(); }catch(e){ console.warn('media load',e); } }, 400);
   _syncTopbarSeqName();
 }
 
@@ -9516,16 +9523,24 @@ function switchTCTab(tab){
 var _settTab='tc';
 function switchSettTab(tab){
   _settTab=tab;
-  const isTc=tab==='tc';
+  const isTc=tab==='tc', isMedia=tab==='media';
+  const mediaTabBtn=document.getElementById('sett-tab-media');
+  if(mediaTabBtn) mediaTabBtn.style.display=cfMediaTabVisible()?'':'none';
   document.getElementById('sett-tab-tc').classList.toggle('active',isTc);
-  document.getElementById('sett-tab-show').classList.toggle('active',!isTc);
+  document.getElementById('sett-tab-show').classList.toggle('active',tab==='show');
+  if(mediaTabBtn) mediaTabBtn.classList.toggle('active',isMedia);
   document.getElementById('sett-tc-section').style.display=isTc?'':'none';
-  document.getElementById('sett-show-section').style.display=isTc?'none':'';
+  document.getElementById('sett-show-section').style.display=tab==='show'?'':'none';
+  const mediaSec=document.getElementById('sett-media-section');
+  if(mediaSec) mediaSec.style.display=isMedia?'':'none';
   // Status line only relevant for TC
   const sl=document.getElementById('tcs-status-line');
   if(sl) sl.style.display=isTc?'':'none';
   if(isTc){
     startSettingsTCReadout();
+  } else if(isMedia){
+    stopSettingsTCReadout();
+    renderMediaSettings();
   } else {
     stopSettingsTCReadout();
     _populateShowSettings();
@@ -9562,19 +9577,12 @@ function openSettingsModal(tab){
   document.getElementById('tcs-mtc-panel').style.display=_tcsTab==='mtc'?'':'none';
   if(_tcsTab==='ltc') refreshLTCDevices();
   else tcsConnectMIDI();
-  // Outer tab init
-  const isTc=_settTab==='tc';
-  document.getElementById('sett-tab-tc').classList.toggle('active',isTc);
-  document.getElementById('sett-tab-show').classList.toggle('active',!isTc);
-  document.getElementById('sett-tc-section').style.display=isTc?'':'none';
-  document.getElementById('sett-show-section').style.display=isTc?'none':'';
-  const sl=document.getElementById('tcs-status-line');if(sl)sl.style.display=isTc?'':'none';
-  if(isTc){
-    _tcsUpdateFpsDisplay();
-    startSettingsTCReadout();
-  } else {
-    _populateShowSettings();
-  }
+  // Outer tab init — Media tab exists for any desktop owner (content adapts to file access)
+  const mediaTabBtn=document.getElementById('sett-tab-media');
+  if(mediaTabBtn) mediaTabBtn.style.display=cfMediaTabVisible()?'':'none';
+  if(_settTab==='media' && !cfMediaTabVisible()) _settTab='tc';
+  switchSettTab(_settTab);
+  if(_settTab==='tc') _tcsUpdateFpsDisplay();
   document.getElementById('settings-modal').classList.add('show');
 }
 
@@ -9988,8 +9996,473 @@ const DRIFT_CHECK_MS         = 300;
 // UNIFIED MEDIA SYSTEM — one file per sequence (audio OR video)
 // ═══════════════════════════════════════════════════════════
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOCAL MEDIA FOLDER  (owner-only, desktop)
+   The owner picks a folder on disk; CueFlow scans it for audio/video files and
+   resolves each sequence's `mediaFile` (filename only) against it. The folder
+   handle/path, the files and any generated waveforms are LOCAL ONLY — never
+   uploaded to Supabase. Editors, viewers and owners on a phone/tablet see no
+   media UI at all (gated by cfMediaEnabled()).
+   ═══════════════════════════════════════════════════════════════════════════ */
+const CF_MEDIA_EXT = {
+  mp3:'audio', wav:'audio', m4a:'audio', aac:'audio', flac:'audio', ogg:'audio',
+  mp4:'video', mov:'video', m4v:'video', webm:'video'
+};
+function cfMediaKind(name){ const m=/\.([a-z0-9]+)$/i.exec(name||''); return m?(CF_MEDIA_EXT[m[1].toLowerCase()]||null):null; }
+function cfMediaBaseName(name){ return String(name||'').replace(/\.[^.]+$/,''); }
+
+const cfMedia = {
+  backend:null,         // 'fsapi' | 'electron'
+  dirHandle:null,       // FileSystemDirectoryHandle (fsapi)
+  folderPath:null,      // native path (electron) / handle name (fsapi)
+  folderName:null,      // display name
+  files:new Map(),      // lowercaseName -> {name, kind, getFile:()=>Promise<File>}
+  durations:new Map(),  // lowercaseName -> seconds (lazy probe cache)
+  projectId:null,       // project the current scan belongs to
+  ready:false,          // a folder is connected + scanned
+  needsReconnect:false  // remembered folder but no permission yet (fsapi after reload)
+};
+
+function cfHasFsApi(){ return typeof window.showDirectoryPicker==='function'; }
+function cfHasNativeFs(){ return !!(window.cfNativeFs && window.cfNativeFs.available); }
+function cfHasFileAccess(){ return cfHasNativeFs() || cfHasFsApi(); }
+function cfIsDesktopViewport(){ try{ return !window.matchMedia('(max-width:820px)').matches; }catch(e){ return true; } }
+/* Functional media UI (folder, library, waveform, links) — owner + desktop + file access. */
+function cfMediaEnabled(){ return !!(window.CF && CF.isOwner) && cfIsDesktopViewport() && cfHasFileAccess(); }
+/* The Settings → Media TAB shows for any desktop owner (even without file access) so the
+   "use the desktop version" message can be surfaced; the tab content adapts. */
+function cfMediaTabVisible(){ return !!(window.CF && CF.isOwner) && cfIsDesktopViewport(); }
+
+/* — persisted FS-API directory handle (per project, IndexedDB) — */
+function _cfHandleDb(){
+  return new Promise(function(res,rej){
+    var r=indexedDB.open('cf_media_handles',1);
+    r.onupgradeneeded=function(){ if(!r.result.objectStoreNames.contains('handles')) r.result.createObjectStore('handles'); };
+    r.onsuccess=function(){ res(r.result); }; r.onerror=function(){ rej(r.error); };
+  });
+}
+async function _cfHandleSave(projId,handle){ try{ var db=await _cfHandleDb(); await new Promise(function(res,rej){ var tx=db.transaction('handles','readwrite'); tx.objectStore('handles').put(handle,projId); tx.oncomplete=res; tx.onerror=function(){rej(tx.error);}; }); }catch(e){ console.warn('[CF] media handle save',e&&e.message); } }
+async function _cfHandleLoad(projId){ try{ var db=await _cfHandleDb(); return await new Promise(function(res,rej){ var tx=db.transaction('handles','readonly'); var rq=tx.objectStore('handles').get(projId); rq.onsuccess=function(){ res(rq.result||null); }; rq.onerror=function(){ rej(rq.error); }; }); }catch(e){ return null; } }
+async function _cfHandleDelete(projId){ try{ var db=await _cfHandleDb(); await new Promise(function(res){ var tx=db.transaction('handles','readwrite'); tx.objectStore('handles').delete(projId); tx.oncomplete=res; tx.onerror=res; }); }catch(e){} }
+
+/* — per-project folder meta (localStorage, display only) — */
+function _cfMediaMetaKey(projId){ return 'cf_media_folder_'+(projId||state.projectId); }
+function cfMediaSaveMeta(){ try{ localStorage.setItem(_cfMediaMetaKey(cfMedia.projectId),JSON.stringify({backend:cfMedia.backend,name:cfMedia.folderName,path:cfMedia.folderPath})); }catch(e){} }
+function cfMediaLoadMeta(projId){ try{ return JSON.parse(localStorage.getItem(_cfMediaMetaKey(projId))||'null'); }catch(e){ return null; } }
+function cfMediaClearMeta(projId){ try{ localStorage.removeItem(_cfMediaMetaKey(projId)); }catch(e){} }
+
+/* — scanning — */
+async function _cfScanFsApi(handle){
+  var map=new Map();
+  for await (const entry of handle.values()){
+    if(entry.kind!=='file') continue;
+    var kind=cfMediaKind(entry.name); if(!kind) continue;
+    (function(en,kn){ map.set(en.name.toLowerCase(),{name:en.name,kind:kn,getFile:function(){ return en.getFile(); }}); })(entry,kind);
+  }
+  return map;
+}
+async function _cfScanElectron(p){
+  var map=new Map();
+  var res; try{ res=await window.cfNativeFs.scanMediaFolder(p); }catch(e){ res=null; }
+  if(res&&res.ok&&res.files){ res.files.forEach(function(f){ var kind=cfMediaKind(f.name); if(!kind)return; map.set(f.name.toLowerCase(),{name:f.name,kind:kind,getFile:async function(){ var ab=await window.cfNativeFs.readMediaFile(p,f.name); return new File([ab],f.name); }}); }); }
+  return map;
+}
+
+function cfMediaReset(){ cfMedia.backend=null; cfMedia.dirHandle=null; cfMedia.folderPath=null; cfMedia.folderName=null; cfMedia.files=new Map(); cfMedia.durations=new Map(); cfMedia.ready=false; cfMedia.needsReconnect=false; }
+
+/* Owner picks (or replaces) the media folder. Returns true on success. */
+async function cfMediaPickFolder(){
+  cfMedia.projectId=state.projectId;
+  if(cfHasNativeFs()){
+    var res; try{ res=await window.cfNativeFs.pickMediaFolder(); }catch(e){ res=null; }
+    if(!res||res.canceled) return false;
+    cfMedia.backend='electron'; cfMedia.folderPath=res.path; cfMedia.folderName=res.name; cfMedia.dirHandle=null;
+    cfMedia.files=await _cfScanElectron(res.path);
+  } else if(cfHasFsApi()){
+    var h; try{ h=await window.showDirectoryPicker({id:'cueflow-media',mode:'read'}); }catch(e){ return false; /* user cancelled */ }
+    if(!h) return false;
+    cfMedia.backend='fsapi'; cfMedia.dirHandle=h; cfMedia.folderName=h.name; cfMedia.folderPath=h.name;
+    cfMedia.files=await _cfScanFsApi(h);
+    await _cfHandleSave(state.projectId,h);
+  } else { return false; }
+  cfMedia.durations=new Map();
+  cfMedia.ready=true; cfMedia.needsReconnect=false;
+  cfMediaSaveMeta();
+  return true;
+}
+
+/* Re-attach the remembered folder on project load — never prompts. fsapi handles
+   often come back as 'prompt' after a reload (needs a user gesture to re-grant);
+   in that case we set needsReconnect and the UI offers a Reconnect button. */
+async function cfMediaRestore(projId){
+  cfMediaReset();
+  cfMedia.projectId=projId;
+  var meta=cfMediaLoadMeta(projId);
+  if(!meta) return false;
+  cfMedia.folderName=meta.name||null; cfMedia.folderPath=meta.path||null; cfMedia.backend=meta.backend||null;
+  if(meta.backend==='electron' && cfHasNativeFs()){
+    cfMedia.files=await _cfScanElectron(meta.path); cfMedia.ready=true; return true;
+  }
+  if(meta.backend==='fsapi' && cfHasFsApi()){
+    var h=await _cfHandleLoad(projId);
+    if(!h){ cfMedia.needsReconnect=true; return false; }
+    cfMedia.dirHandle=h;
+    var perm='prompt'; try{ perm=await h.queryPermission({mode:'read'}); }catch(e){}
+    if(perm==='granted'){ cfMedia.files=await _cfScanFsApi(h); cfMedia.ready=true; return true; }
+    cfMedia.needsReconnect=true; return false;
+  }
+  cfMedia.needsReconnect=true; return false;
+}
+
+/* User-gesture reconnect (fsapi re-grant) or rescan (electron). */
+async function cfMediaReconnect(){
+  if(cfMedia.backend==='electron' && cfMedia.folderPath){ cfMedia.files=await _cfScanElectron(cfMedia.folderPath); cfMedia.ready=true; cfMedia.needsReconnect=false; await cfMediaLoadAllSongs(); cfMediaMaybePromptRelink(); return true; }
+  if(cfMedia.backend==='fsapi' && cfMedia.dirHandle){
+    var perm='prompt'; try{ perm=await cfMedia.dirHandle.requestPermission({mode:'read'}); }catch(e){}
+    if(perm!=='granted') return false;
+    cfMedia.files=await _cfScanFsApi(cfMedia.dirHandle); cfMedia.ready=true; cfMedia.needsReconnect=false; await cfMediaLoadAllSongs(); cfMediaMaybePromptRelink(); return true;
+  }
+  return false;
+}
+
+function cfMediaHas(filename){ return !!(filename && cfMedia.files.has(String(filename).toLowerCase())); }
+async function cfMediaGetFile(filename){ var e=filename&&cfMedia.files.get(String(filename).toLowerCase()); if(!e)return null; try{ return await e.getFile(); }catch(err){ console.warn('[CF] media getFile',err&&err.message); return null; } }
+function cfMediaList(){ return Array.from(cfMedia.files.values()).sort(function(a,b){ return a.name.localeCompare(b.name,undefined,{numeric:true}); }); }
+
+/* Decode-free duration probe (best effort, lazy + cached). */
+async function cfMediaProbeDuration(name){
+  var key=String(name).toLowerCase();
+  if(cfMedia.durations.has(key)) return cfMedia.durations.get(key);
+  var file=await cfMediaGetFile(name); if(!file){ cfMedia.durations.set(key,null); return null; }
+  return await new Promise(function(res){
+    var kind=cfMediaKind(name);
+    var el=document.createElement(kind==='video'?'video':'audio');
+    var url=URL.createObjectURL(file); var done=false;
+    var finish=function(v){ if(done)return; done=true; URL.revokeObjectURL(url); cfMedia.durations.set(key,v); res(v); };
+    el.preload='metadata';
+    el.onloadedmetadata=function(){ finish(isFinite(el.duration)?el.duration:null); };
+    el.onerror=function(){ finish(null); };
+    setTimeout(function(){ finish(isFinite(el.duration)?el.duration:null); },4000);
+    el.src=url;
+  });
+}
+function cfFmtDur(sec){ if(sec==null||!isFinite(sec)) return ''; var m=Math.floor(sec/60),s=Math.floor(sec%60); return m+':'+String(s).padStart(2,'0'); }
+
+/* Load one sequence's media from the folder into the playback/waveform engine. */
+function _cfMediaLoadVideo(songId,file){
+  if(vid.meta[songId]&&vid.meta[songId].objUrl) URL.revokeObjectURL(vid.meta[songId].objUrl);
+  var url=URL.createObjectURL(file);
+  vid.meta[songId]={filename:file.name,durationSec:0,ready:false,objUrl:url,thumbs:[]};
+  _vidLoad(songId);
+}
+async function cfMediaLoadSong(songId){
+  if(!cfMediaEnabled()) return;
+  var song=state.songs.find(function(s){return s.id===songId;}); if(!song||!song.mediaFile) return;
+  var kind=cfMediaKind(song.mediaFile);
+  if(!cfMediaHas(song.mediaFile)){
+    if(audio.meta[songId]) audio.meta[songId]=null;
+    delete audio.buffers[songId];
+    return; // missing — UI shows the warning, sequence still works
+  }
+  var file=await cfMediaGetFile(song.mediaFile); if(!file) return;
+  if(kind==='video'){ _cfMediaLoadVideo(songId,file); return; }
+  _ensureCtx(); if(audio.ctx.state!=='running'){ try{ audio.ctx.resume(); }catch(e){} }
+  _teardownSource(); audio.meta[songId]=null; delete audio.buffers[songId];
+  audio.meta[songId]={filename:file.name,durationSec:0,loading:true,ready:false};
+  try{ var ab=await file.arrayBuffer(); await _decodeAndStore(songId,ab,file.name,{noPersist:true}); }
+  catch(e){ if(audio.meta[songId])audio.meta[songId].loading=false; console.warn('[CF] media decode',e&&e.message); renderSongList(); }
+}
+async function cfMediaLoadAllSongs(){
+  if(!cfMediaEnabled()||!cfMedia.ready) return;
+  for(var i=0;i<state.songs.length;i++){ if(state.songs[i].mediaFile){ try{ await cfMediaLoadSong(state.songs[i].id); }catch(e){} } }
+  renderSongList(); if(ETL.visible) requestAnimationFrame(renderEditTimeline);
+}
+
+/* Called from applyProject — restore the project's folder and load its media. */
+async function cfMediaOnProjectLoad(){
+  _cfApplyEditMediaTabs(); // hide media tabs for editors/viewers/mobile
+  if(!cfMediaEnabled()){ cfMediaReset(); return; }
+  var ok=await cfMediaRestore(state.projectId);
+  if(window._cfMediaRefreshUI) _cfMediaRefreshUI();
+  renderSongList();
+  if(ok){ await cfMediaLoadAllSongs(); cfMediaMaybePromptRelink(); }
+}
+
+/* Link / unlink a folder file to a sequence. */
+async function cfMediaLinkSong(songId,filename){
+  var song=state.songs.find(function(s){return s.id===songId;}); if(!song) return;
+  song.mediaFile=filename; song.mediaType=cfMediaKind(filename)||'audio';
+  delete song.audioFilename; delete song.videoFilename;
+  persist();
+  await cfMediaLoadSong(songId);
+  renderSongList(); renderCueList(); _mediaUpdateSSP(songId);
+  if(window._cfMediaRefreshUI) _cfMediaRefreshUI();
+  if(ETL.visible) requestAnimationFrame(renderEditTimeline);
+}
+function cfMediaUnlinkSong(songId){
+  var song=state.songs.find(function(s){return s.id===songId;}); if(!song) return;
+  delete song.mediaFile; delete song.mediaType; delete song.audioFilename; delete song.videoFilename;
+  if(vid.meta[songId]&&vid.meta[songId].objUrl){ URL.revokeObjectURL(vid.meta[songId].objUrl); delete vid.meta[songId]; }
+  delete audio.buffers[songId]; delete audio.meta[songId]; delete wf.cache[songId];
+  persist();
+  renderSongList(); renderCueList(); _mediaUpdateSSP(songId);
+  if(window._cfMediaRefreshUI) _cfMediaRefreshUI();
+  if(ETL.visible) requestAnimationFrame(renderEditTimeline);
+}
+
+function _cfMediaInvalidateAll(){
+  Object.keys(audio.buffers).forEach(function(k){ delete audio.buffers[k]; });
+  Object.keys(audio.meta).forEach(function(k){ delete audio.meta[k]; });
+  Object.keys(wf.cache).forEach(function(k){ delete wf.cache[k]; });
+  Object.keys(vid.meta||{}).forEach(function(k){ if(vid.meta[k]&&vid.meta[k].objUrl) URL.revokeObjectURL(vid.meta[k].objUrl); delete vid.meta[k]; });
+}
+
+/* Change media folder → rescan → relink by filename → summary. */
+async function cfMediaChangeFolder(){
+  var ok=await cfMediaPickFolder();
+  if(!ok) return;
+  _cfMediaInvalidateAll();
+  var matched=0, missing=0;
+  state.songs.forEach(function(song){ if(!song.mediaFile) return; if(cfMediaHas(song.mediaFile)) matched++; else missing++; });
+  await cfMediaLoadAllSongs();
+  if(window._cfMediaRefreshUI) _cfMediaRefreshUI();
+  renderSongList();
+  var msg='Relinked '+matched+' sequence'+(matched!==1?'s':'')+'.';
+  if(missing) msg+=' '+missing+' file'+(missing!==1?'s':'')+' not found.';
+  cfMediaToast(msg);
+  if(missing) cfMediaMaybePromptRelink();
+}
+
+/* Forget the folder for this project (does not delete files on disk). */
+async function cfMediaForget(){
+  cfMediaClearMeta(cfMedia.projectId||state.projectId);
+  await _cfHandleDelete(state.projectId);
+  _cfMediaInvalidateAll();
+  cfMediaReset();
+  if(window._cfMediaRefreshUI) _cfMediaRefreshUI();
+  renderSongList();
+}
+
+/* Small popover for a missing-media warning: relink the folder or drop the link. */
+function cfMediaFixMissing(songId,ev){
+  var song=state.songs.find(function(s){return s.id===songId;}); if(!song) return;
+  var ex=document.getElementById('cf-media-fix-pop'); if(ex) ex.remove();
+  var pop=document.createElement('div'); pop.id='cf-media-fix-pop';
+  pop.style.cssText='position:fixed;z-index:12001;background:var(--surface2,#1a1a22);border:1px solid var(--hair3,#333);'
+    +'border-radius:8px;padding:6px;min-width:240px;max-width:300px;box-shadow:0 10px 34px rgba(0,0,0,.6);font-family:var(--cond,sans-serif);';
+  var x=ev?Math.min(ev.clientX, window.innerWidth-260):120, y=ev?Math.min(ev.clientY+8, window.innerHeight-150):120;
+  pop.style.left=Math.max(8,x)+'px'; pop.style.top=Math.max(8,y)+'px';
+  pop.innerHTML='<div style="font-size:11px;color:var(--txt-low,#888);padding:6px 8px 8px;line-height:1.45;">'
+    +'Media file <b style="color:var(--txt,#ccc);">'+escH(song.mediaFile)+'</b> not found in the current media folder. The sequence still works — just without audio.</div>';
+  var mk=function(label,cls,fn){ var b=document.createElement('button'); b.textContent=label;
+    b.style.cssText='display:block;width:100%;text-align:left;background:none;border:none;cursor:pointer;'
+      +'padding:8px 10px;border-radius:6px;font-size:12px;font-weight:600;color:'+(cls==='danger'?'var(--red,#e5484d)':'var(--txt,#eee)')+';';
+    b.onmouseenter=function(){ b.style.background='var(--surface3,#23232c)'; }; b.onmouseleave=function(){ b.style.background='none'; };
+    b.onclick=function(){ pop.remove(); fn(); }; return b; };
+  pop.appendChild(mk('Change media folder…','',function(){ cfMediaChangeFolder(); }));
+  pop.appendChild(mk('Remove media link','danger',function(){ cfMediaUnlinkSong(songId); }));
+  document.body.appendChild(pop);
+  setTimeout(function(){ document.addEventListener('mousedown',function h(e){ if(!pop.contains(e.target)){ pop.remove(); document.removeEventListener('mousedown',h); } }); },0);
+}
+
+/* Sequences whose linked file isn't in the connected folder (folder must be ready). */
+function cfMediaGetMissingSongs(){
+  if(!cfMediaEnabled()||!cfMedia.ready||cfMedia.needsReconnect) return [];
+  return state.songs.filter(function(s){ return s.mediaFile && !cfMediaHas(s.mediaFile); });
+}
+function cfMediaMaybePromptRelink(){
+  var missing=cfMediaGetMissingSongs();
+  if(missing.length) cfMediaRelinkModal(missing);
+}
+/* Relink modal — lists sequences whose media wasn't found (e.g. renamed/moved files);
+   for each, pick the matching file from the folder or drop the link. */
+function cfMediaRelinkModal(missing){
+  missing=missing||cfMediaGetMissingSongs();
+  var ex=document.getElementById('cf-media-relink'); if(ex) ex.remove();
+  if(!missing.length) return;
+  var bg=document.createElement('div'); bg.id='cf-media-relink'; bg.className='ntm-bg show';
+  bg.style.cssText='position:fixed;inset:0;z-index:11050;display:flex;align-items:center;justify-content:center;';
+  bg.addEventListener('mousedown',function(e){ if(e.target===bg) cfMediaCloseRelink(); });
+  var opts=cfMediaList().map(function(f){ return '<option value="'+escH(f.name)+'">'+escH(f.name)+'</option>'; }).join('');
+  var rows=missing.map(function(s){
+    return '<div class="cf-relink-row" data-sid="'+s.id+'" style="display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--hair);">'
+      +'<div style="flex:1;min-width:0;">'
+        +'<div style="font-size:12px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(s.name)+'</div>'
+        +'<div style="font-size:10px;color:var(--amber,#f0a838);font-family:var(--mono);">⚠ '+escH(s.mediaFile)+'</div>'
+      +'</div>'
+      +'<select class="tcs-select cf-relink-sel" style="width:160px;font-size:11px;flex-shrink:0;"><option value="">Locate file…</option>'+opts+'</select>'
+      +'<button class="btn-icon cf-relink-rm" style="color:var(--red);flex-shrink:0;" title="Remove media link">✕</button>'
+    +'</div>';
+  }).join('');
+  bg.innerHTML='<div class="ntm-box" style="width:540px;max-width:95vw;max-height:80vh;display:flex;flex-direction:column;">'
+    +'<div class="ntm-header"><span class="ntm-title">RELINK MEDIA</span><button class="tcs-close" onclick="cfMediaCloseRelink()">✕</button></div>'
+    +'<div style="padding:12px 16px;font-size:12px;color:var(--txt-mid);line-height:1.5;">'+missing.length+' media file'+(missing.length!==1?'s':'')+' referenced by your sequences '+(missing.length!==1?'were':'was')+' not found in <b style="color:var(--txt);">'+escH(cfMedia.folderName||'the folder')+'</b>. Pick the matching file (e.g. if it was renamed) or remove the link. Sequences keep working either way.</div>'
+    +'<div id="cf-relink-list" style="flex:1;overflow-y:auto;padding:0 16px;">'+rows+'</div>'
+    +'<div class="ntm-footer"><button class="ntm-btn" onclick="cfMediaChangeFolder();cfMediaCloseRelink();">Choose different folder…</button><button class="ntm-btn primary" onclick="cfMediaCloseRelink()">Done</button></div></div>';
+  document.body.appendChild(bg);
+  Array.from(bg.querySelectorAll('.cf-relink-row')).forEach(function(row){
+    var sid=row.dataset.sid;
+    var sel=row.querySelector('.cf-relink-sel');
+    sel.onchange=function(){ if(!sel.value)return; cfMediaLinkSong(sid,sel.value); row.remove(); _cfRelinkCheckDone(); };
+    row.querySelector('.cf-relink-rm').onclick=function(){ cfMediaUnlinkSong(sid); row.remove(); _cfRelinkCheckDone(); };
+  });
+}
+function _cfRelinkCheckDone(){ var l=document.getElementById('cf-relink-list'); if(l && !l.querySelector('.cf-relink-row')) cfMediaCloseRelink(); }
+function cfMediaCloseRelink(){ var el=document.getElementById('cf-media-relink'); if(el) el.remove(); }
+
+/* Tiny transient toast (relink summary, etc.). */
+function cfMediaToast(msg){
+  var t=document.getElementById('cf-media-toast');
+  if(!t){ t=document.createElement('div'); t.id='cf-media-toast';
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);z-index:12000;'
+      +'background:var(--surface2,#1a1a22);color:var(--txt,#eee);border:1px solid var(--hair3,#333);'
+      +'border-radius:8px;padding:11px 18px;font-family:var(--cond,sans-serif);font-size:13px;font-weight:600;'
+      +'letter-spacing:.01em;box-shadow:0 8px 30px rgba(0,0,0,.5);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;';
+    document.body.appendChild(t);
+  }
+  t.textContent=msg;
+  requestAnimationFrame(function(){ t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)'; });
+  clearTimeout(cfMediaToast._t);
+  cfMediaToast._t=setTimeout(function(){ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(12px)'; },4200);
+}
+
+/* ── Settings → Media tab ──────────────────────────────────────────── */
+function renderMediaSettings(){
+  var box=document.getElementById('media-folder-box');
+  var list=document.getElementById('media-lib-list');
+  if(!box||!list) return;
+  if(!cfHasFileAccess()){
+    box.innerHTML='<div style="font-size:12px;color:var(--txt-mid);line-height:1.6;padding:12px;border:1px solid var(--hair);border-radius:8px;background:var(--surface2);">To manage media files, use the desktop version of CueFlow (or a Chromium browser such as Chrome/Edge). Your timing and cue work is unaffected.</div>';
+    list.innerHTML='';
+    return;
+  }
+  var hasFolder=!!cfMedia.folderName;
+  var btnRow='';
+  if(!hasFolder){
+    btnRow='<button class="ntm-btn primary" onclick="cfMediaSettingsPick()">Choose folder…</button>';
+  } else if(cfMedia.needsReconnect){
+    btnRow='<button class="ntm-btn primary" onclick="cfMediaSettingsReconnect()">Reconnect folder</button> '
+      +'<button class="ntm-btn" onclick="cfMediaSettingsChange()">Change folder…</button>';
+  } else {
+    btnRow='<button class="ntm-btn" onclick="cfMediaSettingsChange()">Change folder…</button> '
+      +'<button class="ntm-btn" onclick="cfMediaSettingsForget()">Remove folder</button>';
+  }
+  var info=hasFolder
+    ? ('📁 '+escH(cfMedia.folderName)+(cfMedia.ready?(' · '+cfMedia.files.size+' file'+(cfMedia.files.size!==1?'s':'')):''))
+    : 'No folder selected';
+  box.innerHTML='<div style="font-family:var(--mono);font-size:12px;color:'+(hasFolder?'var(--txt)':'var(--txt-low)')+';">'+info+'</div>'
+    +(cfMedia.needsReconnect?'<div style="font-size:11px;color:var(--amber,#f0a838);margin-top:6px;">Folder access needs to be re-granted after reload.</div>':'')
+    +'<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">'+btnRow+'</div>';
+  if(!cfMedia.ready||!cfMedia.files.size){
+    list.innerHTML='<div style="padding:16px;font-size:12px;color:var(--txt-low);text-align:center;">'
+      +(hasFolder?(cfMedia.needsReconnect?'Reconnect the folder to list files.':'No audio/video files found in this folder.'):'Choose a folder to see your media files.')+'</div>';
+    return;
+  }
+  list.innerHTML='';
+  cfMediaList().forEach(function(f){
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--hair);font-size:12px;';
+    row.innerHTML='<span style="font-size:14px;flex-shrink:0;width:18px;text-align:center;">'+(f.kind==='video'?'🎬':'♫')+'</span>'
+      +'<span style="flex:1;min-width:0;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(cfMediaBaseName(f.name))+'</span>'
+      +'<span class="cf-media-dur" data-name="'+escH(f.name)+'" style="font-family:var(--mono);font-size:11px;color:var(--txt-low);flex-shrink:0;"></span>';
+    list.appendChild(row);
+  });
+  _cfMediaFillDurations('#media-lib-list .cf-media-dur');
+}
+async function _cfMediaFillDurations(sel){
+  var els=Array.from(document.querySelectorAll(sel));
+  for(var i=0;i<els.length;i++){
+    var el=els[i], name=el.getAttribute('data-name');
+    var key=String(name).toLowerCase();
+    if(cfMedia.durations.has(key)){ el.textContent=cfFmtDur(cfMedia.durations.get(key)); continue; }
+    try{ var dur=await cfMediaProbeDuration(name); if(!document.body.contains(el)) return; el.textContent=cfFmtDur(dur); }catch(e){}
+  }
+}
+async function cfMediaSettingsPick(){ var ok=await cfMediaPickFolder(); if(ok) await cfMediaLoadAllSongs(); renderMediaSettings(); renderSongList(); }
+async function cfMediaSettingsChange(){ await cfMediaChangeFolder(); renderMediaSettings(); }
+async function cfMediaSettingsReconnect(){ var ok=await cfMediaReconnect(); if(!ok) cfMediaToast('Could not access the folder — try Change folder…'); renderMediaSettings(); }
+async function cfMediaSettingsForget(){ await cfMediaForget(); renderMediaSettings(); }
+
+/* Hide the desktop edit PREVIEW/MEDIA tabs unless this is an owner on desktop. */
+function _cfApplyEditMediaTabs(){
+  var ok=cfMediaEnabled();
+  var w=document.getElementById('ertab-wf'); if(w) w.style.display=ok?'':'none';
+  var v=document.getElementById('ertab-vid'); if(v) v.style.display=ok?'':'none';
+  if(!ok && (_editView==='wf'||_editView==='vid')) switchEditView('list');
+}
+
+/* Refresh any open media UI after an async folder/link change (called by the module). */
+function _cfMediaRefreshUI(){
+  _cfApplyEditMediaTabs();
+  var sec=document.getElementById('sett-media-section');
+  if(sec && sec.style.display!=='none') renderMediaSettings();
+  var ssp=document.getElementById('seq-settings-modal');
+  if(ssp && ssp.classList.contains('show')){ var s=getActiveSong&&getActiveSong(); if(s) _mediaUpdateSSP(s.id); }
+  if(document.getElementById('cf-media-picker')) _cfMediaRenderPicker();
+}
+window._cfMediaRefreshUI=_cfMediaRefreshUI;
+
+/* ── Media library picker (link a folder file to a sequence) ─────────── */
+var _cfPickerSongId=null;
+function cfMediaOpenPicker(songId){
+  if(!cfMediaEnabled()||!songId) return;
+  _cfPickerSongId=songId;
+  var ex=document.getElementById('cf-media-picker'); if(ex) ex.remove();
+  var bg=document.createElement('div'); bg.id='cf-media-picker'; bg.className='ntm-bg show';
+  bg.style.cssText='position:fixed;inset:0;z-index:11000;display:flex;align-items:center;justify-content:center;';
+  bg.addEventListener('mousedown',function(e){ if(e.target===bg) cfMediaClosePicker(); });
+  bg.innerHTML='<div class="ntm-box" style="width:460px;max-width:95vw;max-height:80vh;display:flex;flex-direction:column;">'
+    +'<div class="ntm-header"><span class="ntm-title">MEDIA LIBRARY</span>'
+      +'<button class="tcs-close" onclick="cfMediaClosePicker()">✕</button></div>'
+    +'<div style="padding:12px 16px 0;"><input id="cf-media-picker-search" placeholder="Search files…" class="tcs-select" style="width:100%;" oninput="_cfMediaRenderPicker()"></div>'
+    +'<div id="cf-media-picker-list" style="flex:1;overflow-y:auto;padding:12px 16px 16px;"></div></div>';
+  document.body.appendChild(bg);
+  _cfMediaRenderPicker();
+  setTimeout(function(){ var s=document.getElementById('cf-media-picker-search'); if(s) s.focus(); },50);
+}
+function cfMediaClosePicker(){ var el=document.getElementById('cf-media-picker'); if(el) el.remove(); _cfPickerSongId=null; }
+function _cfMediaRenderPicker(){
+  var list=document.getElementById('cf-media-picker-list'); if(!list) return;
+  var song=state.songs.find(function(s){return s.id===_cfPickerSongId;});
+  if(!cfMedia.folderName){
+    list.innerHTML='<div style="padding:18px;text-align:center;font-size:12px;color:var(--txt-low);line-height:1.6;">No media folder selected.<br><button class="ntm-btn primary" style="margin-top:12px;" onclick="cfMediaPickerChoose()">Choose folder…</button></div>';
+    return;
+  }
+  if(cfMedia.needsReconnect){
+    list.innerHTML='<div style="padding:18px;text-align:center;font-size:12px;color:var(--txt-low);line-height:1.6;">Folder access needs to be re-granted.<br><button class="ntm-btn primary" style="margin-top:12px;" onclick="cfMediaPickerReconnect()">Reconnect folder</button></div>';
+    return;
+  }
+  var q=((document.getElementById('cf-media-picker-search')||{}).value||'').trim().toLowerCase();
+  var files=cfMediaList().filter(function(f){ return !q || f.name.toLowerCase().indexOf(q)>=0; });
+  var html='';
+  if(song&&song.mediaFile){
+    html+='<button class="ntm-btn danger" style="width:100%;margin-bottom:10px;" onclick="cfMediaUnlinkSong(\''+song.id+'\');cfMediaClosePicker();">Remove current media — '+escH(song.mediaFile)+'</button>';
+  }
+  if(!files.length){ list.innerHTML=html+'<div style="padding:14px;text-align:center;font-size:12px;color:var(--txt-low);">No matching files.</div>'; return; }
+  files.forEach(function(f){
+    var cur=song&&song.mediaFile&&song.mediaFile.toLowerCase()===f.name.toLowerCase();
+    html+='<div class="cf-media-pick-row" data-name="'+escH(f.name)+'" data-cur="'+(cur?'1':'')+'" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;cursor:pointer;'+(cur?'background:var(--surface);':'')+'">'
+      +'<span style="font-size:14px;width:18px;text-align:center;flex-shrink:0;">'+(f.kind==='video'?'🎬':'♫')+'</span>'
+      +'<span style="flex:1;min-width:0;font-size:12px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(cfMediaBaseName(f.name))+'</span>'
+      +'<span class="cf-media-dur" data-name="'+escH(f.name)+'" style="font-family:var(--mono);font-size:11px;color:var(--txt-low);flex-shrink:0;"></span>'
+      +(cur?'<span style="color:var(--amber,#f0a838);font-size:12px;flex-shrink:0;">✓</span>':'')
+      +'</div>';
+  });
+  list.innerHTML=html;
+  Array.from(list.querySelectorAll('.cf-media-pick-row')).forEach(function(row){
+    row.onmouseenter=function(){ if(!row.dataset.cur) row.style.background='var(--surface2)'; };
+    row.onmouseleave=function(){ row.style.background=row.dataset.cur?'var(--surface)':''; };
+    row.onclick=function(){ cfMediaLinkSong(_cfPickerSongId,row.dataset.name); cfMediaClosePicker(); };
+  });
+  _cfMediaFillDurations('#cf-media-picker-list .cf-media-dur');
+}
+async function cfMediaPickerChoose(){ var ok=await cfMediaPickFolder(); if(ok) await cfMediaLoadAllSongs(); _cfMediaRenderPicker(); renderSongList(); }
+async function cfMediaPickerReconnect(){ var ok=await cfMediaReconnect(); if(!ok) cfMediaToast('Could not access the folder.'); _cfMediaRenderPicker(); }
+
 async function mediaAttach(songId){
   if(!songId){console.warn('[CueFlow] mediaAttach: no songId');return;}
+  // Folder model: attaching media = picking a file from the active media folder.
+  if(cfMediaEnabled()){ cfMediaOpenPicker(songId); return; }
   // Always use standard file input (most reliable across all browsers)
   const inp=document.createElement('input');
   inp.type='file';
@@ -10034,6 +10507,7 @@ async function _attachMediaFile(songId,f){
 
 async function mediaRemove(songId){
   if(!songId)return;
+  if(cfMediaEnabled()){ cfMediaUnlinkSong(songId); return; }
   await _mediaRemoveInternal(songId);
   const song=state.songs.find(s=>s.id===songId);if(!song)return;
   delete song.mediaFile;delete song.mediaType;
@@ -10071,28 +10545,50 @@ async function _mediaRemoveInternal(songId){
 }
 
 function _mediaUpdateSSP(songId){
+  // Whole Media section is owner-desktop only — editors/viewers/mobile never see it.
+  const secEl=document.getElementById('ssp-media-section');
+  if(secEl) secEl.style.display=cfMediaEnabled()?'':'none';
+  if(!cfMediaEnabled()) return;
   const song=state.songs.find(s=>s.id===songId);
-  const mf=song?.mediaFile||song?.audioFilename||song?.videoFilename||null;
-  const mt=song?.mediaType||(song?.audioFilename?'audio':song?.videoFilename?'video':null);
+  const mf=song?.mediaFile||null;
+  const mt=song?.mediaType||cfMediaKind(mf);
+  const rowEl=document.getElementById('ssp-media-row');
   const iconEl=document.getElementById('ssp-media-icon');
   const nameEl=document.getElementById('ssp-media-name');
   const durEl=document.getElementById('ssp-media-dur');
   const actEl=document.getElementById('ssp-media-actions');
   if(!nameEl)return;
+  if(rowEl) rowEl.style.borderColor='';
   if(!mf){
     if(iconEl)iconEl.textContent='♫';
-    nameEl.textContent='No media — click to attach';
+    nameEl.textContent='Attach media';
+    nameEl.style.color='';
     if(durEl)durEl.textContent='';
     if(actEl)actEl.style.display='none';
     return;
   }
   if(iconEl)iconEl.textContent=mt==='video'?'🎬':'♫';
-  const am=audio.meta[songId],vm=vid.meta?.[songId];
-  if(am?.ready){nameEl.textContent=mf;if(durEl){const mn=Math.floor(am.durationSec/60),sc=Math.floor(am.durationSec%60);durEl.textContent=mn+':'+String(sc).padStart(2,'0');}}
-  else if(vm?.ready){nameEl.textContent=mf;if(durEl){const mn=Math.floor(vm.durationSec/60),sc=Math.floor(vm.durationSec%60);durEl.textContent=mn+':'+String(sc).padStart(2,'0');}}
-  else if(am?.loading||vm?.loading||(vm&&vm.objUrl&&!vm.ready)){nameEl.textContent='Loading…';if(durEl)durEl.textContent='';}
-  else{nameEl.textContent='⚠ Missing: '+mf;if(durEl)durEl.textContent='';}
   if(actEl)actEl.style.display='flex';
+  if(cfMedia.needsReconnect || !cfMedia.ready){
+    nameEl.textContent=mf+(cfMedia.needsReconnect?' — reconnect folder':' — set media folder');
+    nameEl.style.color='var(--txt-mid)';
+    if(durEl)durEl.textContent='';
+    return;
+  }
+  if(!cfMediaHas(mf)){
+    if(iconEl)iconEl.textContent='⚠';
+    nameEl.textContent=mf+' — not found in folder';
+    nameEl.style.color='var(--amber,#f0a838)';
+    if(rowEl) rowEl.style.borderColor='var(--amber,#f0a838)';
+    if(durEl)durEl.textContent='';
+    return;
+  }
+  nameEl.style.color='';
+  const am=audio.meta[songId],vm=vid.meta?.[songId];
+  if(am?.ready){nameEl.textContent=mf;if(durEl)durEl.textContent=cfFmtDur(am.durationSec);}
+  else if(vm?.ready){nameEl.textContent=mf;if(durEl)durEl.textContent=cfFmtDur(vm.durationSec);}
+  else if(am?.loading||vm?.loading||(vm&&vm.objUrl&&!vm.ready)){nameEl.textContent='Loading…';if(durEl)durEl.textContent='';}
+  else{nameEl.textContent=mf;if(durEl)durEl.textContent='';}
 }
 
 function _mediaUpdateVidTab(songId){
@@ -10794,19 +11290,24 @@ async function loadAudioForSong(songId, file){
   }
 }
 
-async function _decodeAndStore(songId, arrayBuffer, filename){
+async function _decodeAndStore(songId, arrayBuffer, filename, opts){
+  opts = opts||{};
   try{
     _ensureCtx();
     if(audio.ctx.state !== 'running'){ try{ await audio.ctx.resume(); }catch(e){} }
     const buf = await audio.ctx.decodeAudioData(arrayBuffer);
     audio.buffers[songId] = buf;
     audio.meta[songId] = { filename, durationSec: buf.duration, loading: false, ready: true };
-    // Ensure unified media fields are set for persistence
-    const _song=state.songs.find(s=>s.id===songId);
-    if(_song){
-      _song.audioFilename=filename; // keep for IDB compat
-      if(!_song.mediaFile){_song.mediaFile=filename;_song.mediaType='audio';}
-      persist();
+    // Ensure unified media fields are set for persistence. Skipped for folder-sourced
+    // loads (opts.noPersist) — the filename is already stored and decoding on load must
+    // not dirty/sync the project or touch legacy IDB-compat fields.
+    if(!opts.noPersist){
+      const _song=state.songs.find(s=>s.id===songId);
+      if(_song){
+        _song.audioFilename=filename; // keep for IDB compat
+        if(!_song.mediaFile){_song.mediaFile=filename;_song.mediaType='audio';}
+        persist();
+      }
     }
     hideAudioLoading();
     renderSongList();
@@ -10852,6 +11353,7 @@ async function removeAudioFromSong(songId){
 
 // ── Attach audio to existing sequence ────────────────────────────
 function attachAudioToSeq(songId){
+  if(cfMediaEnabled()){ cfMediaOpenPicker(songId); return; }
   const inp = document.createElement('input');
   inp.type   = 'file';
   inp.accept = '.mp3,.wav,audio/mpeg,audio/wav';
@@ -11053,23 +11555,28 @@ function renderAudioHeaderStatus(song){
   const el = document.getElementById('audio-hdr-status');
   if(!el || !song) { if(el) el.innerHTML=''; return; }
   const m = audio.meta[song.id];
-  const hasFile = !!song.audioFilename;
+  const mf = song.mediaFile||null;            // folder model: filename only
+  const hasFile = !!mf;
   let html = '';
   if(!hasFile){
-    html = `<button class="btn-icon" onclick="attachAudioToSeq('${song.id}')" title="Attach audio file">♫ Add audio</button>`;
+    html = `<button class="btn-icon" onclick="cfMediaOpenPicker('${song.id}')" title="Attach media from folder">♫ Add media</button>`;
+  } else if(cfMedia.needsReconnect || !cfMedia.ready){
+    html = `<span style="font-size:10px;color:var(--text3);" title="${escH(mf)}">♫ ${escH(mf)} — ${cfMedia.needsReconnect?'reconnect folder':'set media folder'}</span>`;
+  } else if(!cfMediaHas(mf)){
+    html = `<span style="font-size:10px;color:var(--orange-text);" title="Media file '${escH(mf)}' not found in current media folder">⚠ Missing: ${escH(mf)}</span>
+    <button class="btn-icon" onclick="cfMediaOpenPicker('${song.id}')" title="Relink media">⇄ Relink</button>`;
   } else if(m?.loading){
     html = `<span style="font-size:10px;color:var(--text3);display:flex;align-items:center;gap:4px;"><span class="audio-spinner" style="width:10px;height:10px;border-width:1.5px;"></span>Loading…</span>`;
   } else if(m?.ready){
     const dur=m.durationSec;const mn=Math.floor(dur/60),sc=Math.floor(dur%60);
-    html = `<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--green-text);" title="${escH(song.audioFilename||'')}">
+    html = `<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--green-text);" title="${escH(mf)}">
       <span style="font-size:11px;">♫</span>
       <span style="font-family:var(--mono);">${mn}:${String(sc).padStart(2,'0')}</span>
     </span>
-    <button class="btn-icon" onclick="attachAudioToSeq('${song.id}')" title="Replace audio">⇄</button>
-    <button class="btn-icon" style="color:var(--red);border-color:rgba(239,68,68,.3);" onclick="removeAudioFromSong('${song.id}')" title="Remove audio">✕</button>`;
-  } else if(hasFile && !m){
-    html = `<span style="font-size:10px;color:var(--orange-text);" title="${escH(song.audioFilename||'')}">⚠ Missing</span>
-    <button class="btn-icon" onclick="attachAudioToSeq('${song.id}')" title="Relink audio">⇄ Relink</button>`;
+    <button class="btn-icon" onclick="cfMediaOpenPicker('${song.id}')" title="Change media">⇄</button>
+    <button class="btn-icon" style="color:var(--red);border-color:rgba(239,68,68,.3);" onclick="cfMediaUnlinkSong('${song.id}')" title="Remove media">✕</button>`;
+  } else {
+    html = `<span style="font-size:10px;color:var(--text3);" title="${escH(mf)}">♫ ${escH(mf)}</span>`;
   }
   el.innerHTML = html;
 }
@@ -11324,6 +11831,12 @@ let _listFilterCams=null;   // null | Set<cameraId>
 let _listFilterFlagged=false;
 let _listFilterType='all';  // 'all' | 'cue' | 'marker'
 function switchEditView(view){
+  // PREVIEW (waveform) and MEDIA tabs are owner-desktop only. Hide them for
+  // editors/viewers/mobile and never let those views be active there.
+  const mediaOk=cfMediaEnabled();
+  const wfTabBtn=document.getElementById('ertab-wf'); if(wfTabBtn) wfTabBtn.style.display=mediaOk?'':'none';
+  const vidTabBtn=document.getElementById('ertab-vid'); if(vidTabBtn) vidTabBtn.style.display=mediaOk?'':'none';
+  if(!mediaOk && (view==='wf'||view==='vid')) view='list';
   _editView=view;
   const isList=view==='list',isWf=view==='wf',isVid=view==='vid',isNotes=view==='notes',isCams=view==='cams';
   document.getElementById('er-list-content').style.display=isList?'flex':'none';
@@ -11856,6 +12369,8 @@ function _etlRebuildMediaRow(container,song,fps,pxPS,pxPF,tlW,frames){
   // Reset to base height before adding media row (avoids height accumulation across rebuilds)
   if(_etlCache.baseHeight)container.style.height=_etlCache.baseHeight+'px';
   if(!song)return;
+  // Media (waveform) is owner-desktop only — editors/viewers/mobile get a TC-only timeline.
+  if(!cfMediaEnabled())return;
   const am=audio.meta[song.id];
   const vm=vid.meta?.[song.id];
   const mediaFile=song.mediaFile||song.audioFilename||song.videoFilename||null;
@@ -11943,8 +12458,14 @@ function _etlRebuildMediaRow(container,song,fps,pxPS,pxPF,tlW,frames){
     _etlCache.mediaDrawF=frames;
   } else if(mediaFile){
     const ph=document.createElement('div');
-    ph.style.cssText='position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text3);';
-    ph.textContent=am?.loading||vm?.loading?'Loading…':'⚠ Not loaded — attach file';
+    ph.style.cssText='position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:10px;';
+    if(am?.loading||vm?.loading){ ph.style.color='var(--text3)'; ph.textContent='Loading…'; }
+    else if(cfMedia.needsReconnect||!cfMedia.ready){ ph.style.color='var(--text3)'; ph.textContent='♫ '+mediaFile+' — reconnect media folder'; }
+    else if(!cfMediaHas(mediaFile)){
+      ph.style.cssText+='color:var(--amber,#f0a838);cursor:pointer;';
+      ph.textContent='⚠ '+mediaFile+' — not found in folder (click to fix)';
+      ph.onclick=function(e){ e.stopPropagation(); cfMediaFixMissing(song.id,e); };
+    } else { ph.style.color='var(--text3)'; ph.textContent='Loading…'; }
     mTrack.appendChild(ph);
   }
   mRow.appendChild(mTrack);
@@ -14073,6 +14594,7 @@ document.addEventListener('DOMContentLoaded',function(){
   <div class="tcs-outer-tabs">
     <button class="tcs-outer-tab active" id="sett-tab-tc" onclick="switchSettTab('tc')">TIMECODE</button>
     <button class="tcs-outer-tab" id="sett-tab-show" onclick="switchSettTab('show')">SHOW SETTINGS</button>
+    <button class="tcs-outer-tab" id="sett-tab-media" onclick="switchSettTab('media')" style="display:none;">MEDIA</button>
   </div>
 
   <!-- ══ TIMECODE SECTION ══ -->
@@ -14251,6 +14773,22 @@ document.addEventListener('DOMContentLoaded',function(){
       <button class="ntm-btn primary" onclick="saveProjectSettings()">SAVE</button>
     </div>
   </div><!-- /sett-show-section -->
+
+  <!-- ═══ MEDIA SECTION (owner-desktop only) ═══ -->
+  <div id="sett-media-section" style="display:none;">
+    <div class="tcs-show-body">
+      <div class="tcs-field-label" style="margin-bottom:8px;">MEDIA FOLDER</div>
+      <div style="font-size:11px;color:var(--txt-low);line-height:1.5;margin-bottom:12px;">
+        Choose a folder on this computer that holds your audio/video files. Sequences reference files by name and are resolved from this folder. Files and waveforms stay on this machine — they are never uploaded.
+      </div>
+      <div id="media-folder-box"></div>
+      <div class="tcs-field-label" style="margin:18px 0 8px;">MEDIA LIBRARY</div>
+      <div id="media-lib-list" style="max-height:300px;overflow-y:auto;border:1px solid var(--hair);border-radius:8px;"></div>
+    </div>
+    <div class="ntm-footer">
+      <button class="ntm-btn primary" onclick="closeModal('settings-modal')">DONE</button>
+    </div>
+  </div><!-- /sett-media-section -->
 
 </div>
 </div>
@@ -14500,19 +15038,20 @@ document.addEventListener('DOMContentLoaded',function(){
              onblur="var n=normalizeTcInput(this.value);if(validateTc(n)){this.value=n;this.style.borderColor='';}else{this.style.borderColor='var(--red)';}">
     </div>
 
+    <!-- Media (owner-desktop only; hidden for editors/viewers/mobile) -->
+    <div id="ssp-media-section">
     <hr class="modal-sep">
-
-    <!-- Media -->
     <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt-mid);margin-bottom:8px;font-family:var(--cond);">Media</div>
-    <div class="ssp-audio" id="ssp-media-row" onclick="mediaAttach(getActiveSong()?.id)">
+    <div class="ssp-audio" id="ssp-media-row" onclick="cfMediaOpenPicker(getActiveSong()?.id)">
       <span style="font-size:15px;" id="ssp-media-icon">♫</span>
-      <span class="ssp-audio-name" id="ssp-media-name">No media — click to attach</span>
+      <span class="ssp-audio-name" id="ssp-media-name">Attach media</span>
       <span id="ssp-media-dur" style="font-family:var(--mono);font-size:10px;color:var(--txt-mid);flex-shrink:0;"></span>
     </div>
     <div id="ssp-media-actions" style="display:none;gap:6px;margin-top:6px;">
-      <button class="mbtn" onclick="mediaAttach(getActiveSong()?.id)" style="flex:1;height:32px;font-size:10px;">↑ Replace</button>
-      <button class="mbtn danger" onclick="mediaRemove(getActiveSong()?.id)" style="flex:1;height:32px;font-size:10px;">✕ Remove</button>
+      <button class="mbtn" onclick="cfMediaOpenPicker(getActiveSong()?.id)" style="flex:1;height:32px;font-size:10px;">Change</button>
+      <button class="mbtn danger" onclick="cfMediaUnlinkSong(getActiveSong()?.id)" style="flex:1;height:32px;font-size:10px;">✕ Remove</button>
     </div>
+    </div><!-- /ssp-media-section -->
 
     <hr class="modal-sep">
 
@@ -17753,10 +18292,13 @@ function showEditorApp(show){
      they don't inherit the owner's hide state baked into older project_data blobs. */
   state.cameraTrackVisible=true;
 
-  /* Track-restricted editors: hide PREVIEW tab (list, media, notes only) */
-  if(hasTrackRestriction){
-    var wfTab=document.getElementById('ertab-wf');
-    if(wfTab) wfTab.style.display='none';
+  /* Editors get NO media UI: hide the PREVIEW (waveform) and MEDIA tabs and force
+     the LIST view. cfMediaEnabled() is false for editors, so switchEditView() also
+     hides them and refuses those views — this just applies it immediately on entry. */
+  if(window.switchEditView){ try{ switchEditView('list'); }catch(e){} }
+  else {
+    var _wfTab=document.getElementById('ertab-wf'); if(_wfTab) _wfTab.style.display='none';
+    var _vidTab=document.getElementById('ertab-vid'); if(_vidTab) _vidTab.style.display='none';
   }
 
   /* All editors go directly to the edit screen */

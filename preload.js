@@ -18,3 +18,17 @@ contextBridge.exposeInMainWorld('cfLAN', {
   onStatus: function (cb) { ipcRenderer.on('lan:status', function (_e, s) { cb(s); }); },
   onClientMsg: function (cb) { ipcRenderer.on('lan:client-msg', function (_e, m) { cb(m); }); }
 });
+
+/* Native local-media bridge — owner-only media folder management on the desktop
+ * app. Lets the renderer open a real OS folder dialog, scan it for media files,
+ * and read a file's bytes. Used as the desktop fallback when the File System
+ * Access API (window.showDirectoryPicker) isn't available. */
+contextBridge.exposeInMainWorld('cfNativeFs', {
+  available: true,
+  /* → {canceled} | {path, name} */
+  pickMediaFolder: function () { return ipcRenderer.invoke('media:pick-folder'); },
+  /* (path) → {ok, files:[{name,size}]} | {ok:false, error} */
+  scanMediaFolder: function (path) { return ipcRenderer.invoke('media:scan-folder', path); },
+  /* (path, name) → ArrayBuffer (throws if not found) */
+  readMediaFile: function (path, name) { return ipcRenderer.invoke('media:read-file', { path: path, name: name }); }
+});
