@@ -936,7 +936,7 @@ body.mode-live #edit-mode-banner { display: none; }
 .tl-ruler { position: relative; overflow: hidden; background: var(--surface); border-bottom: 1px solid var(--hair); font-family: var(--mono); font-size: 9.5px; color: var(--txt-low); }
 .tl-ruler::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(to right, var(--hair) 1px, transparent 1px); background-size: 100px 100%; background-position-y: bottom; }
 .tl-tick { position: absolute; bottom: 3px; padding-left: 4px; z-index: 1; }
-#tl-ruler-hover { position: absolute; top: 0; pointer-events: none; background: var(--primary-bg); border: 1px solid var(--primary); padding: 2px 6px; font-family: var(--mono); font-size: 9px; color: var(--primary); white-space: nowrap; z-index: 30; display: none; transform: translateX(-50%); }
+#tl-ruler-hover { position: absolute; top: 3px; pointer-events: none; background: var(--surface3); border: 1px solid var(--primary); padding: 3px 7px; font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--primary); white-space: nowrap; z-index: 40; display: none; box-shadow: 0 2px 10px rgba(0,0,0,.6); }
 
 /* Cue blocks */
 .etl-cue { position: absolute; top: 0; cursor: pointer; user-select: none; }
@@ -1271,7 +1271,7 @@ body.mode-live #edit-mode-banner { display: none; }
 
 /* ── Camera view: topbar cells ── */
 .vw-cam-status { display:none; align-items:center; gap:6px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); flex-shrink:0; white-space:nowrap; }
-.vw-cam-crumb { display:none; align-items:center; gap:8px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; flex-shrink:0; min-width:0; max-width:260px; overflow:hidden; }
+.vw-cam-crumb { display:none; align-items:center; gap:8px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; flex-shrink:1; min-width:0; max-width:none; overflow:hidden; }
 .vw-cam-crumb-pl { color:var(--txt-mid); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .vw-cam-crumb-arr { color:var(--txt-low); font-family:var(--mono); flex-shrink:0; font-size:11px; letter-spacing:0; }
 .vw-cam-crumb-sq { color:var(--txt-hi); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
@@ -1721,6 +1721,25 @@ body.mode-live #edit-mode-banner { display: none; }
 .live-setlist { width: 240px; flex-shrink: 0; border-left: 1px solid var(--hair); background: var(--surface); display: flex; flex-direction: column; overflow: hidden; }
 .live-setlist-head { padding: 10px 14px 8px; font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--txt-mid); border-bottom: 1px solid var(--hair); flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; }
 .live-setlist-body { flex: 1; overflow-y: auto; padding: 6px 0; }
+/* ── Generated ("Internal") TC floating transport (Live View, owner-desktop) ── */
+.gen-tc-float { position:fixed; bottom:24px; right:264px; z-index:950; width:236px; background:var(--surface2); border:1px solid var(--hair2); border-radius:0px; padding:12px 13px 11px; box-shadow:0 14px 44px rgba(0,0,0,.62); display:flex; flex-direction:column; gap:10px; }
+.gen-tc-float.running { border-color:var(--amber-dim); }
+.gen-tc-label { display:flex; align-items:center; gap:6px; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--txt-mid); }
+.gen-tc-dot { width:6px; height:6px; border-radius:50%; background:var(--txt-low); transition:background .15s, box-shadow .15s; }
+.gen-tc-float.running .gen-tc-dot { background:var(--amber); box-shadow:0 0 7px var(--amber); }
+.gen-tc-row { display:flex; align-items:center; gap:8px; }
+.gen-tc-input { flex:1; min-width:0; height:38px; background:var(--bg); border:1px solid var(--hair2); border-radius:0; color:var(--txt-hi); font-family:var(--mono); font-size:18px; font-weight:700; letter-spacing:.06em; text-align:center; padding:0 16px; transition:border-color .12s; }
+.gen-tc-input:focus { outline:none; border-color:var(--amber); background:#000; }
+/* Play button — same size & feel as the edit-view transport button (34×34, square,
+   bordered, glyph), kept amber. */
+.gen-tc-play { width:34px; height:34px; flex-shrink:0; background:var(--primary-bg); border:1px solid var(--primary); border-radius:0; color:var(--primary); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .1s, border-color .1s, color .1s, filter .1s; }
+.gen-tc-play:hover { filter:brightness(1.18); }
+.gen-tc-play.playing { background:var(--primary); color:#000; }
+.gen-tc-reset { height:26px; background:none; border:1px solid var(--hair2); border-radius:0; color:var(--txt-mid); cursor:pointer; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; transition:color .12s, border-color .12s; }
+.gen-tc-reset:hover { color:var(--txt-hi); border-color:var(--hair3); }
+@media (max-width:1023px){ .gen-tc-float { display:none !important; } }
+body.gen-live #live-mini-seqs .setlist-row { cursor:pointer; }
+body.gen-live #live-mini-seqs .setlist-row:hover { background:var(--surface2); }
 .setlist-row { display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 8px; padding: 7px 12px; border-left: 2px solid transparent; cursor: default; }
 .setlist-row.done { opacity: .4; }
 .setlist-row.current { border-left-color: var(--red); background: var(--red-bg); }
@@ -4502,7 +4521,8 @@ function switchMode(mode){
 
   if(mode==='live'){
     simStop();stopAllAudio();
-    if(mtc.inputName) setTCListening(true);
+    /* Internal generator drives TC itself — never re-arm MTC/LTC listening for it. */
+    if(mtc.inputName && state.tcSource!=='gen') setTCListening(true);
     redrawLive(state.currentFrames);
     // Notify collab layer: owner entered live mode
     if(window.CF && CF._onEnterLive) CF._onEnterLive();
@@ -6167,8 +6187,13 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId){
   // ── TC status pip ──
   const tcPip=document.getElementById('live-tc-pip');
   if(tcPip){
-    const hasTc=window.CF&&(CF._tcReady||state.currentFrames>0);
-    tcPip.className='tc-pip'+(hasTc?' ok pulse':' warn');
+    if(_genActive()){
+      /* Internal TC: one coherent accent (amber) — pip matches the amber RUNNING text. */
+      _genSyncTopbar();
+    } else {
+      const hasTc=window.CF&&(CF._tcReady||state.currentFrames>0);
+      tcPip.className='tc-pip'+(hasTc?' ok pulse':' warn');
+    }
   }
 }
 
@@ -6974,6 +6999,9 @@ function renderMiniSongs(target,liveSongId,upNextId){
         const div=document.createElement('div');
         div.className='setlist-row';div.dataset.sid=song.id;
         div.innerHTML=`<div class="sl-num">${i+1}</div><div class="sl-name">${escH(song.name)}</div><div class="sl-dur"></div>`;
+        /* Generated-TC only: click a sequence to populate its start TC (no autoplay).
+           No-op for external sources / non-owner-desktop. */
+        div.onclick=function(){ if(window._genOnSeqClick&&_genControlVisible()){ _genOnSeqClick(this.dataset.sid); div.style.cursor='pointer'; } };
         el.appendChild(div);
       });
     }else{
@@ -7681,6 +7709,9 @@ function selectSong(id){
   const song=state.songs.find(s=>s.id===id);
   const tcInp=document.getElementById('new-song-tc');
   if(tcInp&&song)tcInp.value=song.startTc||'01:00:00:00';
+  /* Generated TC, live: picking a sequence populates its start TC in the floating
+     control (no autoplay). No-op for external sources / non-owner-desktop. */
+  if(song && _genControlVisible()) genSetFrames(tcF(song.startTc||'01:00:00:00'));
 }
 function resetSimToActiveSong(){
   const song=getActiveSong();if(!song)return;
@@ -8882,6 +8913,188 @@ function simStop(){
   audioEngineStop();
   videoOnStop();
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GENERATED ("INTERNAL") TC  — desktop-owner only
+   A manual TC transport for rehearsal/testing without an external source. While
+   active in Live Mode it drives the live waterfall + viewer relay exactly like an
+   external feed. Frame-accurate via performance.now() rebasing (no drift). The
+   last value is NOT persisted (resets to 01:00:00:00 on reload); only the source
+   selection persists (state.tcSource==='gen').
+   ═══════════════════════════════════════════════════════════════════════════ */
+var genTC={ running:false, baseFrames:0, basePerf:0, rafId:null, editing:false };
+genTC.baseFrames = (window.tcF?tcF('01:00:00:00'):90000); /* default start, not persisted */
+function _genActive(){ return state.tcSource==='gen'; }
+window._genActive=_genActive;
+/* Coherent live-topbar status for Internal TC: amber pip (matches amber status text),
+   quiet grey source label, RUNNING/PAUSED state. Mirrors the external green-receiving
+   pattern (pip colour == status colour, label grey) but in the amber "sim" accent. */
+function _genSyncTopbar(){
+  if(!_genActive()) return;
+  var pip=document.getElementById('live-tc-pip');
+  if(pip) pip.className='tc-pip warn'+(genTC.running?' pulse':'');
+  var src=document.getElementById('live-tc-src-lbl');
+  if(src) src.textContent='INTERNAL';
+  var st=document.getElementById('live-tc-status-txt');
+  if(st){ st.textContent=genTC.running?'RUNNING':'PAUSED'; st.style.color=genTC.running?'var(--amber)':'var(--txt-mid)'; }
+}
+window._genSyncTopbar=_genSyncTopbar;
+function _cfOwnerDesktop(){ return !!(window.CF&&CF.isOwner)&&cfIsDesktopViewport(); }
+window._cfOwnerDesktop=_cfOwnerDesktop;
+/* Show the floating control when generating TC, in live mode, as a desktop owner. */
+function _genControlVisible(){ return _genActive() && state.appMode==='live' && _cfOwnerDesktop(); }
+
+function genCurrentFrames(){
+  if(genTC.running) return genTC.baseFrames + (performance.now()-genTC.basePerf)*(state.fps||25)/1000;
+  return genTC.baseFrames;
+}
+/* Render the frozen/seeked frame locally without emitting a "running" relay packet
+   (paused relay is sent separately so viewers freeze instead of free-running). */
+function _genRenderLocal(fi){
+  if(state.appMode==='live'){ state.currentFrames=fi; state.simFrames=fi; _doRedraw('live',fi); }
+  else { state.simFrames=fi; if(window.redrawActive) redrawActive(); }
+}
+function _genTick(){
+  if(!genTC.running) return;
+  /* Self-terminate if the owner switched the TC source away from Internal — viewers
+     must follow the active source (LTC/MTC), never a stale generator loop. */
+  if(!_genActive()){ _genStop(); return; }
+  var f=genCurrentFrames(); var fi=Math.floor(f);
+  state.simFrames=f;
+  if(state.appMode==='live' && window.redrawLive) redrawLive(fi); /* relays running TC (Block 2) */
+  else _genRenderLocal(fi);
+  _genUpdateInput(fi);
+  genTC.rafId=requestAnimationFrame(_genTick);
+}
+function genPlay(){
+  if(genTC.running || !_genActive()) return;
+  genTC.basePerf=performance.now(); /* baseFrames is the current frozen value */
+  genTC.running=true;
+  _genUpdateBtn();
+  _genSyncTopbar();
+  genTC.rafId=requestAnimationFrame(_genTick);
+}
+function genPause(){
+  if(!genTC.running) return;
+  genTC.baseFrames=genCurrentFrames();      /* freeze at the exact current value */
+  genTC.running=false;
+  if(genTC.rafId){ cancelAnimationFrame(genTC.rafId); genTC.rafId=null; }
+  _genUpdateBtn();
+  var fi=Math.floor(genTC.baseFrames);
+  _genRenderLocal(fi);
+  _genUpdateInput(fi);
+  _genSyncTopbar();
+  if(window.CF&&CF._relayTcPaused) CF._relayTcPaused(fi); /* tell viewers to freeze here */
+}
+function genToggle(){ if(!_genActive()) return; genTC.running?genPause():genPlay(); }
+window.genToggle=genToggle;
+/* Stop the generator loop WITHOUT relaying (used when switching to an external source —
+   LTC/MTC immediately takes over the relay). */
+function _genStop(){ if(genTC.rafId){ cancelAnimationFrame(genTC.rafId); genTC.rafId=null; } genTC.running=false; _genUpdateBtn(); }
+window._genStop=_genStop;
+/* Move the generated TC to a frame (input edit, reset, sequence click). Does not auto-play. */
+function genSetFrames(f){
+  genTC.baseFrames=Math.max(0,f||0);
+  genTC.basePerf=performance.now();
+  var fi=Math.floor(genTC.baseFrames);
+  if(genTC.running){
+    /* keep rolling from the new base; the tick relays running TC */
+    if(state.appMode==='live'&&window.redrawLive) redrawLive(fi); else _genRenderLocal(fi);
+  } else {
+    _genRenderLocal(fi);
+    if(window.CF&&CF._relayTcPaused) CF._relayTcPaused(fi);
+  }
+  _genUpdateInput(fi);
+}
+function genReset(){
+  /* Reset to the start TC of the sequence the playhead is currently within. */
+  var cur=Math.floor(genCurrentFrames());
+  var songs=window.getActivePlaylistSongs?getActivePlaylistSongs():(state.songs||[]);
+  var match=null;
+  songs.forEach(function(s){ var sf=window.tcF?tcF(s.startTc||'01:00:00:00'):0; if(sf<=cur) match=s; });
+  if(!match) match=songs[0]||(window.getActiveSong?getActiveSong():null);
+  var startF=match?(window.tcF?tcF(match.startTc||'01:00:00:00'):90000):(window.tcF?tcF('01:00:00:00'):90000);
+  if(genTC.running) genPause();
+  genSetFrames(startF);
+}
+
+/* ── Floating control (Live View, bottom-right) ── */
+/* Text glyphs (▶ / ⏸) match the edit-view transport button feel. */
+var _genIconPlay='▶', _genIconPause='⏸';
+function _genEnsureControl(){
+  var el=document.getElementById('gen-tc-float'); if(el) return el;
+  el=document.createElement('div'); el.id='gen-tc-float'; el.className='gen-tc-float'; el.style.display='none';
+  el.innerHTML=
+    '<div class="gen-tc-label"><span class="gen-tc-dot"></span>INTERNAL TC</div>'+
+    '<div class="gen-tc-row">'+
+      '<input id="gen-tc-input" class="gen-tc-input mono" spellcheck="false" inputmode="numeric">'+
+      '<button id="gen-play-btn" class="gen-tc-play" title="Play / Pause (Space)">'+_genIconPlay+'</button>'+
+    '</div>'+
+    '<button id="gen-reset-btn" class="gen-tc-reset" title="Reset to sequence start TC">↺ Reset to seq start</button>';
+  document.body.appendChild(el);
+  var inp=el.querySelector('#gen-tc-input');
+  inp.addEventListener('focus',function(){ genTC.editing=true; setTimeout(function(){inp.select();},0); });
+  inp.addEventListener('blur',function(){ if(genTC.editing){ genTC.editing=false; _genApplyInput(); } });
+  inp.addEventListener('keydown',function(e){
+    e.stopPropagation();
+    if(e.key==='Enter'){ e.preventDefault(); genTC.editing=false; _genApplyInput(); inp.blur(); }
+    else if(e.code==='Space'){ e.preventDefault(); genTC.editing=false; _genApplyInput(); inp.blur(); genToggle(); }
+    else if(e.key==='Escape'){ genTC.editing=false; _genUpdateInput(Math.floor(genCurrentFrames())); inp.blur(); }
+  });
+  el.querySelector('#gen-play-btn').addEventListener('click',function(){ genToggle(); });
+  el.querySelector('#gen-reset-btn').addEventListener('click',function(){ genReset(); });
+  return el;
+}
+function _genApplyInput(){
+  var inp=document.getElementById('gen-tc-input'); if(!inp) return;
+  var v=window.normalizeTcInput?normalizeTcInput(inp.value):inp.value;
+  if(window.validateTc && !validateTc(v)){ _genUpdateInput(Math.floor(genCurrentFrames())); return; }
+  genSetFrames(window.tcF?tcF(v):genTC.baseFrames);
+}
+function _genUpdateInput(fi){
+  var inp=document.getElementById('gen-tc-input'); if(!inp||genTC.editing) return;
+  if(document.activeElement===inp) return;
+  inp.value=window.fTC?fTC(fi):'';
+}
+function _genUpdateBtn(){
+  var btn=document.getElementById('gen-play-btn'); if(!btn) return;
+  btn.textContent=genTC.running?_genIconPause:_genIconPlay;
+  btn.classList.toggle('playing',genTC.running);
+  btn.title=genTC.running?'Pause (Space)':'Play (Space)';
+  var fl=document.getElementById('gen-tc-float');
+  if(fl) fl.classList.toggle('running',genTC.running);
+}
+/* Show/hide + refresh the floating control based on current source/mode/role. */
+function _genUpdateControl(){
+  var show=_genControlVisible();
+  document.body.classList.toggle('gen-live',show); /* enables setlist click affordance */
+  var el=show?_genEnsureControl():document.getElementById('gen-tc-float');
+  if(!el) return;
+  el.style.display=show?'':'none';
+  if(show){ _genUpdateBtn(); _genUpdateInput(Math.floor(genCurrentFrames())); }
+}
+window._genUpdateControl=_genUpdateControl;
+/* Called by Block 2 when the owner enters live: surface the control and freeze viewers
+   at the current value (no auto-play). */
+function _genEnterLive(){
+  if(!_genActive()||!_cfOwnerDesktop()) return;
+  _genUpdateControl();
+  _genSyncTopbar();
+  var fi=Math.floor(genCurrentFrames());
+  _genRenderLocal(fi);
+  if(window.CF&&CF._relayTcPaused) CF._relayTcPaused(fi);
+}
+window._genEnterLive=_genEnterLive;
+function _genExitLive(){ if(genTC.running) genPause(); _genUpdateControl(); }
+window._genExitLive=_genExitLive;
+/* Sequence click in live (gen source only): populate TC with the sequence start, no autoplay. */
+function _genOnSeqClick(songId){
+  if(!_genControlVisible()) return false;
+  var s=state.songs.find(function(x){return x.id===songId;}); if(!s) return false;
+  genSetFrames(window.tcF?tcF(s.startTc||'01:00:00:00'):90000);
+  return true;
+}
+window._genOnSeqClick=_genOnSeqClick;
 // ─── KEYBOARD ───
 let _jklSpeed=0; // -4,-2,-1,0,1,2,4 (negative=rewind)
 let _jklAF=null;
@@ -8955,6 +9168,14 @@ function _jumpCue(dir){
   }
 }
 document.addEventListener('keydown',e=>{
+  // Generated TC: Space toggles play/pause in Live Mode for a desktop owner — works even
+  // when the floating TC field is focused (commits its edit first). Handled BEFORE the
+  // input guard so it isn't swallowed; other inputs/modals still get the key normally.
+  if(e.code==='Space' && state.appMode==='live' && _genActive() && _cfOwnerDesktop()){
+    var _ae=document.activeElement;
+    var _otherInput=_ae&&(_ae.tagName==='INPUT'||_ae.tagName==='TEXTAREA'||_ae.isContentEditable)&&_ae.id!=='gen-tc-input';
+    if(!_otherInput){ e.preventDefault(); if(_ae&&_ae.id==='gen-tc-input'){ genTC.editing=false; _genApplyInput(); _ae.blur(); } genToggle(); return; }
+  }
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.contentEditable==='true')return;
   // Timeline zoom/snap shortcuts (work in edit mode)
   if(state.appMode==='edit'&&!e.metaKey&&!e.ctrlKey){
@@ -9584,10 +9805,24 @@ let _tcsLtcPeak=0;
 
 function switchTCTab(tab){
   _tcsTab=tab;
+  /* INTERNAL tab only exists for a desktop owner */
+  var genTab=document.getElementById('tcs-tab-gen');
+  if(genTab) genTab.style.display=_cfOwnerDesktop()?'':'none';
   document.getElementById('tcs-tab-ltc').classList.toggle('active',tab==='ltc');
   document.getElementById('tcs-tab-mtc').classList.toggle('active',tab==='mtc');
+  if(genTab) genTab.classList.toggle('active',tab==='gen');
   document.getElementById('tcs-ltc-panel').style.display=tab==='ltc'?'':'none';
   document.getElementById('tcs-mtc-panel').style.display=tab==='mtc'?'':'none';
+  var genPanel=document.getElementById('tcs-gen-panel');
+  if(genPanel) genPanel.style.display=tab==='gen'?'':'none';
+  /* Internal TC has no incoming signal → hide offset / signal-loss / auto-reconnect + readout */
+  var shared=document.getElementById('tcs-shared-controls');
+  if(shared) shared.style.display=tab==='gen'?'none':'';
+  var statusLine=document.getElementById('tcs-status-line');
+  if(statusLine) statusLine.style.display=tab==='gen'?'none':'';
+  /* Connect button label adapts for the internal source */
+  var cbtn=document.getElementById('tcs-connect-btn');
+  if(cbtn) cbtn.textContent=tab==='gen'?'USE INTERNAL TC':'CONNECT';
   if(tab==='ltc') refreshLTCDevices();
   else if(tab==='mtc') tcsConnectMIDI();
 }
@@ -9605,9 +9840,9 @@ function switchSettTab(tab){
   document.getElementById('sett-show-section').style.display=tab==='show'?'':'none';
   const mediaSec=document.getElementById('sett-media-section');
   if(mediaSec) mediaSec.style.display=isMedia?'':'none';
-  // Status line only relevant for TC
+  // Status line only relevant for TC — and not for the Internal (generated) source
   const sl=document.getElementById('tcs-status-line');
-  if(sl) sl.style.display=isTc?'':'none';
+  if(sl) sl.style.display=(isTc&&_tcsTab!=='gen')?'':'none';
   if(isTc){
     startSettingsTCReadout();
   } else if(isMedia){
@@ -9637,18 +9872,14 @@ function _populateShowSettings(){
 
 function openSettingsModal(tab){
   _settTab=tab||'tc';
-  _tcsTab=state.tcSource==='ltc'?'ltc':'mtc';
+  _tcsTab=state.tcSource==='ltc'?'ltc':state.tcSource==='gen'?'gen':'mtc';
+  if(_tcsTab==='gen'&&!_cfOwnerDesktop()) _tcsTab='mtc'; /* safety: never land on gen for non-owner-desktop */
   // Populate shared controls
   document.getElementById('settings-tc-offset').value=state.tcOffset||0;
   document.getElementById('settings-signal-loss').value=state.signalLoss||'freerun';
   document.getElementById('tcs-auto-reconnect').checked=state.autoReconnect!==false;
-  // Tab init
-  document.getElementById('tcs-tab-ltc').classList.toggle('active',_tcsTab==='ltc');
-  document.getElementById('tcs-tab-mtc').classList.toggle('active',_tcsTab==='mtc');
-  document.getElementById('tcs-ltc-panel').style.display=_tcsTab==='ltc'?'':'none';
-  document.getElementById('tcs-mtc-panel').style.display=_tcsTab==='mtc'?'':'none';
-  if(_tcsTab==='ltc') refreshLTCDevices();
-  else tcsConnectMIDI();
+  // Tab init (switchTCTab handles all three panels + INTERNAL visibility + button label)
+  switchTCTab(_tcsTab);
   // Outer tab init — Media tab exists for any desktop owner (content adapts to file access)
   const mediaTabBtn=document.getElementById('sett-tab-media');
   if(mediaTabBtn) mediaTabBtn.style.display=cfMediaTabVisible()?'':'none';
@@ -9699,7 +9930,17 @@ function saveSettings(){
 
 function tcsConnect(){
   const _wantsLive=_awaitingTCForLive; // capture before saveSettings clears it
-  if(_tcsTab==='ltc'){
+  /* Switching to any external source must kill the internal generator loop so viewers
+     follow the real feed (LTC/MTC), not stale generated frames. */
+  if(_tcsTab!=='gen') _genStop();
+  if(_tcsTab==='gen'){
+    /* Internal generator — disconnect any external TC, no device needed */
+    if(!_cfOwnerDesktop()) return; // safety
+    state.tcSource='gen';
+    if(genTC.running) genPause();
+    stopLTC();
+    setTCListening(false); /* tears down MTC + LTC RAF loops */
+  } else if(_tcsTab==='ltc'){
     const devId=document.getElementById('settings-ltc-device').value;
     if(!devId)return;
     state.ltcDeviceId=devId;
@@ -9713,6 +9954,7 @@ function tcsConnect(){
     tcsConnectMIDI();
   }
   saveSettings(); // closes modal, clears _awaitingTCForLive via stopSettingsTCReadout
+  if(window._genUpdateControl) _genUpdateControl();
   if(_wantsLive){_skipLiveGuard=true;switchMode('live');_skipLiveGuard=false;}
 }
 
@@ -12251,10 +12493,14 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       rulerScroll.appendChild(lbl);
     }
   }
-  const rh=document.createElement('div');rh.id='tl-ruler-hover';rh.style.cssText='position:absolute;top:2px;display:none;';
-  rulerScroll.appendChild(rh);
   rulerArea.appendChild(rulerScroll);
   container.appendChild(rulerArea);
+  /* Ruler hover-TC tooltip — must live in the (untransformed) container, NOT in the
+     transform-scrolled rulerScroll, because the mousemove handler positions it in
+     container coordinates (left = LBL_W + cursorX). Inside rulerScroll it rendered
+     off-screen / clipped, which is why the tooltip "disappeared". */
+  const rh=document.createElement('div');rh.id='tl-ruler-hover';rh.style.cssText='position:absolute;top:2px;display:none;';
+  container.appendChild(rh);
   // ── Playhead (fixed) ──
   const ph=document.createElement('div');
   ph.style.cssText=`position:absolute;top:0;bottom:0;left:${ETL.PH_X}px;width:2px;background:var(--orange);z-index:20;pointer-events:none;`;
@@ -12868,8 +13114,15 @@ function _initEditTimeline(){
     const hover=document.getElementById('tl-ruler-hover');
     if(y<ETL.RULER_H&&y>=0){
       const f=_xToTcF(container,e.clientX);
-      const x=e.clientX-rect.left-ETL.LBL_W;
-      if(hover){hover.style.display='block';hover.style.left=(ETL.LBL_W+x)+'px';hover.textContent=fTC(f);}
+      const cx=e.clientX-rect.left; // cursor X within the timeline container
+      if(hover){
+        hover.textContent=fTC(f);
+        hover.style.display='block';
+        /* Trail the cursor on the right so the pointer doesn't sit on top of the text;
+           flip to the left near the container's right edge so it can't be clipped. */
+        const cw=container.clientWidth, tw=hover.offsetWidth||70;
+        hover.style.left=(cx+12+tw>cw ? cx-12-tw : cx+12)+'px';
+      }
     } else {
       if(hover)hover.style.display='none';
     }
@@ -14677,6 +14930,7 @@ document.addEventListener('DOMContentLoaded',function(){
       <div class="tcs-source-toggle">
         <button class="tcs-tab active" id="tcs-tab-ltc" onclick="switchTCTab('ltc')">LTC</button>
         <button class="tcs-tab" id="tcs-tab-mtc" onclick="switchTCTab('mtc')">MTC</button>
+        <button class="tcs-tab" id="tcs-tab-gen" onclick="switchTCTab('gen')" style="display:none;">INTERNAL</button>
       </div>
     </div>
     <!-- LTC panel -->
@@ -14750,8 +15004,23 @@ document.addEventListener('DOMContentLoaded',function(){
         <div style="height:28px;"></div>
       </div>
     </div>
-    <!-- Shared TC controls -->
-    <div class="tcs-shared">
+    <!-- INTERNAL (generated) TC panel — owner-desktop only -->
+    <div id="tcs-gen-panel" style="display:none;">
+      <div class="tcs-card" style="display:block;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span class="tcs-card-pip" style="background:var(--amber);"></span>
+          <span class="tcs-card-state">INTERNAL GENERATOR</span>
+        </div>
+        <div style="font-size:12px;color:var(--txt-mid);line-height:1.6;">
+          CueFlow generates timecode internally — no external LTC/MTC source needed. A floating
+          transport (play / pause / reset, editable TC) appears in the Live View. Use the spacebar
+          to start and stop, and click a sequence to jump its start TC. Selecting this disconnects
+          any LTC or MTC input.
+        </div>
+      </div>
+    </div>
+    <!-- Shared TC controls (offset / signal loss / auto-reconnect) — N/A for Internal TC -->
+    <div class="tcs-shared" id="tcs-shared-controls">
       <div class="tcs-row" style="gap:12px;">
         <div class="tcs-field-group" style="flex:1;">
           <div class="tcs-field-label">OFFSET <span style="font-weight:400;color:var(--txt-low);text-transform:none;letter-spacing:0;">— added to incoming TC</span></div>
@@ -16950,12 +17219,13 @@ function openTcChan(){
     });
 }
 
-function relayTC(frames, source){
+function relayTC(frames, source, paused){
   if(!CF._tcChan || !CF.showId) return;
   if(!CF._tcRelayActive) return; /* only relay in live mode */
   if(!CF._tcReady){ openTcChan(); return; }
   var now = Date.now();
-  if(now - CF._lastBcast < 80) return; /* ~12fps — enough for smooth interpolation */
+  /* Paused packets bypass the 12fps throttle so the freeze lands immediately. */
+  if(!paused && now - CF._lastBcast < 80) return; /* ~12fps — enough for smooth interpolation */
   CF._lastBcast = now;
   /* Sequence name: scan songs by startTc to find which sequence TC falls within */
   var seqName = '';
@@ -16977,8 +17247,11 @@ function relayTC(frames, source){
   try{ if(window.cfLAN && CF._lanStatus && CF._lanStatus.ips && CF._lanStatus.ips.length){
     lanUrl='http://'+CF._lanStatus.ips[0]+':'+(CF._lanStatus.port||8420); } }catch(e){}
   netSend('tc',{frames:frames,source:source,seqName:seqName,playlistName:playlistName,
-             activePlaylistId:state.activePlaylistId||null,fps:state.fps||25,lanUrl:lanUrl});
+             activePlaylistId:state.activePlaylistId||null,fps:state.fps||25,lanUrl:lanUrl,
+             paused:!!paused});
 }
+/* Generated-TC pause: tell viewers to freeze at this frame (no free-run interpolation). */
+CF._relayTcPaused=function(frames){ if(typeof relayTC==='function') relayTC(frames,'gen',true); };
 
 /* ── Viewer status indicator ──────────────────────────────────────────────────
  * 4 states, shown in the viewer topbar pip + label:
@@ -17143,8 +17416,9 @@ function _applyTcMessage(p){
   var liveDisp=document.getElementById('tc-disp-live');
   if(liveDisp && CF.role==='editor'){ liveDisp.style.color = color; }
 
-  /* Store reference for interpolation — use performance.now() for sub-ms accuracy */
-  CF._tcRef = {frames:frames, fps:state.fps||25, recvAt:Date.now(), recvPerf:performance.now()};
+  /* Store reference for interpolation — use performance.now() for sub-ms accuracy.
+     `paused` (generated-TC freeze) pins the display to this frame, no interpolation. */
+  CF._tcRef = {frames:frames, fps:state.fps||25, recvAt:Date.now(), recvPerf:performance.now(), paused:!!p.paused};
   CF._lastTcRx = Date.now();
 
   /* Update viewer status pip + label */
@@ -17238,6 +17512,16 @@ function _startViewerTcLoop(){
     if(!CF._tcRef) return;
     var ref = CF._tcRef;
     var elapsed = ref.recvPerf!=null ? (performance.now()-ref.recvPerf)/1000 : (Date.now()-ref.recvAt)/1000;
+    /* Generated-TC paused: pin to the exact frame, never interpolate or free-run. */
+    if(ref.paused){
+      var pf = ref.frames;
+      var pfmt = window.fTC ? fTC(pf) : '00:00:00:00';
+      var pbig=document.getElementById('cf-tc-big'); if(pbig&&CF.role==='tc') pbig.textContent=pfmt;
+      var pvtc=document.getElementById('cf-v-tc'); if(pvtc&&CF.role!=='tc') pvtc.textContent=pfmt;
+      if(CF._freeRunShown){ CF._freeRunShown=false; var pst=document.getElementById('cf-v-status-txt'); if(pst) pst.style.display='none'; }
+      if(CF.role!=='tc' && state.appMode==='live'){ state.simFrames=pf; state.currentFrames=pf; if(window.redrawActive) redrawActive(); }
+      return;
+    }
     var running = elapsed <= FREERUN_MAX;        /* keep the clock moving through outages */
     var freeRun = elapsed > 1.5 && running;      /* no fresh packet → estimating */
     var displayF = running ? Math.round(ref.frames + elapsed * ref.fps) : ref.frames;
@@ -19534,10 +19818,12 @@ CF._tcRelayActive=false;
 CF._onEnterLive=function(){
   CF._tcRelayActive=true; openTcChan(); if(window.sbClose) sbClose();
   startPresence(); _updateLiveStatusChip();
+  if(window._genEnterLive) _genEnterLive(); /* show Internal-TC transport, freeze viewers */
 };
 CF._onExitLive=function(){
   CF._tcRelayActive=false;
   if(CF._presChan){ CF._presChan.unsubscribe(); CF._presChan=null; }
+  if(window._genExitLive) _genExitLive(); /* pause generator + hide transport */
 };
 /* Scan all known shows in parallel for active TC; lock onto the first broadcasting.
    When the active show differs from the locally-open project, load and apply its

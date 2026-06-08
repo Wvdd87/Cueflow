@@ -177,6 +177,10 @@ Role checks: `CF.role === 'editor' || CF.role === 'track-editor'`
 - All live-mode logic must use `getAllCues()` (playlist-scoped), not `getSortedSongs()` directly
 - `_doRedraw()` drives the live waterfall; auto-advance and up-next both use `getActivePlaylistSongs()`
 
+### TC sources — `state.tcSource` ∈ `'ltc' | 'midi' | 'gen'`
+
+`'gen'` = **Internal/Generated TC**, a manual transport for rehearsal/testing with no external feed. **Desktop-owner only** (`_cfOwnerDesktop()` = owner + desktop viewport); editors/viewers/mobile never see it (source value still syncs but is inert for them). Settings → Timecode shows an INTERNAL tab; selecting it runs `setTCListening(false)` + `stopLTC()`. The `genTC` module (Block 1) drives a `performance.now()`-rebased, drift-free tick that calls `redrawLive()` each frame (so the existing Block 2 relay broadcasts it as a normal live feed). A floating transport (`#gen-tc-float`, play/pause/reset + editable TC) appears in Live View; Spacebar toggles play/pause; clicking a setlist row populates that sequence's start TC (no autoplay). **Pause semantics:** `genPause`/`genSetFrames` send a `paused:true` TC packet via `CF._relayTcPaused`; the viewer RAF loop pins to that frame instead of free-running. The TC value is **not** persisted (resets to `01:00:00:00` on reload); only `tcSource` persists.
+
 ## Electron
 
 - `main.js` — standard Electron shell, loads `cueflow_v18.html`; grants MIDI permission only
