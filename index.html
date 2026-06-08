@@ -18835,6 +18835,7 @@ function afterRolesRender(){
 }
 
 var _svgTrashXs='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
+var _svgSlidersXs='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>';
 
 function renderPinsList(){
   /* Mirror the rendered list into the offline cache (covers add/delete too). */
@@ -18853,7 +18854,7 @@ function renderPinsList(){
     var label=p.label||p.role;
     var isCamPin=p.track_ids&&p.track_ids.length&&p.track_ids[0]&&p.track_ids[0].indexOf('cam:')=== 0;
     var roleTxt=p.role==='tc'?'TC':p.role==='owner'?'ADMIN':(p.role==='editor'||p.role==='track-editor'?'EDITOR':isCamPin?'CAMERA':'VIEWER');
-    var roleCls=isCamPin?' camera':'';
+    var roleCls=isCamPin?'camera':p.role==='owner'?'admin':(p.role==='editor'||p.role==='track-editor')?'editor':p.role==='tc'?'tc':'viewer';
     var canEditTracks=!isCamPin&&(p.role==='viewer'||p.role==='editor'||p.role==='crew'||p.role==='track-editor');
     var trackSummary='';
     if(isCamPin){
@@ -18875,28 +18876,35 @@ function renderPinsList(){
     pinRow.id='cf-pin-row-'+p.id;
     pinRow.className='sbp-pin-row';
 
-    /* Top row: role badge · label · delete */
-    var topRow=document.createElement('div');
-    topRow.className='sbp-pin-row-top';
-    topRow.innerHTML=
-      '<span class="sbp-pin-role'+roleCls+'">'+roleTxt+'</span>'+
+    /* Head: role badge · label · delete */
+    var head2=document.createElement('div');
+    head2.className='sbp-pin-head';
+    head2.innerHTML=
+      '<span class="sbp-pin-role '+roleCls+'">'+roleTxt+'</span>'+
       '<span class="sbp-pin-lbl">'+(window.escH?escH(label):label)+'</span>'+
       '<button class="sbp-pin-del" onclick="CF._deletePin(\''+p.id+'\')" title="Delete link">'+_svgTrashXs+'</button>';
-    pinRow.appendChild(topRow);
+    pinRow.appendChild(head2);
 
-    /* Bottom row: pin code · copy · optional tracks toggle */
-    var bottomRow=document.createElement('div');
-    bottomRow.className='sbp-pin-row-bottom';
+    /* Meta line: PIN code · (track summary) · Tracks utility */
+    var pinStr=(p.display_pin||'').replace(/'/g,'');
+    var meta=document.createElement('div');
+    meta.className='sbp-pin-meta';
+    meta.innerHTML=
+      '<span class="sbp-pin-code-lbl">PIN</span>'+
+      '<span class="sbp-pin-code">'+(p.display_pin||'——')+'</span>'+
+      (trackSummary?'<span class="sbp-pin-tracksum" title="'+(window.escH?escH(trackSummary):trackSummary)+'">'+(window.escH?escH(trackSummary):trackSummary)+'</span>':'<span style="flex:1;"></span>')+
+      (canEditTracks?'<button class="sbp-pin-tracks-btn" onclick="CF._toggleEditPinTracks(\''+p.id+'\')" title="Edit track access">'+_svgSlidersXs+'Tracks</button>':'');
+    pinRow.appendChild(meta);
+
+    /* Actions: primary Copy link + secondary Copy online/local link */
     var copyId='sbp-copy-'+p.id;
     var altLabel=window._cfAltEnvLabel?_cfAltEnvLabel():'Copy local link';
-    var pinStr=(p.display_pin||'').replace(/'/g,'');
-    bottomRow.innerHTML=
-      '<span class="sbp-pin-code">'+(p.display_pin||'——')+'</span>'+
-      (trackSummary?'<span style="flex:1;font-family:var(--cond);font-size:9px;color:var(--txt-low);letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">'+(window.escH?escH(trackSummary):trackSummary)+'</span>':'')+
-      (canEditTracks?'<button class="sbp-pin-copy" onclick="CF._toggleEditPinTracks(\''+p.id+'\')">Tracks</button>':'')+
-      '<button id="'+copyId+'" class="sbp-pin-copy" onclick="(function(btn,url){_cfCopyText(url).then(function(ok){btn.textContent=ok?\'Copied!\':\'Copy failed\';setTimeout(function(){btn.textContent=\'Copy link\';},1500);});})(document.getElementById(\''+copyId+'\'),\''+url+'\')">Copy link</button>'+
-      '<button id="sbp-alt-'+p.id+'-btn" class="sbp-pin-copy alt" onclick="CF._toggleAltEnv(\''+p.id+'\')">'+altLabel+'</button>';
-    pinRow.appendChild(bottomRow);
+    var actions=document.createElement('div');
+    actions.className='sbp-pin-actions';
+    actions.innerHTML=
+      '<button id="'+copyId+'" class="sbp-btn sbp-btn--primary" onclick="(function(btn,url){_cfCopyText(url).then(function(ok){var o=btn.dataset.o||btn.textContent;btn.dataset.o=o;btn.textContent=ok?\'✓ Copied\':\'Copy failed\';setTimeout(function(){btn.textContent=o;},1500);});})(this,\''+url+'\')">Copy link</button>'+
+      '<button id="sbp-alt-'+p.id+'-btn" class="sbp-btn sbp-btn--ghost" onclick="CF._toggleAltEnv(\''+p.id+'\')">'+altLabel+'</button>';
+    pinRow.appendChild(actions);
 
     /* Inline alternative-environment address input (hidden until secondary button clicked) */
     var altRow=document.createElement('div');
