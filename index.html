@@ -724,7 +724,7 @@ body.mode-live #edit-mode-banner { display: none; }
 .cue-list-wrap { overflow-x: hidden !important; }
 .cue-row {
   display: grid;
-  grid-template-columns: 30px 32px var(--col-tc,108px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px 28px;
+  grid-template-columns: 30px 32px var(--col-tc,108px) var(--col-dur,96px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px 28px;
   align-items: stretch;
   border-bottom: 1px solid var(--hair);
   transition: background .08s; position: relative;
@@ -753,6 +753,26 @@ body.mode-live #edit-mode-banner { display: none; }
   font-family: var(--mono); font-size: 10px; color: var(--txt-low);
   border-right: 1px solid var(--hair); font-variant-numeric: tabular-nums;
 }
+/* Cue duration cell — "auto" (dim italic) or an explicit TC offset (mono). Click to edit. */
+.cue-col-dur {
+  display: flex; align-items: center; justify-content: flex-start;
+  font-family: var(--mono); font-size: 11px; color: var(--txt-mid);
+  border-right: 1px solid var(--hair); font-variant-numeric: tabular-nums;
+  padding: 0 8px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  transition: background .1s, color .1s;
+}
+.cue-col-dur:hover { background: var(--surface3); color: var(--txt-hi); }
+.cue-col-dur.auto { color: var(--txt-low); font-style: italic; font-family: var(--sans); }
+/* Cue-duration popover */
+.cue-dur-pop { position: fixed; z-index: 10550; width: 230px; background: var(--surface2); border: 1px solid var(--hair2); box-shadow: 0 12px 40px rgba(0,0,0,.6); padding: 12px 13px; display: flex; flex-direction: column; gap: 8px; }
+.cue-dur-pop .cdp-title { font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--txt-mid); margin-bottom: 2px; }
+.cue-dur-pop .cdp-opt { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--txt); cursor: pointer; }
+.cue-dur-pop .cdp-opt input { accent-color: var(--primary); flex-shrink: 0; }
+.cue-dur-pop .cdp-sub { color: var(--txt-low); font-size: 11px; }
+.cue-dur-pop .cdp-input { height: 32px; background: var(--bg); border: 1px solid var(--hair2); color: var(--txt-hi); font-family: var(--mono); font-size: 13px; text-align: center; letter-spacing: .04em; transition: border-color .12s; }
+.cue-dur-pop .cdp-input:focus { outline: none; border-color: var(--primary); }
+.cue-dur-pop .cdp-actions { display: flex; gap: 8px; margin-top: 4px; }
+.cue-dur-pop .cdp-actions .mbtn { flex: 1; height: 30px; font-size: 10px; }
 .cue-field {
   background: transparent; border: none; outline: none;
   font-size: 12px; color: var(--txt);
@@ -798,7 +818,7 @@ body.mode-live #edit-mode-banner { display: none; }
 
 .cue-list-header {
   display: grid;
-  grid-template-columns: 30px 32px var(--col-tc,108px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px 28px;
+  grid-template-columns: 30px 32px var(--col-tc,108px) var(--col-dur,96px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px 28px;
   border-bottom: 1px solid var(--hair2); flex-shrink: 0;
   background: var(--surface); position: relative; height: 28px;
 }
@@ -813,7 +833,7 @@ body.mode-live #edit-mode-banner { display: none; }
 /* ── Marker rows — grid-aligned with cue rows ── */
 .chapter-list-row {
   display: grid;
-  grid-template-columns: 30px 32px var(--col-tc,108px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px 28px;
+  grid-template-columns: 30px 32px var(--col-tc,108px) var(--col-dur,96px) var(--col-name,1fr) var(--col-desc,1fr) var(--col-type,70px) var(--col-next,52px) 28px 28px;
   align-items: stretch; min-height: 34px;
   border-bottom: 1px solid var(--primary-bg);
   cursor: default; position: relative;
@@ -952,8 +972,13 @@ body.mode-live #edit-mode-banner { display: none; }
 .etl-cue.cam-active .etl-cam-inner { outline: 2px solid var(--primary); outline-offset: -2px; }
 /* Regular cue block */
 .etl-cue-label { font-family: var(--cond); font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .07em; text-transform: uppercase; flex: 1; }
-.etl-cue-handle { position: absolute; left: 0; top: 0; bottom: 0; width: 8px; cursor: ew-resize; background: transparent; transition: background .1s; z-index: 2; }
+.etl-cue-handle { position: absolute; left: 0; top: 0; bottom: 0; width: 8px; cursor: ew-resize; background: transparent; transition: background .1s; z-index: 3; }
 .etl-cue:hover .etl-cue-handle { background: rgba(255,255,255,.2); }
+/* Right-edge handle: drag to set this cue's duration (creates a gap / explicit length) */
+.etl-cue-handle-r { position: absolute; right: 0; top: 0; bottom: 0; width: 8px; cursor: e-resize; background: transparent; transition: background .1s; z-index: 3; }
+.etl-cue:hover .etl-cue-handle-r { background: rgba(240,168,56,.35); }
+/* Auto-duration cues: subtle trailing arrow indicating "extends to next cue" */
+.etl-cue-arrow { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); font-size: 12px; line-height: 1; color: rgba(255,255,255,.4); pointer-events: none; z-index: 1; font-family: var(--mono); }
 
 /* Stream cells */
 .etl-stream-cell, .etl-stream-cell.active-stream { cursor: pointer; transition: background .1s; }
@@ -3407,7 +3432,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
           <button class="batch-del-btn" id="batch-del-btn" onclick="batchDeleteStage()">Delete</button>
           <button class="batch-cancel-btn" onclick="toggleBatchMode()" title="Exit selection" aria-label="Cancel selection"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
-        <div class="cue-list-header"><span style="justify-content:center;padding:0;">#</span><span style="padding:0 4px;justify-content:center;border-right:1px solid var(--hair);">TRK</span><span>Timecode</span><span>Cue</span><span>Description</span><span>Type</span><span>Next</span><span style="justify-content:center;padding:0;">⚑</span><span style="justify-content:center;padding:0;">×</span></div>
+        <div class="cue-list-header"><span style="justify-content:center;padding:0;">#</span><span style="padding:0 4px;justify-content:center;border-right:1px solid var(--hair);">TRK</span><span>Timecode</span><span>Duration</span><span>Cue</span><span>Description</span><span>Type</span><span>Next</span><span style="justify-content:center;padding:0;">⚑</span><span style="justify-content:center;padding:0;">×</span></div>
         <div id="cue-list-wrap"></div>
         <div style="display:none;"><span id="desc-has-content"></span></div>
       </div>
@@ -3586,6 +3611,14 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
             <span class="ntm-badge">Shown to operator</span>
           </div>
           <textarea id="nc-desc-inp" class="ntm-inp" rows="3" placeholder="Optional note…" style="resize:none;padding-top:10px;padding-bottom:10px;" maxlength="240"></textarea>
+        </div>
+        <div class="ntm-fg">
+          <div class="ntm-lbl">Duration</div>
+          <div style="display:flex;align-items:center;gap:16px;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txt);cursor:pointer;white-space:nowrap;"><input type="radio" name="nc-dur-mode" id="nc-dur-auto" value="auto" checked style="accent-color:var(--primary);"><span>Auto <span style="color:var(--txt-low);">(until next cue)</span></span></label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txt);cursor:pointer;white-space:nowrap;"><input type="radio" name="nc-dur-mode" value="set" style="accent-color:var(--primary);"><span>Set</span></label>
+            <input id="nc-dur-inp" class="ntm-inp" style="flex:1;min-width:80px;font-family:var(--mono);font-size:13px;opacity:.4;" placeholder="00:00:04:20" spellcheck="false" autocomplete="off" disabled>
+          </div>
         </div>
       </div>
       <div class="ntm-footer">
@@ -4344,6 +4377,8 @@ function applyProject(proj){
   state.fps=proj.fps||25;state.visibleCount=proj.visibleCount||6;
   state.warnSec=proj.warnSec||10;state.autoAdvanceSec=proj.autoAdvanceSec||10;
   state.songs=proj.songs||[];
+  // Validate per-cue durations on load — bad values fall back to "auto".
+  state.songs.forEach(function(s){ (s.cues||[]).forEach(_validateCueDuration); });
   // Playlist migration: legacy projects without playlists get a default "Main" playlist
   state.playlists=proj.playlists||null;
   if(!state.playlists||!state.playlists.length){
@@ -4893,6 +4928,68 @@ function getAllCues(visibleOnly){
   const all=[];
   getActivePlaylistSongs().forEach(s=>getSortedCues(s.id,visibleOnly).forEach(c=>all.push({...c,songId:s.id})));
   return all.sort((a,b)=>a._f-b._f);
+}
+
+/* ── Per-cue duration (Part 2) ────────────────────────────────────────────────
+   cue.duration = "auto" (default: ends at next cue on the same track) OR a TC
+   offset string like "00:00:04:20" (explicit length). Stored as a human-readable
+   string to match the rest of the app's TC handling. */
+function cueIsAuto(cue){ return !cue||!cue.duration||cue.duration==='auto'; }
+/* Explicit duration in frames, or null when auto/invalid. */
+function cueDurFrames(cue){
+  if(cueIsAuto(cue)) return null;
+  if(!validateTc(cue.duration)) return null;
+  return Math.max(1,tcF(cue.duration));
+}
+/* The frame at which a cue ends. For auto: the next same-track cue's start, else the
+   next sequence's start, else Infinity. For explicit: start + duration.
+   `song` is the owning song; pass the song's start frame for the sequence-end fallback. */
+function cueEndFrames(cue, song){
+  var startF=tcF(cue.tc);
+  var dur=cueDurFrames(cue);
+  if(dur!=null) return startF+dur;
+  // auto → next cue on the same track within this song
+  var sibs=(song.cues||[]).filter(function(c){
+    return (cue.cameraId? !!c.cameraId : c.streamId===cue.streamId);
+  }).map(function(c){return tcF(c.tc);}).filter(function(f){return f>startF;}).sort(function(a,b){return a-b;});
+  if(sibs.length) return sibs[0];
+  // last cue on track → extend to the next sequence's start, else Infinity
+  var nextSeqF=_nextSeqStartF(song);
+  return nextSeqF!=null?nextSeqF:Infinity;
+}
+/* Start frame of the sequence that follows `song` (ordered by start TC), or null. */
+function _nextSeqStartF(song){
+  var thisF=tcF(song.startTc||'01:00:00:00');
+  var after=(state.songs||[]).map(function(s){return tcF(s.startTc||'01:00:00:00');})
+    .filter(function(f){return f>thisF;}).sort(function(a,b){return a-b;});
+  return after.length?after[0]:null;
+}
+/* Compact duration display: omit leading-zero segments. Always show s:ff; add m, then h
+   only when the duration is long enough. e.g. 9s8f→"9:08", 1m2s4f→"1:02:04", 0f→"0:00". */
+function fmtDurCompact(frames){
+  frames=Math.max(0,Math.round(+frames||0));
+  var fps=Math.max(1,state.fps|0);
+  var ff=frames%fps, ts=Math.floor(frames/fps);
+  var s=ts%60, m=Math.floor(ts/60)%60, h=Math.floor(ts/3600);
+  var p2=function(n){return String(n).padStart(2,'0');};
+  if(h>0) return h+':'+p2(m)+':'+p2(s)+':'+p2(ff);
+  if(m>0) return m+':'+p2(s)+':'+p2(ff);
+  return s+':'+p2(ff);
+}
+/* True when a cue has an explicit duration and the playhead is past its end (in a gap).
+   Works on raw cues and on the spread copies used by the cockpit (which carry _f). */
+function _cueEndedAt(cue,frames){
+  if(!cue||cueIsAuto(cue)) return false;
+  var startF=(cue._f!=null?cue._f:tcF(cue.tc));
+  return frames>=startF+(cueDurFrames(cue)||0);
+}
+/* Normalise/validate a cue's duration field in place (called on load). */
+function _validateCueDuration(cue){
+  if(cue.duration==null||cue.duration==='auto') return;
+  if(typeof cue.duration!=='string'||!validateTc(cue.duration)||tcF(cue.duration)<1){
+    console.warn('[CueFlow] invalid cue.duration "'+cue.duration+'" on cue '+cue.id+' → auto');
+    cue.duration='auto';
+  }
 }
 function uid(){return'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
@@ -6070,8 +6167,8 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId){
   const WARN_SEC=state.warnSec||10;
   const URGENCY_SEC=20;
 
-  // ── ON AIR strip ──
-  const curCue=curIdx>=0?allCues[curIdx]:null;
+  // ── ON AIR strip ── (blank when the current cue has explicitly ended → we're in a gap)
+  const curCue=(curIdx>=0&&!_cueEndedAt(allCues[curIdx],frames))?allCues[curIdx]:null;
   const oaName=document.getElementById('live-oa-name');
   const oaBadge=document.getElementById('live-oa-badge');
   const oaTc=document.getElementById('live-oa-tc');
@@ -6204,8 +6301,8 @@ function _updateTestCockpit(frames,allCues,curIdx,upNextSongId){
   const WARN_SEC=state.warnSec||10;
   const URGENCY_SEC=20;
 
-  // ── ON AIR strip ──
-  const curCue=curIdx>=0?allCues[curIdx]:null;
+  // ── ON AIR strip ── (blank in a gap when the current cue has explicitly ended)
+  const curCue=(curIdx>=0&&!_cueEndedAt(allCues[curIdx],frames))?allCues[curIdx]:null;
   const oaName=document.getElementById('test-oa-name');
   const oaBadge=document.getElementById('test-oa-badge');
   const oaTc=document.getElementById('test-oa-tc');
@@ -6313,7 +6410,7 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
   const _allCuesUnfiltered=getAllCues(false);
   let _uCurIdx=-1;
   for(let i=_allCuesUnfiltered.length-1;i>=0;i--){if(frames>=_allCuesUnfiltered[i]._f){_uCurIdx=i;break;}}
-  const curCue=_uCurIdx>=0?_allCuesUnfiltered[_uCurIdx]:null;
+  const curCue=(_uCurIdx>=0&&!_cueEndedAt(_allCuesUnfiltered[_uCurIdx],frames))?_allCuesUnfiltered[_uCurIdx]:null;
   if(curCue){
     const e=_e('vw-oa-name');if(e)e.textContent=curCue.name||'—';
     const b=_e('vw-oa-badge');if(b)b.innerHTML=_makeLiveBadge(curCue,'sm');
@@ -6489,7 +6586,8 @@ function _updateCamCockpit(frames){
   // Current cue for my camera
   let myCurIdx=-1;
   for(let i=myCues.length-1;i>=0;i--){if(frames>=myCues[i]._f){myCurIdx=i;break;}}
-  const myCurCue=myCurIdx>=0?myCues[myCurIdx]:null;
+  // Explicit duration ended → in a gap → my camera is NOT on air.
+  const myCurCue=(myCurIdx>=0&&!_cueEndedAt(myCues[myCurIdx],frames))?myCues[myCurIdx]:null;
   const myNextCue=myCues.find(c=>c._f>frames)||null;
   const cam=getCameraById(selCamId);
   const hex=getCameraColor(cam?.colorIdx||0);
@@ -6619,7 +6717,8 @@ function _updateCamCockpit(frames){
     // Find the currently live camera cue (most recent any-cam cue that has fired)
     let _liveCamIdx=-1;
     for(let i=allCamCues.length-1;i>=0;i--){if(frames>=allCamCues[i]._f){_liveCamIdx=i;break;}}
-    const liveCamCue=_liveCamIdx>=0?allCamCues[_liveCamIdx]:null;
+    // Explicit duration ended → gap → no camera on air.
+    const liveCamCue=(_liveCamIdx>=0&&!_cueEndedAt(allCamCues[_liveCamIdx],frames))?allCamCues[_liveCamIdx]:null;
     // Prepend LIVE NOW row
     if(liveCamCue){
       const lc=getCameraById(liveCamCue.cameraId);
@@ -7777,6 +7876,7 @@ function renderCueList(){
         tcInp.className='cue-field tc'+(isSel?'':' cue-readonly');
         tcInp.value=ch.tc;tcInp.dataset.chid=ch.id;tcInp.dataset.f='tc';tcInp.placeholder='01:00:00:00';
         if(!isSel)tcInp.readOnly=true;sep.appendChild(tcInp);
+        sep.appendChild(document.createElement('div')); // duration column placeholder
         const nameInp=document.createElement('input');
         nameInp.className='cue-field'+(isSel?'':' cue-readonly');
         nameInp.value=ch.name;nameInp.placeholder='Marker name';nameInp.dataset.chid=ch.id;nameInp.dataset.f='name';
@@ -7846,6 +7946,7 @@ function renderCueList(){
         tcInp.value=ch.tc;tcInp.dataset.chid=ch.id;tcInp.dataset.f='tc';tcInp.placeholder='01:00:00:00';
         if(!isSel)tcInp.readOnly=true;
         sep.appendChild(tcInp);
+        sep.appendChild(document.createElement('div')); // duration column placeholder
         // Col 4: CUE — name input, same style as cue name
         const nameInp=document.createElement('input');
         nameInp.className='cue-field'+(isSel?'':' cue-readonly');
@@ -7932,6 +8033,7 @@ function renderCueList(){
     row.innerHTML=`<div class="cue-col-num">${i+1}</div>
       <div class="cue-col-badge">${_dotEl}</div>
       <input class="cue-field tc${isSelected?'':' cue-readonly'}" value="${escH(cue.tc)}" data-id="${cue.id}" data-f="tc" placeholder="01:00:00:00" ${isSelected?'':'readonly'}>
+      <div class="cue-col-dur${cueIsAuto(cue)?' auto':''}" data-durcid="${cue.id}" title="Cue duration — click to set">${cueIsAuto(cue)?'auto':escH(fmtDurCompact(tcF(cue.duration)))}</div>
       <input class="cue-field${isSelected?'':' cue-readonly'}" value="${escH(cue.name)}" data-id="${cue.id}" data-f="name" placeholder="Cue name" ${isSelected?'':'readonly'}>
       <input class="cue-field desc${isSelected?'':' cue-readonly'}" value="${escH(cue.desc||'')}" data-id="${cue.id}" data-f="desc" placeholder="Description" ${isSelected?'':'readonly'}>
       <div class="cl-type-cell${_isCamCue?' cam':''}">${_isCamCue?'CAMERA':'NORMAL'}</div>
@@ -7944,6 +8046,7 @@ function renderCueList(){
     row.addEventListener('click',e=>{
       const inp=e.target;
       if(inp.classList.contains('cue-stream-dot'))return;
+      if(inp.classList.contains('cue-col-dur'))return; // duration cell opens its own popover
       if(inp.classList.contains('cue-del')||inp.classList.contains('cue-checkbox')||inp.classList.contains('cue-flag-btn'))return;
       if(ETL.selId===cue.id){
         if(inp.classList.contains('cue-readonly')){
@@ -7983,6 +8086,7 @@ function renderCueList(){
       tcInp.value=ch.tc;tcInp.dataset.chid=ch.id;tcInp.dataset.f='tc';tcInp.placeholder='01:00:00:00';
       if(!isSel)tcInp.readOnly=true;
       sep.appendChild(tcInp);
+      sep.appendChild(document.createElement('div')); // duration column placeholder
       const nameInp=document.createElement('input');
       nameInp.className='cue-field'+(isSel?'':' cue-readonly');
       nameInp.value=ch.name;nameInp.placeholder='Marker name';
@@ -8174,12 +8278,8 @@ document.getElementById('cue-list-wrap').addEventListener('blur',e=>{
   const inp=e.target;
   if(!inp.dataset||!inp.dataset.f)return;
   const id=inp.dataset.id,field=inp.dataset.f;if(!id||field!=='tc')return;
-  const normalized=applyTcInput(inp);
-  if(normalized!==null){
-    inp.style.color='';
-    state.songs.forEach(s=>{const c=s.cues.find(x=>x.id===id);if(c)c.tc=normalized;});
-    persist();redrawActive();if(ETL.visible)renderEditTimeline();
-  }
+  // Smart parse: absolute (colons) or relative offset from the sequence start TC.
+  _commitCueTc(id,inp);
 },true);
 // Enter key commits TC field
 document.getElementById('cue-list-wrap').addEventListener('keydown',e=>{
@@ -8193,6 +8293,127 @@ document.getElementById('cue-list-wrap').addEventListener('focusin',e=>{
     if(window.CF)CF._lastEditAt=Date.now();
   }
 });
+// Duration cell click → open the duration popover
+document.getElementById('cue-list-wrap').addEventListener('click',e=>{
+  const dur=e.target.closest('.cue-col-dur');
+  if(dur&&dur.dataset.durcid){ e.stopPropagation(); openCueDurationPopover(dur.dataset.durcid,dur); }
+});
+
+/* ── Per-cue duration: popover + overlap handling ───────────────────────────── */
+function _findCueAndSong(cueId){
+  var res={cue:null,song:null};
+  state.songs.forEach(function(s){var c=s.cues.find(function(x){return x.id===cueId;}); if(c){res.cue=c;res.song=s;}});
+  return res;
+}
+/* Next same-track cue (object) after `cue` within `song`, or null. */
+function _nextSameTrackCue(cue,song){
+  var startF=tcF(cue.tc);
+  var sibs=(song.cues||[]).filter(function(c){
+    return c.id!==cue.id && (cue.cameraId? !!c.cameraId : c.streamId===cue.streamId) && tcF(c.tc)>startF;
+  }).sort(function(a,b){return tcF(a.tc)-tcF(b.tc);});
+  return sibs[0]||null;
+}
+function _commitDurChange(song,pop){
+  if(window.persist) persist();
+  if(window.renderCueList) renderCueList();
+  if(window.redrawActive) redrawActive();
+  if(ETL.visible) renderEditTimeline();
+  if(pop) pop.remove();
+}
+/* Apply a duration (frames) or auto (null). Handles overlap with the next same-track cue. */
+function _setCueDuration(cue,song,durF,pop){
+  snapshot();
+  if(durF==null){ delete cue.duration; _commitDurChange(song,pop); return; }
+  durF=Math.max(1,Math.round(durF)); // min 1 frame
+  var startF=tcF(cue.tc), endF=startF+durF;
+  var nextCue=_nextSameTrackCue(cue,song);
+  var nextStart=nextCue?tcF(nextCue.tc):null;
+  if(nextStart!=null && endF>nextStart){
+    _showDurOverlapDialog(cue,song,durF,nextCue,pop);
+    return;
+  }
+  cue.duration=fTC(durF);
+  _commitDurChange(song,pop);
+}
+/* Overlap dialog: overwrite the next cue's start, or shorten this cue to the next start. */
+function _showDurOverlapDialog(cue,song,durF,nextCue,pop){
+  if(pop) pop.remove();
+  var ex=document.getElementById('cue-dur-overlap'); if(ex) ex.remove();
+  var startF=tcF(cue.tc), endF=startF+durF, nextStart=tcF(nextCue.tc);
+  var bg=document.createElement('div'); bg.id='cue-dur-overlap'; bg.className='ntm-bg show';
+  bg.style.cssText='position:fixed;inset:0;z-index:10600;display:flex;align-items:center;justify-content:center;';
+  bg.innerHTML='<div class="ntm-box" style="max-width:440px;width:92%;">'+
+    '<div class="ntm-header"><span class="ntm-title">Duration overlaps next cue</span></div>'+
+    '<div class="ntm-body" style="font-size:13px;color:var(--txt);line-height:1.6;">This duration would overlap "'+escH(nextCue.name||'next cue')+'". Choose how to resolve it:</div>'+
+    '<div style="display:flex;flex-direction:column;gap:8px;padding:0 18px 16px;">'+
+      '<button class="ntm-btn" id="cdo-overwrite" style="text-align:left;height:auto;padding:10px 14px;">Overwrite next cue’s start point<div style="font-size:10px;color:var(--txt-low);text-transform:none;letter-spacing:0;font-weight:400;margin-top:3px;">Push the next cue’s start forward so this duration fits. Later cues stay put.</div></button>'+
+      '<button class="ntm-btn" id="cdo-shorten" style="text-align:left;height:auto;padding:10px 14px;">Shorten to next cue’s start point<div style="font-size:10px;color:var(--txt-low);text-transform:none;letter-spacing:0;font-weight:400;margin-top:3px;">Truncate this cue to end exactly when the next cue begins.</div></button>'+
+    '</div>'+
+    '<div class="ntm-footer"><button class="ntm-btn" id="cdo-cancel">Cancel</button></div>'+
+  '</div>';
+  document.body.appendChild(bg);
+  var _revert=function(){ bg.remove(); if(window.renderCueList)renderCueList(); if(ETL.visible)renderEditTimeline(); };
+  bg.addEventListener('mousedown',function(e){ if(e.target===bg) _revert(); });
+  bg.querySelector('#cdo-cancel').onclick=_revert;
+  bg.querySelector('#cdo-overwrite').onclick=function(){
+    var nextOldEnd=cueEndFrames(nextCue,song);
+    nextCue.tc=fTC(endF);
+    if(!cueIsAuto(nextCue)) nextCue.duration=fTC(Math.max(1,nextOldEnd-endF)); // keep its end fixed
+    cue.duration=fTC(durF);
+    bg.remove(); _commitDurChange(song,null);
+  };
+  bg.querySelector('#cdo-shorten').onclick=function(){
+    cue.duration=fTC(Math.max(1,nextStart-startF));
+    bg.remove(); _commitDurChange(song,null);
+  };
+}
+/* Parse a duration input → frames. Accepts compact colon form ("4:20", "1:02:04",
+   right-to-left ff/ss/mm/hh) or a bare digit string ("420"). */
+function _parseDurInput(v){
+  v=String(v||'').replace(/-/g,'').trim();
+  if(!v) return null;
+  var fps=state.fps||25;
+  if(v.indexOf(':')!==-1){
+    var p=v.split(':').map(function(x){return parseInt(x,10)||0;});
+    while(p.length<4) p.unshift(0);
+    p=p.slice(-4); // [hh,mm,ss,ff]
+    return ((p[0]*60+p[1])*60+p[2])*fps+p[3];
+  }
+  return parseRelOffsetFrames(v);
+}
+function openCueDurationPopover(cueId,anchorEl){
+  var fs=_findCueAndSong(cueId); var cue=fs.cue, song=fs.song;
+  if(!cue||!song) return;
+  var ex=document.getElementById('cue-dur-pop'); if(ex) ex.remove();
+  var isAuto=cueIsAuto(cue);
+  var pop=document.createElement('div'); pop.id='cue-dur-pop'; pop.className='cue-dur-pop';
+  pop.innerHTML=
+    '<div class="cdp-title">Cue Duration</div>'+
+    '<label class="cdp-opt"><input type="radio" name="cdp-mode" value="auto"'+(isAuto?' checked':'')+'><span>Auto <span class="cdp-sub">(until next cue)</span></span></label>'+
+    '<label class="cdp-opt"><input type="radio" name="cdp-mode" value="set"'+(isAuto?'':' checked')+'><span>Set duration</span></label>'+
+    '<input id="cdp-input" class="cdp-input" spellcheck="false" placeholder="4:20" value="'+(isAuto?'':escH(fmtDurCompact(tcF(cue.duration))))+'">'+
+    '<div class="cdp-actions"><button class="mbtn" id="cdp-cancel">Cancel</button><button class="mbtn primary" id="cdp-save">Save</button></div>';
+  document.body.appendChild(pop);
+  var r=anchorEl.getBoundingClientRect();
+  pop.style.left=Math.max(8,Math.min(r.left, window.innerWidth-pop.offsetWidth-12))+'px';
+  pop.style.top=(Math.min(r.bottom+4, window.innerHeight-pop.offsetHeight-8))+'px';
+  var input=pop.querySelector('#cdp-input');
+  function setMode(set){ pop.querySelector('input[value=set]').checked=set; pop.querySelector('input[value=auto]').checked=!set; input.disabled=!set; input.style.opacity=set?'1':'.4'; }
+  function syncEnabled(){ var set=pop.querySelector('input[value=set]').checked; input.disabled=!set; input.style.opacity=set?'1':'.4'; }
+  pop.querySelectorAll('input[name=cdp-mode]').forEach(function(rd){ rd.addEventListener('change',syncEnabled); });
+  input.addEventListener('focus',function(){ setMode(true); });
+  input.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); pop.querySelector('#cdp-save').click(); } });
+  syncEnabled(); if(!isAuto){ setTimeout(function(){ input.focus(); input.select(); },0); }
+  pop.querySelector('#cdp-cancel').onclick=function(){ pop.remove(); };
+  pop.querySelector('#cdp-save').onclick=function(){
+    var mode=pop.querySelector('input[name=cdp-mode]:checked').value;
+    if(mode==='auto'){ _setCueDuration(cue,song,null,pop); return; }
+    var f=_parseDurInput(input.value);
+    if(f==null){ input.style.borderColor='var(--red)'; return; }
+    _setCueDuration(cue,song,Math.max(1,f),pop);
+  };
+  setTimeout(function(){ document.addEventListener('mousedown',function h(ev){ if(!pop.contains(ev.target)){ pop.remove(); document.removeEventListener('mousedown',h);} }); },0);
+}
 // ─── DELETE CUE MODAL ───
 let _deleteCueId=null;
 function openDeleteCueModal(cueId){
@@ -12560,20 +12781,25 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
     streamCues.forEach((cue,ci)=>{
       const x=cue._f*pxPF; // absolute position from TC=0
       const nextC=streamCues[ci+1];
-      const rawW=nextC?(nextC._f-cue._f)*pxPF:Math.min(60*pxPS,30*pxPS);
+      // Width = explicit duration, else (auto) to the next cue's start, else a default.
+      const _durF=cueDurFrames(cue);
+      const _isAuto=_durF==null;
+      const rawW=_isAuto?(nextC?(nextC._f-cue._f)*pxPF:Math.min(60*pxPS,30*pxPS)):(_durF*pxPF);
       const blockW=Math.max(16,rawW);
       const isDragging=ETL.drag&&ETL.drag.cueId===cue.id;
       const isCueSel=ETL.selId===cue.id;
       const isInvalid=cue._f<constrainMin||cue._f>=constrainMax;
       const block=document.createElement('div');
-      block.className='etl-cue'+(isCueSel?' selected':'')+(isInvalid?' invalid':'');
+      block.className='etl-cue'+(isCueSel?' selected':'')+(isInvalid?' invalid':'')+(_isAuto?' auto':' explicit');
       block.dataset.cueId=cue.id;
       block.style.cssText=`left:${x.toFixed(1)}px;width:${Math.round(blockW)-1}px;height:${trackH}px;top:0;opacity:${isDragging?.5:1};`;
       const inner=document.createElement('div');
       inner.className='etl-cue-inner';
       const bg=isCueSel?`${col.hex}28`:`${col.hex}10`;
       const borderL=isCueSel?'#fff':col.hex;
-      inner.style.cssText=`position:absolute;inset:0;display:flex;align-items:center;padding:0 10px 0 14px;overflow:hidden;background:${bg};border-left:3px solid ${borderL};border-right:none;border-top:none;border-bottom:none;`;
+      // Explicit-duration cues get a clear right edge; auto cues get a trailing arrow.
+      const borderR=_isAuto?'none':('2px solid '+(isCueSel?'#fff':col.hex+'aa'));
+      inner.style.cssText=`position:absolute;inset:0;display:flex;align-items:center;padding:0 10px 0 14px;overflow:hidden;background:${bg};border-left:3px solid ${borderL};border-right:${borderR};border-top:none;border-bottom:none;`;
       if(isCueSel)inner.style.outline='1.5px solid rgba(255,255,255,.25)';
       const lbl=document.createElement('span');
       lbl.className='etl-cue-label';
@@ -12583,7 +12809,11 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       const handle=document.createElement('div');
       handle.className='etl-cue-handle';
       block.appendChild(handle);
+      const handleR=document.createElement('div');
+      handleR.className='etl-cue-handle-r'; handleR.title='Drag to set this cue’s duration';
+      block.appendChild(handleR);
       block.appendChild(inner);
+      if(_isAuto){ const ar=document.createElement('span'); ar.className='etl-cue-arrow'; ar.textContent='→'; block.appendChild(ar); }
       track.appendChild(block);
     });
     tracksScroll.appendChild(track);
@@ -12607,18 +12837,20 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       const camHex=getCameraColor(cam?.colorIdx||0);
       const x=cue._f*pxPF; // absolute position
       const nextC=camCues[ki+1];
-      const rawW=nextC?(nextC._f-cue._f)*pxPF:Math.min(60*pxPS,30*pxPS);
+      const _durF=cueDurFrames(cue);
+      const _isAuto=_durF==null;
+      const rawW=_isAuto?(nextC?(nextC._f-cue._f)*pxPF:Math.min(60*pxPS,30*pxPS)):(_durF*pxPF);
       const blockW=Math.max(20,rawW);
       const isDragging=ETL.drag&&ETL.drag.cueId===cue.id;
       const isCueSel=ETL.selId===cue.id;
       const block=document.createElement('div');
-      block.className='etl-cue'+(isCueSel?' cam-selected':'');
+      block.className='etl-cue'+(isCueSel?' cam-selected':'')+(_isAuto?' auto':' explicit');
       block.dataset.cueId=cue.id;
       block.style.cssText=`left:${x.toFixed(1)}px;width:${Math.round(blockW)-1}px;height:${camH}px;top:0;opacity:${isDragging?.5:1};`;
       const inner=document.createElement('div');
       inner.className='etl-cam-inner';
       const bgAlpha=isCueSel?'22':'14';
-      inner.style.cssText=`background:${camHex}${bgAlpha};border-left:3px solid ${isCueSel?'#fff':camHex};`;
+      inner.style.cssText=`background:${camHex}${bgAlpha};border-left:3px solid ${isCueSel?'#fff':camHex};`+(_isAuto?'':`border-right:2px solid ${isCueSel?'#fff':camHex}aa;`);
       if(isCueSel)inner.style.outline='1.5px solid rgba(255,255,255,.3)';
       const numFontPx=Math.min(Math.round(camH*0.28),24);
       const nameLH=14;const groupH=numFontPx+2+nameLH;
@@ -12637,7 +12869,11 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       const handle=document.createElement('div');
       handle.className='etl-cue-handle';
       block.appendChild(handle);
+      const handleR=document.createElement('div');
+      handleR.className='etl-cue-handle-r'; handleR.title='Drag to set this cue’s duration';
+      block.appendChild(handleR);
       block.appendChild(inner);
+      if(_isAuto){ const ar=document.createElement('span'); ar.className='etl-cue-arrow'; ar.textContent='→'; block.appendChild(ar); }
       block.addEventListener('click',e=>{
         e.stopPropagation();
         ETL.selId=cue.id;_etlHighlightList(cue.id);
@@ -12854,7 +13090,7 @@ function renderEditTimeline(){
   const rulerCentreSec=Math.floor(frames/fps/_rHalf)*_rHalf+_rHalf;
 
   // Struct key — rebuild DOM only when structure/content changes (not just position)
-  const cueStructKey=songCues.map(c=>c.id+':'+c._f).join(',');
+  const cueStructKey=songCues.map(c=>c.id+':'+c._f+':'+(c.duration||'')).join(',');
   const chapterKey=(song?.chapters||[]).map(ch=>ch.id+':'+ch.tc).join(',');
   const structKey=[fps,pxPS,tlW,visStreams.join(','),song?.id||'',cueStructKey,chapterKey,
     hasCamTrack,song?.mediaFile||song?.audioFilename||'',song?.mediaType||'',
@@ -12973,6 +13209,17 @@ function _ncOpenModal(tcFrames){
   if(nameInp){nameInp.value='';if(nameCnt)nameCnt.textContent='';}
   if(descInp)descInp.value='';
 
+  // Reset duration field → Auto
+  const durAuto=document.getElementById('nc-dur-auto');
+  const durInp=document.getElementById('nc-dur-inp');
+  if(durAuto)durAuto.checked=true;
+  if(durInp){durInp.value='';durInp.disabled=true;durInp.style.opacity='.4';durInp.style.borderColor='';
+    durInp.onfocus=function(){ const setR=document.querySelector('input[name=nc-dur-mode][value=set]'); if(setR)setR.checked=true; durInp.disabled=false; durInp.style.opacity='1'; };
+  }
+  document.querySelectorAll('input[name=nc-dur-mode]').forEach(function(rd){
+    rd.onchange=function(){ const set=rd.value==='set'&&rd.checked; if(durInp){ durInp.disabled=!set; durInp.style.opacity=set?'1':'.4'; if(set){durInp.focus();durInp.select();} } };
+  });
+
   // Build track picker
   _ncBuildPicker();
 
@@ -13084,18 +13331,31 @@ function commitTlCreateCue(){
   const desc=(document.getElementById('nc-desc-inp')?.value||'').trim();
   const song=getActiveSong();if(!song)return;
 
-  // Parse TC from input (fall back to _tlCreateTcF)
-  const tcRaw=(document.getElementById('nc-tc-inp')?.value||'').trim();
-  let f=tcRaw?tcF(tcRaw):_tlCreateTcF;
+  // Parse TC from input — smart: absolute (colons) or relative offset from seq start.
+  const tcRaw=(document.getElementById('nc-tc-inp')?.value||'').replace(/-/g,'').trim();
+  let f=_tlCreateTcF;
+  if(tcRaw){
+    if(tcRaw.indexOf(':')!==-1){ const n=normalizeTcInput(tcRaw); if(validateTc(n))f=tcF(n); }
+    else { const off=parseRelOffsetFrames(tcRaw); if(off!=null)f=tcF(song.startTc||'01:00:00:00')+off; }
+  }
   if(!f||isNaN(f))f=_tlCreateTcF;
+
+  // Duration field → explicit string or auto (omitted)
+  let _durStr=null;
+  const _durSet=document.querySelector('input[name=nc-dur-mode][value=set]');
+  if(_durSet&&_durSet.checked){ const df=_parseDurInput(document.getElementById('nc-dur-inp')?.value); if(df!=null)_durStr=fTC(Math.max(1,df)); }
 
   snapshot();
   if(_ncSelTarget?.type==='camera'){
-    song.cues.push({id:uid(),tc:fTC(f),name,desc,cameraId:_ncSelTarget.id});
+    const _c={id:uid(),tc:fTC(f),name,desc,cameraId:_ncSelTarget.id};
+    if(_durStr)_c.duration=_durStr;
+    song.cues.push(_c);
   } else {
     const streamId=(_ncSelTarget?.type==='stream'?_ncSelTarget.id:null)||state.activeStreamId||state.streams[0]?.id||'';
     while(song.cues.some(c=>c.streamId===streamId&&tcF(c.tc)===f))f++;
-    song.cues.push({id:uid(),tc:fTC(f),name,desc,streamId});
+    const _c={id:uid(),tc:fTC(f),name,desc,streamId};
+    if(_durStr)_c.duration=_durStr;
+    song.cues.push(_c);
   }
   persist();renderCueList();redrawActive();
   if(ETL.visible)renderEditTimeline();
@@ -13164,6 +13424,21 @@ function _initEditTimeline(){
           if(clickedSid==='CAMERA')updateCamTrackBar();
           renderEditTimeline();
         }
+      }
+      return;
+    }
+    // Right-edge handle → drag this cue's DURATION (set explicit end / create gap)
+    const handleR=e.target.closest('.etl-cue-handle-r');
+    if(handleR){
+      e.preventDefault();e.stopPropagation();
+      const blk=e.target.closest('.etl-cue'); const cueId=blk&&blk.dataset.cueId;
+      const song=getActiveSong(); const cue=song&&song.cues.find(c=>c.id===cueId);
+      if(cue&&song){
+        ETL.selId=cueId;_etlHighlightList(cueId);
+        snapshot();
+        ETL.durDrag={cueId,songId:song.id,startF:tcF(cue.tc),startX:e.clientX,origEndF:cueEndFrames(cue,song)};
+        ETL._dragging=false;
+        container.style.cursor='e-resize';
       }
       return;
     }
@@ -13250,6 +13525,25 @@ function _initEditTimeline(){
   }
 
   document.addEventListener('mousemove',e=>{
+    // Duration drag (right-edge handle): resize this cue's end, min 1 frame from start.
+    if(ETL.durDrag){
+      ETL._dragging=true;
+      const pxPF=ETL.zoom/state.fps;
+      const dxF=(e.clientX-ETL.durDrag.startX)/ETL.zoom*state.fps;
+      let endF=Math.round(ETL.durDrag.origEndF+dxF);
+      endF=Math.max(ETL.durDrag.startF+1,endF);
+      if(ETL.snapOn){
+        const snapF=Math.round(10/ETL.zoom*state.fps);
+        const sg=state.songs.find(s=>s.id===ETL.durDrag.songId);
+        sg&&sg.cues.forEach(c=>{const cf=tcF(c.tc); if(cf>ETL.durDrag.startF&&Math.abs(endF-cf)<=snapF)endF=cf;});
+      }
+      ETL.durDrag.curEndF=endF;
+      const blk=document.getElementById('edit-tl')?.querySelector('.etl-cue[data-cue-id="'+ETL.durDrag.cueId+'"]');
+      if(blk)blk.style.width=(Math.max(16,(endF-ETL.durDrag.startF)*pxPF)-1)+'px';
+      const tip=document.getElementById('tl-drag-tip');
+      if(tip){tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-30)+'px';tip.textContent='Dur '+fTC(endF-ETL.durDrag.startF);}
+      return;
+    }
     if(!ETL.drag)return;
     ETL._dragging=true;
     const dx=e.clientX-ETL.drag.startX;
@@ -13305,6 +13599,30 @@ function _initEditTimeline(){
   document.addEventListener('mouseup',e=>{
     const tip=document.getElementById('tl-drag-tip');
     if(tip)tip.style.display='none';
+    // Commit a duration drag (right-edge handle)
+    if(ETL.durDrag){
+      const dd=ETL.durDrag; ETL.durDrag=null;
+      const container2=document.getElementById('edit-tl'); if(container2)container2.style.cursor='crosshair';
+      if(ETL._dragging){
+        const song=state.songs.find(s=>s.id===dd.songId);
+        const cue=song&&song.cues.find(c=>c.id===dd.cueId);
+        if(cue&&song){
+          const endF=Math.max(dd.startF+1, dd.curEndF!=null?dd.curEndF:dd.origEndF);
+          const durF=endF-dd.startF;
+          const nextCue=_nextSameTrackCue(cue,song);
+          const nextStart=nextCue?tcF(nextCue.tc):null;
+          if(nextStart!=null && endF>nextStart){
+            // snapshot already taken at drag start → resolve via the overlap dialog
+            _showDurOverlapDialog(cue,song,durF,nextCue,null);
+          } else {
+            cue.duration=fTC(durF);
+            persist();renderCueList();redrawActive();if(ETL.visible)renderEditTimeline();
+          }
+        }
+      }
+      ETL._dragging=false;
+      return;
+    }
     if(ETL.drag&&ETL._dragging){
       persist(); // snapshot already taken at drag start
       renderCueList();redrawActive();
@@ -13381,6 +13699,67 @@ function applyTcInput(inp){
     // Show tooltip
     inp.title='Invalid timecode. Use HH:MM:SS:FF or 8 digits (e.g. 01002500)';
     return null;
+  }
+}
+
+/* ── Smart cue-TC parsing (Part 1) ─────────────────────────────────────────────
+   Cue TC fields accept either an ABSOLUTE TC (when colons are present) or a
+   RELATIVE offset typed as a bare digit string read right-to-left (ff, ss, mm, hh)
+   and added to the sequence's start TC. Frame/second overflow is normalised by fTC.
+   Sequence-START TC inputs are NOT affected (they stay literal). */
+function parseRelOffsetFrames(raw){
+  var digits=String(raw).replace(/[^0-9]/g,'');
+  if(!digits) return null;
+  var ff=+(digits.slice(-2)||0);
+  var ss=+(digits.length>2?digits.slice(-4,-2):'')||0;
+  var mm=+(digits.length>4?digits.slice(-6,-4):'')||0;
+  var hh=+(digits.length>6?digits.slice(0,-6):'')||0;
+  var fps=state.fps||25;
+  return ((hh*60+mm)*60+ss)*fps+ff; // a frame count; fTC() normalises overflow
+}
+function _tcErr(inp,on){
+  if(on){ inp.style.outline='1px solid var(--red)'; inp.style.color='var(--red)'; inp.title='Invalid timecode. Use HH:MM:SS:FF, 8 digits, or a relative offset (e.g. 420).'; }
+  else { inp.style.outline=''; inp.style.color=''; inp.style.borderColor=''; inp.title=''; }
+}
+/* The sequence whose [startTc, nextSeqStart) range contains an absolute frame count. */
+function _seqRangeForFrames(absF){
+  var arr=(state.songs||[]).map(function(s){return {s:s,f:tcF(s.startTc||'01:00:00:00')};})
+    .sort(function(a,b){return a.f-b.f;});
+  for(var i=0;i<arr.length;i++){
+    var startF=arr[i].f, endF=(i<arr.length-1)?arr[i+1].f:Infinity;
+    if(absF>=startF && absF<endF) return arr[i].s;
+  }
+  return null;
+}
+/* Commit a cue TC field (smart parse + cross-sequence warning). */
+function _commitCueTc(cueId, inp){
+  var song=null,cue=null;
+  state.songs.forEach(function(s){var c=s.cues.find(function(x){return x.id===cueId;}); if(c){song=s;cue=c;}});
+  if(!cue||!song) return;
+  var raw=(inp.value||'').replace(/-/g,'').trim();
+  if(!raw){ inp.value=cue.tc; _tcErr(inp,false); return; } // empty keeps existing
+  var abs;
+  if(raw.indexOf(':')!==-1){
+    var norm=normalizeTcInput(raw);
+    if(!validateTc(norm)){ _tcErr(inp,true); return; }
+    abs=norm;
+  } else {
+    var off=parseRelOffsetFrames(raw);
+    if(off===null){ inp.value=cue.tc; _tcErr(inp,false); return; }
+    abs=fTC(tcF(song.startTc||'01:00:00:00')+off);
+  }
+  _tcErr(inp,false); inp.value=abs;
+  if(abs===cue.tc){ return; } // no change
+  var applyIt=function(){
+    cue.tc=abs;
+    persist(); redrawActive(); renderCueList(); if(ETL.visible)renderEditTimeline();
+  };
+  var inSeq=_seqRangeForFrames(tcF(abs));
+  if(inSeq && inSeq.id!==song.id){
+    openConfirmModal('This TC falls within sequence "'+(inSeq.name||'')+'". The cue may appear in that sequence instead. Continue anyway?',
+      applyIt, function(){ inp.value=cue.tc; renderCueList(); });
+  } else {
+    applyIt();
   }
 }
 

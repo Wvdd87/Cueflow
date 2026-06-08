@@ -131,7 +131,12 @@ state / project_data (stored as jsonb in shows.project_data)
 ├── playlists[]   ← {id, name, songIds[]}
 ├── streams[]     ← tracks: {id, name, colorId}
 └── songs[]       ← sequences: {id, name, description, startTc, cues[], chapters[], mediaFile?, mediaType?}
-    └── cues[]    ← {id, tc, name, desc, streamId}
+    └── cues[]    ← {id, tc, name, desc, streamId, duration?}
+                     duration = "auto" (ends at next same-track cue) | TC offset "00:00:04:20".
+                     Helpers: cueIsAuto/cueDurFrames/cueEndFrames/_cueEndedAt; validated on load
+                     by _validateCueDuration (bad → "auto"). Cue TC fields accept a relative
+                     offset (bare digits, right-to-left ff/ss/mm/hh, added to seq start) or an
+                     absolute TC (with colons) — see parseRelOffsetFrames/_commitCueTc.
 ```
 
 Songs not referenced in any playlist's `songIds` are orphans — `applyProject()` auto-adopts them into the first playlist on load.
