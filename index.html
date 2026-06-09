@@ -972,10 +972,11 @@ body.mode-live #edit-mode-banner { display: none; }
 .etl-cue.cam-active .etl-cam-inner { outline: 2px solid var(--primary); outline-offset: -2px; }
 /* Regular cue block */
 .etl-cue-label { font-family: var(--cond); font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .07em; text-transform: uppercase; flex: 1; }
-.etl-cue-handle { position: absolute; left: 0; top: 0; bottom: 0; width: 8px; cursor: ew-resize; background: transparent; transition: background .1s; z-index: 3; }
+/* Edge handles are visual hints only; the cursor is driven by boundary-zone detection
+   (col-resize ‖ / w-resize ] / e-resize [) so it must not be overridden here. */
+.etl-cue-handle { position: absolute; left: 0; top: 0; bottom: 0; width: 8px; cursor: inherit; background: transparent; transition: background .1s; z-index: 3; }
 .etl-cue:hover .etl-cue-handle { background: rgba(255,255,255,.2); }
-/* Right-edge handle: drag to set this cue's duration (creates a gap / explicit length) */
-.etl-cue-handle-r { position: absolute; right: 0; top: 0; bottom: 0; width: 8px; cursor: e-resize; background: transparent; transition: background .1s; z-index: 3; }
+.etl-cue-handle-r { position: absolute; right: 0; top: 0; bottom: 0; width: 8px; cursor: inherit; background: transparent; transition: background .1s; z-index: 3; }
 .etl-cue:hover .etl-cue-handle-r { background: rgba(240,168,56,.35); }
 /* Auto-duration cues: subtle trailing arrow indicating "extends to next cue" */
 .etl-cue-arrow { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); font-size: 12px; line-height: 1; color: rgba(255,255,255,.4); pointer-events: none; z-index: 1; font-family: var(--mono); }
@@ -8313,6 +8314,24 @@ function _nextSameTrackCue(cue,song){
   }).sort(function(a,b){return tcF(a.tc)-tcF(b.tc);});
   return sibs[0]||null;
 }
+function _prevSameTrackCue(cue,song){
+  var startF=tcF(cue.tc);
+  var sibs=(song.cues||[]).filter(function(c){
+    return c.id!==cue.id && (cue.cameraId? !!c.cameraId : c.streamId===cue.streamId) && tcF(c.tc)<startF;
+  }).sort(function(a,b){return tcF(b.tc)-tcF(a.tc);});
+  return sibs[0]||null;
+}
+/* Fix 6: after moving a cue, detect a duration overlap needing the resolve dialog.
+   Returns {owner,next,durF} (owner = the explicit-duration cue) or null. */
+function _etlCheckMoveOverlap(cue,song){
+  var next=_nextSameTrackCue(cue,song);
+  if(next && !cueIsAuto(cue) && tcF(cue.tc)+(cueDurFrames(cue)||0)>tcF(next.tc))
+    return {owner:cue,next:next,durF:cueDurFrames(cue)};
+  var prev=_prevSameTrackCue(cue,song);
+  if(prev && !cueIsAuto(prev) && tcF(prev.tc)+(cueDurFrames(prev)||0)>tcF(cue.tc))
+    return {owner:prev,next:cue,durF:cueDurFrames(prev)};
+  return null;
+}
 function _commitDurChange(song,pop){
   if(window.persist) persist();
   if(window.renderCueList) renderCueList();
@@ -13362,12 +13381,99 @@ function commitTlCreateCue(){
   closeTlCreatePopup();
   _ncSelTarget=null;
 }
+
+/* ── Timeline boundary-zone drag (precise 3-zone: ‖ both · ] shorten prev · [ move next) ──
+   Geometric detection from the cursor's float frame near a cue's end / next cue's start. */
+function _etlTrackAtY(y){
+  const trackH=Math.max(ETL.TRACK_H,40), MKRH=16, camH=ETL.CAM_H||76;
+  const yInTracks=y-ETL.RULER_H-MKRH;
+  if(yInTracks<0) return null;
+  const visStreams=state.visibleStreamIds.filter(sid=>state.streams.find(s=>s.id===sid));
+  let cumY=0;
+  for(const sid of visStreams){ if(yInTracks<cumY+trackH) return sid; cumY+=trackH; }
+  if(state.cameraTrack&&state.cameraTrackVisible!==false&&yInTracks<cumY+camH) return 'CAMERA';
+  return null;
+}
+function _etlTrackCues(song,sid){
+  const isCam=sid==='CAMERA';
+  return song.cues.filter(c=>isCam?!!c.cameraId:c.streamId===sid)
+    .map(c=>({cue:c,startF:tcF(c.tc),endF:cueEndFrames(c,song)}))
+    .sort((a,b)=>a.startF-b.startF);
+}
+/* Returns {sid,song,mode,prev,next,boundaryF} for a boundary/edge under the cursor, else null.
+   mode: 'both' | 'shortenPrev' | 'moveNext' | 'durLast'. (A lone cue start falls through to
+   the left-handle move-cue drag.) */
+function _etlZoneAt(e){
+  const container=document.getElementById('edit-tl'); if(!container) return null;
+  const rect=container.getBoundingClientRect();
+  const x=e.clientX-rect.left, y=e.clientY-rect.top;
+  if(x<ETL.LBL_W||y<=ETL.RULER_H) return null;
+  const sid=_etlTrackAtY(y); if(!sid) return null;
+  const song=getActiveSong(); if(!song) return null;
+  const cues=_etlTrackCues(song,sid); if(!cues.length) return null;
+  const pxPF=ETL.zoom/state.fps;
+  const cursorF=state.simFrames+(x-ETL.PH_X)/pxPF;   // float frame at cursor
+  const tolF=6/pxPF, ctrF=2/pxPF;
+  for(let i=0;i<cues.length;i++){
+    const A=cues[i], B=cues[i+1];
+    if(B && Math.abs(A.endF-B.startF)<=1){
+      const bF=B.startF;
+      if(Math.abs(cursorF-bF)<=tolF){
+        const mode=Math.abs(cursorF-bF)<=ctrF?'both':(cursorF<bF?'shortenPrev':'moveNext');
+        return {sid,song,mode,prev:A,next:B,boundaryF:bF};
+      }
+    } else {
+      if(isFinite(A.endF)&&Math.abs(cursorF-A.endF)<=tolF&&(!B||Math.abs(cursorF-A.endF)<=Math.abs(cursorF-B.startF)))
+        return {sid,song,mode:B?'shortenPrev':'durLast',prev:A,next:(B||null),boundaryF:A.endF};
+      if(B&&Math.abs(cursorF-B.startF)<=tolF)
+        return {sid,song,mode:'moveNext',prev:A,next:B,boundaryF:B.startF};
+    }
+  }
+  return null;
+}
+function _etlZoneCursor(mode){
+  return mode==='both'?'col-resize':mode==='shortenPrev'||mode==='durLast'?'w-resize':mode==='moveNext'?'e-resize':'';
+}
+/* The same-track cue immediately AFTER cue `c` (object), for clamping. */
+function _etlNextSibling(song,sid,c){
+  const cf=tcF(c.tc), isCam=sid==='CAMERA';
+  return song.cues.filter(x=>x.id!==c.id&&(isCam?!!x.cameraId:x.streamId===sid)&&tcF(x.tc)>cf)
+    .sort((a,b)=>tcF(a.tc)-tcF(b.tc))[0]||null;
+}
+/* Live-apply a boundary drag to the given target boundary frame (float→int). */
+function _etlApplyBoundary(bd,targetF){
+  const song=bd.song, fps=state.fps;
+  const A=bd.prevCue, B=bd.nextCue;
+  if(bd.mode==='shortenPrev'||bd.mode==='durLast'){
+    // ] : set A's end. Clamp [A.start+1 , nextStart]. Reaching nextStart → auto (Fix 4).
+    let end=Math.round(targetF);
+    end=Math.max(bd.aStartF+1,end);
+    if(bd.mode==='shortenPrev'&&B) end=Math.min(end,bd.bStartF);
+    if(bd.mode==='shortenPrev'&&B&&Math.abs(end-bd.bStartF)<=1){ delete A.duration; }
+    else A.duration=fTC(end-bd.aStartF);
+  } else if(bd.mode==='moveNext'){
+    // [ : move B's start; A's end stays fixed (convert A→explicit if it was auto).
+    let bs=Math.round(targetF);
+    bs=Math.max(bd.aEndF,bs);                       // can't cross prev's (fixed) end
+    if(bd.cueAfterBStartF!=null) bs=Math.min(bs,bd.cueAfterBStartF-1); // B keeps ≥1 frame
+    if(A){ if(Math.abs(bs-bd.aEndF)<=1) delete A.duration; /* touch → auto */
+           else A.duration=fTC(bd.aEndF-bd.aStartF); }
+    B.tc=fTC(bs);
+  } else if(bd.mode==='both'){
+    // ‖ : move the shared boundary; A.end and B.start move together (stay touching).
+    let bnd=Math.round(targetF);
+    bnd=Math.max(bd.aStartF+1,bnd);
+    if(bd.cueAfterBStartF!=null) bnd=Math.min(bnd,bd.cueAfterBStartF-1);
+    B.tc=fTC(bnd);
+    if(!bd.aWasAuto) A.duration=fTC(bnd-bd.aStartF); // explicit A keeps touching B
+  }
+}
 function _initEditTimeline(){
   const container=document.getElementById('edit-tl');if(!container)return;
 
   // Ruler hover: show TC tooltip
   container.addEventListener('mousemove',e=>{
-    if(ETL.drag)return;
+    if(ETL.drag||ETL.bdrag)return;
     const rect=container.getBoundingClientRect();
     const y=e.clientY-rect.top;
     // Only react if in ruler area
@@ -13386,10 +13492,14 @@ function _initEditTimeline(){
     } else {
       if(hover)hover.style.display='none';
     }
-    // Cursor for cue blocks
-    const block=e.target.closest('.etl-cue');
-    const handle=e.target.closest('.etl-cue-handle');
-    container.style.cursor=handle?'ew-resize':(block?'pointer':'crosshair');
+    // Cursor: boundary zones (‖ / ] / [) take priority, then move-handle, then block.
+    const _z=_etlZoneAt(e);
+    if(_z){ container.style.cursor=_etlZoneCursor(_z.mode); }
+    else {
+      const block=e.target.closest('.etl-cue');
+      const handle=e.target.closest('.etl-cue-handle');
+      container.style.cursor=handle?'ew-resize':(block?'pointer':'crosshair');
+    }
   });
 
   container.addEventListener('mouseleave',()=>{
@@ -13427,19 +13537,25 @@ function _initEditTimeline(){
       }
       return;
     }
-    // Right-edge handle → drag this cue's DURATION (set explicit end / create gap)
-    const handleR=e.target.closest('.etl-cue-handle-r');
-    if(handleR){
+    // Boundary zone (‖ / ] / [) → start a boundary drag. Takes priority over handles.
+    const z=_etlZoneAt(e);
+    if(z){
       e.preventDefault();e.stopPropagation();
-      const blk=e.target.closest('.etl-cue'); const cueId=blk&&blk.dataset.cueId;
-      const song=getActiveSong(); const cue=song&&song.cues.find(c=>c.id===cueId);
-      if(cue&&song){
-        ETL.selId=cueId;_etlHighlightList(cueId);
-        snapshot();
-        ETL.durDrag={cueId,songId:song.id,startF:tcF(cue.tc),startX:e.clientX,origEndF:cueEndFrames(cue,song)};
-        ETL._dragging=false;
-        container.style.cursor='e-resize';
-      }
+      const song=z.song;
+      const A=z.prev&&z.prev.cue, B=z.next&&z.next.cue;
+      ETL.selId=(B||A)?.id; _etlHighlightList(ETL.selId);
+      snapshot();
+      const cueAfterB=B?_etlNextSibling(song,z.sid,B):null;
+      ETL.bdrag={
+        mode:z.mode, song, sid:z.sid,
+        prevCue:A||null, nextCue:B||null,
+        aStartF:A?tcF(A.tc):null, aEndF:z.prev?z.prev.endF:null, aWasAuto:A?cueIsAuto(A):true,
+        bStartF:B?tcF(B.tc):null,
+        cueAfterBStartF:cueAfterB?tcF(cueAfterB.tc):null,
+        startX:e.clientX, origBoundaryF:z.boundaryF
+      };
+      ETL._dragging=false;
+      container.style.cursor=_etlZoneCursor(z.mode);
       return;
     }
     const handle=e.target.closest('.etl-cue-handle');
@@ -13525,23 +13641,24 @@ function _initEditTimeline(){
   }
 
   document.addEventListener('mousemove',e=>{
-    // Duration drag (right-edge handle): resize this cue's end, min 1 frame from start.
-    if(ETL.durDrag){
+    // Boundary drag (‖ / ] / [): mutate cue tc/duration live, then re-render the timeline.
+    if(ETL.bdrag){
       ETL._dragging=true;
-      const pxPF=ETL.zoom/state.fps;
-      const dxF=(e.clientX-ETL.durDrag.startX)/ETL.zoom*state.fps;
-      let endF=Math.round(ETL.durDrag.origEndF+dxF);
-      endF=Math.max(ETL.durDrag.startF+1,endF);
+      const bd=ETL.bdrag, pxPF=ETL.zoom/state.fps;
+      let targetF=bd.origBoundaryF+(e.clientX-bd.startX)/pxPF;
       if(ETL.snapOn){
-        const snapF=Math.round(10/ETL.zoom*state.fps);
-        const sg=state.songs.find(s=>s.id===ETL.durDrag.songId);
-        sg&&sg.cues.forEach(c=>{const cf=tcF(c.tc); if(cf>ETL.durDrag.startF&&Math.abs(endF-cf)<=snapF)endF=cf;});
+        const snapF=10/pxPF;
+        bd.song.cues.forEach(c=>{const cf=tcF(c.tc); if(Math.abs(targetF-cf)<=snapF)targetF=cf;});
       }
-      ETL.durDrag.curEndF=endF;
-      const blk=document.getElementById('edit-tl')?.querySelector('.etl-cue[data-cue-id="'+ETL.durDrag.cueId+'"]');
-      if(blk)blk.style.width=(Math.max(16,(endF-ETL.durDrag.startF)*pxPF)-1)+'px';
+      _etlApplyBoundary(bd,targetF);
+      const tipF=(bd.mode==='shortenPrev'||bd.mode==='durLast')
+        ? (bd.prevCue?Math.max(1,(cueIsAuto(bd.prevCue)?(bd.bStartF-bd.aStartF):tcF(bd.prevCue.duration))):1)
+        : null;
       const tip=document.getElementById('tl-drag-tip');
-      if(tip){tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-30)+'px';tip.textContent='Dur '+fTC(endF-ETL.durDrag.startF);}
+      if(tip){tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-30)+'px';
+        tip.textContent=(tipF!=null)?('Dur '+(bd.prevCue&&cueIsAuto(bd.prevCue)?'auto':fmtDurCompact(tipF))):fTC(Math.round(targetF));}
+      if(ETL._rafId)cancelAnimationFrame(ETL._rafId);
+      ETL._rafId=requestAnimationFrame(()=>{ if(ETL.visible)renderEditTimeline(); });
       return;
     }
     if(!ETL.drag)return;
@@ -13599,45 +13716,29 @@ function _initEditTimeline(){
   document.addEventListener('mouseup',e=>{
     const tip=document.getElementById('tl-drag-tip');
     if(tip)tip.style.display='none';
-    // Commit a duration drag (right-edge handle)
-    if(ETL.durDrag){
-      const dd=ETL.durDrag; ETL.durDrag=null;
+    // Commit a boundary drag (clamps already prevent overlap → just persist).
+    if(ETL.bdrag){
+      ETL.bdrag=null;
       const container2=document.getElementById('edit-tl'); if(container2)container2.style.cursor='crosshair';
-      if(ETL._dragging){
-        const song=state.songs.find(s=>s.id===dd.songId);
-        const cue=song&&song.cues.find(c=>c.id===dd.cueId);
-        if(cue&&song){
-          const endF=Math.max(dd.startF+1, dd.curEndF!=null?dd.curEndF:dd.origEndF);
-          const durF=endF-dd.startF;
-          const nextCue=_nextSameTrackCue(cue,song);
-          const nextStart=nextCue?tcF(nextCue.tc):null;
-          if(nextStart!=null && endF>nextStart){
-            // snapshot already taken at drag start → resolve via the overlap dialog
-            _showDurOverlapDialog(cue,song,durF,nextCue,null);
-          } else {
-            cue.duration=fTC(durF);
-            persist();renderCueList();redrawActive();if(ETL.visible)renderEditTimeline();
-          }
-        }
-      }
+      if(ETL._dragging){ persist();renderCueList();redrawActive();if(ETL.visible)renderEditTimeline(); }
       ETL._dragging=false;
       return;
     }
     if(ETL.drag&&ETL._dragging){
-      persist(); // snapshot already taken at drag start
-      renderCueList();redrawActive();
-      if(ETL.visible)renderEditTimeline();
+      // Fix 6: a moved cue whose explicit length now overlaps the next cue — or a cue moved
+      // into the previous cue's explicit length — opens the overlap-resolution dialog.
+      const _song=state.songs.find(s=>s.id===ETL.drag.songId);
+      const _cue=_song&&_song.cues.find(c=>c.id===ETL.drag.cueId);
+      const ov=(_cue&&_song)?_etlCheckMoveOverlap(_cue,_song):null;
+      ETL.drag=null;ETL._dragging=false;
+      const c2=document.getElementById('edit-tl'); if(c2)c2.style.cursor='crosshair';
+      if(ov){ _showDurOverlapDialog(ov.owner,_song,ov.durF,ov.next,null); }
+      else { persist();renderCueList();redrawActive();if(ETL.visible)renderEditTimeline(); }
+      return;
     }
     ETL.drag=null;ETL._dragging=false;
     const container2=document.getElementById('edit-tl');
     if(container2)container2.style.cursor='crosshair';
-  });
-
-  // Cursor: change to grab when hovering cue block
-  container.addEventListener('mousemove',e=>{
-    if(ETL.drag)return;
-    const block=e.target.closest('.etl-cue');
-    container.style.cursor=block?'grab':'crosshair';
   });
 
   // Wheel scroll: scroll timeline horizontally (shift+wheel or trackpad horizontal)
