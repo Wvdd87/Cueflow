@@ -1056,8 +1056,8 @@ body.mode-live #edit-mode-banner { display: none; }
 .etl-media-bar-lbl { position: absolute; left: 6px; top: 50%; transform: translateY(-50%); font-size: 9px; font-weight: 600; color: rgba(255,255,255,.3); white-space: nowrap; overflow: hidden; pointer-events: none; z-index: 2; }
 .etl-media-thumb { position: absolute; top: 0; bottom: 0; object-fit: cover; opacity: .35; filter: grayscale(1); }
 .etl-wf-canvas { position: absolute; pointer-events: none; }
-.etl-wf-resize { position: absolute; bottom: 0; left: 0; right: 0; height: 6px; cursor: ns-resize; z-index: 20; border-top: 1px solid rgba(255,255,255,0.08); }
-.etl-wf-resize::after { content: ''; position: absolute; bottom: 1px; left: 50%; transform: translateX(-50%); width: 32px; height: 2px; border-radius: 1px; background: rgba(255,255,255,.35); transition: background .15s; }
+.etl-wf-resize { position: absolute; top: 0; left: 0; right: 0; height: 6px; cursor: ns-resize; z-index: 20; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.etl-wf-resize::after { content: ''; position: absolute; top: 1px; left: 50%; transform: translateX(-50%); width: 32px; height: 2px; border-radius: 1px; background: rgba(255,255,255,.35); transition: background .15s; }
 .etl-wf-resize:hover::after { background: rgba(255,255,255,.45); }
 
 /* Playhead */
@@ -13086,7 +13086,7 @@ function _etlWfResizeMove(e){
   e.preventDefault();
   const y=e.touches?e.touches[0].clientY:e.clientY;
   const dy=y-_wfResizeY;
-  wf.rowH=Math.max(wf.ROW_MIN,Math.min(wf.ROW_MAX,_wfResizeH0+dy));
+  wf.rowH=Math.max(wf.ROW_MIN,Math.min(wf.ROW_MAX,_wfResizeH0-dy));
   if(ETL.visible)renderEditTimeline();
 }
 function _etlWfResizeEnd(){
