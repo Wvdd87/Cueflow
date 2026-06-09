@@ -32,7 +32,7 @@
   --txt-hi:  #eef0f3;
   --txt:     #c8c9d0;
   --txt-mid: #7c7e8a;
-  --txt-low: #4a4c56;
+  --txt-low: #686a78;
   --txt-dim: #2f3038;
 
   /* ── Accent colours ── */
@@ -183,7 +183,7 @@ input, select, textarea { font-family: inherit; }
 
 /* ── Mode banner — 4px line under statusbar ── */
 .mode-banner, .live-mode-banner {
-  height: 4px; background: var(--red); flex-shrink: 0;
+  height: 6px; background: var(--red); flex-shrink: 0;
 }
 .mode-banner.edit { background: var(--primary); }
 .mode-banner.idle { background: var(--hair2); }
@@ -781,7 +781,7 @@ body.mode-live #edit-mode-banner { display: none; }
   transition: background .1s;
   font-family: var(--sans);
 }
-.cue-field.tc { font-family: var(--mono); font-size: 11px; color: var(--txt-mid); font-variant-numeric: tabular-nums; }
+.cue-field.tc { font-family: var(--mono); font-size: 11px; color: var(--txt-hi); font-variant-numeric: tabular-nums; }
 .cue-field.desc { color: var(--txt-mid); font-size: 11px; border-right: none; }
 .cue-field:focus { background: var(--surface3); box-shadow: inset 0 0 0 1px var(--primary); }
 .cue-readonly { cursor: pointer !important; user-select: none; }
@@ -959,7 +959,10 @@ body.mode-live #edit-mode-banner { display: none; }
 #tl-ruler-hover { position: absolute; top: 3px; pointer-events: none; background: var(--surface3); border: 1px solid var(--primary); padding: 3px 7px; font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--primary); white-space: nowrap; z-index: 40; display: none; box-shadow: 0 2px 10px rgba(0,0,0,.6); }
 
 /* Cue blocks */
-.etl-cue { position: absolute; top: 0; cursor: pointer; user-select: none; }
+/* cursor is driven by the container (boundary-zone detection); inherit so blocks/inner
+   don't override the ‖ / ] / [ resize cursors. */
+.etl-cue, .etl-cue * { cursor: inherit; }
+.etl-cue { position: absolute; top: 0; user-select: none; }
 .etl-cue-inner { position: absolute; inset: 1px 0 1px 0; display: flex; align-items: center; padding: 0 10px; gap: 0; overflow: hidden; }
 .etl-cue.selected .etl-cue-inner { outline: 2px solid #fff; outline-offset: -2px; }
 .etl-cue.active-cue .etl-cue-inner { outline: 2px solid var(--primary); outline-offset: -2px; }
@@ -1212,7 +1215,7 @@ body.mode-live #edit-mode-banner { display: none; }
 /* ── Camera Cockpit (cam-viewer mode) ── */
 #cam-cockpit { flex:1; overflow:hidden; display:flex; flex-direction:column; }
 .cam-hero { position:relative; padding:24px 32px 0; flex-shrink:0; border-bottom:1px solid var(--hair); background:transparent; transition:background .2s; }
-.cam-hero.oncam { background:rgba(255,40,72,.06); }
+.cam-hero.oncam { background:rgba(255,40,72,.20); }
 .cam-hero-eyebrow { display:flex; align-items:center; gap:8px; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; color:var(--txt-low); margin-bottom:14px; }
 .cam-hero.oncam .cam-hero-eyebrow { color:var(--red); }
 .cam-hero-body { display:flex; align-items:center; gap:24px; margin-bottom:20px; min-height:80px; }
@@ -1225,9 +1228,9 @@ body.mode-live #edit-mode-banner { display: none; }
 .cam-hero.oncam .cam-hero-cd-val { color:var(--red); }
 .cam-hero-cd-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--txt-low); margin-top:5px; }
 .cam-hero-bar { height:4px; background:var(--hair2); overflow:hidden; }
-.cam-hero-bar-fill { height:100%; background:var(--amber); transition:width .15s linear; }
+.cam-hero-bar-fill { height:100%; background:var(--amber); transition:width .05s linear; }
 .cam-hero.oncam .cam-hero-bar-fill { background:var(--red); }
-.cam-hero.urgent .cam-hero-bar-fill { background:var(--red); }
+.cam-hero.urgent .cam-hero-bar-fill { background:var(--amber); }
 .cam-hero.warn:not(.oncam) .cam-hero-bar { height:6px; }
 .cam-hero.urgent:not(.oncam) .cam-hero-bar { height:6px; }
 /* Hero CUT IN timer row — hidden on desktop, shown at ≤960px */
@@ -2650,7 +2653,7 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 .sbp-pin-row { border-bottom:1px solid var(--hair); padding:13px 14px; background:var(--surface); transition:background .12s; }
 .sbp-pin-row:hover { background:var(--surface2); }
 .sbp-pin-head { display:flex; align-items:center; gap:8px; min-width:0; }
-.sbp-pin-role { font-family:var(--cond); font-size:8px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-mid); padding:3px 7px; border:1px solid var(--hair2); border-radius:3px; line-height:1; flex-shrink:0; }
+.sbp-pin-role { font-family:var(--cond); font-size:8px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt-mid); padding:3px 7px; border:1px solid var(--hair2); border-radius:0px; line-height:1; flex-shrink:0; }
 .sbp-pin-role.admin  { color:var(--amber); border-color:var(--amber-dim); background:var(--amber-bg); }
 .sbp-pin-role.editor { color:var(--blue);  border-color:rgba(76,141,255,.45); background:var(--blue-bg); }
 .sbp-pin-role.camera { color:var(--amber); border-color:var(--amber-dim); background:var(--amber-bg); }
@@ -2669,7 +2672,7 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 .sbp-pin-tracks-btn svg { width:12px; height:12px; opacity:.85; }
 /* Copy actions — primary (filled) + secondary (ghost) as an equal pair */
 .sbp-pin-actions { display:flex; align-items:stretch; gap:7px; margin-top:11px; }
-.sbp-btn { flex:1; height:34px; display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:0 10px; cursor:pointer; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; border-radius:4px; white-space:nowrap; border:1px solid transparent; transition:filter .12s, color .12s, border-color .12s, background .12s; }
+.sbp-btn { flex:1; height:34px; display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:0 10px; cursor:pointer; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; border-radius:0px; white-space:nowrap; border:1px solid transparent; transition:filter .12s, color .12s, border-color .12s, background .12s; }
 .sbp-btn--primary { background:var(--primary); border-color:var(--primary); color:#000; }
 .sbp-btn--primary:hover { filter:brightness(1.1); }
 .sbp-btn--ghost { background:none; border-color:var(--hair2); color:var(--txt-mid); }
@@ -3433,7 +3436,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
           <button class="batch-del-btn" id="batch-del-btn" onclick="batchDeleteStage()">Delete</button>
           <button class="batch-cancel-btn" onclick="toggleBatchMode()" title="Exit selection" aria-label="Cancel selection"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
-        <div class="cue-list-header"><span style="justify-content:center;padding:0;">#</span><span style="padding:0 4px;justify-content:center;border-right:1px solid var(--hair);">TRK</span><span>Timecode</span><span>Duration</span><span>Cue</span><span>Description</span><span>Type</span><span>Next</span><span style="justify-content:center;padding:0;">⚑</span><span style="justify-content:center;padding:0;">×</span></div>
+        <div class="cue-list-header"><span style="justify-content:center;padding:0;">#</span><span style="padding:0 4px;justify-content:center;border-right:1px solid var(--hair);">TRK</span><span>Timecode</span><span>Duration</span><span>Cue</span><span>Description</span><span>Type</span><span>Next</span><span style="justify-content:center;padding:0;font-size:15px">⚑</span><span style="justify-content:center;padding:0;font-size:15px">×</span></div>
         <div id="cue-list-wrap"></div>
         <div style="display:none;"><span id="desc-has-content"></span></div>
       </div>
@@ -6628,8 +6631,11 @@ function _updateCamCockpit(frames){
       if(hb)hb.innerHTML=`<div class="cam-badge lg" style="background:${hex};color:#06060a;">${cam?.number||'?'}</div>`;
       const hn=_e('cam-hero-name');if(hn)hn.textContent=myCurCue.name||'—';
       const hd=_e('cam-hero-desc');if(hd)hd.textContent=myCurCue.desc||'';
-      // End = when ANY next camera cue fires (that's when the cut happens)
-      const endF=nextAnyCue?nextAnyCue._f:myCurCue._f+fps*600;
+      // End: explicit cue duration wins; otherwise fall back to when the next
+      // ANY-camera cue fires (determines the cut when no duration is set).
+      const _liveSong=state.songs.find(s=>s.id===myCurCue.songId);
+      const _cueExplicitEnd=!cueIsAuto(myCurCue)&&_liveSong?cueEndFrames(myCurCue,_liveSong):null;
+      const endF=_cueExplicitEnd||(nextAnyCue?nextAnyCue._f:myCurCue._f+fps*600);
       const remF=Math.max(0,endF-frames);
       const remSec=remF/fps;
       hero.className='cam-hero oncam';
@@ -8354,8 +8360,9 @@ function _setCueDuration(cue,song,durF,pop){
   cue.duration=fTC(durF);
   _commitDurChange(song,pop);
 }
-/* Overlap dialog: overwrite the next cue's start, or shorten this cue to the next start. */
-function _showDurOverlapDialog(cue,song,durF,nextCue,pop){
+/* Overlap dialog: overwrite the next cue's start, or shorten this cue to the next start.
+   `onCancel` (optional) runs on Cancel/backdrop — e.g. to restore a pre-drag position. */
+function _showDurOverlapDialog(cue,song,durF,nextCue,pop,onCancel){
   if(pop) pop.remove();
   var ex=document.getElementById('cue-dur-overlap'); if(ex) ex.remove();
   var startF=tcF(cue.tc), endF=startF+durF, nextStart=tcF(nextCue.tc);
@@ -8371,7 +8378,7 @@ function _showDurOverlapDialog(cue,song,durF,nextCue,pop){
     '<div class="ntm-footer"><button class="ntm-btn" id="cdo-cancel">Cancel</button></div>'+
   '</div>';
   document.body.appendChild(bg);
-  var _revert=function(){ bg.remove(); if(window.renderCueList)renderCueList(); if(ETL.visible)renderEditTimeline(); };
+  var _revert=function(){ bg.remove(); if(typeof onCancel==='function')onCancel(); if(window.renderCueList)renderCueList(); if(ETL.visible)renderEditTimeline(); };
   bg.addEventListener('mousedown',function(e){ if(e.target===bg) _revert(); });
   bg.querySelector('#cdo-cancel').onclick=_revert;
   bg.querySelector('#cdo-overwrite').onclick=function(){
@@ -12896,9 +12903,6 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       block.addEventListener('click',e=>{
         e.stopPropagation();
         ETL.selId=cue.id;_etlHighlightList(cue.id);
-        state.simFrames=cue._f;
-        const tcEl=document.getElementById('sim-tc');if(tcEl)tcEl.textContent=fTC(cue._f);
-        redrawTest(cue._f);renderCueList();
       });
       camTrack.appendChild(block);
     });
@@ -13401,8 +13405,9 @@ function _etlTrackCues(song,sid){
     .sort((a,b)=>a.startF-b.startF);
 }
 /* Returns {sid,song,mode,prev,next,boundaryF} for a boundary/edge under the cursor, else null.
-   mode: 'both' | 'shortenPrev' | 'moveNext' | 'durLast'. (A lone cue start falls through to
-   the left-handle move-cue drag.) */
+   mode: 'both' | 'shortenPrev' | 'moveNext' | 'durLast' | 'orphanStart'.
+   Three-zone (both/shortenPrev/moveNext) only fires when A has an EXPLICIT end touching B.
+   Auto-A or any gap → separate single-zone: ']' at A.endF, '[' (orphanStart) at B.startF. */
 function _etlZoneAt(e){
   const container=document.getElementById('edit-tl'); if(!container) return null;
   const rect=container.getBoundingClientRect();
@@ -13416,23 +13421,35 @@ function _etlZoneAt(e){
   const tolF=6/pxPF, ctrF=2/pxPF;
   for(let i=0;i<cues.length;i++){
     const A=cues[i], B=cues[i+1];
-    if(B && Math.abs(A.endF-B.startF)<=1){
+    const aIsAuto=cueIsAuto(A.cue);
+    if(B && A.endF===B.startF && !aIsAuto){
+      // EXPLICIT TOUCHING: three-zone boundary (||, ], [)
       const bF=B.startF;
       if(Math.abs(cursorF-bF)<=tolF){
         const mode=Math.abs(cursorF-bF)<=ctrF?'both':(cursorF<bF?'shortenPrev':'moveNext');
         return {sid,song,mode,prev:A,next:B,boundaryF:bF};
       }
     } else {
-      if(isFinite(A.endF)&&Math.abs(cursorF-A.endF)<=tolF&&(!B||Math.abs(cursorF-A.endF)<=Math.abs(cursorF-B.startF)))
-        return {sid,song,mode:B?'shortenPrev':'durLast',prev:A,next:(B||null),boundaryF:A.endF};
-      if(B&&Math.abs(cursorF-B.startF)<=tolF)
-        return {sid,song,mode:'moveNext',prev:A,next:B,boundaryF:B.startF};
+      // GAP or AUTO-A: separate ']' zone at A's end, '[' (orphanStart) zone at B's start.
+      // For auto-A touching B (A.endF===B.startF): split by cursor side so ']' fires only
+      // from the left (A's body) and '[' fires at/right of B.startF.
+      const atAutoTouch = aIsAuto && B && A.endF===B.startF;
+      // A's end (']') — skip for auto-A touching if cursor is at or past B.startF
+      if(isFinite(A.endF) && Math.abs(cursorF-A.endF)<=tolF){
+        if(!atAutoTouch || cursorF<B.startF){
+          if(!B || Math.abs(cursorF-A.endF)<=Math.abs(cursorF-B.startF))
+            return {sid,song,mode:B?'shortenPrev':'durLast',prev:A,next:(B||null),boundaryF:A.endF};
+        }
+      }
+      // B's start ('[' orphanStart) — full ±tolF zone, no asymmetric restriction
+      if(B && Math.abs(cursorF-B.startF)<=tolF)
+        return {sid,song,mode:'orphanStart',prev:A,next:B,boundaryF:B.startF};
     }
   }
   return null;
 }
 function _etlZoneCursor(mode){
-  return mode==='both'?'col-resize':mode==='shortenPrev'||mode==='durLast'?'w-resize':mode==='moveNext'?'e-resize':'';
+  return mode==='both'?'col-resize':mode==='shortenPrev'||mode==='durLast'?'w-resize':mode==='moveNext'||mode==='orphanStart'?'e-resize':'';
 }
 /* The same-track cue immediately AFTER cue `c` (object), for clamping. */
 function _etlNextSibling(song,sid,c){
@@ -13452,13 +13469,25 @@ function _etlApplyBoundary(bd,targetF){
     if(bd.mode==='shortenPrev'&&B&&Math.abs(end-bd.bStartF)<=1){ delete A.duration; }
     else A.duration=fTC(end-bd.aStartF);
   } else if(bd.mode==='moveNext'){
-    // [ : move B's start; A's end stays fixed (convert A→explicit if it was auto).
+    // [ : touching boundary — move B's start, A's end stays fixed; B moves as a block.
     let bs=Math.round(targetF);
-    bs=Math.max(bd.aEndF,bs);                       // can't cross prev's (fixed) end
-    if(bd.cueAfterBStartF!=null) bs=Math.min(bs,bd.cueAfterBStartF-1); // B keeps ≥1 frame
+    bs=Math.max(bd.aEndF,bs);
+    if(bd.cueAfterBStartF!=null) bs=Math.min(bs,bd.cueAfterBStartF-1);
     if(A){ if(Math.abs(bs-bd.aEndF)<=1) delete A.duration; /* touch → auto */
            else A.duration=fTC(bd.aEndF-bd.aStartF); }
     B.tc=fTC(bs);
+  } else if(bd.mode==='orphanStart'){
+    // [ orphan: move B's start only — keep B's end fixed.
+    // Explicit-B: update duration so end stays. Auto-B: end = next cue's start (unchanged).
+    const origBEndF=bd.bDurF!=null?(bd.bStartF+bd.bDurF):null;
+    let bs=Math.round(targetF);
+    // Left clamp: can't overlap the previous cue
+    if(bd.aWasAuto && bd.aStartF!=null) bs=Math.max(bd.aStartF+1,bs); // auto-A: B≥A.start+1
+    else if(!bd.aWasAuto && bd.aEndF!=null) bs=Math.max(bd.aEndF,bs); // explicit-A: B≥A.end
+    // Right clamp: can't drag start past B's own end (min 1 frame)
+    if(origBEndF!=null) bs=Math.min(bs,origBEndF-1);
+    B.tc=fTC(bs);
+    if(bd.bDurF!=null) B.duration=fTC(Math.max(1,origBEndF-bs));
   } else if(bd.mode==='both'){
     // ‖ : move the shared boundary; A.end and B.start move together (stay touching).
     let bnd=Math.round(targetF);
@@ -13466,6 +13495,55 @@ function _etlApplyBoundary(bd,targetF){
     if(bd.cueAfterBStartF!=null) bnd=Math.min(bnd,bd.cueAfterBStartF-1);
     B.tc=fTC(bnd);
     if(!bd.aWasAuto) A.duration=fTC(bnd-bd.aStartF); // explicit A keeps touching B
+  }
+}
+/* Live boundary-drag PREVIEW: update only the affected block elements' geometry — no full
+   timeline rebuild (which flashes). Mutation happens once on mouseup via _etlApplyBoundary. */
+function _etlBdragPreview(bd,targetF){
+  bd._target=targetF;
+  const c=document.getElementById('edit-tl'); if(!c) return;
+  const pxPF=ETL.zoom/state.fps, minW=bd.isCam?20:16;
+  const Ablk=bd.prevCue?c.querySelector('.etl-cue[data-cue-id="'+bd.prevCue.id+'"]'):null;
+  const Bblk=bd.nextCue?c.querySelector('.etl-cue[data-cue-id="'+bd.nextCue.id+'"]'):null;
+  const bWidth=function(startF){ // B's width given a new start
+    if(bd.bDurF!=null) return bd.bDurF*pxPF;
+    if(bd.cueAfterBStartF!=null) return (bd.cueAfterBStartF-startF)*pxPF;
+    return (Bblk?parseFloat(Bblk.style.width)+1:60*ETL.zoom);
+  };
+  if(bd.mode==='shortenPrev'||bd.mode==='durLast'){
+    let end=Math.max(bd.aStartF+1,Math.round(targetF));
+    if(bd.mode==='shortenPrev'&&bd.nextCue) end=Math.min(end,bd.bStartF);
+    if(Ablk) Ablk.style.width=(Math.max(minW,(end-bd.aStartF)*pxPF)-1)+'px';
+    bd._tip=(bd.mode==='shortenPrev'&&bd.nextCue&&Math.abs(end-bd.bStartF)<=1)?'auto':('Dur '+fmtDurCompact(end-bd.aStartF));
+  } else if(bd.mode==='moveNext'){
+    let bs=Math.max(bd.aEndF,Math.round(targetF));
+    if(bd.cueAfterBStartF!=null) bs=Math.min(bs,bd.cueAfterBStartF-1);
+    if(Bblk){ Bblk.style.left=(bs*pxPF).toFixed(1)+'px'; Bblk.style.width=(Math.max(minW,bWidth(bs))-1)+'px'; }
+    bd._tip=fTC(bs);
+  } else if(bd.mode==='orphanStart'){
+    // '[' orphan: move B's left edge, keep B's right edge fixed.
+    const origBEndF=bd.bDurF!=null?(bd.bStartF+bd.bDurF):null;
+    let bs=Math.round(targetF);
+    if(bd.aWasAuto && bd.aStartF!=null) bs=Math.max(bd.aStartF+1,bs);
+    else if(!bd.aWasAuto && bd.aEndF!=null) bs=Math.max(bd.aEndF,bs);
+    if(origBEndF!=null) bs=Math.min(bs,origBEndF-1);
+    if(Bblk){
+      Bblk.style.left=(bs*pxPF).toFixed(1)+'px';
+      if(origBEndF!=null){
+        // Explicit end: width = origEnd - newStart
+        Bblk.style.width=(Math.max(minW,(origBEndF-bs)*pxPF)-1)+'px';
+      } else {
+        // Auto end: width = nextCueStart - newStart (end stays at nextCue)
+        Bblk.style.width=(Math.max(minW,bWidth(bs))-1)+'px';
+      }
+    }
+    bd._tip=fTC(bs);
+  } else if(bd.mode==='both'){
+    let bnd=Math.max(bd.aStartF+1,Math.round(targetF));
+    if(bd.cueAfterBStartF!=null) bnd=Math.min(bnd,bd.cueAfterBStartF-1);
+    if(Ablk) Ablk.style.width=(Math.max(minW,(bnd-bd.aStartF)*pxPF)-1)+'px';
+    if(Bblk){ Bblk.style.left=(bnd*pxPF).toFixed(1)+'px'; Bblk.style.width=(Math.max(minW,bWidth(bnd))-1)+'px'; }
+    bd._tip=fTC(bnd);
   }
 }
 function _initEditTimeline(){
@@ -13547,12 +13625,12 @@ function _initEditTimeline(){
       snapshot();
       const cueAfterB=B?_etlNextSibling(song,z.sid,B):null;
       ETL.bdrag={
-        mode:z.mode, song, sid:z.sid,
+        mode:z.mode, song, sid:z.sid, isCam:z.sid==='CAMERA',
         prevCue:A||null, nextCue:B||null,
         aStartF:A?tcF(A.tc):null, aEndF:z.prev?z.prev.endF:null, aWasAuto:A?cueIsAuto(A):true,
-        bStartF:B?tcF(B.tc):null,
+        bStartF:B?tcF(B.tc):null, bDurF:B?cueDurFrames(B):null,
         cueAfterBStartF:cueAfterB?tcF(cueAfterB.tc):null,
-        startX:e.clientX, origBoundaryF:z.boundaryF
+        startX:e.clientX, origBoundaryF:z.boundaryF, _target:null, _tip:''
       };
       ETL._dragging=false;
       container.style.cursor=_etlZoneCursor(z.mode);
@@ -13573,24 +13651,17 @@ function _initEditTimeline(){
       const origTcF=tcF(cue.tc);
       const constrainMin=tcF(song.startTc||'01:00:00:00');
       const constrainMax=getSeqMaxFrames(song);
-      ETL.drag={cueId,songId:song.id,origTcF,startX:e.clientX,startTcF:origTcF,constrainMin,constrainMax};
+      const keepEnd=!cueIsAuto(cue);
+      const origEndF=keepEnd?(origTcF+(cueDurFrames(cue)||0)):null;
+      ETL.drag={cueId,songId:song.id,origTcF,startX:e.clientX,startTcF:origTcF,constrainMin,constrainMax,keepEnd,origEndF};
       ETL._dragging=false;
       container.style.cursor='ew-resize';
     } else if(block){
-      // BODY CLICK: select + navigate to cue
+      // BODY CLICK: select only (ruler click or handle drag to navigate TC)
       e.preventDefault();
       const cueId=block.dataset.cueId;
       ETL.selId=cueId;
       _etlHighlightList(cueId);
-      // Navigate TC to this cue
-      const song=getActiveSong();
-      const cue=song?.cues.find(c=>c.id===cueId);
-      if(cue){
-        const f=tcF(cue.tc);
-        state.simFrames=f;
-        const el=document.getElementById('sim-tc');if(el)el.textContent=fTC(f);
-        redrawTest(f);
-      }
     } else if(y<ETL.RULER_H){
       // RULER CLICK: open new cue modal at clicked TC
       e.preventDefault();
@@ -13621,6 +13692,11 @@ function _initEditTimeline(){
       if(cue){
         const isCam=!!cue.cameraId;
         const minW=isCam?20:16;
+        if(ETL.drag&&ETL.drag.keepEnd){
+          const newDur=Math.max(1,ETL.drag.origEndF-newF);
+          block.style.width=(Math.max(minW,newDur*pxPF)-1)+'px';
+          return; // end is fixed — no prevBlock update needed
+        }
         const siblings=song.cues
           .filter(c=>isCam?!!c.cameraId:c.streamId===cue.streamId)
           .map(c=>({id:c.id,_f:tcF(c.tc)})).sort((a,b)=>a._f-b._f);
@@ -13641,7 +13717,8 @@ function _initEditTimeline(){
   }
 
   document.addEventListener('mousemove',e=>{
-    // Boundary drag (‖ / ] / [): mutate cue tc/duration live, then re-render the timeline.
+    // Boundary drag (‖ / ] / [): live PREVIEW only — update affected block geometry, no
+    // full timeline rebuild (rebuilding each frame flashes). Data is committed on mouseup.
     if(ETL.bdrag){
       ETL._dragging=true;
       const bd=ETL.bdrag, pxPF=ETL.zoom/state.fps;
@@ -13650,15 +13727,9 @@ function _initEditTimeline(){
         const snapF=10/pxPF;
         bd.song.cues.forEach(c=>{const cf=tcF(c.tc); if(Math.abs(targetF-cf)<=snapF)targetF=cf;});
       }
-      _etlApplyBoundary(bd,targetF);
-      const tipF=(bd.mode==='shortenPrev'||bd.mode==='durLast')
-        ? (bd.prevCue?Math.max(1,(cueIsAuto(bd.prevCue)?(bd.bStartF-bd.aStartF):tcF(bd.prevCue.duration))):1)
-        : null;
+      _etlBdragPreview(bd,targetF);
       const tip=document.getElementById('tl-drag-tip');
-      if(tip){tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-30)+'px';
-        tip.textContent=(tipF!=null)?('Dur '+(bd.prevCue&&cueIsAuto(bd.prevCue)?'auto':fmtDurCompact(tipF))):fTC(Math.round(targetF));}
-      if(ETL._rafId)cancelAnimationFrame(ETL._rafId);
-      ETL._rafId=requestAnimationFrame(()=>{ if(ETL.visible)renderEditTimeline(); });
+      if(tip){tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-30)+'px';tip.textContent=bd._tip||'';}
       return;
     }
     if(!ETL.drag)return;
@@ -13699,7 +13770,13 @@ function _initEditTimeline(){
     // Live-update
     const cue=song?.cues.find(c=>c.id===ETL.drag.cueId);
     if(cue){
-      cue.tc=fTC(newF);
+      if(ETL.drag.keepEnd){
+        newF=Math.min(newF,ETL.drag.origEndF-1); // can't drag start past own end
+        cue.tc=fTC(newF);
+        cue.duration=fTC(Math.max(1,ETL.drag.origEndF-newF));
+      } else {
+        cue.tc=fTC(newF);
+      }
       // Update cue list input live
       const inp=document.querySelector(`.cue-row[data-cid="${ETL.drag.cueId}"] .cue-field.tc`);
       if(inp)inp.value=cue.tc;
@@ -13716,11 +13793,14 @@ function _initEditTimeline(){
   document.addEventListener('mouseup',e=>{
     const tip=document.getElementById('tl-drag-tip');
     if(tip)tip.style.display='none';
-    // Commit a boundary drag (clamps already prevent overlap → just persist).
+    // Commit a boundary drag: mutate once here (clamps prevent overlap), then full render.
     if(ETL.bdrag){
-      ETL.bdrag=null;
+      const bd=ETL.bdrag; ETL.bdrag=null;
       const container2=document.getElementById('edit-tl'); if(container2)container2.style.cursor='crosshair';
-      if(ETL._dragging){ persist();renderCueList();redrawActive();if(ETL.visible)renderEditTimeline(); }
+      if(ETL._dragging){
+        _etlApplyBoundary(bd, bd._target!=null?bd._target:bd.origBoundaryF);
+        persist();renderCueList();redrawActive();if(ETL.visible)renderEditTimeline();
+      } else if(ETL.visible){ renderEditTimeline(); } // a stray click moved nothing — restore
       ETL._dragging=false;
       return;
     }
@@ -13729,10 +13809,13 @@ function _initEditTimeline(){
       // into the previous cue's explicit length — opens the overlap-resolution dialog.
       const _song=state.songs.find(s=>s.id===ETL.drag.songId);
       const _cue=_song&&_song.cues.find(c=>c.id===ETL.drag.cueId);
+      const _origTc=fTC(ETL.drag.origTcF); // pre-drag position (for Cancel restore)
       const ov=(_cue&&_song)?_etlCheckMoveOverlap(_cue,_song):null;
       ETL.drag=null;ETL._dragging=false;
       const c2=document.getElementById('edit-tl'); if(c2)c2.style.cursor='crosshair';
-      if(ov){ _showDurOverlapDialog(ov.owner,_song,ov.durF,ov.next,null); }
+      if(ov){
+        _showDurOverlapDialog(ov.owner,_song,ov.durF,ov.next,null,function(){ if(_cue){_cue.tc=_origTc; persist();} });
+      }
       else { persist();renderCueList();redrawActive();if(ETL.visible)renderEditTimeline(); }
       return;
     }
@@ -17108,9 +17191,11 @@ function applyRemote(proj){
   var prevStreamIds = (state.streams||[]).map(function(s){return s.id;});
   var prevCamVis = state.cameraTrackVisible;
   var prevStreamSel = state.activeStreamId;
+  var isSameProject = state.projectId === proj.id;
   applyProject(proj);
-  // Never move the playhead — preserve the local TC position across remote updates
-  state.simFrames = prevFrames;
+  // Never move the playhead on real-time remote updates.
+  // On initial load (project switch from placeholder), keep the TC set by resetSimToActiveSong.
+  if(isSameProject) state.simFrames = prevFrames;
   // Preserve the selected stream (UI pick, not a visibility flag)
   if(prevStreamSel==='CAMERA'||state.streams.find(function(s){return s.id===prevStreamSel;}))
     state.activeStreamId = prevStreamSel;
