@@ -13432,6 +13432,14 @@ function _etlZoneAt(e){
   const pxPF=ETL.zoom/state.fps;
   const cursorF=state.simFrames+(x-ETL.PH_X)/pxPF;   // float frame at cursor
   const tolF=6/pxPF, ctrF=2/pxPF;
+  // First cue's START edge has no preceding cue on this track → always an orphan start.
+  // The pairwise loop only ever treats a cue as the *next* (B) of a pair, so cues[0]'s
+  // start is otherwise uncovered (it would fall through to the generic move-handle).
+  // '[' only here — never '‖' or ']' (there is nothing to drag-with or shorten).
+  const first=cues[0];
+  if(first && Math.abs(cursorF-first.startF)<=tolF &&
+     (!isFinite(first.endF) || Math.abs(cursorF-first.startF)<=Math.abs(cursorF-first.endF)))
+    return {sid,song,mode:'orphanStart',prev:null,next:first,boundaryF:first.startF};
   for(let i=0;i<cues.length;i++){
     const A=cues[i], B=cues[i+1];
     const aIsAuto=cueIsAuto(A.cue);
@@ -13494,11 +13502,14 @@ function _etlApplyBoundary(bd,targetF){
     // Explicit-B: update duration so end stays. Auto-B: end = next cue's start (unchanged).
     const origBEndF=bd.bDurF!=null?(bd.bStartF+bd.bDurF):null;
     let bs=Math.round(targetF);
-    // Left clamp: can't overlap the previous cue
-    if(bd.aWasAuto && bd.aStartF!=null) bs=Math.max(bd.aStartF+1,bs); // auto-A: B≥A.start+1
-    else if(!bd.aWasAuto && bd.aEndF!=null) bs=Math.max(bd.aEndF,bs); // explicit-A: B≥A.end
-    // Right clamp: can't drag start past B's own end (min 1 frame)
-    if(origBEndF!=null) bs=Math.min(bs,origBEndF-1);
+    // Left clamp: can't overlap the previous cue (or, for the first cue, the sequence start)
+    if(bd.aWasAuto && bd.aStartF!=null) bs=Math.max(bd.aStartF+1,bs);        // auto-A: B≥A.start+1
+    else if(!bd.aWasAuto && bd.aEndF!=null) bs=Math.max(bd.aEndF,bs);        // explicit-A: B≥A.end
+    else if(!A && bd.seqStartF!=null) bs=Math.max(bd.seqStartF,bs);          // first cue: B≥seq start
+    bs=Math.max(0,bs);
+    // Right clamp: can't drag start past B's own end (min 1 frame).
+    if(origBEndF!=null) bs=Math.min(bs,origBEndF-1);                         // explicit end
+    else if(bd.cueAfterBStartF!=null) bs=Math.min(bs,bd.cueAfterBStartF-1);  // auto end = next cue
     B.tc=fTC(bs);
     if(bd.bDurF!=null) B.duration=fTC(Math.max(1,origBEndF-bs));
   } else if(bd.mode==='both'){
@@ -13539,7 +13550,10 @@ function _etlBdragPreview(bd,targetF){
     let bs=Math.round(targetF);
     if(bd.aWasAuto && bd.aStartF!=null) bs=Math.max(bd.aStartF+1,bs);
     else if(!bd.aWasAuto && bd.aEndF!=null) bs=Math.max(bd.aEndF,bs);
+    else if(!bd.prevCue && bd.seqStartF!=null) bs=Math.max(bd.seqStartF,bs);
+    bs=Math.max(0,bs);
     if(origBEndF!=null) bs=Math.min(bs,origBEndF-1);
+    else if(bd.cueAfterBStartF!=null) bs=Math.min(bs,bd.cueAfterBStartF-1);
     if(Bblk){
       Bblk.style.left=(bs*pxPF).toFixed(1)+'px';
       if(origBEndF!=null){
@@ -13643,6 +13657,7 @@ function _initEditTimeline(){
         aStartF:A?tcF(A.tc):null, aEndF:z.prev?z.prev.endF:null, aWasAuto:A?cueIsAuto(A):true,
         bStartF:B?tcF(B.tc):null, bDurF:B?cueDurFrames(B):null,
         cueAfterBStartF:cueAfterB?tcF(cueAfterB.tc):null,
+        seqStartF:tcF(song.startTc||'01:00:00:00'),
         startX:e.clientX, origBoundaryF:z.boundaryF, _target:null, _tip:''
       };
       ETL._dragging=false;
