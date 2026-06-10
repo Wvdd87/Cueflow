@@ -4480,6 +4480,7 @@ function switchMode(mode){
   });
   const prev=state.appMode;
   state.appMode=mode;
+  _liveSelSeqId=null; // fresh live session: no stale setlist pick — follow the TC until clicked
   document.body.className='mode-'+mode;
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(mode+'-screen').classList.add('active');
@@ -4921,6 +4922,34 @@ function _nextSeqStartF(song){
     .filter(function(f){return f>thisF;}).sort(function(a,b){return a-b;});
   return after.length?after[0]:null;
 }
+/* Explicit setlist pick in live mode (gen-TC), transient — never synced/persisted. */
+var _liveSelSeqId=null;
+/* The active-playlist sequence the playhead is currently within — INDEPENDENT of cue
+   visibility, so a sequence whose cues are all on a hidden track can still be current.
+   Resolving a frame back to a sequence is ambiguous when sequences share a start TC (or the
+   playlist isn't in start-TC order), so an explicit setlist pick wins while the playhead is
+   still inside that pick's TC range. Otherwise fall back to the sequence with the greatest
+   start ≤ frames (chronologically current, robust to playlist ordering). */
+function _curSeqIdByTc(frames){
+  var songs=getActivePlaylistSongs();
+  if(!songs.length){ _liveSelSeqId=null; return null; }
+  if(_liveSelSeqId){
+    var sel=songs.find(function(s){return s.id===_liveSelSeqId;});
+    if(sel){
+      var selStart=tcF(sel.startTc||'01:00:00:00'), nextStart=null;
+      songs.forEach(function(s){ var f=tcF(s.startTc||'01:00:00:00'); if(f>selStart&&(nextStart==null||f<nextStart)) nextStart=f; });
+      if(frames>=selStart && (nextStart==null||frames<nextStart)) return _liveSelSeqId;
+    }
+    _liveSelSeqId=null; // playhead left the picked sequence (or it's gone) → resume TC tracking
+  }
+  var cur=songs[0], curStart=-Infinity;
+  for(var i=0;i<songs.length;i++){
+    var f=tcF(songs[i].startTc||'01:00:00:00');
+    if(f<=frames && f>=curStart){ curStart=f; cur=songs[i]; }
+  }
+  return cur.id;
+}
+window._cfClearLiveSeqPick=function(){ _liveSelSeqId=null; };
 /* Compact duration display: omit leading-zero segments. Always show s:ff; add m, then h
    only when the duration is long enough. e.g. 9s8f→"9:08", 1m2s4f→"1:02:04", 0f→"0:00". */
 function fmtDurCompact(frames){
@@ -6032,7 +6061,9 @@ function _doRedraw(target,frames){
     }
   }
 
-  const liveSongId=curIdx>=0?allCues[curIdx]?.songId:null;
+  // Current sequence by TC range (not by last visible cue) — so a sequence whose cues are
+  // all on a hidden track is still recognised/selectable; it just shows no cues.
+  const liveSongId=_curSeqIdByTc(frames);
   const liveSong=state.songs.find(s=>s.id===liveSongId);
   let upNextSongId=null;
   if(liveSongId){
@@ -6057,7 +6088,7 @@ function _doRedraw(target,frames){
     const d=document.getElementById('live-sp-desc');if(d)d.innerHTML=activeForPanel?.description||'';
 
     // ── Cockpit layout update ──
-    _updateLiveCockpit(frames,allCues,curIdx,upNextSongId);
+    _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,liveSongId);
     _updateViewerCockpit(frames,allCues,curIdx,upNextSongId);
 
     // Setlist / mini-songs
@@ -6120,12 +6151,17 @@ function _makeLiveBadge(cue,size){
   return `<span class="track-glyph ${size}" style="background:#06060a;color:#fff;">${escH(shortName)}</span>`;
 }
 
-function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId){
+function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,curSeqId){
   const WARN_SEC=state.warnSec||10;
   const URGENCY_SEC=20;
 
   // ── ON AIR strip ── (blank when the current cue has explicitly ended → we're in a gap)
-  const curCue=(curIdx>=0&&!_cueEndedAt(allCues[curIdx],frames))?allCues[curIdx]:null;
+  // Also blank when the last visible cue belongs to an EARLIER sequence than the one we're
+  // now in — otherwise a previous sequence's auto cue would bleed across into the sequence
+  // you've navigated to (whose own cues may be on a hidden track → none to show).
+  const _ca=curIdx>=0?allCues[curIdx]:null;
+  const _bleed=_ca&&curSeqId!=null&&_ca.songId!==curSeqId;
+  const curCue=(_ca&&!_cueEndedAt(_ca,frames)&&!_bleed)?_ca:null;
   const oaName=document.getElementById('live-oa-name');
   const oaBadge=document.getElementById('live-oa-badge');
   const oaTc=document.getElementById('live-oa-tc');
@@ -6590,10 +6626,10 @@ function _updateCamCockpit(frames){
       const _cueExplicitEnd=!cueIsAuto(myCurCue)&&_liveSong?cueEndFrames(myCurCue,_liveSong):null;
       const endF=_cueExplicitEnd||(nextAnyCue?nextAnyCue._f:myCurCue._f+fps*600);
       const remF=Math.max(0,endF-frames);
-      const remSec=remF/fps;
       hero.className='cam-hero oncam';
-      const rm=Math.floor(remSec/60),rs=Math.floor(remSec%60);
-      const cutTxt=remF>0?(rm>0?rm+':'+String(rs).padStart(2,'0'):'0:'+String(rs).padStart(2,'0')):'0:00';
+      // Use the same formatter as the owner countdown: trimmed digits (3, not 0:03) and
+      // blank — never "0"/"0:00" — at the cut, so it goes 3 · 2 · 1 · (next), not …1·0·next.
+      const cutTxt=fmtCD(remF);
       const cv=_e('cam-hero-cd-val');if(cv)cv.textContent=cutTxt;
       const cl=_e('cam-hero-cd-lbl');if(cl)cl.textContent='UNTIL CUT';
       // Progress bar over full duration (amber → red in last 10s)
@@ -9291,6 +9327,7 @@ window._genExitLive=_genExitLive;
 function _genOnSeqClick(songId){
   if(!_genControlVisible()) return false;
   var s=state.songs.find(function(x){return x.id===songId;}); if(!s) return false;
+  _liveSelSeqId=songId; // authoritative pick — selects THIS sequence even if others share its start TC
   genSetFrames(window.tcF?tcF(s.startTc||'01:00:00:00'):90000);
   return true;
 }
