@@ -10,6 +10,7 @@
 const http = require('http');
 const os   = require('os');
 const fs   = require('fs');
+const zlib = require('zlib');
 const path = require('path');
 const crypto = require('crypto');
 const { WebSocketServer } = require('ws');
@@ -45,6 +46,24 @@ function startLanServer(opts) {
   const onClientMsg = opts.onClientMsg || function () {};
   const onClientsChange = opts.onClientsChange || function () {};
 
+  /* App file is ~1.25 MB — serving it raw from disk on every request is the main
+     cold-join bottleneck (slow load, and slow enough to trip the viewer's WS join
+     timeout on Safari). Cache it in memory + pre-gzip (≈4× smaller), keyed by mtime
+     so a rebuilt/edited file refreshes without a restart. */
+  let _appCache = null; // { mtimeMs, size, raw, gz, etag }
+  function getAppAsset() {
+    let st;
+    try { st = fs.statSync(appFile); } catch (e) { return null; }
+    if (_appCache && _appCache.mtimeMs === st.mtimeMs && _appCache.size === st.size) return _appCache;
+    let raw;
+    try { raw = fs.readFileSync(appFile); } catch (e) { return null; }
+    let gz = null;
+    try { gz = zlib.gzipSync(raw, { level: 6 }); } catch (e) {}
+    const etag = '"' + st.size.toString(16) + '-' + Math.round(st.mtimeMs).toString(16) + '"';
+    _appCache = { mtimeMs: st.mtimeMs, size: st.size, raw: raw, gz: gz, etag: etag };
+    return _appCache;
+  }
+
   const server = http.createServer(function (req, res) {
     const url = (req.url || '/').split('?')[0];
     res.setHeader('Access-Control-Allow-Origin', '*'); // viewer page may be a different origin
@@ -78,11 +97,29 @@ function startLanServer(opts) {
       return;
     }
     /* Everything else → the app itself (lets a fresh device cold-join with no internet). */
-    fs.readFile(appFile, function (err, buf) {
-      if (err) { res.writeHead(500); res.end('app file not found'); return; }
-      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end(buf);
-    });
+    const asset = getAppAsset();
+    if (!asset) { res.writeHead(500); res.end('app file not found'); return; }
+    /* Revalidate cheaply so a reload doesn't re-download ~1.25 MB every time. */
+    if ((req.headers['if-none-match'] || '') === asset.etag) {
+      res.writeHead(304, { 'ETag': asset.etag, 'Cache-Control': 'no-cache' });
+      res.end();
+      return;
+    }
+    const headers = {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-cache',          // revalidate (ETag) — fresh on app update, no refetch otherwise
+      'ETag': asset.etag,
+      'Vary': 'Accept-Encoding'
+    };
+    const acceptsGzip = /\bgzip\b/.test(req.headers['accept-encoding'] || '');
+    if (acceptsGzip && asset.gz) {
+      headers['Content-Encoding'] = 'gzip';
+      res.writeHead(200, headers);
+      res.end(asset.gz);
+    } else {
+      res.writeHead(200, headers);
+      res.end(asset.raw);
+    }
   });
 
   function joinedCount() {

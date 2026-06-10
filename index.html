@@ -921,12 +921,6 @@ body.mode-live #edit-mode-banner { display: none; }
 .notes-rte { flex: 1; min-height: 0; overflow-y: auto; padding: 12px 16px; font-size: 13px; line-height: 1.7; color: var(--txt); outline: none; }
 .notes-rte ul, .notes-rte ol { padding-left: 22px !important; }
 #notes-tab-rte ul, #notes-tab-rte ol { padding-left: 22px !important; }
-#wf-notes-content, #wf-notes-content * { color: var(--txt) !important; background: transparent !important; }
-#wf-notes-content h1 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
-#wf-notes-content h2 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
-#wf-notes-content h3 { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
-#wf-notes-content p { margin: 0 0 4px; }
-#wf-notes-content ul, #wf-notes-content ol { padding-left: 16px; margin-bottom: 4px; }
 
 /* ═══════════════════════════════════════════
    TIMELINE
@@ -3412,14 +3406,12 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <!-- View tab bar -->
       <div class="edit-right-tabs" id="edit-right-tabs">
         <button class="er-tab active" id="ertab-list"  onclick="switchEditView('list')">LIST</button>
-        <button class="er-tab"        id="ertab-wf"    onclick="switchEditView('wf')">PREVIEW</button>
         <button class="er-tab"        id="ertab-vid"   onclick="switchEditView('vid')">MEDIA</button>
         <button class="er-tab"        id="ertab-notes" onclick="switchEditView('notes')">NOTES</button>
         <!-- Cameras tab removed: camera track managed via streams bar + cam-track-bar -->
         <button class="er-tab" id="ertab-cams" onclick="switchEditView('cams')" style="display:none;"></button>
         <!-- hidden compat elements -->
         <div id="er-list-header" style="display:none;"><div id="cue-editor-song-name" class="seq-name-badge" style="display:none;">Select a sequence</div><div id="audio-hdr-status" style="display:none;"></div></div>
-        <div id="er-wf-header" style="display:none;"></div>
         <div style="flex:1;"></div>
         <!-- Right-side action icons -->
         <button class="er-tab-icon" id="list-filter-btn" onclick="toggleListFilter()" title="Filter cues by track or camera">
@@ -3454,59 +3446,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <div style="display:none;"><span id="desc-has-content"></span></div>
       </div>
 
-      <!-- PREVIEW view: cockpit layout matching live mode -->
-      <div id="er-wf-content" style="display:none;flex:1;min-height:0;overflow:hidden;">
-        <!-- Hidden compat elements (JS still renders into wf-test; keep in DOM) -->
-        <div id="wf-test" style="display:none;"></div>
-        <div id="wf-seq-panel" style="display:none!important;"><div id="wf-seq-jump-list"></div></div>
-        <div id="wf-notes-panel" style="display:none;"><div id="wf-notes-content"></div></div>
-
-        <!-- Cockpit layout — mirrors live-screen live-body structure -->
-        <div class="live-body">
-          <div class="live-main">
-            <!-- ON AIR strip -->
-            <div class="live-onair" id="test-onair-strip">
-              <div class="oa-lbl"><div class="tc-pip warn"></div>Preview</div>
-              <div class="oa-mid">
-                <span id="test-oa-badge"></span>
-                <div>
-                  <div class="oa-name" id="test-oa-name">—</div>
-                  <div class="oa-tc" id="test-oa-tc"></div>
-                </div>
-              </div>
-              <div class="oa-held"><div>Held</div><span class="v" id="test-oa-held">—</span></div>
-            </div>
-            <!-- NEXT cue hero -->
-            <div class="live-next" id="test-next-hero">
-              <button class="ck-flag-btn live-next-flag" id="test-next-flag" data-cid="" style="display:none;" title="Flag for attention">⚑</button>
-              <div class="nh-eyebrow" id="test-next-eyebrow">Next</div>
-              <div style="margin-top:4px;">
-                <div class="nh-badge" id="test-next-badge-row">
-                  <span id="test-next-badge"></span>
-                  <div class="nh-name" id="test-next-name">—</div>
-                </div>
-                <div class="nh-desc" id="test-next-desc-txt"></div>
-              </div>
-              <div class="nh-count" id="test-next-count">
-                <div class="v" id="test-next-cd">—</div>
-                <div class="nh-cd-lbl">Until cue</div>
-              </div>
-              <div class="nh-bar"><div class="nh-fill" id="test-next-bar-fill" style="width:0%"></div></div>
-            </div>
-            <!-- THEN queue (upcoming cues) -->
-            <div class="live-then">
-              <div class="live-then-head"><span class="lbl">Upcoming</span></div>
-              <div class="live-then-rows" id="test-then-rows"></div>
-            </div>
-          </div>
-          <!-- Setlist rail (hidden in edit preview) -->
-          <div class="live-setlist" id="test-setlist-rail" style="display:none;">
-            <div class="live-setlist-head"><span>Setlist</span></div>
-            <div class="live-setlist-body" id="test-mini-songs"></div>
-          </div>
-        </div>
-      </div>
-
+      <!-- PREVIEW view removed — Live Mode + Generated TC replace it. -->
 
       <!-- VIDEO tab view -->
       <div id="er-vid-content" style="display:none;flex:1;min-height:0;flex-direction:column;background:#000;overflow:hidden;position:relative;">
@@ -6132,18 +6072,17 @@ function _doRedraw(target,frames){
         const nd=document.getElementById('live-next-desc');if(nd)nd.innerHTML=upNextSong.description||'';
       }
     }
-  } else {
-    const lbl=document.getElementById('test-song-lbl');if(lbl)lbl.textContent=liveSong?.name||'—';
-    renderTestSeqList(liveSongId);
-    renderMiniSongs('test',liveSongId,upNextSongId);
-    _updateTestCockpit(frames,allCues,curIdx,upNextSongId);
   }
-
-  renderWaterfall(target,frames,allCues,curIdx,upNextSongId);
-  // All-cameras secondary waterfall (camera viewer split panel)
-  if(target==='live'&&document.getElementById('wf-live-all'))_renderWaterfallAllCams(frames,upNextSongId);
-  // Cockpit timeline (live or test) — edit timeline position is driven by _tlSmoothLoop
-  if(state.tlVisible?.[target])renderTimeline(target,frames,allCues,curIdx);
+  // The PREVIEW (test) cockpit/waterfall was removed — Live Mode + Generated TC replace it.
+  // In edit mode _doRedraw still runs purely to drive the cue-list active-cue highlight below
+  // (it tracks the simulator/timeline playhead); no preview surfaces are rendered.
+  if(isLive){
+    renderWaterfall('live',frames,allCues,curIdx,upNextSongId);
+    // All-cameras secondary waterfall (camera viewer split panel)
+    if(document.getElementById('wf-live-all'))_renderWaterfallAllCams(frames,upNextSongId);
+    // Cockpit timeline — edit timeline position is driven by _tlSmoothLoop
+    if(state.tlVisible?.live)renderTimeline('live',frames,allCues,curIdx);
+  }
 
   // Highlight active cue in edit list
   if(state.appMode==='edit'){
@@ -8557,7 +8496,7 @@ document.getElementById('cue-list-wrap').addEventListener('click',e=>{
   toggleCueFlag(e.target.dataset.cid);
 });
 // Waterfall + cockpit flag buttons — delegated on stable containers
-['wf-live','wf-test','live-next-hero','test-next-hero','live-then-rows','test-then-rows','vw-next-hero','vw-then-rows'].forEach(function(id){
+['wf-live','live-next-hero','live-then-rows','vw-next-hero','vw-then-rows'].forEach(function(id){
   const el=document.getElementById(id);
   if(!el)return;
   el.addEventListener('click',function(e){
@@ -10958,12 +10897,11 @@ async function cfMediaSettingsChange(){ await cfMediaChangeFolder(); renderMedia
 async function cfMediaSettingsReconnect(){ var ok=await cfMediaReconnect(); if(!ok) cfMediaToast('Could not access the folder — try Change folder…'); renderMediaSettings(); }
 async function cfMediaSettingsForget(){ await cfMediaForget(); renderMediaSettings(); }
 
-/* Hide the desktop edit PREVIEW/MEDIA tabs unless this is an owner on desktop. */
+/* Hide the desktop edit MEDIA tab unless this is an owner on desktop. */
 function _cfApplyEditMediaTabs(){
   var ok=cfMediaEnabled();
-  var w=document.getElementById('ertab-wf'); if(w) w.style.display=ok?'':'none';
   var v=document.getElementById('ertab-vid'); if(v) v.style.display=ok?'':'none';
-  if(!ok && (_editView==='wf'||_editView==='vid')) switchEditView('list');
+  if(!ok && _editView==='vid') switchEditView('list');
 }
 
 /* Refresh any open media UI after an async folder/link change (called by the module). */
@@ -12406,25 +12344,23 @@ let _listFilterCams=null;   // null | Set<cameraId>
 let _listFilterFlagged=false;
 let _listFilterType='all';  // 'all' | 'cue' | 'marker'
 function switchEditView(view){
-  // PREVIEW (waveform) and MEDIA tabs are owner-desktop only. Hide them for
-  // editors/viewers/mobile and never let those views be active there.
+  // PREVIEW view removed — any lingering 'wf' request falls back to the LIST editor.
+  if(view==='wf') view='list';
+  // MEDIA tab is owner-desktop only. Hide it for editors/viewers/mobile and never let
+  // that view be active there.
   const mediaOk=cfMediaEnabled();
-  const wfTabBtn=document.getElementById('ertab-wf'); if(wfTabBtn) wfTabBtn.style.display=mediaOk?'':'none';
   const vidTabBtn=document.getElementById('ertab-vid'); if(vidTabBtn) vidTabBtn.style.display=mediaOk?'':'none';
-  if(!mediaOk && (view==='wf'||view==='vid')) view='list';
+  if(!mediaOk && view==='vid') view='list';
   _editView=view;
-  const isList=view==='list',isWf=view==='wf',isVid=view==='vid',isNotes=view==='notes',isCams=view==='cams';
+  const isList=view==='list',isVid=view==='vid',isNotes=view==='notes',isCams=view==='cams';
   document.getElementById('er-list-content').style.display=isList?'flex':'none';
-  document.getElementById('er-wf-content').style.display=isWf?'flex':'none';
   const vc=document.getElementById('er-vid-content');if(vc)vc.style.display=isVid?'flex':'none';
   const nc=document.getElementById('er-notes-content');if(nc)nc.style.display=isNotes?'flex':'none';
   const cc=document.getElementById('er-cams-content');if(cc)cc.style.display=isCams?'flex':'none';
   document.getElementById('ertab-list')?.classList.toggle('active',isList);
-  document.getElementById('ertab-wf')?.classList.toggle('active',isWf);
   document.getElementById('ertab-vid')?.classList.toggle('active',isVid);
   document.getElementById('ertab-notes')?.classList.toggle('active',isNotes);
   document.getElementById('ertab-cams')?.classList.toggle('active',isCams);
-  if(isWf){_refreshWfSeqList();_refreshWfNotes();redrawActive();}
   if(isVid){_vidUpdateForActiveSong();_updateVidEmptyState();}
   if(isNotes){_loadNotesTab();}
   if(isCams){renderCamerasTab();}
@@ -12444,7 +12380,7 @@ function _updateCamerasTab(){
   if(state.cameraTrack&&_editView==='cams')switchEditView('list');
 }
 // compat stub
-function switchEditRightTab(tab){ switchEditView(tab==='list'?'list':'wf'); }
+function switchEditRightTab(tab){ switchEditView(tab==='list'?'list':tab); }
 
 // ── LIST FILTER ───────────────────────────────────────────────
 function toggleListFilter(){
@@ -13422,8 +13358,15 @@ function _etlTrackCues(song,sid){
 }
 /* Returns {sid,song,mode,prev,next,boundaryF} for a boundary/edge under the cursor, else null.
    mode: 'both' | 'shortenPrev' | 'moveNext' | 'durLast' | 'orphanStart'.
-   Three-zone (both/shortenPrev/moveNext) only fires when A has an EXPLICIT end touching B.
-   Auto-A or any gap → separate single-zone: ']' at A.endF, '[' (orphanStart) at B.startF. */
+
+   Adjacency is decided FIRST, then the cursor zone — so the cursor never misleads:
+   • Two cues TOUCHING (prev's end lands on the next's start, ±1f, same track — auto OR
+     explicit) → three-zone at that shared start: ‖ centre 4px (move weld) · ] left 4px
+     (shorten/detach prev) · [ right 4px (detach + move next). A touching first cue is always
+     normalised to AUTO (see _autoifyTouching) so its end follows the weld; ] / [ detach it
+     into an explicit cue + gap.
+   • Orphan START (no prev, or a gap before) → '[' across the whole zone (move start, keep end).
+   • Orphan END (gap after / last cue) → ']' across the whole zone (move end, keep start). */
 function _etlZoneAt(e){
   const container=document.getElementById('edit-tl'); if(!container) return null;
   const rect=container.getBoundingClientRect();
@@ -13434,40 +13377,32 @@ function _etlZoneAt(e){
   const cues=_etlTrackCues(song,sid); if(!cues.length) return null;
   const pxPF=ETL.zoom/state.fps;
   const cursorF=state.simFrames+(x-ETL.PH_X)/pxPF;   // float frame at cursor
-  const tolF=6/pxPF, ctrF=2/pxPF;
-  // First cue's START edge has no preceding cue on this track → always an orphan start.
-  // The pairwise loop only ever treats a cue as the *next* (B) of a pair, so cues[0]'s
-  // start is otherwise uncovered (it would fall through to the generic move-handle).
-  // '[' only here — never '‖' or ']' (there is nothing to drag-with or shorten).
-  const first=cues[0];
-  if(first && Math.abs(cursorF-first.startF)<=tolF &&
-     (!isFinite(first.endF) || Math.abs(cursorF-first.startF)<=Math.abs(cursorF-first.endF)))
-    return {sid,song,mode:'orphanStart',prev:null,next:first,boundaryF:first.startF};
+  const tolF=6/pxPF, ctrF=2/pxPF;                    // 12px zone: 4px ] · 4px ‖ · 4px [
+  // Two cues "touch" when P's end lands on C's start (±1 frame), same track — auto OR
+  // explicit. A touching first cue is normalised to AUTO, so touching always offers ‖/]/[.
+  const touching=(P,C)=> !!(P&&C&&Math.abs(P.endF-C.startF)<=1);
+  // Visual right edge of a cue (where the block actually renders), in frames. Auto cues end
+  // at the next sibling's start, or a default 30s width when they are the last on the track.
+  const visEndF=(C,N)=> cueIsAuto(C.cue) ? (N?N.startF:C.startF+30*state.fps) : C.endF;
   for(let i=0;i<cues.length;i++){
-    const A=cues[i], B=cues[i+1];
-    const aIsAuto=cueIsAuto(A.cue);
-    if(B && A.endF===B.startF && !aIsAuto){
-      // EXPLICIT TOUCHING: three-zone boundary (||, ], [)
-      const bF=B.startF;
-      if(Math.abs(cursorF-bF)<=tolF){
-        const mode=Math.abs(cursorF-bF)<=ctrF?'both':(cursorF<bF?'shortenPrev':'moveNext');
-        return {sid,song,mode,prev:A,next:B,boundaryF:bF};
+    const C=cues[i], P=cues[i-1]||null, N=cues[i+1]||null;
+    // ── START edge ───────────────────────────────────────────────────────────
+    if(Math.abs(cursorF-C.startF)<=tolF){
+      if(touching(P,C)){
+        const d=cursorF-C.startF;
+        const mode=Math.abs(d)<=ctrF?'both':(d<0?'shortenPrev':'moveNext');
+        return {sid,song,mode,prev:P,next:C,boundaryF:C.startF};
       }
-    } else {
-      // GAP or AUTO-A: separate ']' zone at A's end, '[' (orphanStart) zone at B's start.
-      // For auto-A touching B (A.endF===B.startF): split by cursor side so ']' fires only
-      // from the left (A's body) and '[' fires at/right of B.startF.
-      const atAutoTouch = aIsAuto && B && A.endF===B.startF;
-      // A's end (']') — skip for auto-A touching if cursor is at or past B.startF
-      if(isFinite(A.endF) && Math.abs(cursorF-A.endF)<=tolF){
-        if(!atAutoTouch || cursorF<B.startF){
-          if(!B || Math.abs(cursorF-A.endF)<=Math.abs(cursorF-B.startF))
-            return {sid,song,mode:B?'shortenPrev':'durLast',prev:A,next:(B||null),boundaryF:A.endF};
-        }
-      }
-      // B's start ('[' orphanStart) — full ±tolF zone, no asymmetric restriction
-      if(B && Math.abs(cursorF-B.startF)<=tolF)
-        return {sid,song,mode:'orphanStart',prev:A,next:B,boundaryF:B.startF};
+      return {sid,song,mode:'orphanStart',prev:P,next:C,boundaryF:C.startF};
+    }
+    // ── END edge ─────────────────────────────────────────────────────────────
+    // Skip when this end is the shared boundary owned by N's start (handled above).
+    // Auto cues only expose an end when they are last on the track (no next to anchor to).
+    if(!touching(C,N) && (!cueIsAuto(C.cue)||!N)){
+      const eF=visEndF(C,N);
+      // When a small gap puts both edges in reach, the closer edge wins (no flicker).
+      if(Math.abs(cursorF-eF)<=tolF && (!N || Math.abs(cursorF-eF)<=Math.abs(cursorF-N.startF)))
+        return {sid,song,mode:N?'shortenPrev':'durLast',prev:C,next:N,boundaryF:eF};
     }
   }
   return null;
@@ -13493,13 +13428,17 @@ function _etlApplyBoundary(bd,targetF){
     if(bd.mode==='shortenPrev'&&B&&Math.abs(end-bd.bStartF)<=1){ delete A.duration; }
     else A.duration=fTC(end-bd.aStartF);
   } else if(bd.mode==='moveNext'){
-    // [ : touching boundary — move B's start, A's end stays fixed; B moves as a block.
+    // [ : touching boundary, right zone — move B's START only, keep B's END fixed (shorten
+    // its duration). A's end stays at the original weld, so a gap opens behind B.
+    const origBEndF=bd.bDurF!=null?(bd.bStartF+bd.bDurF):null;
     let bs=Math.round(targetF);
-    bs=Math.max(bd.aEndF,bs);
-    if(bd.cueAfterBStartF!=null) bs=Math.min(bs,bd.cueAfterBStartF-1);
-    if(A){ if(Math.abs(bs-bd.aEndF)<=1) delete A.duration; /* touch → auto */
-           else A.duration=fTC(bd.aEndF-bd.aStartF); }
+    bs=Math.max(bd.aEndF,bs);                                            // can't overlap A
+    if(origBEndF!=null) bs=Math.min(bs,origBEndF-1);                     // explicit: stay before own end
+    else if(bd.cueAfterBStartF!=null) bs=Math.min(bs,bd.cueAfterBStartF-1); // auto: before next cue
+    if(A){ if(Math.abs(bs-bd.aEndF)<=1) delete A.duration; /* snapped back to weld → A auto */
+           else A.duration=fTC(bd.aEndF-bd.aStartF); }                  /* gap → freeze A explicit */
     B.tc=fTC(bs);
+    if(bd.bDurF!=null) B.duration=fTC(Math.max(1,origBEndF-bs));        // explicit B keeps its end
   } else if(bd.mode==='orphanStart'){
     // [ orphan: move B's start only — keep B's end fixed.
     // Explicit-B: update duration so end stays. Auto-B: end = next cue's start (unchanged).
@@ -13516,13 +13455,38 @@ function _etlApplyBoundary(bd,targetF){
     B.tc=fTC(bs);
     if(bd.bDurF!=null) B.duration=fTC(Math.max(1,origBEndF-bs));
   } else if(bd.mode==='both'){
-    // ‖ : move the shared boundary; A.end and B.start move together (stay touching).
+    // ‖ : move the weld. B's START moves and B's END stays fixed (its duration shortens /
+    // grows). A stays welded to B's new start — a touching first cue is always AUTO, so its
+    // end simply follows the weld; drop any explicit duration rather than tracking it.
+    const origBEndF=bd.bDurF!=null?(bd.bStartF+bd.bDurF):null;
     let bnd=Math.round(targetF);
     bnd=Math.max(bd.aStartF+1,bnd);
-    if(bd.cueAfterBStartF!=null) bnd=Math.min(bnd,bd.cueAfterBStartF-1);
+    if(origBEndF!=null) bnd=Math.min(bnd,origBEndF-1);                 // can't pass B's own end
+    else if(bd.cueAfterBStartF!=null) bnd=Math.min(bnd,bd.cueAfterBStartF-1);
     B.tc=fTC(bnd);
-    if(!bd.aWasAuto) A.duration=fTC(bnd-bd.aStartF); // explicit A keeps touching B
+    if(bd.bDurF!=null) B.duration=fTC(Math.max(1,origBEndF-bnd));      // explicit B keeps its end
+    if(A) delete A.duration; // weld stays touching → A auto (end follows B.start)
   }
+}
+/* Model rule: when a cue's explicit end lands on the next same-track cue's start (±1 frame),
+   the first cue becomes AUTO (its end then follows the next start). Keeps every touching
+   boundary in the canonical auto-first state so it always offers the ‖/]/[ three-zone.
+   Same-track only — camera cues form one track keyed 'CAMERA'. Returns true if it changed. */
+function _autoifyTouching(song){
+  if(!song||!Array.isArray(song.cues)) return false;
+  var byTrack={};
+  song.cues.forEach(function(c){ var k=c.cameraId?'CAMERA':(c.streamId||''); (byTrack[k]||(byTrack[k]=[])).push(c); });
+  var changed=false;
+  Object.keys(byTrack).forEach(function(k){
+    var list=byTrack[k].sort(function(a,b){ return tcF(a.tc)-tcF(b.tc); });
+    for(var i=0;i<list.length-1;i++){
+      var A=list[i];
+      if(cueIsAuto(A)) continue;
+      var aEnd=tcF(A.tc)+(cueDurFrames(A)||0);
+      if(Math.abs(aEnd-tcF(list[i+1].tc))<=1){ delete A.duration; changed=true; }
+    }
+  });
+  return changed;
 }
 /* Live boundary-drag PREVIEW: update only the affected block elements' geometry — no full
    timeline rebuild (which flashes). Mutation happens once on mouseup via _etlApplyBoundary. */
@@ -13543,9 +13507,15 @@ function _etlBdragPreview(bd,targetF){
     if(Ablk) Ablk.style.width=(Math.max(minW,(end-bd.aStartF)*pxPF)-1)+'px';
     bd._tip=(bd.mode==='shortenPrev'&&bd.nextCue&&Math.abs(end-bd.bStartF)<=1)?'auto':('Dur '+fmtDurCompact(end-bd.aStartF));
   } else if(bd.mode==='moveNext'){
+    const origBEndF=bd.bDurF!=null?(bd.bStartF+bd.bDurF):null;
     let bs=Math.max(bd.aEndF,Math.round(targetF));
-    if(bd.cueAfterBStartF!=null) bs=Math.min(bs,bd.cueAfterBStartF-1);
-    if(Bblk){ Bblk.style.left=(bs*pxPF).toFixed(1)+'px'; Bblk.style.width=(Math.max(minW,bWidth(bs))-1)+'px'; }
+    if(origBEndF!=null) bs=Math.min(bs,origBEndF-1);
+    else if(bd.cueAfterBStartF!=null) bs=Math.min(bs,bd.cueAfterBStartF-1);
+    if(Bblk){
+      Bblk.style.left=(bs*pxPF).toFixed(1)+'px';
+      const w=origBEndF!=null?(origBEndF-bs)*pxPF:bWidth(bs);   // explicit B: keep its end fixed
+      Bblk.style.width=(Math.max(minW,w)-1)+'px';
+    }
     bd._tip=fTC(bs);
   } else if(bd.mode==='orphanStart'){
     // '[' orphan: move B's left edge, keep B's right edge fixed.
@@ -13569,10 +13539,16 @@ function _etlBdragPreview(bd,targetF){
     }
     bd._tip=fTC(bs);
   } else if(bd.mode==='both'){
+    const origBEndF=bd.bDurF!=null?(bd.bStartF+bd.bDurF):null;
     let bnd=Math.max(bd.aStartF+1,Math.round(targetF));
-    if(bd.cueAfterBStartF!=null) bnd=Math.min(bnd,bd.cueAfterBStartF-1);
-    if(Ablk) Ablk.style.width=(Math.max(minW,(bnd-bd.aStartF)*pxPF)-1)+'px';
-    if(Bblk){ Bblk.style.left=(bnd*pxPF).toFixed(1)+'px'; Bblk.style.width=(Math.max(minW,bWidth(bnd))-1)+'px'; }
+    if(origBEndF!=null) bnd=Math.min(bnd,origBEndF-1);
+    else if(bd.cueAfterBStartF!=null) bnd=Math.min(bnd,bd.cueAfterBStartF-1);
+    if(Ablk) Ablk.style.width=(Math.max(minW,(bnd-bd.aStartF)*pxPF)-1)+'px';   // A grows to the weld
+    if(Bblk){
+      Bblk.style.left=(bnd*pxPF).toFixed(1)+'px';
+      const w=origBEndF!=null?(origBEndF-bnd)*pxPF:bWidth(bnd);                // explicit B: keep its end
+      Bblk.style.width=(Math.max(minW,w)-1)+'px';
+    }
     bd._tip=fTC(bnd);
   }
 }
@@ -13830,6 +13806,7 @@ function _initEditTimeline(){
       const container2=document.getElementById('edit-tl'); if(container2)container2.style.cursor='crosshair';
       if(ETL._dragging){
         _etlApplyBoundary(bd, bd._target!=null?bd._target:bd.origBoundaryF);
+        _autoifyTouching(bd.song); // touching ⟹ first cue auto
         persist();renderCueList();redrawActive();if(ETL.visible)renderEditTimeline();
       } else if(ETL.visible){ renderEditTimeline(); } // a stray click moved nothing — restore
       ETL._dragging=false;
@@ -13847,7 +13824,7 @@ function _initEditTimeline(){
       if(ov){
         _showDurOverlapDialog(ov.owner,_song,ov.durF,ov.next,null,function(){ if(_cue){_cue.tc=_origTc; persist();} });
       }
-      else { persist();renderCueList();redrawActive();if(ETL.visible)renderEditTimeline(); }
+      else { _autoifyTouching(_song); persist();renderCueList();redrawActive();if(ETL.visible)renderEditTimeline(); }
       return;
     }
     ETL.drag=null;ETL._dragging=false;
@@ -17628,7 +17605,7 @@ function _onFlagBroadcast(msg){
     '.cue-flag-btn[data-cid="'+p.cueId+'"],.wf-flag-btn[data-cid="'+p.cueId+'"],.ck-flag-btn[data-cid="'+p.cueId+'"],.me-cue-flag[data-cid="'+p.cueId+'"]'
   ).forEach(function(btn){btn.classList.toggle('on',!!p.flagged);});
   document.querySelectorAll('.me-cue-row[data-cid="'+p.cueId+'"]').forEach(function(row){row.classList.toggle('flagged',!!p.flagged);});
-  ['live-next-flag','test-next-flag','vw-next-flag'].forEach(function(id){
+  ['live-next-flag','vw-next-flag'].forEach(function(id){
     var fl=document.getElementById(id);
     if(fl&&fl.dataset.cid===p.cueId) fl.classList.toggle('on',!!p.flagged);
   });
@@ -17738,8 +17715,27 @@ function _cfFlashBanner(text, bg, ms){
 }
 
 CF._cloudUp=true; CF._cloudEverUp=false; CF._cloudDownTimer=null;
-/* Debounced health signal — realtime blips shouldn't flip modes. Down is only
-   honoured ~6s after the first failure, and only once we've actually connected. */
+/* Confirm the cloud is genuinely unreachable before declaring "offline". A flaky Supabase
+   realtime socket — common on mobile Safari (tab backgrounding, Wi-Fi/5G hand-offs, idle
+   disconnects) — is NOT the same as having no internet: REST persistence keeps working. So
+   a channel error alone must not flip us to the offline/LAN banner; only a failed network
+   probe does. */
+function _cfProbeReachable(cb){
+  if(navigator.onLine===false){ cb(false); return; }      // OS-level offline is authoritative
+  var done=false;
+  var t=setTimeout(function(){ if(!done){ done=true; cb(false); } }, 5000);
+  /* no-cors: the promise resolves on any network round-trip (even an opaque / HTTP-error
+     response) and rejects only on a genuine network failure (DNS / connection refused) —
+     exactly the reachability test we want, with no CORS dependency. */
+  try{
+    fetch(SB_URL+'/auth/v1/health', { method:'GET', mode:'no-cors', cache:'no-store' })
+      .then(function(){ if(!done){ done=true; clearTimeout(t); cb(true); } })
+      .catch(function(){ if(!done){ done=true; clearTimeout(t); cb(false); } });
+  }catch(e){ if(!done){ done=true; clearTimeout(t); cb(false); } }
+}
+/* Debounced health signal — realtime blips shouldn't flip modes. Down is only honoured
+   ~6s after the first failure, once we've actually connected, AND only if the probe
+   confirms the internet is truly unreachable. */
 function _cfCloudSignal(up){
   if(up){
     CF._cloudEverUp=true;
@@ -17750,7 +17746,13 @@ function _cfCloudSignal(up){
     if(CF._cloudUp && !CF._cloudDownTimer){
       CF._cloudDownTimer=setTimeout(function(){
         CF._cloudDownTimer=null;
-        if(CF._cloudUp){ CF._cloudUp=false; _cfOnCloudDown(); }
+        if(!CF._cloudUp) return;
+        _cfProbeReachable(function(reachable){
+          /* Reachable → it was only a realtime blip; stay in cloud mode and let the
+             Supabase SDK auto-rejoin its channels. Unreachable → genuinely offline. */
+          if(reachable) return;
+          if(CF._cloudUp){ CF._cloudUp=false; _cfOnCloudDown(); }
+        });
       }, 6000);
     }
   }
@@ -18487,7 +18489,7 @@ function _cfLanConnect(isInitial){
       _cfLanScheduleReconnect(); /* already in the cockpit — keep trying quietly */
     }
   }
-  var to=setTimeout(function(){ fail(CF._lanEntered?'lost':'No response from host — check you are on the same network'); }, 6000);
+  var to=setTimeout(function(){ fail(CF._lanEntered?'lost':'No response from host — check you are on the same network'); }, 12000);
   try{
     ws=new WebSocket(base); CF._lanWs=ws;
     ws.onopen=function(){ try{ ws.send(JSON.stringify({event:'join',payload:{pin:CF._lanJoinPin}})); }catch(e){} };
@@ -19244,12 +19246,11 @@ function showEditorApp(show){
      they don't inherit the owner's hide state baked into older project_data blobs. */
   state.cameraTrackVisible=true;
 
-  /* Editors get NO media UI: hide the PREVIEW (waveform) and MEDIA tabs and force
-     the LIST view. cfMediaEnabled() is false for editors, so switchEditView() also
-     hides them and refuses those views — this just applies it immediately on entry. */
+  /* Editors get NO media UI: hide the MEDIA tab and force the LIST view. cfMediaEnabled()
+     is false for editors, so switchEditView() also hides it and refuses that view — this
+     just applies it immediately on entry. */
   if(window.switchEditView){ try{ switchEditView('list'); }catch(e){} }
   else {
-    var _wfTab=document.getElementById('ertab-wf'); if(_wfTab) _wfTab.style.display='none';
     var _vidTab=document.getElementById('ertab-vid'); if(_vidTab) _vidTab.style.display='none';
   }
 
