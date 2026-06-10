@@ -5858,7 +5858,8 @@ const wf = {
   visible: true,
   generating: new Set(),
   BLOCKS: 4000, // RMS blocks for overview (fallback when audio buffer not in memory)
-  rowH: 64,     // current waveform row height in px (user-resizable)
+  // current waveform row height in px (user-resizable) — restored from last session (per-device)
+  rowH: (function(){ try{ var v=parseInt(localStorage.getItem('cf_wf_rowH'),10); return (v>=30&&v<=300)?v:64; }catch(e){ return 64; } })(),
   ROW_MIN: 30,
   ROW_MAX: 300,
 };
@@ -13094,6 +13095,8 @@ function _etlWfResizeEnd(){
   document.removeEventListener('touchmove',_etlWfResizeMove);
   document.removeEventListener('mouseup',_etlWfResizeEnd);
   document.removeEventListener('touchend',_etlWfResizeEnd);
+  // Remember the chosen height across reloads (per-device preference)
+  try{ localStorage.setItem('cf_wf_rowH', String(wf.rowH)); }catch(e){}
 }
 
 function renderEditTimeline(){
