@@ -1050,7 +1050,7 @@ body.mode-live #edit-mode-banner { display: none; }
 .etl-media-bar-lbl { position: absolute; left: 6px; top: 50%; transform: translateY(-50%); font-size: 9px; font-weight: 600; color: rgba(255,255,255,.3); white-space: nowrap; overflow: hidden; pointer-events: none; z-index: 2; }
 .etl-media-thumb { position: absolute; top: 0; bottom: 0; object-fit: cover; opacity: .35; filter: grayscale(1); }
 .etl-wf-canvas { position: absolute; pointer-events: none; }
-.etl-wf-resize { position: absolute; top: 0; left: 0; right: 0; height: 6px; cursor: ns-resize; z-index: 20; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.etl-wf-resize { position: absolute; top: 0; left: 0; right: 0; height: 6px; cursor: ns-resize; z-index: 20; }
 .etl-wf-resize::after { content: ''; position: absolute; top: 1px; left: 50%; transform: translateX(-50%); width: 32px; height: 2px; border-radius: 1px; background: rgba(255,255,255,.35); transition: background .15s; }
 .etl-wf-resize:hover::after { background: rgba(255,255,255,.45); }
 
@@ -16649,6 +16649,7 @@ window.CF = {
   cameraIds: null,  // array of camera IDs for camera-specific viewer links
   dirty:    false,
   _lastPushUpdatedAt: null,
+  _myPushTs: [],            // epoch-ms of our recent own pushes — for echo detection
   _lastEditAt: 0,
   _pendingRemoteProj: null,
   _pendingRemoteTimer: null,
@@ -16802,6 +16803,23 @@ function snapshot(){
   };
 }
 
+/* Echo-detection across rapid pushes. A single "last push timestamp" is not enough: when the
+   operator makes change B before change A's Realtime echo has arrived, B's push overwrites the
+   stored timestamp, so A's echo — our OWN slightly-older write — no longer matches and is
+   misread as a foreign edit → a spurious "Resolve conflict" modal. So remember the recent set
+   of our own push timestamps and treat an incoming update as our echo if it matches ANY of them. */
+function _recordOwnPush(tsIso){
+  var ms=new Date(tsIso).getTime(); if(!ms) return;
+  if(!CF._myPushTs) CF._myPushTs=[];
+  CF._myPushTs.push(ms);
+  var cutoff=Date.now()-60000;                  // echoes arrive within seconds; 60s is generous
+  CF._myPushTs=CF._myPushTs.filter(function(t){ return t>=cutoff; });
+  CF._lastPushUpdatedAt=tsIso;                   // kept for compatibility / debugging
+}
+function _isOwnPushEcho(tsIso){
+  if(!tsIso||!CF._myPushTs||!CF._myPushTs.length) return false;
+  return CF._myPushTs.indexOf(new Date(tsIso).getTime())!==-1;
+}
 /* ── Push project to Supabase ────────────────────────────── */
 function pushProject(cb, _retry){
   if(!CF.showId) return;
@@ -16829,10 +16847,10 @@ function pushProject(cb, _retry){
 
   _retry = _retry||0;
   var _pushTs = new Date().toISOString();
-  /* Set optimistically BEFORE the network round-trip: Supabase Realtime (WebSocket)
-     can deliver the echo before the HTTP response returns, so the echo-detection
-     guard must already know the expected timestamp when it fires. */
-  CF._lastPushUpdatedAt = _pushTs;
+  /* Record optimistically BEFORE the network round-trip: Supabase Realtime (WebSocket)
+     can deliver the echo before the HTTP response returns, so the echo-detection guard
+     must already know the expected timestamp when it fires. */
+  _recordOwnPush(_pushTs);
   db().from('shows')
     .upsert({id:CF.showId, name:state.name, owner_id:authUser?authUser.id:null,
              project_data:snapshot(), updated_at:_pushTs})
@@ -17160,12 +17178,12 @@ function subscribeProject(){
         var proj = payload.new && payload.new.project_data;
         if(!proj) return;
         var newTs = payload.new.updated_at;
-        /* Supabase Realtime returns timestamps in a different string format than
-           new Date().toISOString() (e.g. "+00:00" suffix vs "Z"), so compare
-           as Date milliseconds to reliably detect our own push echoing back. */
-        var isOwnEcho = !!newTs && !!CF._lastPushUpdatedAt &&
-          new Date(newTs).getTime() === new Date(CF._lastPushUpdatedAt).getTime();
-        if(isOwnEcho) return;
+        /* Ignore our OWN writes echoing back. Supabase Realtime returns timestamps in a
+           different string format than new Date().toISOString() ("+00:00" vs "Z"), so
+           _isOwnPushEcho compares as epoch-ms — and against the recent SET of our pushes,
+           not just the last one, so a burst of quick edits whose echoes arrive out of step
+           with the newest push isn't mistaken for a foreign change. */
+        if(_isOwnPushEcho(newTs)) return;
         /* Owner has unsaved edits — check for conflicts before applying remote */
         if(CF.isOwner && CF.dirty){
           CF._pendingConflictProj = proj;
