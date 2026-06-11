@@ -303,8 +303,6 @@ input, select, textarea { font-family: inherit; }
 .tcs-show-toggle input:checked + .tcs-show-toggle-slider { background:var(--primary); }
 .tcs-show-toggle input:checked + .tcs-show-toggle-slider::before { transform:translateX(16px); }
 .tcs-checks { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
-.tcs-check-row { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--txt); cursor:pointer; }
-.tcs-check-row input[type=checkbox] { width:15px; height:15px; accent-color:var(--primary); cursor:pointer; }
 .tcs-footer-status { display:flex; align-items:center; gap:7px; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); }
 
 /* ── Project Settings Modal ── */
@@ -791,6 +789,12 @@ body.mode-live #edit-mode-banner { display: none; }
 }
 .cue-field.tc { font-family: var(--mono); font-size: 11px; color: var(--txt-hi); font-variant-numeric: tabular-nums; }
 .cue-field.desc { color: var(--txt-mid); font-size: 11px; border-right: none; }
+/* Shared Description empty-state — used by BOTH the planner cue list and the cloud (crew
+   notes) editor so the two views read identically. Empty cells show a dim italic
+   "Add a note…" placeholder; filled cells show the note in bright, normal text. */
+.desc-cell.is-empty { color: var(--txt-low); font-style: italic; }
+.desc-cell.is-empty::placeholder { color: var(--txt-low); font-style: italic; opacity: 1; }
+.desc-cell.is-filled { color: var(--txt-hi); font-style: normal; }
 .cue-field:focus { background: var(--surface3); box-shadow: inset 0 0 0 1px var(--primary); }
 .cue-readonly { cursor: pointer !important; user-select: none; }
 .cue-readonly:focus { background: var(--surface2) !important; }
@@ -1308,8 +1312,6 @@ body.mode-live #edit-mode-banner { display: none; }
 .vw-cam-crumb-sq { color:var(--txt-hi); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .vw-cam-following { display:none; align-items:center; gap:7px; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt-low); flex-shrink:0; }
 .vw-cam-name-cell { display:none; align-items:center; padding:0 14px; border-right:1px solid var(--hair); height:100%; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--txt-hi); flex-shrink:0; white-space:nowrap; }
-.vw-cam-notes-btn { display:none; align-items:center; justify-content:center; gap:0; padding:0; width:56px; height:100%; margin-left:auto; border-left:1px solid var(--hair); border-right:none; border-top:none; border-bottom:none; background:none; font-size:0; color:var(--txt-mid); cursor:pointer; transition:color .12s,background .12s; flex-shrink:0; }
-.vw-cam-notes-btn:hover { color:var(--txt-hi); background:var(--surface2); }
 /* ── Unified visibility button in viewer topbar ── */
 .vw-vis-btn { display:flex; align-items:center; gap:8px; padding:0 16px; height:100%; border:none; border-left: 1px solid var(--hair); border-right:1px solid var(--hair); background:none; font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--txt-mid); cursor:pointer; flex-shrink:0; white-space:nowrap; transition:background .12s,color .12s; }
 .vw-vis-btn:hover { background:var(--surface2); color:var(--txt-hi); }
@@ -1543,16 +1545,20 @@ body.mode-live #edit-mode-banner { display: none; }
 .cn-mode-banner { height:4px; background:var(--primary); flex-shrink:0; opacity:.7; }
 .cn-body { flex:1; display:flex; min-height:0; overflow:hidden; }
 /* Left: sequence list */
-.cn-seq-panel { width:200px; flex-shrink:0; border-right:1px solid var(--hair); display:flex; flex-direction:column; overflow:hidden; background:var(--surface); }
+.cn-seq-panel { width:280px; flex-shrink:0; border-right:1px solid var(--hair); display:flex; flex-direction:column; overflow:hidden; background:var(--surface); }
 .cn-seq-head { padding:10px 14px; border-bottom:1px solid var(--hair); font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); flex-shrink:0; }
 .cn-seq-rows { flex:1; overflow-y:auto; }
-.cn-seq-row { display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:1px solid var(--hair); cursor:pointer; transition:background .1s; border-left:3px solid transparent; }
+/* Match the owner's edit-view sequence list (.song-row) — compact rows, num + name/sub
+   stacked, amber selected accent. No drag grip: these sequences are not reorderable here. */
+.cn-seq-row { display:flex; align-items:center; gap:7px; padding:10px 14px; border-bottom:1px solid var(--hair); cursor:pointer; transition:background .1s; border-left:2px solid transparent; user-select:none; }
 .cn-seq-row:hover { background:var(--surface2); }
-.cn-seq-row.active { border-left-color:var(--amber); background:var(--surface); }
-.cn-seq-row.active .cn-seq-num { color:var(--amber); }
-.cn-seq-num { font-family:var(--cond); font-size:13px; font-weight:700; color:var(--txt-low); letter-spacing:.05em; width:24px; flex-shrink:0; }
-.cn-seq-name { flex:1; min-width:0; font-family:var(--cond); font-size:15px; font-weight:700; color:var(--txt); letter-spacing:.01em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.cn-seq-dur { font-family:var(--mono); font-size:13px; color:var(--txt-low); flex-shrink:0; }
+.cn-seq-row.active { background:var(--surface2); border-left-color:var(--primary); padding-left:12px; }
+.cn-seq-row.active .cn-seq-num { color:var(--primary); }
+.cn-seq-num { font-family:var(--mono); font-size:10px; color:var(--txt-low); width:14px; text-align:right; flex-shrink:0; }
+.cn-seq-meta { flex:1; min-width:0; }
+.cn-seq-name { font-size:13px; font-weight:500; color:var(--txt); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cn-seq-row.active .cn-seq-name { color:var(--txt-hi); font-weight:600; }
+.cn-seq-sub { font-size:10px; color:var(--txt-mid); font-family:var(--mono); margin-top:1px; }
 /* Right: cue list */
 .cn-cue-area { flex:1; display:flex; flex-direction:column; overflow:hidden; }
 .cn-cue-header { display:grid; grid-template-columns:32px 84px 1fr 2fr; border-bottom:1px solid var(--hair2); background:var(--surface); flex-shrink:0; height:28px; }
@@ -1727,6 +1733,9 @@ body.mode-live #edit-mode-banner { display: none; }
 .live-then-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0; }
 .live-then-head .lbl { font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: var(--txt-mid); }
 .live-then-rows { flex: 1; min-height: 0; overflow: hidden; }
+/* End-of-sequence affordance — fills the empty space after the last upcoming cue so the
+   queue never trails off into a void, and clearly signals there is nothing more to come. */
+.live-then-end { flex: 1; min-height: 34px; display: flex; align-items: flex-start; justify-content: center; padding: 14px 8px 10px; margin: 4px 10px 0; border-top: 1px solid var(--hair); font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--txt-low); }
 .live-then-row {
   display: grid; grid-template-columns: 40px 80px 1fr auto auto 28px;
   align-items: center; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--hair);
@@ -1773,10 +1782,10 @@ body.gen-live #live-mini-seqs .setlist-row { cursor:pointer; }
 body.gen-live #live-mini-seqs .setlist-row:hover { background:var(--surface2); }
 .setlist-row { display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 8px; padding: 7px 12px; border-left: 2px solid transparent; cursor: default; }
 .setlist-row.done { opacity: .4; }
-.setlist-row.current { border-left-color: var(--red); background: var(--red-bg); }
+.setlist-row.current { border-left-color: var(--primary); background: var(--primary-bg); }
 .setlist-row.upcoming { opacity: .7; }
 .setlist-row .sl-num { font-family: var(--mono); font-size: 10px; color: var(--txt-low); text-align: right; font-variant-numeric: tabular-nums; }
-.setlist-row.current .sl-num { color: var(--red); }
+.setlist-row.current .sl-num { color: var(--primary); }
 .setlist-row .sl-name { font-family: var(--cond); font-size: 12px; font-weight: 600; color: var(--txt); text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .setlist-row.current .sl-name { color: var(--txt-hi); }
 .setlist-row .sl-dur { font-family: var(--mono); font-size: 10px; color: var(--txt-low); flex-shrink: 0; font-variant-numeric: tabular-nums; }
@@ -2907,10 +2916,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     </div>
     <!-- Unified visibility button — populated by buildTrackPills() for all roles -->
     <div id="vw-vis-cell" style="display:none;align-items:stretch;height:100%;flex-shrink:0;"></div>
-    <!-- Camera: Notes button (cam-viewer only, right side) -->
-    <button class="vw-cam-notes-btn" id="vw-cam-notes-btn" onclick="openCamNotesScreen()">
-      <svg width="18" height="18" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.4"/><line x1="3" y1="4" x2="9" y2="4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="3" y1="6.5" x2="9" y2="6.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="3" y1="9" x2="6.5" y2="9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-    </button>
+    <!-- Camera / track viewer: enter the notes editor — same amber "Edit" button as the owner -->
+    <button class="live-toggle edit" id="vw-cam-notes-btn" style="display:none;margin-left:auto;align-items:center;justify-content:center;" onclick="openCamNotesScreen()">Edit</button>
     <!-- Editor: back to edit screen (shown only in editor follow mode) -->
     <div id="editor-back-btn" style="display:none;margin-left:auto;align-items:stretch;">
       <button class="live-toggle edit" onclick="if(window._editorEnterEditMode)_editorEnterEditMode()">Edit</button>
@@ -3053,7 +3060,6 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
             <svg id="cam-panel-toggle-icon" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M7 2l-4 3 4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
-        <div class="cam-panel-sub" id="cam-panel-my-sub"></div>
         <div class="cam-shot-rows" id="cam-shot-rows"></div>
       </div>
 
@@ -3097,7 +3103,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <div style="flex:1;"></div>
     <button class="live-toggle" onclick="closeCamNotesScreen()">Go Live</button>
   </div>
-  <div class="cn-mode-banner"></div>
+  <div class="mode-banner edit"></div>
   <!-- Sequence selector strip — phone only (≤760px); tablet uses the left sidebar -->
   <div class="cn-seq-hdr" id="cn-seq-hdr">
     <div class="me-seq-hdr-inner" onclick="toggleCnSeqPanel()">
@@ -6230,8 +6236,11 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,curSeqId){
     // Collect queue cues
     const _tq=[];
     for(let qi=nextIdx+1;qi<allCues.length&&_tq.length<5;qi++)_tq.push({qc:allCues[qi],qi});
+    // The queue is exhausted (no more upcoming cues to show) → cap it with an end affordance
+    // so the remaining vertical space reads as "done", not as a missing-content void.
+    const _atSeqEnd=_tq.length<5 && (curIdx>=0||!!nextCue||_tq.length>0);
     const flagKey=_ckCanFlag?_tq.map(x=>(x.qc.flagged?'1':'0')).join(''):'';
-    const qKey=_tq.map(x=>x.qc.id).join(',')+flagKey+'|'+state.visibleStreamIds.join(',');
+    const qKey=_tq.map(x=>x.qc.id).join(',')+flagKey+'|'+state.visibleStreamIds.join(',')+'|'+(_atSeqEnd?'end':'');
     if(thenRows._qKey!==qKey){
       // Rebuild structure only when the set of cues (or their flag states) changes
       thenRows._qKey=qKey;thenRows.innerHTML='';
@@ -6250,11 +6259,17 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,curSeqId){
         row._urgFill=row.querySelector('[data-uf]');
         thenRows.appendChild(row);
       });
+      if(_atSeqEnd){
+        const end=document.createElement('div');end.className='live-then-end';
+        end.textContent='— End of sequence —';
+        thenRows.appendChild(end);
+      }
     }
     // Fast path: update countdown text + urgency bar only
     const rows=thenRows.children;
     for(let r=0;r<rows.length;r++){
       const row=rows[r];
+      if(row._cqf==null)continue; // skip the end-of-sequence affordance
       const cdF=Math.max(0,row._cqf-frames),cdSec=cdF/state.fps;
       const isWarn=cdSec<=WARN_SEC,isUrgent=cdSec<=10,showUrg=cdSec<=URGENCY_SEC;
       const cdEl=row._cdEl;
@@ -6460,8 +6475,11 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
       if(_isTrackViewer&&_vwCurSongId&&qc.songId!==_vwCurSongId)break;
       _tqV.push({qc,qi});
     }
+    // Queue exhausted (sequence end for track-viewers, list end otherwise) → cap with the
+    // end affordance so the remaining space doesn't read as a missing-content void.
+    const _atSeqEndV=_tqV.length<5 && (!!curCue||!!nextCue||_tqV.length>0);
     const flagKeyV=_ckCanFlagV?_tqV.map(x=>(x.qc.flagged?'1':'0')).join(''):'';
-    const qKeyV=_tqV.map(x=>x.qc.id).join(',')+flagKeyV+'|'+state.visibleStreamIds.join(',');
+    const qKeyV=_tqV.map(x=>x.qc.id).join(',')+flagKeyV+'|'+state.visibleStreamIds.join(',')+'|'+(_atSeqEndV?'end':'');
     if(tr._qKey!==qKeyV){
       tr._qKey=qKeyV;tr.innerHTML='';
       _tqV.forEach(({qc,qi})=>{
@@ -6477,10 +6495,16 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
         row._urgBar=row.querySelector('[data-urg]');row._urgFill=row.querySelector('[data-uf]');
         tr.appendChild(row);
       });
+      if(_atSeqEndV){
+        const end=document.createElement('div');end.className='live-then-end';
+        end.textContent='— End of sequence —';
+        tr.appendChild(end);
+      }
     }
     const trRows=tr.children;
     for(let r=0;r<trRows.length;r++){
       const row=trRows[r];
+      if(row._cqf==null)continue; // skip the end-of-sequence affordance
       const cdF=Math.max(0,row._cqf-frames),cdSec=cdF/state.fps;
       const isWarn=cdSec<=WARN_SEC,isUrgent=cdSec<=10,showUrg=cdSec<=URGENCY_SEC;
       if(row._cdEl){
@@ -6703,8 +6727,6 @@ function _updateCamCockpit(frames){
     } else {
       shotRows.innerHTML='<div style="padding:20px 16px;font-size:11px;color:var(--txt-low);">No more shots in this sequence</div>';
     }
-    const sub=_e('cam-panel-my-sub');
-    if(sub){const rem=myCues.filter(c=>c._f>frames).length;const _sn=state.songs.find(s=>s.id===_liveSongId);sub.textContent=rem+(_sn?' in '+_sn.name:'');}
   }
   // ── All cameras panel ──
   const allRows=_e('cam-all-rows');
@@ -7001,8 +7023,8 @@ function renderCamNotesSeqs(){
     row.dataset.id=song.id;
     const dur=window._meSongDuration?_meSongDuration(song):'';
     row.innerHTML='<span class="cn-seq-num">'+String(i+1).padStart(2,'0')+'</span>'+
-      '<span class="cn-seq-name">'+escH(song.name)+'</span>'+
-      (dur?'<span class="cn-seq-dur">'+escH(dur)+'</span>':'');
+      '<div class="cn-seq-meta"><div class="cn-seq-name">'+escH(song.name)+'</div>'+
+      (dur?'<div class="cn-seq-sub">'+escH(dur)+'</div>':'')+'</div>';
     row.onclick=function(){
       _camNotesActiveSongId=song.id;
       rows.querySelectorAll('.cn-seq-row').forEach(function(r){r.classList.toggle('active',r.dataset.id===song.id);});
@@ -7050,12 +7072,12 @@ function renderCamNotesCues(songId){
       '<div class="cn-cue-badge-cell">'+badgeHtml+'</div>'+
       '<div class="cn-cue-tc">'+escH(cue.tc||'')+'</div>'+
       '<div class="cn-cue-name"><span class="cn-cue-name-inner">'+escH(cue.name||'—')+'</span></div>'+
-      '<div class="cn-cue-desc"><textarea placeholder="Add a note…" rows="1" data-cue-id="'+cue.id+'" data-song-id="'+songId+'">'+escH(cue.desc||'')+'</textarea></div>';
+      '<div class="cn-cue-desc"><textarea class="desc-cell '+((cue.desc&&cue.desc.trim())?'is-filled':'is-empty')+'" placeholder="Add a note…" rows="1" data-cue-id="'+cue.id+'" data-song-id="'+songId+'">'+escH(cue.desc||'')+'</textarea></div>';
     wrap.appendChild(row);
   });
   wrap.querySelectorAll('textarea').forEach(function(ta){
     _autoResizeTa(ta);
-    ta.addEventListener('input',function(){_autoResizeTa(ta);saveCamNoteDesc(ta.dataset.cueId,ta.dataset.songId,ta.value);});
+    ta.addEventListener('input',function(){_autoResizeTa(ta);ta.classList.toggle('is-filled',!!ta.value.trim());ta.classList.toggle('is-empty',!ta.value.trim());saveCamNoteDesc(ta.dataset.cueId,ta.dataset.songId,ta.value);});
   });
 }
 
@@ -8031,7 +8053,7 @@ function renderCueList(){
       <input class="cue-field tc${isSelected?'':' cue-readonly'}" value="${escH(cue.tc)}" data-id="${cue.id}" data-f="tc" placeholder="01:00:00:00" ${isSelected?'':'readonly'}>
       <div class="cue-col-dur${cueIsAuto(cue)?' auto':''}" data-durcid="${cue.id}" title="Cue duration — click to set">${cueIsAuto(cue)?'auto':escH(fmtDurCompact(tcF(cue.duration)))}</div>
       <input class="cue-field${isSelected?'':' cue-readonly'}" value="${escH(cue.name)}" data-id="${cue.id}" data-f="name" placeholder="Cue name" ${isSelected?'':'readonly'}>
-      <input class="cue-field desc${isSelected?'':' cue-readonly'}" value="${escH(cue.desc||'')}" data-id="${cue.id}" data-f="desc" placeholder="Description" ${isSelected?'':'readonly'}>
+      <input class="cue-field desc desc-cell ${cue.desc&&cue.desc.trim()?'is-filled':'is-empty'}${isSelected?'':' cue-readonly'}" value="${escH(cue.desc||'')}" data-id="${cue.id}" data-f="desc" placeholder="Add a note…" oninput="this.classList.toggle('is-filled',!!this.value.trim());this.classList.toggle('is-empty',!this.value.trim());" ${isSelected?'':'readonly'}>
       <div class="cl-type-cell${_isCamCue?' cam':''}">${_isCamCue?'CAMERA':'NORMAL'}</div>
       <div class="cl-next-cell">${_toNext}</div>
       <div class="cue-col-flag">${_canFlag?`<button class="cue-flag-btn${cue.flagged?' on':''}" data-cid="${cue.id}" title="Flag for attention">⚑</button>`:''}</div>
@@ -15644,10 +15666,16 @@ document.addEventListener('DOMContentLoaded',function(){
         </div>
       </div>
       <div class="tcs-checks">
-        <label class="tcs-check-row">
-          <input type="checkbox" id="tcs-auto-reconnect">
-          <span>Auto-reconnect</span>
-        </label>
+        <div class="tcs-show-toggle-row">
+          <div class="tcs-show-toggle-info">
+            <div class="tcs-show-toggle-name">Auto-reconnect</div>
+            <div class="tcs-show-toggle-desc">Re-establish the TC connection automatically if it drops</div>
+          </div>
+          <label class="tcs-show-toggle">
+            <input type="checkbox" id="tcs-auto-reconnect">
+            <span class="tcs-show-toggle-slider"></span>
+          </label>
+        </div>
       </div>
     </div>
     <!-- TC Footer -->
