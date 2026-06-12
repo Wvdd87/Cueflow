@@ -1611,12 +1611,23 @@ body.mode-live #edit-mode-banner { display: none; }
   /* Sequence panel becomes a fullscreen fixed overlay — like me-seq-picker */
   .cn-seq-panel {
     position:fixed; inset:0; z-index:9999; width:auto; border-right:none;
-    transform:translateX(-100%); transition:transform .22s ease;
+    transform:translateX(-100%);
   }
   .cn-seq-panel.open { transform:translateX(0); }
   /* Fullscreen header replaces the desktop sidebar header */
   .cn-seq-fs-head { display:flex; align-items:flex-start; justify-content:space-between; padding:18px 20px 14px; border-bottom:1px solid var(--hair); flex-shrink:0; background:var(--surface); }
   .cn-seq-head { display:none; }
+  /* In the fullscreen drawer (mobile/tablet) the sequence rows match the owner's mobile
+     picker (.me-sp-row): big rows · uppercase condensed names · duration on the right.
+     The compact desktop side panel above keeps its own (owner edit-view) styling. */
+  .cn-seq-panel { background:var(--bg); }
+  .cn-seq-row { gap:12px; padding:16px 20px; border-left-width:3px; }
+  .cn-seq-row.active { background:var(--surface); padding-left:20px; }
+  .cn-seq-num { font-family:var(--cond); font-size:13px; font-weight:700; color:var(--txt-low); letter-spacing:.05em; width:24px; text-align:left; }
+  .cn-seq-meta { display:flex; align-items:center; gap:12px; }
+  .cn-seq-name { flex:1; min-width:0; font-family:var(--cond); font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:.01em; }
+  .cn-seq-row.active .cn-seq-name { font-weight:700; }
+  .cn-seq-sub { margin-top:0; flex-shrink:0; font-family:var(--mono); font-size:13px; color:var(--txt-low); }
   /* Backdrop not needed — panel covers full screen */
   .cn-seq-backdrop, .cn-seq-backdrop.open { display:none !important; }
   /* Cue rows: 2-row grid — badge+TC+name on row 1, desc on row 2 */
