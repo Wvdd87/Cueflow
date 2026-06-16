@@ -637,11 +637,11 @@ body.mode-live #edit-mode-banner { display: none; }
   padding: 0 14px; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
   font-family: var(--cond); color: var(--txt-mid); background: none; border: none;
   border-right: 1px solid var(--hair); cursor: pointer;
-  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
   transition: color .12s, background .12s, border-top-color .12s;
   flex-shrink: 0; display: flex; align-items: center; gap: 5px;
 }
-.er-tab.active { color: var(--txt-hi); background: var(--bg); border-top-color: var(--primary); }
+.er-tab.active { color: var(--txt-hi); background: var(--bg); border-bottom-color: var(--primary); }
 .er-tab:hover  { color: var(--txt-hi); background: var(--surface2); }
 .er-tab-pill { display: none; } /* legacy — tabs now sit directly in .edit-right-tabs */
 .cl-tab-badge {
