@@ -26,3 +26,6 @@ build/icon.png
 
 # Claude internal state
 .claude/worktrees/
+
+# graphify
+graphify/
