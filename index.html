@@ -2923,7 +2923,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 <!-- PIN entry -->
 <div id="cf-join-screen" style="display:none;position:fixed;inset:0;z-index:9998;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;">
   <div style="max-width:340px;width:100%;padding:0 24px;text-align:center;">
-    <div style="font-size:28px;margin-bottom:8px;">🎬</div>
+    <img src="favicon.png" alt="CueFlow" style="width:40px;height:40px;border-radius:9px;margin-bottom:8px;display:inline-block;">
     <div id="cf-join-show-name" style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;">CueFlow</div>
     <div style="font-size:12px;color:var(--text4);margin-bottom:24px;">Enter your PIN to join</div>
     <input id="cf-join-pin" type="text" inputmode="numeric" maxlength="6" placeholder="123456"
@@ -3886,7 +3886,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <!-- Sign-in view -->
     <div id="cf-signin-view">
       <div style="text-align:center;margin-bottom:40px;">
-        <div style="font-size:36px;margin-bottom:10px;">🎬</div>
+        <img src="favicon.png" alt="CueFlow" style="width:52px;height:52px;border-radius:12px;margin-bottom:10px;display:inline-block;">
         <div style="font-family:var(--cond);font-size:24px;font-weight:700;letter-spacing:.04em;color:var(--text);">CueFlow</div>
         <div style="font-size:11px;color:var(--text3);letter-spacing:.15em;text-transform:uppercase;margin-top:6px;">Sign in to continue</div>
       </div>
@@ -3903,7 +3903,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <!-- Set-password view (invite link / password reset) -->
     <div id="cf-set-password-view" style="display:none;">
       <div style="text-align:center;margin-bottom:32px;">
-        <div style="font-size:36px;margin-bottom:10px;">🎬</div>
+        <img src="favicon.png" alt="CueFlow" style="width:52px;height:52px;border-radius:12px;margin-bottom:10px;display:inline-block;">
         <div style="font-family:var(--cond);font-size:24px;font-weight:700;letter-spacing:.04em;color:var(--text);">CueFlow</div>
         <div id="cf-set-pw-heading" style="font-size:11px;color:var(--text3);letter-spacing:.15em;text-transform:uppercase;margin-top:6px;">Choose a password</div>
       </div>
@@ -7792,7 +7792,7 @@ function renderSongList(){
       if(cfMedia.needsReconnect || !cfMedia.ready){
         // Folder not connected yet (or needs re-grant) — show a neutral linked icon,
         // not a "missing" warning. The owner sets/reconnects the folder in Settings.
-        const ic=cfMediaKind(song.mediaFile)==='video'?'🎬':'♫';
+        const ic=cfMediaKind(song.mediaFile)==='video'?'<img src="favicon.png" style="width:14px;height:14px;border-radius:3px;vertical-align:-2px;">':'♫';
         const hint=cfMedia.needsReconnect?'reconnect media folder to load':'set a media folder in Settings to load';
         audioBadge=`<span class="seq-audio-icon" title="Media: ${escH(song.mediaFile)} (${hint})" style="opacity:.45;">${ic}</span>`;
       } else if(!cfMediaHas(song.mediaFile)){
@@ -7800,7 +7800,7 @@ function renderSongList(){
       } else {
         const am=audio.meta[song.id], vm=vid.meta?.[song.id];
         if(am?.ready||vm?.ready){
-          const ic=cfMediaKind(song.mediaFile)==='video'?'🎬':'♫';
+          const ic=cfMediaKind(song.mediaFile)==='video'?'<img src="favicon.png" style="width:14px;height:14px;border-radius:3px;vertical-align:-2px;">':'♫';
           audioBadge=`<span class="seq-audio-icon" title="Media: ${escH(song.mediaFile)}">${ic}</span>`;
         } else {
           audioBadge=`<span class="seq-audio-badge seq-audio-loading"><span class="audio-spinner" style="width:8px;height:8px;border-width:1px;display:inline-block;"></span></span>`;
@@ -10994,7 +10994,7 @@ function renderMediaSettings(){
   cfMediaList().forEach(function(f){
     var row=document.createElement('div');
     row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--hair);font-size:12px;';
-    row.innerHTML='<span style="font-size:14px;flex-shrink:0;width:18px;text-align:center;">'+(f.kind==='video'?'🎬':'♫')+'</span>'
+    row.innerHTML='<span style="font-size:14px;flex-shrink:0;width:18px;text-align:center;">'+(f.kind==='video'?'<img src="favicon.png" style="width:14px;height:14px;border-radius:3px;vertical-align:-2px;">':'♫')+'</span>'
       +'<span style="flex:1;min-width:0;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(cfMediaBaseName(f.name))+'</span>'
       +'<span class="cf-media-dur" data-name="'+escH(f.name)+'" style="font-family:var(--mono);font-size:11px;color:var(--txt-low);flex-shrink:0;"></span>';
     list.appendChild(row);
@@ -11073,7 +11073,7 @@ function _cfMediaRenderPicker(){
   files.forEach(function(f){
     var cur=song&&song.mediaFile&&song.mediaFile.toLowerCase()===f.name.toLowerCase();
     html+='<div class="cf-media-pick-row" data-name="'+escH(f.name)+'" data-cur="'+(cur?'1':'')+'" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;cursor:pointer;'+(cur?'background:var(--surface);':'')+'">'
-      +'<span style="font-size:14px;width:18px;text-align:center;flex-shrink:0;">'+(f.kind==='video'?'🎬':'♫')+'</span>'
+      +'<span style="font-size:14px;width:18px;text-align:center;flex-shrink:0;">'+(f.kind==='video'?'<img src="favicon.png" style="width:14px;height:14px;border-radius:3px;vertical-align:-2px;">':'♫')+'</span>'
       +'<span style="flex:1;min-width:0;font-size:12px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escH(cfMediaBaseName(f.name))+'</span>'
       +'<span class="cf-media-dur" data-name="'+escH(f.name)+'" style="font-family:var(--mono);font-size:11px;color:var(--txt-low);flex-shrink:0;"></span>'
       +(cur?'<span style="color:var(--amber,#f0a838);font-size:12px;flex-shrink:0;">✓</span>':'')
@@ -11198,7 +11198,7 @@ function _mediaUpdateSSP(songId){
     if(actEl)actEl.style.display='none';
     return;
   }
-  if(iconEl)iconEl.textContent=mt==='video'?'🎬':'♫';
+  if(iconEl){if(mt==='video')iconEl.innerHTML='<img src="favicon.png" style="width:14px;height:14px;border-radius:3px;vertical-align:-2px;">';else iconEl.textContent='♫';}
   if(actEl)actEl.style.display='flex';
   if(cfMedia.needsReconnect || !cfMedia.ready){
     nameEl.textContent=mf+(cfMedia.needsReconnect?' — reconnect folder':' — set media folder');
