@@ -5042,7 +5042,75 @@ function _validateCueDuration(cue){
   }
 }
 function uid(){return'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
-function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+/* ── Rich-text sanitizer ─────────────────────────────────────────────────────
+   Sequence descriptions are edited in a contenteditable, stored as raw innerHTML,
+   and synced to every client via snapshot(). They are re-injected with innerHTML
+   in the live cockpit and editors, so unsanitized HTML is a stored-XSS vector
+   (a malicious <img onerror> in a description would run on the operator's live
+   machine). cfSanitizeHTML() keeps only the formatting the notes toolbar emits
+   (headings, bold/italic/underline, lists, text + highlight colour) and strips
+   scripts, event handlers, and resource-loading tags. DOMParser parses without
+   executing scripts or fetching resources, so building the tree here is safe. */
+var _CF_HTML_TAGS={P:1,DIV:1,SPAN:1,BR:1,B:1,STRONG:1,I:1,EM:1,U:1,S:1,STRIKE:1,SUB:1,SUP:1,
+  H1:1,H2:1,H3:1,H4:1,UL:1,OL:1,LI:1,BLOCKQUOTE:1,FONT:1};
+var _CF_HTML_DROP={SCRIPT:1,STYLE:1,IFRAME:1,OBJECT:1,EMBED:1,LINK:1,META:1,BASE:1,SVG:1,
+  IMG:1,VIDEO:1,AUDIO:1,SOURCE:1,FORM:1,INPUT:1,BUTTON:1,TEXTAREA:1,SELECT:1,CANVAS:1};
+var _CF_STYLE_PROPS={'color':1,'background-color':1,'background':1,'font-weight':1,
+  'font-style':1,'text-decoration':1,'text-decoration-line':1,'text-align':1};
+function _cfSanitizeStyle(style){
+  var out=[];
+  String(style||'').split(';').forEach(function(decl){
+    var i=decl.indexOf(':'); if(i<0) return;
+    var prop=decl.slice(0,i).trim().toLowerCase();
+    var val=decl.slice(i+1).trim();
+    if(!_CF_STYLE_PROPS[prop]) return;
+    if(/url\s*\(|expression|javascript:|@import|[<>]/i.test(val)) return;
+    out.push(prop+':'+val);
+  });
+  return out.join(';');
+}
+function cfSanitizeHTML(html){
+  if(html==null||html==='') return '';
+  var doc;
+  try{ doc=new DOMParser().parseFromString('<div id="_cfsan">'+String(html)+'</div>','text/html'); }
+  catch(e){ return ''; }
+  var root=doc.getElementById('_cfsan');
+  if(!root) return '';
+  (function walk(node){
+    var child=node.firstChild;
+    while(child){
+      var next=child.nextSibling;
+      if(child.nodeType===1){
+        var tag=child.tagName;
+        if(_CF_HTML_DROP[tag]){
+          node.removeChild(child);                 /* remove element and its contents */
+        } else if(!_CF_HTML_TAGS[tag]){
+          walk(child);                             /* sanitize subtree, then unwrap */
+          while(child.firstChild){ node.insertBefore(child.firstChild, child); }
+          node.removeChild(child);
+        } else {
+          Array.prototype.slice.call(child.attributes).forEach(function(a){
+            var n=a.name.toLowerCase();
+            if(n==='style'){
+              var s=_cfSanitizeStyle(a.value);
+              if(s) child.setAttribute('style',s); else child.removeAttribute('style');
+            } else if(n==='color' && tag==='FONT' && /^#?[0-9a-z(),.%\s]+$/i.test(a.value)){
+              /* keep a safe <font color> value */
+            } else {
+              child.removeAttribute(a.name);       /* drops on*, href, src, class, id, … */
+            }
+          });
+          walk(child);
+        }
+      } else if(child.nodeType===8){
+        node.removeChild(child);                    /* strip comments */
+      }
+      child=next;
+    }
+  })(root);
+  return root.innerHTML;
+}
 /* Clipboard copy that also works in insecure contexts (http://<lan-ip>), where
    navigator.clipboard is undefined. Falls back to a hidden-textarea + execCommand.
    Returns a Promise<boolean>. */
@@ -6149,7 +6217,7 @@ function _doRedraw(target,frames){
     // Compat elements
     const lbl=document.getElementById('live-seq-lbl');if(lbl)lbl.textContent=seqName;
     const badge=document.getElementById('tc-live-badge');if(badge)badge.classList.toggle('show',!!liveSongId);
-    const d=document.getElementById('live-sp-desc');if(d)d.innerHTML=activeForPanel?.description||'';
+    const d=document.getElementById('live-sp-desc');if(d)d.innerHTML=cfSanitizeHTML(activeForPanel?.description||'');
 
     // ── Cockpit layout update ──
     _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,liveSongId);
@@ -6164,7 +6232,7 @@ function _doRedraw(target,frames){
       np.style.display=upNextSong?'block':'none';
       if(upNextSong){
         const nt=document.getElementById('live-next-title');if(nt)nt.textContent=upNextSong.name;
-        const nd=document.getElementById('live-next-desc');if(nd)nd.innerHTML=upNextSong.description||'';
+        const nd=document.getElementById('live-next-desc');if(nd)nd.innerHTML=cfSanitizeHTML(upNextSong.description||'');
       }
     }
   }
@@ -8224,7 +8292,7 @@ function renderCueList(){
     const selRow=el.querySelector(`[data-cid="${ETL.selId}"]`);
     if(selRow) selRow.scrollIntoView({block:'nearest'});
   }
-  const rte=document.getElementById('rte-editor');if(rte)rte.innerHTML=song.description||'';
+  const rte=document.getElementById('rte-editor');if(rte)rte.innerHTML=cfSanitizeHTML(song.description||'');
   const badge=document.getElementById('desc-has-content');if(badge)badge.style.display=song.description?.trim()?'inline':'none';
   // Add has-notes badge to header button
   const notesBadge=document.getElementById('notes-hdr-btn');
@@ -8772,7 +8840,7 @@ function exportCSV(){
 // ─── DESCRIPTION ───
 function saveDesc(){
   const song=getActiveSong();if(!song)return;
-  song.description=document.getElementById('rte-editor').innerHTML;persist();
+  song.description=cfSanitizeHTML(document.getElementById('rte-editor').innerHTML);persist();
   redrawActive();
   const btn=document.getElementById('desc-save-btn'),orig=btn.textContent;
   btn.textContent='Saved ✓';btn.style.color='var(--green-text)';
@@ -10470,13 +10538,13 @@ function openNotesModal(){
   const song=getActiveSong();if(!song)return;
   cfRteMountAll();
   document.getElementById('notes-modal-title').textContent=`Notes: ${song.name}`;
-  document.getElementById('notes-rte').innerHTML=song.description||'';
+  document.getElementById('notes-rte').innerHTML=cfSanitizeHTML(song.description||'');
   document.getElementById('notes-has').style.display=song.description?.trim()?'inline':'none';
   document.getElementById('notes-modal').classList.add('show');
 }
 function saveNotes(){
   const song=getActiveSong();if(!song)return;
-  song.description=document.getElementById('notes-rte').innerHTML;
+  song.description=cfSanitizeHTML(document.getElementById('notes-rte').innerHTML);
   persist();redrawActive();
   const badge=document.getElementById('desc-has-content');if(badge)badge.style.display=song.description?.trim()?'inline':'none';
   const notesBadge=document.getElementById('notes-hdr-btn');
@@ -11692,13 +11760,13 @@ function addCueAtTC(){
 function notesTabSave(){
   const song = getActiveSong(); if(!song) return;
   const el = document.getElementById('notes-tab-rte'); if(!el) return;
-  song.description = el.innerHTML; persist();
+  song.description = cfSanitizeHTML(el.innerHTML); persist();
 }
 function _loadNotesTab(){
   cfRteMountAll();
   const song = getActiveSong();
   const el = document.getElementById('notes-tab-rte'); if(!el) return;
-  el.innerHTML = song?.description||'';
+  el.innerHTML = cfSanitizeHTML(song?.description||'');
 }
 function execFmt(cmd, val){
   document.execCommand(cmd, false, val||null);
@@ -16672,7 +16740,7 @@ function ensureOwnerPin(){
   db().from('show_access').select('id').eq('show_id',CF.showId).eq('role','owner').maybeSingle()
     .then(function(r){
       if(r.error||r.data) return;
-      var pin=String(Math.floor(100000+Math.random()*900000));
+      var pin=_cfGenPin();
       hashPin(pin).then(function(h){
         return db().from('show_access').insert({
           show_id:CF.showId,pin_hash:h,display_pin:pin,
@@ -16951,7 +17019,7 @@ window.CF = {
   createShareLink: function(label, role, trackIds, callback){
     if(typeof trackIds==='function'){callback=trackIds;trackIds=null;}
     if(!CF.showId){callback('No project connected',null);return;}
-    var pin=String(Math.floor(100000+Math.random()*900000));
+    var pin=_cfGenPin();
         var linkUrl=_cfShareLink(pin);
     hashPin(pin).then(function(h){
       return db().from('show_access').insert({
@@ -16982,6 +17050,14 @@ window.CF = {
 };
 
 /* ── Crypto ──────────────────────────────────────────────── */
+/* Uniform 6-digit PIN (100000–999999) from a CSPRNG. Rejection-samples to avoid
+   the modulo bias a plain Math.random()/getRandomValues%range would introduce,
+   and never falls back to the predictable Math.random() generator. */
+function _cfGenPin(){
+  var range=900000, limit=Math.floor(4294967296/range)*range, buf=new Uint32Array(1), x;
+  do{ crypto.getRandomValues(buf); x=buf[0]; }while(x>=limit);
+  return String(100000 + (x%range));
+}
 function hashPin(pin){
   return crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(pin)))
     .then(function(buf){
@@ -17060,16 +17136,30 @@ function pushProject(cb, _retry){
   if(!navigator.onLine){ CF.dirty=true; updateSyncBtn(); return; }
   if(window._updateSyncChip) _updateSyncChip('saving');
 
-  /* Non-owner (editor / track-editor): push via SECURITY DEFINER RPC — bypasses RLS */
+  /* Non-owner (editor / track-editor): push via SECURITY DEFINER RPC — bypasses RLS.
+     Sends the base version we last saw so the server refuses (rather than clobbers)
+     if another writer moved the row since (optimistic concurrency, H3). */
   if(!CF.isOwner && CF._pinHash){
-    db().rpc('push_show_data',{p_show_id:CF.showId, p_pin_hash:CF._pinHash, p_project_data:snapshot()})
+    db().rpc('push_show_data',{p_show_id:CF.showId, p_pin_hash:CF._pinHash,
+             p_project_data:snapshot(), p_base_updated_at:CF._baseUpdatedAt||null})
       .then(function(r){
-        if(r.error){ console.warn('[CF] push_show_data error',r.error.message); return; }
-        if(!r.data){ console.warn('[CF] push_show_data: PIN not authorised or show not found'); return; }
+        if(r.error){ console.warn('[CF] push_show_data error',r.error.message); CF.dirty=true; updateSyncBtn(); return; }
+        var d=r.data||{};
+        if(d.ok===false){
+          if(d.reason==='conflict'){ _editorHandleConflict(d, cb); return; }
+          console.warn('[CF] push_show_data refused:', d.reason);
+          CF.dirty=true; updateSyncBtn();   /* unauthorized / no_show — keep dirty, let user retry */
+          return;
+        }
         CF.dirty=false;
+        CF._baseUpdatedAt=d.updated_at||CF._baseUpdatedAt;
         CF._pendingRemoteProj=null;
         clearTimeout(CF._pendingRemoteTimer);
         if(cb) cb();
+        /* Tell other clients to refetch. Collaborators no longer receive
+           postgres_changes (shows is owner-only readable), so this broadcast is
+           the sole cross-client signal for edits. */
+        if(CF.showId) netSend('proj_sync',{signal:'refresh'});
       });
     return;
   }
@@ -17100,6 +17190,7 @@ function pushProject(cb, _retry){
           clearTimeout(CF._pendingRemoteTimer);
           localStorage.removeItem(DIRTY_KEY);
           updateSyncBtn(); if(cb) cb();
+          if(CF.showId) netSend('proj_sync',{signal:'refresh'});
           return;
         }
         /* Owner: empty result means JWT likely expired — refresh and retry (max 3 attempts) */
@@ -17123,6 +17214,9 @@ function pushProject(cb, _retry){
       _saveShowSnapshot();
       /* Keep the LAN server's served copy current for cold-join / failover. */
       _cfLanPushSnapshot();
+      /* Signal collaborators to refetch — they no longer get postgres_changes
+         (shows is owner-only readable), so this broadcast carries owner edits. */
+      if(CF.showId) netSend('proj_sync',{signal:'refresh'});
     });
 }
 
@@ -17257,9 +17351,20 @@ function _restoreFromHistory(historyId, timeStr, desc){
 /* ── Subscribe to project Realtime changes ───────────────── */
 function _fetchAndApplyRemote(){
   if(window._cfCleanupPending||!CF.showId) return;
-  db().from('shows').select('project_data').eq('id',CF.showId).single().then(function(r){
-    if(r.error||!r.data||!r.data.project_data) return;
-    applyRemote(r.data.project_data);
+  /* Owner reads its own row directly (RLS allows). Collaborators can no longer
+     SELECT shows, so they refetch through the PIN-validated get_show_data RPC. */
+  var p;
+  if(CF.isOwner && authUser){
+    p=db().from('shows').select('project_data,updated_at').eq('id',CF.showId).single()
+      .then(function(r){ return (r.error||!r.data)?null:{project_data:r.data.project_data, updated_at:r.data.updated_at}; });
+  } else if(CF._pinHash){
+    p=db().rpc('get_show_data',{p_show_id:CF.showId, p_pin_hash:CF._pinHash})
+      .then(function(r){ return (r.error||!r.data)?null:{project_data:r.data.project_data, updated_at:r.data.updated_at}; });
+  } else { return; }
+  p.then(function(res){
+    if(!res||!res.project_data) return;
+    if(res.updated_at) CF._baseUpdatedAt=res.updated_at;   /* refresh optimistic-concurrency base */
+    applyRemote(res.project_data);
     if((CF.role==='viewer'||CF.role==='crew') && window.buildTrackPills) buildTrackPills();
   });
 }
@@ -17793,6 +17898,30 @@ function resolveConflicts(){
   restoreSessionState();
 }
 
+/* Editor-side conflict handling for an optimistic-concurrency rejection from
+   push_show_data (someone else wrote since our base version). Mirrors the owner's
+   resolution: field-level modal when cue fields collide, keep-local/use-remote for
+   structural divergence, silent re-push when only the timestamp moved. Adopts the
+   server's version as the new base first so the retry push passes the check. */
+function _editorHandleConflict(env, cb){
+  var serverProj = env && env.project_data;
+  if(!serverProj){ CF.dirty=true; updateSyncBtn(); return; }
+  CF._baseUpdatedAt = env.updated_at || CF._baseUpdatedAt;
+  CF._pendingConflictProj = serverProj;
+  CF._conflictChoices = {};
+  var conflicts = findConflicts(state.songs, serverProj.songs);
+  if(conflicts.length){
+    showConflictModal(conflicts);                 /* resolveConflicts() merges + re-pushes */
+  } else if(_versionsDiffer(state.songs, serverProj.songs)){
+    _showVersionConflict(state.songs, serverProj.songs,
+      function(){ CF._pendingConflictProj=null; pushProject(cb); },        /* keep local → re-push */
+      function(){ CF._pendingConflictProj=null; applyRemote(serverProj); }); /* use server copy */
+  } else {
+    CF._pendingConflictProj=null;                 /* identical content, only timestamp moved */
+    pushProject(cb);
+  }
+}
+
 /* ── TC Broadcast (Supabase Broadcast — no DB writes) ────── */
 function _onProjSyncBroadcast(msg){
   /* Owner is dirty (has unsaved edits) — check for field-level conflicts before applying */
@@ -17894,10 +18023,16 @@ function _cfLanRefreshPins(){
 }
 
 /* Viewer → owner messages arriving over the LAN WebSocket (Electron main forwards them). */
+/* Roles allowed to write a cue description — matches the cloud update_cue_desc RPC
+   (crew/viewer annotating cue notes is an intentional feature). The LAN path used
+   to apply cue_desc from ANY joined client regardless of role (even 'tc'); enforce
+   the same set here using the server-stamped, PIN-validated m._role. */
+var _CF_CUE_DESC_ROLES={viewer:1, crew:1, editor:1, 'track-editor':1};
 function _cfLanOnClientMsg(m){
   if(!m || !m.event) return;
   if(m.event==='cue_desc' && m.payload && m.payload.cueId){
-    /* A LAN viewer/editor edited a cue description — apply + re-broadcast snapshot. */
+    if(!_CF_CUE_DESC_ROLES[m._role]) return;   /* role not permitted to write cue text */
+    /* A LAN viewer/crew/editor edited a cue description — apply + re-broadcast snapshot. */
     var changed=false;
     (state.songs||[]).forEach(function(s){
       var c=(s.cues||[]).find(function(x){return x.id===m.payload.cueId;});
@@ -18629,72 +18764,77 @@ function cfJoin(){
   if(joinBtn){joinBtn.textContent='Joining…';joinBtn.disabled=true;}
   hashPin(pin).then(function(h){
     CF._pinHash = h;
-    return db().from('show_access').select('id,role,track_ids,label')
-      .eq('show_id',CF.showId).eq('pin_hash',h).single();
+    /* Validated read: one SECURITY DEFINER RPC checks the PIN server-side and
+       returns the access row + show data together. The shows / show_access tables
+       are no longer world-readable, so the client never SELECTs them directly. */
+    return db().rpc('join_show',{p_show_id:CF.showId, p_pin_hash:h});
   }).then(function(r){
     if(r.error){
       if(joinBtn){joinBtn.textContent='Join Show';joinBtn.disabled=false;}
       if(err) err.textContent='Connection error — check your network and try again';
       return;
     }
-    if(!r.data){
+    /* join_show returns a {ok,...} envelope. Distinguish a wrong PIN from a
+       rate-limit lockout so the operator knows to wait rather than retry. */
+    if(!r.data || r.data.ok===false){
       if(joinBtn){joinBtn.textContent='Join Show';joinBtn.disabled=false;}
-      if(err) err.textContent='Wrong PIN — double-check and try again';
+      if(err){
+        if(r.data && r.data.reason==='rate_limited'){
+          var mins=Math.max(1, Math.ceil((r.data.retry_after_s||60)/60));
+          err.textContent='Too many attempts — try again in about '+mins+' minute'+(mins>1?'s':'');
+        } else {
+          err.textContent='Wrong PIN — double-check and try again';
+        }
+      }
       return;
     }
-    _applyAccessRow(r.data.role, r.data.id, r.data.track_ids||null);
+    var acc=r.data;
+    CF._baseUpdatedAt = acc.updated_at || null;   /* base version for optimistic-concurrency pushes */
+    _applyAccessRow(acc.role, acc.access_id, acc.track_ids||null);
     var _camSelectMode=CF._camSelectMode;
-    db().from('shows').select('name,project_data').eq('id',CF.showId).single()
-      .then(function(r2){
-        if(r2.error){
-          if(joinBtn){joinBtn.textContent='Join Show';joinBtn.disabled=false;}
-          if(err) err.textContent='Could not load show data — try again';
-          return;
+    var show={name:acc.name, project_data:acc.project_data};
+    if(show.project_data){
+      applyProject(show.project_data);
+      if(CF.tracks&&CF.tracks.length) state.visibleStreamIds=CF.tracks;
+      if(CF.cameraIds){
+        state.cameraTrackVisible=true;
+      }
+    }
+    subscribeProject();
+    subscribeTc();
+    /* Broadcast subscription — owner can push track_ids changes without DB realtime */
+    CF._accessTracksChan=db().channel('access-tracks:'+CF.showId)
+      .on('broadcast',{event:'tracks_changed'},function(msg){
+        if(!msg.payload||msg.payload.id!==CF._accessId) return;
+        var raw=msg.payload.track_ids||null;
+        /* Separate sentinels from real stream IDs */
+        var camSentinels=raw?raw.filter(function(id){return id&&id.indexOf('cam:')===0;}):[];
+        var streamIds=raw?raw.filter(function(id){return !id||id.indexOf('cam:')!==0;}):null;
+        /* Update track access flags */
+        CF.viewerShowAllCams=camSentinels.indexOf('all')!==-1;
+        CF.viewerShowCamTrack=camSentinels.indexOf('track')!==-1;
+        CF.tracks=(streamIds&&streamIds.length)?streamIds:null;
+        /* Update visible stream IDs */
+        if(CF.tracks&&CF.tracks.length){
+          state.visibleStreamIds=CF.tracks.slice();
+        } else {
+          state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});
         }
-        var show=r2.data||{};
-        if(show.project_data){
-          applyProject(show.project_data);
-          if(CF.tracks&&CF.tracks.length) state.visibleStreamIds=CF.tracks;
-          if(CF.cameraIds){
-            state.cameraTrackVisible=true;
-          }
-        }
-        subscribeProject();
-        subscribeTc();
-        /* Broadcast subscription — owner can push track_ids changes without DB realtime */
-        CF._accessTracksChan=db().channel('access-tracks:'+CF.showId)
-          .on('broadcast',{event:'tracks_changed'},function(msg){
-            if(!msg.payload||msg.payload.id!==CF._accessId) return;
-            var raw=msg.payload.track_ids||null;
-            /* Separate sentinels from real stream IDs */
-            var camSentinels=raw?raw.filter(function(id){return id&&id.indexOf('cam:')===0;}):[];
-            var streamIds=raw?raw.filter(function(id){return !id||id.indexOf('cam:')!==0;}):null;
-            /* Update track access flags */
-            CF.viewerShowAllCams=camSentinels.indexOf('all')!==-1;
-            CF.viewerShowCamTrack=camSentinels.indexOf('track')!==-1;
-            CF.tracks=(streamIds&&streamIds.length)?streamIds:null;
-            /* Update visible stream IDs */
-            if(CF.tracks&&CF.tracks.length){
-              state.visibleStreamIds=CF.tracks.slice();
-            } else {
-              state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});
-            }
-            /* Camera track visibility */
-            state.cameraTrackVisible=CF.viewerShowCamTrack||CF.viewerShowAllCams?true:false;
-            if(window.buildTrackPills) buildTrackPills();
-            if(window.renderCueList) renderCueList();
-            if(window.renderStreamsBar) renderStreamsBar();
-            if(window.redrawActive) redrawActive();
-          })
-          .subscribe();
-        startPresence();
-        hideLoading();
-        document.getElementById('cf-join-screen').style.display='none';
-        if(CF.role==='tc') showTcScreen(show);
-        else if(CF.role==='editor'||CF.role==='track-editor'){ showEditorApp(show); restoreSessionState(); }
-        else if(_camSelectMode){ showViewerScreen(show); showCameraPickerModal(show); }
-        else { showViewerScreen(show); restoreSessionState(); }
-      });
+        /* Camera track visibility */
+        state.cameraTrackVisible=CF.viewerShowCamTrack||CF.viewerShowAllCams?true:false;
+        if(window.buildTrackPills) buildTrackPills();
+        if(window.renderCueList) renderCueList();
+        if(window.renderStreamsBar) renderStreamsBar();
+        if(window.redrawActive) redrawActive();
+      })
+      .subscribe();
+    startPresence();
+    hideLoading();
+    document.getElementById('cf-join-screen').style.display='none';
+    if(CF.role==='tc') showTcScreen(show);
+    else if(CF.role==='editor'||CF.role==='track-editor'){ showEditorApp(show); restoreSessionState(); }
+    else if(_camSelectMode){ showViewerScreen(show); showCameraPickerModal(show); }
+    else { showViewerScreen(show); restoreSessionState(); }
   });
 }
 
@@ -19876,7 +20016,7 @@ function createShow(name, trackName, fps){
     .then(function(r){
       if(r.error){ CF.dirty=true; updateSyncBtn(); return; }
       /* Create owner PIN */
-      var pin=String(Math.floor(100000+Math.random()*900000));
+      var pin=_cfGenPin();
       hashPin(pin).then(function(h){
         return db().from('show_access').insert({
           show_id:showId,pin_hash:h,display_pin:pin,
@@ -19908,7 +20048,7 @@ function importShow(proj){
   db().from('shows').insert({id:showId,name:p.name,owner_id:ownerId,project_data:snapshot()})
     .then(function(r){
       if(r.error){CF.dirty=true;if(window.updateSyncBtn)updateSyncBtn();return;}
-      var pin=String(Math.floor(100000+Math.random()*900000));
+      var pin=_cfGenPin();
       hashPin(pin).then(function(h){
         return db().from('show_access').insert({show_id:showId,pin_hash:h,display_pin:pin,role:'owner',label:'Admin',track_ids:null});
       }).then(function(){if(window._sbRender)_sbRender('save');});
@@ -20216,7 +20356,7 @@ function addPin(){
       trackIds.push('cam:track');
     }
   }
-  var pin=String(Math.floor(100000+Math.random()*900000));
+  var pin=_cfGenPin();
     var linkUrl=_cfShareLink(pin);
   hashPin(pin).then(function(h){
     return db().from('show_access').insert({
@@ -20253,7 +20393,7 @@ CF._addCameraPin=function(camId){
   if(!cam)return;
   var label=(cam.label||('CAM '+cam.number))+' viewer';
   var trackIds=['cam:'+camId];
-  var pin=String(Math.floor(100000+Math.random()*900000));
+  var pin=_cfGenPin();
   hashPin(pin).then(function(h){
     return db().from('show_access').insert({
       show_id:CF.showId,pin_hash:h,display_pin:pin,

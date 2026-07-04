@@ -154,8 +154,11 @@ function startLanServer(opts) {
         }
         return;
       }
-      /* All other messages require a validated session. */
+      /* All other messages require a validated session. Stamp the PIN-validated
+         role (authoritative — overrides anything the client put in the payload) so
+         the owner can enforce per-role write permissions on inbound messages. */
       if (!ws._joined) return;
+      msg._role = ws._role;
       onClientMsg(msg, ws);
     });
     ws.on('close', function () { onClientsChange(joinedCount()); });
