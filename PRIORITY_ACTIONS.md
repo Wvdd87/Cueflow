@@ -9,10 +9,13 @@ Condensed from `SECURITY_AUDIT.md`. Ordered by risk. Items 1–3 are exploitable
 > sanitized. Track-editor scope is now enforced server-side; editor writes use
 > optimistic concurrency; PIN validation is rate-limited; PINs are generated with a
 > CSPRNG. All verified against the live database. See the **Fix log** at the bottom.
-> Remaining: item 8 (viewer/crew cue-desc write policy — decision needed), items
-> 9–10 (offline queue, leaked-password protection), and lower-priority hardening
-> (drop the cleartext `display_pin` column — now owner-only readable; salt the PIN
-> hash). Item 5 (H2) is largely done bar longer/salted hashes.
+> **M1, M2, M3 now also addressed** (2026-07-04 batch 3): cue-desc writes kept as a
+> feature with the LAN path fixed to enforce the same role set (M1); editors now
+> flush offline edits on reconnect via the conflict-aware push (M2); M3 (leaked-
+> password protection) is a Supabase dashboard toggle — **action required by you**,
+> steps below. Remaining lower-priority hardening only: drop the cleartext
+> `display_pin` column (now owner-only readable), salt/lengthen the PIN hash, and the
+> deeper offline case (editor reload while offline — see M2 note).
 
 | # | Action | Ref | Severity | Effort |
 |---|--------|-----|----------|--------|
@@ -70,3 +73,38 @@ Condensed from `SECURITY_AUDIT.md`. Ordered by risk. Items 1–3 are exploitable
 - Client: tracks `CF._baseUpdatedAt` from `join_show` / `get_show_data`; editor push sends it; on `conflict` the new `_editorHandleConflict()` reuses the owner's resolution path (`findConflicts` → field-level modal, or `_showVersionConflict` keep-local/use-remote, or silent re-push when only the timestamp moved). Read RPCs now return `updated_at`.
 
 **Cross-cutting:** `join_show`/`get_show_data`/`push_show_data` all return `{ok,...}` envelopes now; the client was updated in lockstep. App re-verified in headless Chrome: boots to sign-in, **0 console errors/warnings**, sanitizer confirmed live.
+
+## Fix log — 2026-07-04 (batch 3: M1/M2/M3)
+
+**M1 — viewer/crew cue-desc writes → RESOLVED (kept as a feature; LAN inconsistency fixed)**
+- Decision (per user): crew/viewer annotating cue descriptions is intentional. Kept the cloud `update_cue_desc` RPC role set (viewer/crew/editor/track-editor).
+- `lan-server.js`: the message relay now stamps the PIN-validated `ws._role` onto every inbound message (`msg._role = ws._role`) — authoritative, overrides any client-supplied value.
+- `index.html` `_cfLanOnClientMsg`: added a role gate (`_CF_CUE_DESC_ROLES`) so the LAN `cue_desc` path enforces the same roles as the cloud. Previously the LAN path applied `cue_desc` from ANY joined client (including `tc`) with no check.
+
+**M2 — offline edits not flushed on reconnect (editors) → FIXED**
+- Root cause: the `online` reconnect handler flushed only `CF.isOwner`; an editor's offline edits stayed unsynced until their next edit. (`persist()` already caches the full project per-show in `localStorage`, so the payload itself survives a reload — the gap was the flush.)
+- Fix (`index.html` online handler): added an editor/track-editor branch that calls `pushProject()` on reconnect when dirty. It rides on H3's optimistic concurrency — a row that moved while offline returns a conflict and `_editorHandleConflict()` resolves it instead of clobbering/losing.
+- **Still open (deeper case):** an editor who *reloads the page* while offline re-enters via `cfJoin`, which loads server data and does not restore the local offline cache — those edits would be lost. Lower probability; needs editor PIN persistence + cache-restore on rejoin, which has its own security trade-offs. Flagged, not implemented.
+
+**M3 — leaked-password protection disabled → ACTION REQUIRED (not toggleable via available tools)**
+- This is a Supabase **Auth config** setting, not SQL/DDL, and no MCP tool exposes it. Enable it yourself:
+  - Dashboard → your project → **Authentication → Providers → Email** (`/dashboard/project/<ref>/auth/providers?provider=Email`) → enable **"Prevent use of leaked passwords"** (HaveIBeenPwned), and set a minimum password length ≥ 8 with required character classes.
+  - Or Management API: `PATCH https://api.supabase.com/v1/projects/<ref>/config/auth` with `{"password_hibp_enabled": true}` (needs a personal access token).
+  - Note: leaked-password protection requires the **Pro plan or above**.
+  - Only affects owner email/password accounts; does not touch collaborator PINs.
+
+## Fix log — 2026-07-04 (batch 4: remaining hardening + deploy)
+
+**M3 — will not be enabled:** the user is not on the Pro plan and does not intend to upgrade, so leaked-password protection stays off. Mitigation already in place: owner passwords are bcrypt-hashed with per-user salt by Supabase; the practical brute-force surface for collaborators is PINs, which are now rate-limited (H2) and no longer exposed. Recommend owners use a password manager.
+
+**Editor offline-reload data loss → FIXED (verified via headless Chrome).** Persists a collaborator session (`cf_collab_sess`: showId, pinHash, role, accessId, trackIds) on join; on an **offline** reload the boot path calls `_cfRestoreCollabOffline()` to rebuild identity + load the cached project + show the app instead of a dead join screen. Fully **fail-safe** — any problem returns false and falls through to the normal online join flow, and the `!navigator.onLine` guard means online boots are completely unaffected. On reconnect a restored collaborator flushes dirty edits (H3 conflict-aware) or refreshes via `_fetchAndApplyRemote`. Verified: with `navigator.onLine` forced false and a seeded cache, the editor session was restored (role, project, active sequence) with the join screen hidden and 0 console errors. Note: on the browser this only helps when `index.html` is loadable offline (HTTP cache); in Electron (loads from disk) it always applies.
+
+**L2 — LAN PIN brute-force → FIXED (verified over WebSocket).** `lan-server.js` now rate-limits joins per client IP (10 failures / 15 min → `rate_limited` with `retry_after_s`), mirroring the cloud H2 limit; the LAN client shows a lockout message. Verified: 10 `bad_pin` then `rate_limited` (900s).
+
+**L1 — `escH` hardening:** already done in batch 1 (escapes `>` and `'`).
+
+**Deliberately NOT done (with rationale):**
+- **Drop cleartext `display_pin`:** the owner Sharing panel reads `display_pin` to show PINs and build share links (`renderPinsList`, `_cfShareLink`) — dropping it breaks that feature, and you can't show a PIN you only store hashed. The *exposure* is already closed (owner-only RLS), so the remaining "cleartext at rest" is a minor, accepted risk rather than a live hole. Revisit only if you want a "show PIN once, never store" UX.
+- **Salt / lengthen the PIN hash:** with a 6-digit PIN (~20 bits) the input entropy — not the hash length — is the bound, and hashes are no longer exposed (owner-only RLS) with brute force rate-limited. Lengthening/salting would break every existing PIN for effectively zero security gain. Skipped as pointless churn.
+
+**Deploy:** committed to `main` and pushed; GitHub Pages serves `cueflow.wannesvideo.com` from `main` (CNAME, no build step). All RPC/client changes ship together — old cached clients pick up the new `index.html` on next load.

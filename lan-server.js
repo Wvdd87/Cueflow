@@ -126,9 +126,27 @@ function startLanServer(opts) {
     let n = 0; wss.clients.forEach(function (c) { if (c._joined) n++; }); return n;
   }
 
+  /* PIN brute-force throttle for LAN joins (mirror of the cloud join_show rate limit).
+     Per client IP: after 10 failed PINs within 15 min, further attempts are refused
+     until the window elapses. In-memory (resets on restart) — fine for a LAN. */
+  const JOIN_MAX = 10, JOIN_WINDOW_MS = 15 * 60 * 1000;
+  const joinFails = new Map(); // ip -> { count, windowStart }
+  function joinLocked(ip) {
+    const f = joinFails.get(ip);
+    if (!f) return 0;
+    if ((Date.now() - f.windowStart) >= JOIN_WINDOW_MS) { joinFails.delete(ip); return 0; }
+    return f.count >= JOIN_MAX ? Math.ceil((JOIN_WINDOW_MS - (Date.now() - f.windowStart)) / 1000) : 0;
+  }
+  function recordJoinFail(ip) {
+    const f = joinFails.get(ip);
+    if (!f || (Date.now() - f.windowStart) >= JOIN_WINDOW_MS) joinFails.set(ip, { count: 1, windowStart: Date.now() });
+    else f.count += 1;
+  }
+
   const wss = new WebSocketServer({ server });
-  wss.on('connection', function (ws) {
+  wss.on('connection', function (ws, req) {
     ws._joined = false;
+    ws._ip = (req && req.socket && req.socket.remoteAddress) || 'unknown';
     ws.on('message', function (data) {
       let msg; try { msg = JSON.parse(data.toString()); } catch (e) { return; }
       /* Join handshake — validate against the owner-pushed access list. The viewer
@@ -137,12 +155,18 @@ function startLanServer(opts) {
          can't hash client-side) — in which case we hash it here with Node crypto.
          Algorithm must match the app's hashPin: sha256(pin) hex, first 16 chars. */
       if (msg && msg.event === 'join') {
+        const retry = joinLocked(ws._ip);
+        if (retry > 0) {
+          try { ws.send(JSON.stringify({ event: 'join_error', payload: { reason: 'rate_limited', retry_after_s: retry } })); } catch (e) {}
+          return;
+        }
         let h = msg.payload && msg.payload.pinHash;
         if (!h && msg.payload && msg.payload.pin != null) {
           h = crypto.createHash('sha256').update(String(msg.payload.pin)).digest('hex').slice(0, 16);
         }
         const pin = (getPins() || []).find(function (p) { return p && p.pin_hash === h; });
         if (pin) {
+          joinFails.delete(ws._ip); // success clears the counter
           ws._joined = true;
           ws._role = pin.role;
           try { ws.send(JSON.stringify({ event: 'joined', payload: { role: pin.role, track_ids: pin.track_ids || null, label: pin.label || pin.role } })); } catch (e) {}
@@ -150,6 +174,7 @@ function startLanServer(opts) {
           if (snap) { try { ws.send(JSON.stringify({ event: 'snapshot', payload: snap })); } catch (e) {} }
           onClientsChange(joinedCount());
         } else {
+          recordJoinFail(ws._ip);
           try { ws.send(JSON.stringify({ event: 'join_error', payload: { reason: 'bad_pin' } })); } catch (e) {}
         }
         return;

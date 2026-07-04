@@ -18561,6 +18561,9 @@ function boot(){
     /* Viewer/editor join flow (cloud) */
     CF.showId = showId;
     document.addEventListener('DOMContentLoaded',function(){
+      /* Offline reload: recover the cached session + project instead of a dead join
+         screen. Fail-safe — falls through to the normal online flow if it can't. */
+      if(!navigator.onLine && _cfRestoreCollabOffline(showId)) return;
       db().from('shows').select('name').eq('id',showId).single()
         .then(function(r){
           var el=document.getElementById('cf-join-show-name');
@@ -18752,6 +18755,44 @@ function _applyAccessRow(role, accessId, rawTrackIds){
   } else { CF.tracks=null; CF.cameraIds=null; }
 }
 
+/* Collaborator session persistence (M2). Lets an editor/viewer/crew whose tab
+   reloads WHILE OFFLINE come back to their cached project (and their unsynced
+   edits) instead of a dead join screen they can't get past without network.
+   Stores the PIN hash locally — acceptable because the project data is already
+   cached in localStorage and the server re-validates the hash+role on every write
+   (a tampered local role cannot escalate). Owner sessions use their own path. */
+var CF_COLLAB_SESS_KEY='cf_collab_sess';
+function _cfSaveCollabSession(rawTrackIds){
+  if(CF.isOwner || !CF.showId || !CF._pinHash) return;
+  try{ localStorage.setItem(CF_COLLAB_SESS_KEY, JSON.stringify({
+    showId:CF.showId, pinHash:CF._pinHash, role:CF.role,
+    accessId:CF._accessId||null, trackIds:rawTrackIds||null, at:Date.now()
+  })); }catch(e){}
+}
+/* Fail-safe: returns true only if it fully restored the app from cache; any problem
+   returns false so the caller falls through to the normal (online) join screen. */
+function _cfRestoreCollabOffline(showId){
+  try{
+    var s=JSON.parse(localStorage.getItem(CF_COLLAB_SESS_KEY)||'null');
+    if(!s || s.showId!==showId || !s.pinHash) return false;
+    var cached=window.loadProjectData?loadProjectData(showId):null;
+    if(!cached) return false;
+    CF.showId=showId; CF.isOwner=false; CF._pinHash=s.pinHash; CF._baseUpdatedAt=null;
+    _applyAccessRow(s.role, s.accessId, s.trackIds||null);
+    applyProject(cached);
+    if(CF.tracks&&CF.tracks.length) state.visibleStreamIds=CF.tracks;
+    if(CF.cameraIds) state.cameraTrackVisible=true;
+    try{ subscribeProject(); subscribeTc(); }catch(e){}   /* reconnect when back online */
+    hideLoading();
+    var js=document.getElementById('cf-join-screen'); if(js) js.style.display='none';
+    var show={name:cached.name, project_data:cached};
+    if(s.role==='tc') showTcScreen(show);
+    else if(s.role==='editor'||s.role==='track-editor'){ showEditorApp(show); restoreSessionState(); }
+    else { showViewerScreen(show); restoreSessionState(); }
+    return true;
+  }catch(e){ return false; }
+}
+
 function cfJoin(){
   if(CF._netMode==='lan') return cfJoinLan(); /* LAN cold-join over WebSocket, no Supabase */
   var pin=((document.getElementById('cf-join-pin')||{}).value||'').trim();
@@ -18791,6 +18832,7 @@ function cfJoin(){
     var acc=r.data;
     CF._baseUpdatedAt = acc.updated_at || null;   /* base version for optimistic-concurrency pushes */
     _applyAccessRow(acc.role, acc.access_id, acc.track_ids||null);
+    _cfSaveCollabSession(acc.track_ids||null);     /* enable offline-reload recovery */
     var _camSelectMode=CF._camSelectMode;
     var show={name:acc.name, project_data:acc.project_data};
     if(show.project_data){
@@ -18882,7 +18924,12 @@ function _cfLanConnect(isInitial){
     ws.onopen=function(){ try{ ws.send(JSON.stringify({event:'join',payload:{pin:CF._lanJoinPin}})); }catch(e){} };
     ws.onmessage=function(ev){
       var m; try{ m=JSON.parse(ev.data); }catch(e){ return; }
-      if(m.event==='join_error'){ if(isInitial&&!CF._lanEntered) fail('Wrong PIN — double-check and try again'); else { done=true; clearTimeout(to); } return; }
+      if(m.event==='join_error'){
+        var _jem=(m.payload&&m.payload.reason==='rate_limited')
+          ? 'Too many attempts — try again in about '+Math.max(1,Math.ceil((m.payload.retry_after_s||60)/60))+' minute(s)'
+          : 'Wrong PIN — double-check and try again';
+        if(isInitial&&!CF._lanEntered) fail(_jem); else { done=true; clearTimeout(to); } return;
+      }
       if(m.event==='joined'){
         _applyAccessRow(m.payload.role, null, m.payload.track_ids||null); CF._lanJoined=true;
         clearTimeout(to); to=setTimeout(function(){ fail(CF._lanEntered?'lost':'Connected, but no project data yet — make sure the show is open on the host'); }, 12000);
@@ -20845,6 +20892,21 @@ window.addEventListener('online',function(){
        can run — they will check this flag and skip their own pushProject calls. */
     CF._conflictCheckInProgress=true;
     _fetchAndCheckConflicts(function(){ pushProject(function(){CF.dirty=false;updateSyncBtn();}); });
+  } else if(CF.showId && !CF.isOwner && CF._pinHash){
+    if(CF.dirty){
+      /* Editor / track-editor: flush edits made while offline. Previously only the
+         owner flushed on reconnect, so an editor's offline changes sat unsynced until
+         their next edit (M2 data-loss window). pushProject uses optimistic concurrency
+         (H3): if the row moved while we were offline, the server returns a conflict and
+         _editorHandleConflict resolves it rather than silently clobbering or losing. */
+      pushProject(function(){ CF.dirty=false; updateSyncBtn(); });
+    } else if(window._fetchAndApplyRemote){
+      /* Not dirty (e.g. restored from offline cache): pull the latest so we're not
+         sitting on stale data, and refresh the optimistic-concurrency base. */
+      _fetchAndApplyRemote();
+    } else {
+      updateSyncBtn();
+    }
   } else {
     updateSyncBtn();
   }
