@@ -19277,13 +19277,12 @@ function showViewerScreen(show){
   setTimeout(function(){
     var _isEditorRole=window.CF&&(CF.role==='editor'||CF.role==='track-editor');
     state.appMode='live';
-    if(isCamViewer){
-      state.visibleStreamIds=[];
-      state.cameraTrackVisible=true;
-    } else if(isTrackViewer){
-      state.visibleStreamIds=CF.tracks.slice();
-      // Camera cues: editors preserve their toggle; viewers need explicit cam:all grant
-      state.cameraTrackVisible=_isEditorRole?state.cameraTrackVisible:(window.CF&&CF.viewerShowAllCams?true:false);
+    if(window.CF&&CF._trackRestricted){
+      /* Any track-restricted role clamps to its assigned tracks. This covers
+         camera-only editors/viewers too, which are neither isCamViewer (needs a
+         single specific camera) nor isTrackViewer (needs regular streams) and used
+         to fall through to "show everything" here — the mobile/live all-tracks bug. */
+      CF._applyRestrictedVis();
     } else {
       state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});
       // Editors preserve camera track visibility they set in edit mode
