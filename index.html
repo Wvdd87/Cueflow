@@ -8194,7 +8194,7 @@ function renderCueList(){
       if(inp.classList.contains('cue-del')||inp.classList.contains('cue-checkbox')||inp.classList.contains('cue-flag-btn'))return;
       if(ETL.selId===cue.id){
         if(inp.classList.contains('cue-readonly')){
-          if(window.CF&&(CF.role==='editor'||CF.role==='track-editor')&&CF.tracks&&CF.tracks.indexOf(cue.streamId)===-1){
+          if(window.CF&&(CF.role==='editor'||CF.role==='track-editor')&&!CF._cueEditable(cue)){
             if(CF._showTrackPermissionModal)CF._showTrackPermissionModal(cue.streamId);return;
           }
           inp.classList.remove('cue-readonly');inp.removeAttribute('readonly');
@@ -8751,7 +8751,7 @@ function addCue(){
   if(window.CF && !CF.showId){ openNewProjectModal(); return; }
   const song=getActiveSong();if(!song)return;
   const streamId=state.activeStreamId||state.streams[0]?.id||'';
-  if(window.CF&&(CF.role==='editor'||CF.role==='track-editor')&&CF.tracks&&CF.tracks.indexOf(streamId)===-1){
+  if(window.CF&&(CF.role==='editor'||CF.role==='track-editor')&&!CF._cueEditable({streamId:streamId})){
     if(CF._showTrackPermissionModal)CF._showTrackPermissionModal(streamId);
     return;
   }
@@ -15391,8 +15391,8 @@ function _mePopulateTrackSel(selId,currentVal){
   var sel=document.getElementById(selId);
   if(!sel)return;
   var streams=state.streams||[];
-  if(window.CF&&CF.role==='track-editor'&&CF.tracks)
-    streams=streams.filter(function(s){return CF.tracks.indexOf(s.id)>=0;});
+  if(window.CF&&CF._trackRestricted)
+    streams=streams.filter(function(s){return CF._allowedStreamIds().indexOf(s.id)>=0;});
   var opts=streams.map(function(s){
     return '<option value="'+escH(s.id)+'"'+(s.id===currentVal?' selected':'')+'>'+escH(s.name||'Track')+'</option>';
   });
@@ -17448,8 +17448,10 @@ function restoreSessionState(){
     }
   }
 
-  /* Visible tracks — only for owners and unrestricted editors (track-viewers keep owner-assigned filter) */
-  if(saved.v && saved.v.length && (!CF.tracks||!CF.tracks.length) && (!CF.cameraIds||!CF.cameraIds.length)){
+  /* Visible tracks — only for owners and UNRESTRICTED roles. A track-restricted role
+     (incl. camera-only editors) keeps the owner-assigned filter and must not have it
+     overwritten by a stale per-device choice. */
+  if(saved.v && saved.v.length && !CF._trackRestricted && (!CF.tracks||!CF.tracks.length) && (!CF.cameraIds||!CF.cameraIds.length)){
     var _valid=(state.streams||[]).map(function(s){return s.id;});
     var _filt=saved.v.filter(function(id){return _valid.indexOf(id)!==-1;});
     if(_filt.length){
@@ -17483,7 +17485,7 @@ function restoreSessionState(){
    in place; the caller re-renders. No-ops for restricted roles and missing identity. */
 function _cfRestoreVisOnly(){
   if(!window.CF||!CF.showId) return;
-  if((CF.tracks&&CF.tracks.length)||(CF.cameraIds&&CF.cameraIds.length)) return; /* access-managed */
+  if(CF._trackRestricted||(CF.tracks&&CF.tracks.length)||(CF.cameraIds&&CF.cameraIds.length)) return; /* access-managed (incl. camera-only editors) */
   var userId=CF.isOwner&&authUser ? authUser.id : CF._pinHash;
   if(!userId) return;
   var saved;
@@ -17563,16 +17565,14 @@ function applyRemote(proj){
   // project (see snapshot()). It must survive a remote update. Preserve it from the IN-MEMORY
   // value (prevVisible/prevCamVis) — this is always current and does not depend on localStorage
   // having been written. (_cfRestoreVisOnly() inside applyProject covers fresh-boot/bare loads.)
-  if(CF.tracks&&CF.tracks.length){
-    // Crew / track-editor with restricted track list — clamp to allowed, keep local subset
-    var _allowed=CF.tracks;
+  if(CF._trackRestricted){
+    // Restricted role (editor/track-editor/crew/camera viewer) — clamp to the allowed
+    // regular streams, keeping the local subset the user chose. An empty allowed set
+    // (camera-only editor) correctly yields no visible regular tracks.
+    var _allowed=CF._allowedStreamIds();
     var _kept=prevVisible?prevVisible.filter(function(id){return _allowed.indexOf(id)!==-1;}):[];
     state.visibleStreamIds=_kept.length?_kept:_allowed.slice();
-    if(typeof prevCamVis==='boolean') state.cameraTrackVisible=prevCamVis;
-  } else if(CF.cameraIds&&CF.cameraIds.length){
-    // Camera-only viewer
-    state.visibleStreamIds=[];
-    state.cameraTrackVisible=true;
+    state.cameraTrackVisible=CF._camAllowed()?(typeof prevCamVis==='boolean'?prevCamVis:true):false;
   } else if(prevVisible){
     // Owner / unrestricted editor / regular viewer — keep local choice; auto-show only
     // streams genuinely created since this client last saw the project (use prevStreamIds,
@@ -18758,6 +18758,11 @@ function ownerRestoreShow(showId){
 function _applyAccessRow(role, accessId, rawTrackIds){
   CF.role=role; if(accessId) CF._accessId=accessId;
   CF.viewerShowAllCams=false; CF.viewerShowCamTrack=false; CF._camSelectMode=false;
+  /* ANY track_ids present means this role is track-restricted. This is the single
+     source of truth for "restricted?" — CF.tracks alone is ambiguous because a
+     camera-only editor has no regular streams (CF.tracks ends up null), which
+     otherwise reads as "unrestricted / show everything" (BUG 2). */
+  CF._trackRestricted = !!(rawTrackIds && rawTrackIds.length);
   if(rawTrackIds&&rawTrackIds.length){
     var rawCamIds=rawTrackIds.filter(function(id){return id&&id.indexOf('cam:')===0;}).map(function(id){return id.replace('cam:','');});
     CF.tracks=rawTrackIds.filter(function(id){return id&&id.indexOf('cam:')!==0;});
@@ -18768,6 +18773,34 @@ function _applyAccessRow(role, accessId, rawTrackIds){
     if(!CF.tracks.length) CF.tracks=null;
   } else { CF.tracks=null; CF.cameraIds=null; }
 }
+
+/* The regular streams a restricted role may see/edit ([] = none, e.g. camera-only). */
+CF._allowedStreamIds=function(){
+  var all=(state&&state.streams?state.streams:[]).map(function(s){return s.id;});
+  if(!CF._trackRestricted) return all;                 /* unrestricted → every stream */
+  return (CF.tracks||[]).filter(function(id){return all.indexOf(id)!==-1;});
+};
+/* Whether this (possibly restricted) role has any camera access. */
+CF._camAllowed=function(){
+  return !!(CF.viewerShowCamTrack||CF.viewerShowAllCams||(CF.cameraIds&&CF.cameraIds.length)||CF._camSelectMode);
+};
+/* Single gate used by every view (cue list, timeline, mobile) so restrictions are
+   enforced consistently. A camera cue (cameraId set / no streamId) is governed by
+   the camera grant; a normal cue by the allowed regular streams. */
+CF._cueEditable=function(cue){
+  if(!CF._trackRestricted) return true;
+  var isCam=cue&&(cue.cameraId||cue.streamId==null);
+  if(isCam) return CF._camAllowed();
+  return CF._allowedStreamIds().indexOf(cue&&cue.streamId)!==-1;
+};
+/* Apply the restricted role's visibility to state (regular streams + camera track).
+   Returns true if it handled it (role is restricted), false to let normal logic run. */
+CF._applyRestrictedVis=function(){
+  if(!CF._trackRestricted) return false;
+  state.visibleStreamIds=CF._allowedStreamIds();   /* may be [] for a camera-only role */
+  state.cameraTrackVisible=CF._camAllowed();
+  return true;
+};
 
 /* Collaborator session persistence (M2). Lets an editor/viewer/crew whose tab
    reloads WHILE OFFLINE come back to their cached project (and their unsynced
@@ -18794,8 +18827,7 @@ function _cfRestoreCollabOffline(showId){
     CF.showId=showId; CF.isOwner=false; CF._pinHash=s.pinHash; CF._baseUpdatedAt=null;
     _applyAccessRow(s.role, s.accessId, s.trackIds||null);
     applyProject(cached);
-    if(CF.tracks&&CF.tracks.length) state.visibleStreamIds=CF.tracks;
-    if(CF.cameraIds) state.cameraTrackVisible=true;
+    CF._applyRestrictedVis();   /* clamp to assigned tracks (incl. camera-only) */
     try{ subscribeProject(); subscribeTc(); }catch(e){}   /* reconnect when back online */
     hideLoading();
     var js=document.getElementById('cf-join-screen'); if(js) js.style.display='none';
@@ -18851,10 +18883,9 @@ function cfJoin(){
     var show={name:acc.name, project_data:acc.project_data};
     if(show.project_data){
       applyProject(show.project_data);
-      if(CF.tracks&&CF.tracks.length) state.visibleStreamIds=CF.tracks;
-      if(CF.cameraIds){
-        state.cameraTrackVisible=true;
-      }
+      /* Restricted role (editor/track-editor/crew/camera viewer): clamp visible tracks
+         to the assigned set. Handles camera-only editors too (visibleStreamIds=[]). */
+      CF._applyRestrictedVis();
     }
     subscribeProject();
     subscribeTc();
@@ -18863,21 +18894,13 @@ function cfJoin(){
       .on('broadcast',{event:'tracks_changed'},function(msg){
         if(!msg.payload||msg.payload.id!==CF._accessId) return;
         var raw=msg.payload.track_ids||null;
-        /* Separate sentinels from real stream IDs */
-        var camSentinels=raw?raw.filter(function(id){return id&&id.indexOf('cam:')===0;}):[];
-        var streamIds=raw?raw.filter(function(id){return !id||id.indexOf('cam:')!==0;}):null;
-        /* Update track access flags */
-        CF.viewerShowAllCams=camSentinels.indexOf('all')!==-1;
-        CF.viewerShowCamTrack=camSentinels.indexOf('track')!==-1;
-        CF.tracks=(streamIds&&streamIds.length)?streamIds:null;
-        /* Update visible stream IDs */
-        if(CF.tracks&&CF.tracks.length){
-          state.visibleStreamIds=CF.tracks.slice();
-        } else {
-          state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});
+        /* Recompute the whole access state (tracks, camera flags, _trackRestricted)
+           the same way the initial join does, then re-apply restricted visibility so a
+           live track change lands identically to a fresh load — including camera-only. */
+        _applyAccessRow(CF.role, CF._accessId, raw);
+        if(!CF._applyRestrictedVis()){
+          state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});  /* unrestricted → all */
         }
-        /* Camera track visibility */
-        state.cameraTrackVisible=CF.viewerShowCamTrack||CF.viewerShowAllCams?true:false;
         if(window.buildTrackPills) buildTrackPills();
         if(window.renderCueList) renderCueList();
         if(window.renderStreamsBar) renderStreamsBar();
@@ -19825,11 +19848,11 @@ CF._showTrackPermissionModal=function(streamId){
   if(!wrap) return;
   wrap.addEventListener('click',function(e){
     if(!e.target.classList.contains('cue-del')) return;
-    if((CF.role!=='editor'&&CF.role!=='track-editor')||!CF.tracks) return;
+    if((CF.role!=='editor'&&CF.role!=='track-editor')||!CF._trackRestricted) return;
     var id=e.target.dataset.id;
     var targetCue=null;
     (state.songs||[]).forEach(function(sg){sg.cues.forEach(function(c){if(c.id===id)targetCue=c;});});
-    if(targetCue&&CF.tracks.indexOf(targetCue.streamId)===-1){
+    if(targetCue&&!CF._cueEditable(targetCue)){
       e.stopImmediatePropagation();
       CF._showTrackPermissionModal(targetCue.streamId);
     }
@@ -20249,7 +20272,13 @@ function renderPinsList(){
   CF._pinList.forEach(function(p){
     var url=_cfShareLink(p.display_pin||'');
     var label=p.label||p.role;
-    var isCamPin=p.track_ids&&p.track_ids.length&&p.track_ids[0]&&p.track_ids[0].indexOf('cam:')=== 0;
+    /* A camera-VIEWER pin (CAMERA badge, no track editing) is specifically a viewer
+       whose sole access is a camera-select or a specific camera — NOT an editor who
+       happens to have camera-track access (cam:track) or a viewer with camera cues
+       (cam:all) alongside real tracks. Misclassifying an editor here hid its Tracks
+       control (BUG 1), collapsing it to a static "Camera" label. */
+    var _camT0=p.track_ids&&p.track_ids.length===1&&p.track_ids[0];
+    var isCamPin=p.role==='viewer'&&_camT0&&_camT0.indexOf('cam:')===0&&_camT0!=='cam:track'&&_camT0!=='cam:all';
     var roleTxt=p.role==='tc'?'TC':p.role==='owner'?'ADMIN':(p.role==='editor'||p.role==='track-editor'?'EDITOR':isCamPin?'CAMERA':'VIEWER');
     var roleCls=isCamPin?'camera':p.role==='owner'?'admin':(p.role==='editor'||p.role==='track-editor')?'editor':p.role==='tc'?'tc':'viewer';
     var canEditTracks=!isCamPin&&(p.role==='viewer'||p.role==='editor'||p.role==='crew'||p.role==='track-editor');
