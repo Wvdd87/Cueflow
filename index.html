@@ -18905,6 +18905,7 @@ function cfJoin(){
         if(window.renderCueList) renderCueList();
         if(window.renderStreamsBar) renderStreamsBar();
         if(window.redrawActive) redrawActive();
+        if(window.isMobileEditMode && isMobileEditMode() && window.renderMobileEditScreen) renderMobileEditScreen();
       })
       .subscribe();
     startPresence();
@@ -19797,6 +19798,11 @@ function showEditorApp(show){
   if(window.renderStreamsBar) renderStreamsBar();
   if(window.buildTrackPills) buildTrackPills();
   if(window._syncEditTopbar) _syncEditTopbar();
+  /* Re-render the mobile edit screen too. applyProject() renders it BEFORE the
+     visibility clamp above (so it showed all tracks); the desktop list is refreshed
+     by renderCueList() but the mobile list must be refreshed here or a restricted
+     editor keeps seeing every cue on a phone (the mobile all-tracks bug). */
+  if(window.isMobileEditMode && isMobileEditMode() && window.renderMobileEditScreen) renderMobileEditScreen();
 
   /* Patch persist — auto-push with debounce + instant broadcast to owner */
   var _origP=window.persist;
