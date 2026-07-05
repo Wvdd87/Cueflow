@@ -18676,7 +18676,21 @@ function ownerRestoreShow(showId){
       if(CF.showId!==showId) return; /* Show switched during fetch */
       subscribeProject();
       if(!r.data||!r.data.project_data){
-        /* Show no longer exists in Supabase — clear stale session and auto-select first valid show */
+        /* Distinguish "deleted remotely" from "created/edited offline, never synced".
+           If we hold unsynced local data for THIS show (DIRTY_KEY points here and it's
+           the loaded project), re-create it instead of discarding the operator's work.
+           Recovery is safe: the row is missing so pushProject INSERTs by the show's own
+           UUID (no duplicates), owner_id is stamped to the current user, and the local
+           cache is single-user (cleared on user switch by guardUserChange). (M4) */
+        var _di=null; try{ _di=JSON.parse(localStorage.getItem(DIRTY_KEY)||'null'); }catch(e){}
+        var _unsynced = _di && _di.showId===showId && state && state.projectId===showId;
+        if(_unsynced && authUser){
+          pushProject(function(){ CF.dirty=false; updateSyncBtn(); ensureOwnerPin(); });
+          if(window._sbRender) _sbRender('save');
+          return;
+        }
+        if(_unsynced){ return; }  /* no live session yet — keep it loaded; reconnect will flush */
+        /* Genuinely gone remotely — clear stale session and auto-select first valid show */
         try{ localStorage.removeItem(SESS_KEY); }catch(e){}
         CF.showId=null; CF.isOwner=false;
         if(CF._projChan){CF._projChan.unsubscribe();CF._projChan=null;}
@@ -20061,7 +20075,13 @@ function createShow(name, trackName, fps){
   var ownerId=authUser?authUser.id:null;
   db().from('shows').insert({id:showId,name:name,owner_id:ownerId,project_data:snapshot()})
     .then(function(r){
-      if(r.error){ CF.dirty=true; updateSyncBtn(); return; }
+      if(r.error){
+        /* Insert failed (offline, or no live session). Mark unsynced so a later open
+           recovers rather than discards it (M4). onComeOnline / sign-in will retry. */
+        CF.dirty=true;
+        try{ localStorage.setItem(DIRTY_KEY, JSON.stringify({showId:showId, dirtyAt:Date.now()})); }catch(e){}
+        updateSyncBtn(); return;
+      }
       /* Create owner PIN */
       var pin=_cfGenPin();
       hashPin(pin).then(function(h){
@@ -20094,7 +20114,11 @@ function importShow(proj){
   var ownerId=authUser?authUser.id:null;
   db().from('shows').insert({id:showId,name:p.name,owner_id:ownerId,project_data:snapshot()})
     .then(function(r){
-      if(r.error){CF.dirty=true;if(window.updateSyncBtn)updateSyncBtn();return;}
+      if(r.error){
+        CF.dirty=true;
+        try{ localStorage.setItem(DIRTY_KEY, JSON.stringify({showId:showId, dirtyAt:Date.now()})); }catch(e){}  /* mark unsynced for M4 recovery */
+        if(window.updateSyncBtn)updateSyncBtn();return;
+      }
       var pin=_cfGenPin();
       hashPin(pin).then(function(h){
         return db().from('show_access').insert({show_id:showId,pin_hash:h,display_pin:pin,role:'owner',label:'Admin',track_ids:null});

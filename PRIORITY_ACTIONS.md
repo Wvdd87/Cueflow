@@ -108,3 +108,13 @@ Condensed from `SECURITY_AUDIT.md`. Ordered by risk. Items 1–3 are exploitable
 - **Salt / lengthen the PIN hash:** with a 6-digit PIN (~20 bits) the input entropy — not the hash length — is the bound, and hashes are no longer exposed (owner-only RLS) with brute force rate-limited. Lengthening/salting would break every existing PIN for effectively zero security gain. Skipped as pointless churn.
 
 **Deploy:** committed to `main` and pushed; GitHub Pages serves `cueflow.wannesvideo.com` from `main` (CNAME, no build step). All RPC/client changes ship together — old cached clients pick up the new `index.html` on next load.
+
+## Fix log — 2026-07-05 (M4 + deploy notes)
+
+**M4 — offline-created show could be silently discarded → FIXED.** A show created while offline (or before a live session) never reaches Supabase; when later reopened, `ownerRestoreShow` fetched an empty remote row and treated it as "deleted elsewhere," clearing the session and dropping the operator's work.
+- `ownerRestoreShow`: when the remote row is missing, it now checks whether we hold **unsynced local data for this exact show** (`DIRTY_KEY` points here **and** it is the loaded project). If so it **re-creates** the show via `pushProject` (INSERT by the show's own UUID → no duplicates; `owner_id` stamped to the current user → RLS accepts) instead of discarding. Only falls back to the old discard path for a show that is genuinely gone remotely with no unsynced local copy.
+- `createShow` / `importShow`: on insert failure they now write `DIRTY_KEY` too, so the "unsynced" signal is reliable even if the operator never edited after creating.
+- Safety: recovery is bounded — the local project cache is single-user (`guardUserChange` clears it on user switch), so re-stamping `owner_id` can't hijack another user's show; upsert-by-UUID can't duplicate. On a genuine delete-vs-unsynced-edits conflict it favors preserving the operator's work (they can re-delete).
+- Verified: syntax + owner-boot regression (0 console errors); the INSERT-on-missing push path was already verified against the live RLS in earlier batches. Full offline-create→reopen→recover needs a live owner login to exercise end-to-end.
+
+**GitHub Pages publish gotcha (for future deploys):** deploys were blocked with `deploy-pages` "Deployment failed, try again later" while the **custom domain showed "DNS Check in Progress."** Pages will not publish a new build while the custom domain isn't in a verified state. Re-triggering after the domain check settles publishes normally. Added `.nojekyll` so Pages serves the single-file app as-is. The "Node.js 20 deprecated" warning in the build log is from GitHub's managed Pages actions and is harmless (no repo workflow to change).
