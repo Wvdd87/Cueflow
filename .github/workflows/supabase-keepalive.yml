@@ -1,0 +1,67 @@
+# Supabase keep-alive
+# ---------------------------------------------------------------------------
+# The Supabase free tier auto-pauses a project after 7 days without activity.
+# This workflow makes a real database query every 2 days to reset that timer.
+#
+# REQUIRED repository secrets
+#   (GitHub → Settings → Secrets and variables → Actions → New repository secret):
+#     SUPABASE_URL       the project URL, e.g. https://<project-ref>.supabase.co
+#     SUPABASE_ANON_KEY  the anon / publishable key
+#   No secret values are stored in this file — only referenced via ${{ secrets.* }}.
+#
+# DEVELOPMENT-PHASE ONLY
+#   This cron ping is a stop-gap for the free tier during development. For
+#   production (paid live shows) move the project to Supabase Pro, which
+#   permanently disables auto-pausing — do NOT rely on a scheduled ping for
+#   show-critical uptime (GitHub cron is best-effort and can be delayed).
+# ---------------------------------------------------------------------------
+
+name: Supabase Keepalive
+
+on:
+  schedule:
+    # Every 2 days at 06:00 UTC. Running well under the 7-day limit leaves a safe
+    # margin because GitHub's scheduled runs can be delayed or occasionally skipped.
+    - cron: '0 6 */2 * *'
+  # Lets you run it on demand from the Actions tab.
+  workflow_dispatch: {}
+
+# Read-only; the job needs no repository permissions.
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    name: Ping Supabase database
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query the shows table (real DB activity)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_ANON_KEY}" ]; then
+            echo "::error::Missing secrets. Set SUPABASE_URL and SUPABASE_ANON_KEY in repo settings."
+            exit 1
+          fi
+
+          # A real SELECT against a table that always exists, limit=1 to keep it tiny.
+          # This genuinely queries Postgres (not just the API root), so it counts as
+          # database activity. Note: with RLS the anon key gets an empty array back —
+          # that is expected and fine; the query still executes and resets the timer.
+          # We treat the HTTP status as the source of truth, not the body.
+          code=$(curl -sS --max-time 30 -o /tmp/keepalive_resp.txt -w '%{http_code}' \
+            "${SUPABASE_URL}/rest/v1/shows?select=id&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}") || true
+          code="${code:-000}"
+
+          echo "HTTP status: ${code}"
+          echo "Response body: $(cat /tmp/keepalive_resp.txt 2>/dev/null)"
+
+          if [ "${code}" != "200" ]; then
+            echo "::error::Supabase keepalive FAILED — expected HTTP 200 but got ${code}. The database may be paused, unreachable, or the secrets may be wrong."
+            exit 1
+          fi
+
+          echo "✅ Supabase keepalive succeeded (HTTP 200) — auto-pause timer reset."
