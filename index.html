@@ -19740,8 +19740,9 @@ function _editorEnterEditMode(){
 }
 
 function showEditorApp(show){
-  /* Track-restricted editor: role === 'track-editor' OR role === 'editor' with specific tracks */
-  var hasTrackRestriction=!!(CF.tracks&&CF.tracks.length);
+  /* Track-restricted editor: role === 'track-editor' OR role === 'editor' with track_ids
+     (including a camera-only editor, whose regular-stream set is empty). */
+  var hasTrackRestriction=!!(window.CF&&CF._trackRestricted);
   window._editorMode=true;
   window.openMidiModal=function(){};
 
@@ -19765,15 +19766,16 @@ function showEditorApp(show){
 
   /* Initialise stream visibility — this editor's OWN default, not the owner's. Visibility
      is per-device and never synced (see snapshot()); a returning editor's saved choice is
-     reapplied by restoreSessionState() right after this. */
-  if(CF.tracks&&CF.tracks.length){
-    state.visibleStreamIds=CF.tracks.slice();
+     reapplied by restoreSessionState() right after this. A track-restricted editor is
+     clamped to their assigned streams (camera-only → no regular streams). */
+  if(CF._trackRestricted){
+    CF._applyRestrictedVis();
   } else {
     state.visibleStreamIds=(state.streams||[]).map(function(s){return s.id;});
+    /* Camera track: editors see and can toggle it. Default to visible for a fresh editor
+       so they don't inherit the owner's hide state baked into older project_data blobs. */
+    state.cameraTrackVisible=true;
   }
-  /* Camera track: editors see and can toggle it. Default to visible for a fresh editor so
-     they don't inherit the owner's hide state baked into older project_data blobs. */
-  state.cameraTrackVisible=true;
 
   /* Editors get NO media UI: hide the MEDIA tab and force the LIST view. cfMediaEnabled()
      is false for editors, so switchEditView() also hides it and refuses that view — this
