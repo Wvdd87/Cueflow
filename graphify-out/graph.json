@@ -1,0 +1,2577 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "lan-server.js",
+      "file_type": "code",
+      "source_file": "lan-server.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "lan_server",
+      "community": 4,
+      "norm_label": "lan-server.js"
+    },
+    {
+      "label": "http",
+      "file_type": "code",
+      "source_file": "lan-server.js",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "lan_server_http",
+      "community": 4,
+      "norm_label": "http"
+    },
+    {
+      "label": "os",
+      "file_type": "code",
+      "source_file": "lan-server.js",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "lan_server_os",
+      "community": 4,
+      "norm_label": "os"
+    },
+    {
+      "label": "fs",
+      "file_type": "code",
+      "source_file": "lan-server.js",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "lan_server_fs",
+      "community": 4,
+      "norm_label": "fs"
+    },
+    {
+      "label": "zlib",
+      "file_type": "code",
+      "source_file": "lan-server.js",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "lan_server_zlib",
+      "community": 4,
+      "norm_label": "zlib"
+    },
+    {
+      "label": "path",
+      "file_type": "code",
+      "source_file": "lan-server.js",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "lan_server_path",
+      "community": 4,
+      "norm_label": "path"
+    },
+    {
+      "label": "crypto",
+      "file_type": "code",
+      "source_file": "lan-server.js",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "lan_server_crypto",
+      "community": 4,
+      "norm_label": "crypto"
+    },
+    {
+      "label": "{ WebSocketServer }",
+      "file_type": "code",
+      "source_file": "lan-server.js",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "lan_server_websocketserver",
+      "community": 4,
+      "norm_label": "{ websocketserver }"
+    },
+    {
+      "label": "QRCode",
+      "file_type": "code",
+      "source_file": "lan-server.js",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "lan_server_qrcode",
+      "community": 4,
+      "norm_label": "qrcode"
+    },
+    {
+      "label": "getLanIPs()",
+      "file_type": "code",
+      "source_file": "lan-server.js",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "lan_server_getlanips",
+      "community": 4,
+      "norm_label": "getlanips()"
+    },
+    {
+      "label": "startLanServer()",
+      "file_type": "code",
+      "source_file": "lan-server.js",
+      "source_location": "L40",
+      "_origin": "ast",
+      "id": "lan_server_startlanserver",
+      "community": 4,
+      "norm_label": "startlanserver()"
+    },
+    {
+      "label": "main.js",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "main",
+      "community": 4,
+      "norm_label": "main.js"
+    },
+    {
+      "label": "{ app, BrowserWindow, session, ipcMain }",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "main_app_browserwindow_session_ipcmain",
+      "community": 4,
+      "norm_label": "{ app, browserwindow, session, ipcmain }"
+    },
+    {
+      "label": "path",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "main_path",
+      "community": 4,
+      "norm_label": "path"
+    },
+    {
+      "label": "{ startLanServer }",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "main_startlanserver",
+      "community": 4,
+      "norm_label": "{ startlanserver }"
+    },
+    {
+      "label": "latestPins",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "main_latestpins",
+      "community": 4,
+      "norm_label": "latestpins"
+    },
+    {
+      "label": "createWindow()",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "main_createwindow",
+      "community": 4,
+      "norm_label": "createwindow()"
+    },
+    {
+      "label": "statusObj()",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L39",
+      "_origin": "ast",
+      "id": "main_statusobj",
+      "community": 4,
+      "norm_label": "statusobj()"
+    },
+    {
+      "label": "pushStatus()",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L48",
+      "_origin": "ast",
+      "id": "main_pushstatus",
+      "community": 4,
+      "norm_label": "pushstatus()"
+    },
+    {
+      "label": "startLan()",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L52",
+      "_origin": "ast",
+      "id": "main_startlan",
+      "community": 4,
+      "norm_label": "startlan()"
+    },
+    {
+      "label": "fs",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L83",
+      "_origin": "ast",
+      "id": "main_fs",
+      "community": 4,
+      "norm_label": "fs"
+    },
+    {
+      "label": "MEDIA_EXTS",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L84",
+      "_origin": "ast",
+      "id": "main_media_exts",
+      "community": 4,
+      "norm_label": "media_exts"
+    },
+    {
+      "label": "isMediaFile()",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L85",
+      "_origin": "ast",
+      "id": "main_ismediafile",
+      "community": 4,
+      "norm_label": "ismediafile()"
+    },
+    {
+      "label": "package.json",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "package",
+      "community": 2,
+      "norm_label": "package.json"
+    },
+    {
+      "label": "name",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "package_name",
+      "community": 2,
+      "norm_label": "name"
+    },
+    {
+      "label": "version",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "package_version",
+      "community": 2,
+      "norm_label": "version"
+    },
+    {
+      "label": "description",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "package_description",
+      "community": 2,
+      "norm_label": "description"
+    },
+    {
+      "label": "main",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "package_main",
+      "community": 2,
+      "norm_label": "main"
+    },
+    {
+      "label": "scripts",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "package_scripts",
+      "community": 2,
+      "norm_label": "scripts"
+    },
+    {
+      "label": "start",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "package_scripts_start",
+      "community": 2,
+      "norm_label": "start"
+    },
+    {
+      "label": "dist",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "package_scripts_dist",
+      "community": 2,
+      "norm_label": "dist"
+    },
+    {
+      "label": "devDependencies",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "package_devdependencies",
+      "community": 2,
+      "norm_label": "devdependencies"
+    },
+    {
+      "label": "electron",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "package_devdependencies_electron",
+      "community": 2,
+      "norm_label": "electron"
+    },
+    {
+      "label": "electron-builder",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "package_devdependencies_electron_builder",
+      "community": 2,
+      "norm_label": "electron-builder"
+    },
+    {
+      "label": "build",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "package_build",
+      "community": 3,
+      "norm_label": "build"
+    },
+    {
+      "label": "appId",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "package_build_appid",
+      "community": 3,
+      "norm_label": "appid"
+    },
+    {
+      "label": "productName",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "package_build_productname",
+      "community": 3,
+      "norm_label": "productname"
+    },
+    {
+      "label": "mac",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "package_build_mac",
+      "community": 3,
+      "norm_label": "mac"
+    },
+    {
+      "label": "category",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "package_mac_category",
+      "community": 3,
+      "norm_label": "category"
+    },
+    {
+      "label": "icon",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "package_mac_icon",
+      "community": 3,
+      "norm_label": "icon"
+    },
+    {
+      "label": "identity",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "package_mac_identity",
+      "community": 3,
+      "norm_label": "identity"
+    },
+    {
+      "label": "entitlements",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "package_mac_entitlements",
+      "community": 3,
+      "norm_label": "entitlements"
+    },
+    {
+      "label": "entitlementsInherit",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "package_mac_entitlementsinherit",
+      "community": 3,
+      "norm_label": "entitlementsinherit"
+    },
+    {
+      "label": "extendInfo",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "package_mac_extendinfo",
+      "community": 3,
+      "norm_label": "extendinfo"
+    },
+    {
+      "label": "NSMicrophoneUsageDescription",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "package_extendinfo_nsmicrophoneusagedescription",
+      "community": 3,
+      "norm_label": "nsmicrophoneusagedescription"
+    },
+    {
+      "label": "dmg",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "package_build_dmg",
+      "community": 3,
+      "norm_label": "dmg"
+    },
+    {
+      "label": "title",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L28",
+      "_origin": "ast",
+      "id": "package_dmg_title",
+      "community": 3,
+      "norm_label": "title"
+    },
+    {
+      "label": "files",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "package_build_files",
+      "community": 3,
+      "norm_label": "files"
+    },
+    {
+      "label": "dependencies",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L39",
+      "_origin": "ast",
+      "id": "package_dependencies",
+      "community": 2,
+      "norm_label": "dependencies"
+    },
+    {
+      "label": "qrcode",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L40",
+      "_origin": "ast",
+      "id": "package_dependencies_qrcode",
+      "community": 2,
+      "norm_label": "qrcode"
+    },
+    {
+      "label": "ws",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "package_dependencies_ws",
+      "community": 2,
+      "norm_label": "ws"
+    },
+    {
+      "label": "preload.js",
+      "file_type": "code",
+      "source_file": "preload.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "preload",
+      "community": 8,
+      "norm_label": "preload.js"
+    },
+    {
+      "label": "{ contextBridge, ipcRenderer }",
+      "file_type": "code",
+      "source_file": "preload.js",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "preload_contextbridge_ipcrenderer",
+      "community": 8,
+      "norm_label": "{ contextbridge, ipcrenderer }"
+    },
+    {
+      "label": "CLAUDE.md",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "claude",
+      "community": 0,
+      "norm_label": "claude.md"
+    },
+    {
+      "label": "CLAUDE.md",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "claude_claude_md",
+      "community": 0,
+      "norm_label": "claude.md"
+    },
+    {
+      "label": "What this project is",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "claude_what_this_project_is",
+      "community": 0,
+      "norm_label": "what this project is"
+    },
+    {
+      "label": "UI Kit \u2014 follow this for all new UI work",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L9",
+      "_origin": "ast",
+      "id": "claude_ui_kit_follow_this_for_all_new_ui_work",
+      "community": 0,
+      "norm_label": "ui kit \u2014 follow this for all new ui work"
+    },
+    {
+      "label": "Badge rules \u2014 enforced design spec",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "claude_badge_rules_enforced_design_spec",
+      "community": 0,
+      "norm_label": "badge rules \u2014 enforced design spec"
+    },
+    {
+      "label": "Camera badges (`.cam-badge`, `.cam-badge-sq`)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L29",
+      "_origin": "ast",
+      "id": "claude_camera_badges_cam_badge_cam_badge_sq",
+      "community": 0,
+      "norm_label": "camera badges (`.cam-badge`, `.cam-badge-sq`)"
+    },
+    {
+      "label": "Track glyphs (`.track-glyph`)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L45",
+      "_origin": "ast",
+      "id": "claude_track_glyphs_track_glyph",
+      "community": 0,
+      "norm_label": "track glyphs (`.track-glyph`)"
+    },
+    {
+      "label": "New-cue picker badges (`.nc-badge` \u2014 camera row)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "claude_new_cue_picker_badges_nc_badge_camera_row",
+      "community": 0,
+      "norm_label": "new-cue picker badges (`.nc-badge` \u2014 camera row)"
+    },
+    {
+      "label": "Commands",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "claude_commands",
+      "community": 0,
+      "norm_label": "commands"
+    },
+    {
+      "label": "Architecture \u2014 the three script blocks",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L74",
+      "_origin": "ast",
+      "id": "claude_architecture_the_three_script_blocks",
+      "community": 0,
+      "norm_label": "architecture \u2014 the three script blocks"
+    },
+    {
+      "label": "Block 1 \u2014 main app globals",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L84",
+      "_origin": "ast",
+      "id": "claude_block_1_main_app_globals",
+      "community": 0,
+      "norm_label": "block 1 \u2014 main app globals"
+    },
+    {
+      "label": "Block 2 \u2014 collab IIFE",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L101",
+      "_origin": "ast",
+      "id": "claude_block_2_collab_iife",
+      "community": 0,
+      "norm_label": "block 2 \u2014 collab iife"
+    },
+    {
+      "label": "Data model",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L125",
+      "_origin": "ast",
+      "id": "claude_data_model",
+      "community": 0,
+      "norm_label": "data model"
+    },
+    {
+      "label": "Local media folder (owner-desktop only, NOT synced)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L144",
+      "_origin": "ast",
+      "id": "claude_local_media_folder_owner_desktop_only_not_synced",
+      "community": 0,
+      "norm_label": "local media folder (owner-desktop only, not synced)"
+    },
+    {
+      "label": "Per-device visibility (NOT synced)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L153",
+      "_origin": "ast",
+      "id": "claude_per_device_visibility_not_synced",
+      "community": 0,
+      "norm_label": "per-device visibility (not synced)"
+    },
+    {
+      "label": "Roles",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L157",
+      "_origin": "ast",
+      "id": "claude_roles",
+      "community": 0,
+      "norm_label": "roles"
+    },
+    {
+      "label": "Supabase",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L170",
+      "_origin": "ast",
+      "id": "claude_supabase",
+      "community": 0,
+      "norm_label": "supabase"
+    },
+    {
+      "label": "TC/timecode",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L178",
+      "_origin": "ast",
+      "id": "claude_tc_timecode",
+      "community": 0,
+      "norm_label": "tc/timecode"
+    },
+    {
+      "label": "TC sources \u2014 `state.tcSource` \u2208 `'ltc' | 'midi' | 'gen'`",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L185",
+      "_origin": "ast",
+      "id": "claude_tc_sources_state_tcsource_ltc_midi_gen",
+      "community": 0,
+      "norm_label": "tc sources \u2014 `state.tcsource` \u2208 `'ltc' | 'midi' | 'gen'`"
+    },
+    {
+      "label": "Electron",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L189",
+      "_origin": "ast",
+      "id": "claude_electron",
+      "community": 0,
+      "norm_label": "electron"
+    },
+    {
+      "label": "graphify",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L195",
+      "_origin": "ast",
+      "id": "claude_graphify",
+      "community": 0,
+      "norm_label": "graphify"
+    },
+    {
+      "label": "CONTEXT.md",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "context",
+      "community": 1,
+      "norm_label": "context.md"
+    },
+    {
+      "label": "CueFlow \u2014 Project Context",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "context_cueflow_project_context",
+      "community": 1,
+      "norm_label": "cueflow \u2014 project context"
+    },
+    {
+      "label": "What is CueFlow",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "context_what_is_cueflow",
+      "community": 1,
+      "norm_label": "what is cueflow"
+    },
+    {
+      "label": "Current file",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L9",
+      "_origin": "ast",
+      "id": "context_current_file",
+      "community": 1,
+      "norm_label": "current file"
+    },
+    {
+      "label": "Architecture",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "context_architecture",
+      "community": 6,
+      "norm_label": "architecture"
+    },
+    {
+      "label": "Three script blocks (in order)",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "context_three_script_blocks_in_order",
+      "community": 6,
+      "norm_label": "three script blocks (in order)"
+    },
+    {
+      "label": "Supabase configuration",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "context_supabase_configuration",
+      "community": 6,
+      "norm_label": "supabase configuration"
+    },
+    {
+      "label": "Supabase tables",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "context_supabase_tables",
+      "community": 6,
+      "norm_label": "supabase tables"
+    },
+    {
+      "label": "RLS policies (all currently open \u2014 to be tightened when auth is added)",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "context_rls_policies_all_currently_open_to_be_tightened_when_auth_is_added",
+      "community": 6,
+      "norm_label": "rls policies (all currently open \u2014 to be tightened when auth is added)"
+    },
+    {
+      "label": "Roles",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L65",
+      "_origin": "ast",
+      "id": "context_roles",
+      "community": 1,
+      "norm_label": "roles"
+    },
+    {
+      "label": "TC Broadcast",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L74",
+      "_origin": "ast",
+      "id": "context_tc_broadcast",
+      "community": 1,
+      "norm_label": "tc broadcast"
+    },
+    {
+      "label": "Session persistence",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L84",
+      "_origin": "ast",
+      "id": "context_session_persistence",
+      "community": 1,
+      "norm_label": "session persistence"
+    },
+    {
+      "label": "Conflict detection",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L88",
+      "_origin": "ast",
+      "id": "context_conflict_detection",
+      "community": 1,
+      "norm_label": "conflict detection"
+    },
+    {
+      "label": "Key global objects in Block 2 (collab layer)",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L96",
+      "_origin": "ast",
+      "id": "context_key_global_objects_in_block_2_collab_layer",
+      "community": 1,
+      "norm_label": "key global objects in block 2 (collab layer)"
+    },
+    {
+      "label": "Hooks between Block 1 and Block 2",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L112",
+      "_origin": "ast",
+      "id": "context_hooks_between_block_1_and_block_2",
+      "community": 1,
+      "norm_label": "hooks between block 1 and block 2"
+    },
+    {
+      "label": "Sidebar panels",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L119",
+      "_origin": "ast",
+      "id": "context_sidebar_panels",
+      "community": 1,
+      "norm_label": "sidebar panels"
+    },
+    {
+      "label": "Known issues / TODO",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L123",
+      "_origin": "ast",
+      "id": "context_known_issues_todo",
+      "community": 1,
+      "norm_label": "known issues / todo"
+    },
+    {
+      "label": "High priority",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L125",
+      "_origin": "ast",
+      "id": "context_high_priority",
+      "community": 1,
+      "norm_label": "high priority"
+    },
+    {
+      "label": "Auth pass (planned, not started)",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L132",
+      "_origin": "ast",
+      "id": "context_auth_pass_planned_not_started",
+      "community": 1,
+      "norm_label": "auth pass (planned, not started)"
+    },
+    {
+      "label": "Future features discussed",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L143",
+      "_origin": "ast",
+      "id": "context_future_features_discussed",
+      "community": 1,
+      "norm_label": "future features discussed"
+    },
+    {
+      "label": "Data model",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L151",
+      "_origin": "ast",
+      "id": "context_data_model",
+      "community": 1,
+      "norm_label": "data model"
+    },
+    {
+      "label": "Development notes",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L167",
+      "_origin": "ast",
+      "id": "context_development_notes",
+      "community": 1,
+      "norm_label": "development notes"
+    },
+    {
+      "label": "File history",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L178",
+      "_origin": "ast",
+      "id": "context_file_history",
+      "community": 1,
+      "norm_label": "file history"
+    },
+    {
+      "label": "PRIORITY_ACTIONS.md",
+      "file_type": "document",
+      "source_file": "PRIORITY_ACTIONS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "priority_actions",
+      "community": 9,
+      "norm_label": "priority_actions.md"
+    },
+    {
+      "label": "CueFlow \u2014 Top 10 Priority Actions",
+      "file_type": "document",
+      "source_file": "PRIORITY_ACTIONS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "priority_actions_cueflow_top_10_priority_actions",
+      "community": 9,
+      "norm_label": "cueflow \u2014 top 10 priority actions"
+    },
+    {
+      "label": "Fix log \u2014 2026-07-04",
+      "file_type": "document",
+      "source_file": "PRIORITY_ACTIONS.md",
+      "source_location": "L39",
+      "_origin": "ast",
+      "id": "priority_actions_fix_log_2026_07_04",
+      "community": 9,
+      "norm_label": "fix log \u2014 2026-07-04"
+    },
+    {
+      "label": "Fix log \u2014 2026-07-04 (batch 2: H1/H2/H3 + PIN hardening)",
+      "file_type": "document",
+      "source_file": "PRIORITY_ACTIONS.md",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "priority_actions_fix_log_2026_07_04_batch_2_h1_h2_h3_pin_hardening",
+      "community": 9,
+      "norm_label": "fix log \u2014 2026-07-04 (batch 2: h1/h2/h3 + pin hardening)"
+    },
+    {
+      "label": "Fix log \u2014 2026-07-04 (batch 3: M1/M2/M3)",
+      "file_type": "document",
+      "source_file": "PRIORITY_ACTIONS.md",
+      "source_location": "L77",
+      "_origin": "ast",
+      "id": "priority_actions_fix_log_2026_07_04_batch_3_m1_m2_m3",
+      "community": 9,
+      "norm_label": "fix log \u2014 2026-07-04 (batch 3: m1/m2/m3)"
+    },
+    {
+      "label": "Fix log \u2014 2026-07-04 (batch 4: remaining hardening + deploy)",
+      "file_type": "document",
+      "source_file": "PRIORITY_ACTIONS.md",
+      "source_location": "L96",
+      "_origin": "ast",
+      "id": "priority_actions_fix_log_2026_07_04_batch_4_remaining_hardening_deploy",
+      "community": 9,
+      "norm_label": "fix log \u2014 2026-07-04 (batch 4: remaining hardening + deploy)"
+    },
+    {
+      "label": "Fix log \u2014 2026-07-05 (M4 + deploy notes)",
+      "file_type": "document",
+      "source_file": "PRIORITY_ACTIONS.md",
+      "source_location": "L112",
+      "_origin": "ast",
+      "id": "priority_actions_fix_log_2026_07_05_m4_deploy_notes",
+      "community": 9,
+      "norm_label": "fix log \u2014 2026-07-05 (m4 + deploy notes)"
+    },
+    {
+      "label": "SECURITY_AUDIT.md",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "security_audit",
+      "community": 5,
+      "norm_label": "security_audit.md"
+    },
+    {
+      "label": "CueFlow \u2014 Security, Data Integrity & Reliability Audit",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "security_audit_cueflow_security_data_integrity_reliability_audit",
+      "community": 5,
+      "norm_label": "cueflow \u2014 security, data integrity & reliability audit"
+    },
+    {
+      "label": "Executive summary",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "security_audit_executive_summary",
+      "community": 5,
+      "norm_label": "executive summary"
+    },
+    {
+      "label": "CRITICAL findings",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "security_audit_critical_findings",
+      "community": 5,
+      "norm_label": "critical findings"
+    },
+    {
+      "label": "C1 \u2014 `shows` is world-readable: any internet user can read every show's full data",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "security_audit_c1_shows_is_world_readable_any_internet_user_can_read_every_show_s_full_data",
+      "community": 5,
+      "norm_label": "c1 \u2014 `shows` is world-readable: any internet user can read every show's full data"
+    },
+    {
+      "label": "C2 \u2014 `show_access` is world-readable AND PINs are stored in plaintext",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L31",
+      "_origin": "ast",
+      "id": "security_audit_c2_show_access_is_world_readable_and_pins_are_stored_in_plaintext",
+      "community": 5,
+      "norm_label": "c2 \u2014 `show_access` is world-readable and pins are stored in plaintext"
+    },
+    {
+      "label": "C3 \u2014 Stored XSS via rich-text sequence description, rendered raw in the live cockpit",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "security_audit_c3_stored_xss_via_rich_text_sequence_description_rendered_raw_in_the_live_cockpit",
+      "community": 5,
+      "norm_label": "c3 \u2014 stored xss via rich-text sequence description, rendered raw in the live cockpit"
+    },
+    {
+      "label": "HIGH findings",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "security_audit_high_findings",
+      "community": 5,
+      "norm_label": "high findings"
+    },
+    {
+      "label": "H1 \u2014 `track-editor` restriction is client-side only; the server lets them overwrite the whole show",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L55",
+      "_origin": "ast",
+      "id": "security_audit_h1_track_editor_restriction_is_client_side_only_the_server_lets_them_overwrite_the_whole_show",
+      "community": 5,
+      "norm_label": "h1 \u2014 `track-editor` restriction is client-side only; the server lets them overwrite the whole show"
+    },
+    {
+      "label": "H2 \u2014 6-digit PINs from `Math.random()`, no server-side rate limiting",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L65",
+      "_origin": "ast",
+      "id": "security_audit_h2_6_digit_pins_from_math_random_no_server_side_rate_limiting",
+      "community": 5,
+      "norm_label": "h2 \u2014 6-digit pins from `math.random()`, no server-side rate limiting"
+    },
+    {
+      "label": "H3 \u2014 Editor writes are blind last-write-wins with no conflict detection",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L75",
+      "_origin": "ast",
+      "id": "security_audit_h3_editor_writes_are_blind_last_write_wins_with_no_conflict_detection",
+      "community": 5,
+      "norm_label": "h3 \u2014 editor writes are blind last-write-wins with no conflict detection"
+    },
+    {
+      "label": "H4 \u2014 SECURITY DEFINER RPCs are callable by `anon`",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L85",
+      "_origin": "ast",
+      "id": "security_audit_h4_security_definer_rpcs_are_callable_by_anon",
+      "community": 5,
+      "norm_label": "h4 \u2014 security definer rpcs are callable by `anon`"
+    },
+    {
+      "label": "MEDIUM findings",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L95",
+      "_origin": "ast",
+      "id": "security_audit_medium_findings",
+      "community": 7,
+      "norm_label": "medium findings"
+    },
+    {
+      "label": "M1 \u2014 \"Read-only\" viewers/crew can write cue descriptions",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L97",
+      "_origin": "ast",
+      "id": "security_audit_m1_read_only_viewers_crew_can_write_cue_descriptions",
+      "community": 7,
+      "norm_label": "m1 \u2014 \"read-only\" viewers/crew can write cue descriptions"
+    },
+    {
+      "label": "M2 \u2014 No durable offline edit queue; offline reconnect is whole-snapshot last-write-wins",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L106",
+      "_origin": "ast",
+      "id": "security_audit_m2_no_durable_offline_edit_queue_offline_reconnect_is_whole_snapshot_last_write_wins",
+      "community": 7,
+      "norm_label": "m2 \u2014 no durable offline edit queue; offline reconnect is whole-snapshot last-write-wins"
+    },
+    {
+      "label": "M3 \u2014 Leaked-password protection disabled on Supabase Auth",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L115",
+      "_origin": "ast",
+      "id": "security_audit_m3_leaked_password_protection_disabled_on_supabase_auth",
+      "community": 7,
+      "norm_label": "m3 \u2014 leaked-password protection disabled on supabase auth"
+    },
+    {
+      "label": "M4 \u2014 Offline/logged-out show creation can strand data",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L123",
+      "_origin": "ast",
+      "id": "security_audit_m4_offline_logged_out_show_creation_can_strand_data",
+      "community": 7,
+      "norm_label": "m4 \u2014 offline/logged-out show creation can strand data"
+    },
+    {
+      "label": "M5 \u2014 LAN inbound handler does no role enforcement",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L131",
+      "_origin": "ast",
+      "id": "security_audit_m5_lan_inbound_handler_does_no_role_enforcement",
+      "community": 7,
+      "norm_label": "m5 \u2014 lan inbound handler does no role enforcement"
+    },
+    {
+      "label": "LOW findings",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L141",
+      "_origin": "ast",
+      "id": "security_audit_low_findings",
+      "community": 5,
+      "norm_label": "low findings"
+    },
+    {
+      "label": "L1 \u2014 `escH` does not escape `'` or `>`",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L143",
+      "_origin": "ast",
+      "id": "security_audit_l1_esch_does_not_escape_or",
+      "community": 5,
+      "norm_label": "l1 \u2014 `esch` does not escape `'` or `>`"
+    },
+    {
+      "label": "L2 \u2014 LAN server: plaintext HTTP, CORS `*`, PIN in URL, no join rate limit",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L151",
+      "_origin": "ast",
+      "id": "security_audit_l2_lan_server_plaintext_http_cors_pin_in_url_no_join_rate_limit",
+      "community": 5,
+      "norm_label": "l2 \u2014 lan server: plaintext http, cors `*`, pin in url, no join rate limit"
+    },
+    {
+      "label": "L3 \u2014 Verbose `console.warn` of backend errors in production",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L159",
+      "_origin": "ast",
+      "id": "security_audit_l3_verbose_console_warn_of_backend_errors_in_production",
+      "community": 5,
+      "norm_label": "l3 \u2014 verbose `console.warn` of backend errors in production"
+    },
+    {
+      "label": "What's done well (positive findings)",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L169",
+      "_origin": "ast",
+      "id": "security_audit_what_s_done_well_positive_findings",
+      "community": 5,
+      "norm_label": "what's done well (positive findings)"
+    },
+    {
+      "label": "Assessment: are the `true` RLS policies acceptable for this threat model?",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L183",
+      "_origin": "ast",
+      "id": "security_audit_assessment_are_the_true_rls_policies_acceptable_for_this_threat_model",
+      "community": 5,
+      "norm_label": "assessment: are the `true` rls policies acceptable for this threat model?"
+    },
+    {
+      "label": "Prioritized action plan",
+      "file_type": "document",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L191",
+      "_origin": "ast",
+      "id": "security_audit_prioritized_action_plan",
+      "community": 5,
+      "norm_label": "prioritized action plan"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lan-server.js",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lan_server",
+      "target": "lan_server_crypto"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lan-server.js",
+      "source_location": "L12",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lan_server",
+      "target": "lan_server_fs"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lan-server.js",
+      "source_location": "L20",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lan_server",
+      "target": "lan_server_getlanips"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lan-server.js",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lan_server",
+      "target": "lan_server_http"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lan-server.js",
+      "source_location": "L11",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lan_server",
+      "target": "lan_server_os"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lan-server.js",
+      "source_location": "L14",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lan_server",
+      "target": "lan_server_path"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lan-server.js",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lan_server",
+      "target": "lan_server_qrcode"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lan-server.js",
+      "source_location": "L40",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lan_server",
+      "target": "lan_server_startlanserver"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lan-server.js",
+      "source_location": "L16",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lan_server",
+      "target": "lan_server_websocketserver"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lan-server.js",
+      "source_location": "L13",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lan_server",
+      "target": "lan_server_zlib"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "main",
+      "target": "lan_server"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lan-server.js",
+      "source_location": "L186",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lan_server_startlanserver",
+      "target": "lan_server_getlanips"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "main",
+      "target": "lan_server_startlanserver"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "main.js",
+      "source_location": "L55",
+      "weight": 1.0,
+      "source": "main_startlan",
+      "target": "lan_server_startlanserver"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "main",
+      "target": "main_app_browserwindow_session_ipcmain"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "main",
+      "target": "main_createwindow"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L83",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "main",
+      "target": "main_fs"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L85",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "main",
+      "target": "main_ismediafile"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "main",
+      "target": "main_latestpins"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L84",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "main",
+      "target": "main_media_exts"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "main",
+      "target": "main_path"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L48",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "main",
+      "target": "main_pushstatus"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L52",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "main",
+      "target": "main_startlan"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "main",
+      "target": "main_startlanserver"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L39",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "main",
+      "target": "main_statusobj"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L49",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "main_pushstatus",
+      "target": "main_statusobj"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L63",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "main_startlan",
+      "target": "main_pushstatus"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L14",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package",
+      "target": "package_build"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L39",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package",
+      "target": "package_dependencies"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package",
+      "target": "package_description"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package",
+      "target": "package_devdependencies"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package",
+      "target": "package_main"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package",
+      "target": "package_name"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package",
+      "target": "package_scripts"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package",
+      "target": "package_version"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_scripts",
+      "target": "package_scripts_dist"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_scripts",
+      "target": "package_scripts_start"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L11",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_devdependencies",
+      "target": "package_devdependencies_electron"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L12",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_devdependencies",
+      "target": "package_devdependencies_electron_builder"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_build",
+      "target": "package_build_appid"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L27",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_build",
+      "target": "package_build_dmg"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_build",
+      "target": "package_build_files"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_build",
+      "target": "package_build_mac"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L16",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_build",
+      "target": "package_build_productname"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_build_mac",
+      "target": "package_mac_category"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L21",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_build_mac",
+      "target": "package_mac_entitlements"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L22",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_build_mac",
+      "target": "package_mac_entitlementsinherit"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L23",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_build_mac",
+      "target": "package_mac_extendinfo"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_build_mac",
+      "target": "package_mac_icon"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L20",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_build_mac",
+      "target": "package_mac_identity"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L24",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_mac_extendinfo",
+      "target": "package_extendinfo_nsmicrophoneusagedescription"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_build_dmg",
+      "target": "package_dmg_title"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L40",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_dependencies",
+      "target": "package_dependencies_qrcode"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L41",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_dependencies",
+      "target": "package_dependencies_ws"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "preload.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "preload",
+      "target": "preload_contextbridge_ipcrenderer"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude",
+      "target": "claude_claude_md"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L74",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_architecture_the_three_script_blocks"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L27",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_badge_rules_enforced_design_spec"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L57",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_commands"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L125",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_data_model"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L189",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_electron"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L195",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_graphify"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L157",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_roles"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L170",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_supabase"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L178",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_tc_timecode"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_ui_kit_follow_this_for_all_new_ui_work"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_what_this_project_is"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_badge_rules_enforced_design_spec",
+      "target": "claude_camera_badges_cam_badge_cam_badge_sq"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L53",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_badge_rules_enforced_design_spec",
+      "target": "claude_new_cue_picker_badges_nc_badge_camera_row"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L45",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_badge_rules_enforced_design_spec",
+      "target": "claude_track_glyphs_track_glyph"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L84",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_architecture_the_three_script_blocks",
+      "target": "claude_block_1_main_app_globals"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L101",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_architecture_the_three_script_blocks",
+      "target": "claude_block_2_collab_iife"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L144",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_data_model",
+      "target": "claude_local_media_folder_owner_desktop_only_not_synced"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L153",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_data_model",
+      "target": "claude_per_device_visibility_not_synced"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L185",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_tc_timecode",
+      "target": "claude_tc_sources_state_tcsource_ltc_midi_gen"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context",
+      "target": "context_cueflow_project_context"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_cueflow_project_context",
+      "target": "context_architecture"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L88",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_cueflow_project_context",
+      "target": "context_conflict_detection"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_cueflow_project_context",
+      "target": "context_current_file"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L151",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_cueflow_project_context",
+      "target": "context_data_model"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L167",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_cueflow_project_context",
+      "target": "context_development_notes"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L178",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_cueflow_project_context",
+      "target": "context_file_history"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L112",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_cueflow_project_context",
+      "target": "context_hooks_between_block_1_and_block_2"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L96",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_cueflow_project_context",
+      "target": "context_key_global_objects_in_block_2_collab_layer"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L123",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_cueflow_project_context",
+      "target": "context_known_issues_todo"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L65",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_cueflow_project_context",
+      "target": "context_roles"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L84",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_cueflow_project_context",
+      "target": "context_session_persistence"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L119",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_cueflow_project_context",
+      "target": "context_sidebar_panels"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L74",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_cueflow_project_context",
+      "target": "context_tc_broadcast"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_cueflow_project_context",
+      "target": "context_what_is_cueflow"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L53",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_architecture",
+      "target": "context_rls_policies_all_currently_open_to_be_tightened_when_auth_is_added"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_architecture",
+      "target": "context_supabase_configuration"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L35",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_architecture",
+      "target": "context_supabase_tables"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L21",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_architecture",
+      "target": "context_three_script_blocks_in_order"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L132",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_known_issues_todo",
+      "target": "context_auth_pass_planned_not_started"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L143",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_known_issues_todo",
+      "target": "context_future_features_discussed"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L125",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "context_known_issues_todo",
+      "target": "context_high_priority"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "PRIORITY_ACTIONS.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "priority_actions",
+      "target": "priority_actions_cueflow_top_10_priority_actions"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "PRIORITY_ACTIONS.md",
+      "source_location": "L34",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "priority_actions_cueflow_top_10_priority_actions",
+      "target": "priority_actions_fix_log_2026_07_04"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "PRIORITY_ACTIONS.md",
+      "source_location": "L54",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "priority_actions_cueflow_top_10_priority_actions",
+      "target": "priority_actions_fix_log_2026_07_04_batch_2_h1_h2_h3_pin_hardening"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "PRIORITY_ACTIONS.md",
+      "source_location": "L77",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "priority_actions_cueflow_top_10_priority_actions",
+      "target": "priority_actions_fix_log_2026_07_04_batch_3_m1_m2_m3"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "PRIORITY_ACTIONS.md",
+      "source_location": "L96",
+      "weight": 1.0,
+      "source": "priority_actions_cueflow_top_10_priority_actions",
+      "target": "priority_actions_fix_log_2026_07_04_batch_4_remaining_hardening_deploy",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "PRIORITY_ACTIONS.md",
+      "source_location": "L112",
+      "weight": 1.0,
+      "source": "priority_actions_cueflow_top_10_priority_actions",
+      "target": "priority_actions_fix_log_2026_07_05_m4_deploy_notes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit",
+      "target": "security_audit_cueflow_security_data_integrity_reliability_audit"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L183",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_cueflow_security_data_integrity_reliability_audit",
+      "target": "security_audit_assessment_are_the_true_rls_policies_acceptable_for_this_threat_model"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_cueflow_security_data_integrity_reliability_audit",
+      "target": "security_audit_critical_findings"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_cueflow_security_data_integrity_reliability_audit",
+      "target": "security_audit_executive_summary"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L53",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_cueflow_security_data_integrity_reliability_audit",
+      "target": "security_audit_high_findings"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L141",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_cueflow_security_data_integrity_reliability_audit",
+      "target": "security_audit_low_findings"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L95",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_cueflow_security_data_integrity_reliability_audit",
+      "target": "security_audit_medium_findings"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L191",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_cueflow_security_data_integrity_reliability_audit",
+      "target": "security_audit_prioritized_action_plan"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L169",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_cueflow_security_data_integrity_reliability_audit",
+      "target": "security_audit_what_s_done_well_positive_findings"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L21",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_critical_findings",
+      "target": "security_audit_c1_shows_is_world_readable_any_internet_user_can_read_every_show_s_full_data"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L31",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_critical_findings",
+      "target": "security_audit_c2_show_access_is_world_readable_and_pins_are_stored_in_plaintext"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L41",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_critical_findings",
+      "target": "security_audit_c3_stored_xss_via_rich_text_sequence_description_rendered_raw_in_the_live_cockpit"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L55",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_high_findings",
+      "target": "security_audit_h1_track_editor_restriction_is_client_side_only_the_server_lets_them_overwrite_the_whole_show"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L65",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_high_findings",
+      "target": "security_audit_h2_6_digit_pins_from_math_random_no_server_side_rate_limiting"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L75",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_high_findings",
+      "target": "security_audit_h3_editor_writes_are_blind_last_write_wins_with_no_conflict_detection"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L85",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_high_findings",
+      "target": "security_audit_h4_security_definer_rpcs_are_callable_by_anon"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L97",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_medium_findings",
+      "target": "security_audit_m1_read_only_viewers_crew_can_write_cue_descriptions"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L106",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_medium_findings",
+      "target": "security_audit_m2_no_durable_offline_edit_queue_offline_reconnect_is_whole_snapshot_last_write_wins"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L115",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_medium_findings",
+      "target": "security_audit_m3_leaked_password_protection_disabled_on_supabase_auth"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L123",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_medium_findings",
+      "target": "security_audit_m4_offline_logged_out_show_creation_can_strand_data"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L131",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_medium_findings",
+      "target": "security_audit_m5_lan_inbound_handler_does_no_role_enforcement"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L143",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_low_findings",
+      "target": "security_audit_l1_esch_does_not_escape_or"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L151",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_low_findings",
+      "target": "security_audit_l2_lan_server_plaintext_http_cors_pin_in_url_no_join_rate_limit"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "SECURITY_AUDIT.md",
+      "source_location": "L159",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "security_audit_low_findings",
+      "target": "security_audit_l3_verbose_console_warn_of_backend_errors_in_production"
+    }
+  ],
+  "hyperedges": [],
+  "built_at_commit": "efdb6fc9183c968b3ecc7c1f89f11fc717f228d4"
+}
