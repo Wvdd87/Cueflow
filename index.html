@@ -2887,6 +2887,128 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
   .cfcm-btn-ghost { order:3; }
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   CAMERA PROMPTER — chroma-key overlay, keyed over PGM in the switcher.
+
+   Styled with the CueFlow UI Kit (surface/hair/amber/red tokens, cond + mono
+   type, cam-badge) sitting on a chroma-green field. The two hard constraints the
+   Kit doesn't cover, both dictated by the key:
+   · the FIELD is flat #00B140 and nothing else may be green-ish, or it keys out
+   · anything drawn on the field must be FULLY OPAQUE — a translucent surface
+     blends with the green underneath and keys out with it, so the Kit's alpha
+     tints (--amber-bg, --red-bg…) are replaced by solid equivalents here.
+     Alpha *inside* an opaque card is fine; the composited pixel is still opaque.
+   · no shadows, no blur, no transitions — they fringe or flicker at the key edge
+   ══════════════════════════════════════════════════════════════════════ */
+#cf-prompter-screen {
+  display:none; position:fixed; inset:0;
+  /* Above every other layer in the app: nothing else may ever paint onto a keyed feed. */
+  z-index:2147483000;
+  background:#00B140;              /* pure chroma green, flat */
+  font-family:var(--cond), 'Barlow Condensed', Arial, sans-serif;
+  overflow:hidden; cursor:none;
+}
+#cfp-panel {
+  position:absolute; top:0; right:0; bottom:0;
+  width:20%;                       /* never more than 20% of frame width */
+  display:flex; flex-direction:column;
+  padding:1.6vh 1.1vw;
+  box-sizing:border-box;
+  background:transparent;          /* the green field shows through and keys out */
+}
+#cfp-blocks { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+/* One camera. Fixed position, sorted by number — the block never moves, only its
+   content changes, so a small gallery monitor stays calm. */
+.cfp-block { display:flex; flex-direction:column; margin-bottom:1.8vh; }
+.cfp-block:last-child { margin-bottom:0; }
+
+/* Header: the camera badge (UI Kit rule — coloured background, black text) on an
+   opaque surface bar, so the number reads at a glance from across the gallery. */
+.cfp-hdr {
+  display:flex; align-items:center; gap:.5vw;
+  background:var(--surface); border-left:4px solid var(--hair3);
+  padding:.5vh .6vw; margin-bottom:.4vh;
+}
+.cfp-hdr .cam-badge {
+  width:calc(clamp(30px,2.6vw,50px) * var(--cfp-s,1));
+  height:calc(clamp(30px,2.6vw,50px) * var(--cfp-s,1));
+  font-size:calc(clamp(17px,1.5vw,29px) * var(--cfp-s,1));
+  border-radius:0; flex-shrink:0;
+}
+.cfp-hdr-lbl {
+  font-family:var(--cond); font-weight:700; text-transform:uppercase;
+  letter-spacing:.1em; color:var(--txt-mid);
+  font-size:calc(clamp(10px,.85vw,17px) * var(--cfp-s,1));
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+}
+
+.cfp-rows { display:flex; flex-direction:column; gap:.35vh; }
+
+/* A shot. Opaque card, hard edges, left rule carrying the state colour. */
+.cfp-item {
+  display:flex; flex-direction:column;
+  background:var(--surface); border-left:4px solid var(--hair2);
+  padding:.45vh .6vw;
+}
+.cfp-item.hidden { display:none; }
+.cfp-line { display:flex; align-items:baseline; gap:.5vw; }
+.cfp-name {
+  font-family:var(--cond); font-weight:700; text-transform:uppercase;
+  letter-spacing:.01em; color:var(--txt-hi);
+  font-size:calc(clamp(15px,1.4vw,28px) * var(--cfp-s,1));
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+  flex:1 1 auto; min-width:0;   /* absorbs free space so the countdown lands right */
+}
+.cfp-cd {
+  font-family:var(--mono), monospace; font-weight:700;
+  font-variant-numeric:tabular-nums; flex-shrink:0; margin-left:.5vw;
+  font-size:calc(clamp(18px,1.75vw,35px) * var(--cfp-s,1));
+  color:var(--txt-hi);
+}
+.cfp-desc {
+  font-family:var(--sans), Arial, sans-serif; font-weight:600;
+  font-size:calc(clamp(12px,1vw,20px) * var(--cfp-s,1));
+  margin-top:.2vh; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+}
+
+/* LIVE (red tally) — solid broadcast red, black text. Unmistakable after keying. */
+.cfp-item.live { background:var(--red); border-left-color:#7d0018; }
+.cfp-item.live .cfp-name { color:#06060a; }
+.cfp-item.live .cfp-tag {
+  font-family:var(--cond); font-weight:800; letter-spacing:.14em;
+  font-size:calc(clamp(10px,.8vw,16px) * var(--cfp-s,1));
+  color:#06060a; flex-shrink:0;
+}
+
+/* NEXT (amber) — the next cue in the SEQUENCE, on whichever camera takes it. Solid
+   amber, black text, steady (never flashing). Only this card carries the countdown
+   and the description. */
+.cfp-item.next { background:var(--amber); border-left-color:#8a5c14; }
+.cfp-item.next .cfp-name,
+.cfp-item.next .cfp-cd   { color:#06060a; }
+.cfp-item.next .cfp-desc { color:rgba(6,6,10,.78); }   /* alpha over an opaque card — safe */
+
+/* LOOKAHEAD — plain surface card, shot name only. */
+.cfp-item.ahead .cfp-name { color:var(--txt-hi); }
+
+/* Camera with nothing left to do — the block stays, the card shows an em dash. */
+.cfp-empty {
+  background:var(--surface); border-left:4px solid var(--hair2);
+  padding:.45vh .6vw; color:var(--txt-mid); font-weight:700;
+  font-size:calc(clamp(15px,1.4vw,28px) * var(--cfp-s,1));
+}
+
+/* TC loss. Never silently free-run on a show-critical feed: hold the content and
+   say so, loudly, in a colour that cannot be confused with a tally. */
+#cfp-notc {
+  display:none; align-items:center; gap:.4vw; margin-bottom:.8vh;
+  background:var(--red); color:#06060a; font-weight:800;
+  font-family:var(--cond); letter-spacing:.12em; text-transform:uppercase;
+  font-size:calc(clamp(12px,1vw,20px) * var(--cfp-s,1));
+  padding:.4vh .6vw;
+}
+#cf-prompter-screen.notc #cfp-notc { display:flex; }
 </style>
   <script>/* Supabase SDK v2 */
 var supabase=(function(e){function t(e,t){var n={};for(var r in e)Object.prototype.hasOwnProperty.call(e,r)&&t.indexOf(r)<0&&(n[r]=e[r]);if(e!=null&&typeof Object.getOwnPropertySymbols==`function`)for(var i=0,r=Object.getOwnPropertySymbols(e);i<r.length;i++)t.indexOf(r[i])<0&&Object.prototype.propertyIsEnumerable.call(e,r[i])&&(n[r[i]]=e[r[i]]);return n}function n(e,t,n,r){function i(e){return e instanceof n?e:new n(function(t){t(e)})}return new(n||=Promise)(function(n,a){function o(e){try{c(r.next(e))}catch(e){a(e)}}function s(e){try{c(r.throw(e))}catch(e){a(e)}}function c(e){e.done?n(e.value):i(e.value).then(o,s)}c((r=r.apply(e,t||[])).next())})}let r=e=>e?(...t)=>e(...t):(...e)=>fetch(...e);var i=class extends Error{constructor(e,t=`FunctionsError`,n){super(e),this.name=t,this.context=n}toJSON(){return{name:this.name,message:this.message,context:this.context}}},a=class extends i{constructor(e){super(`Failed to send a request to the Edge Function`,`FunctionsFetchError`,e)}},o=class extends i{constructor(e){super(`Relay Error invoking the Edge Function`,`FunctionsRelayError`,e)}},s=class extends i{constructor(e){super(`Edge Function returned a non-2xx status code`,`FunctionsHttpError`,e)}},c;(function(e){e.Any=`any`,e.ApNortheast1=`ap-northeast-1`,e.ApNortheast2=`ap-northeast-2`,e.ApSouth1=`ap-south-1`,e.ApSoutheast1=`ap-southeast-1`,e.ApSoutheast2=`ap-southeast-2`,e.CaCentral1=`ca-central-1`,e.EuCentral1=`eu-central-1`,e.EuWest1=`eu-west-1`,e.EuWest2=`eu-west-2`,e.EuWest3=`eu-west-3`,e.SaEast1=`sa-east-1`,e.UsEast1=`us-east-1`,e.UsWest1=`us-west-1`,e.UsWest2=`us-west-2`})(c||={});var l=class{constructor(e,{headers:t={},customFetch:n,region:i=c.Any}={}){this.url=e,this.headers=t,this.region=i,this.fetch=r(n)}setAuth(e){this.headers.Authorization=`Bearer ${e}`}invoke(e){return n(this,arguments,void 0,function*(e,t={}){let n,r;try{let{headers:i,method:c,body:l,signal:u,timeout:d}=t,f={},{region:p}=t;p||=this.region;let m=new URL(`${this.url}/${e}`);p&&p!==`any`&&(f[`x-region`]=p,m.searchParams.set(`forceFunctionRegion`,p));let h;l&&(i&&!Object.prototype.hasOwnProperty.call(i,`Content-Type`)||!i)?typeof Blob<`u`&&l instanceof Blob||l instanceof ArrayBuffer?(f[`Content-Type`]=`application/octet-stream`,h=l):typeof l==`string`?(f[`Content-Type`]=`text/plain`,h=l):typeof FormData<`u`&&l instanceof FormData?h=l:(f[`Content-Type`]=`application/json`,h=JSON.stringify(l)):h=l&&typeof l!=`string`&&!(typeof Blob<`u`&&l instanceof Blob)&&!(l instanceof ArrayBuffer)&&!(typeof FormData<`u`&&l instanceof FormData)?JSON.stringify(l):l;let ee=u;d&&(r=new AbortController,n=setTimeout(()=>r.abort(),d),u?(ee=r.signal,u.addEventListener(`abort`,()=>r.abort())):ee=r.signal);let g=yield this.fetch(m.toString(),{method:c||`POST`,headers:Object.assign(Object.assign(Object.assign({},f),this.headers),i),body:h,signal:ee}).catch(e=>{throw new a(e)}),te=g.headers.get(`x-relay-error`);if(te&&te===`true`)throw new o(g);if(!g.ok)throw new s(g);let _=(g.headers.get(`Content-Type`)??`text/plain`).split(`;`)[0].trim(),ne;return ne=_===`application/json`?yield g.json():_===`application/octet-stream`||_===`application/pdf`?yield g.blob():_===`text/event-stream`?g:_===`multipart/form-data`?yield g.formData():yield g.text(),{data:ne,error:null,response:g}}catch(e){return{data:null,error:e,response:e instanceof s||e instanceof o?e.context:void 0}}finally{n&&clearTimeout(n)}})}};let u=e=>Math.min(1e3*2**e,3e4),d=[520,503],f=[`GET`,`HEAD`,`OPTIONS`];var p=class extends Error{constructor(e){super(e.message),this.name=`PostgrestError`,this.details=e.details,this.hint=e.hint,this.code=e.code}toJSON(){return{name:this.name,message:this.message,details:this.details,hint:this.hint,code:this.code}}};function m(e,t){return new Promise(n=>{if(t?.aborted){n();return}let r=setTimeout(()=>{t?.removeEventListener(`abort`,i),n()},e);function i(){clearTimeout(r),n()}t?.addEventListener(`abort`,i)})}function h(e,t,n,r){return!(!r||n>=3||!f.includes(e)||!d.includes(t))}var ee=class{constructor(e){this.shouldThrowOnError=!1,this.retryEnabled=!0,this.method=e.method,this.url=e.url,this.headers=new Headers(e.headers),this.schema=e.schema,this.body=e.body,this.shouldThrowOnError=e.shouldThrowOnError??!1,this.signal=e.signal,this.isMaybeSingle=e.isMaybeSingle??!1,this.shouldStripNulls=e.shouldStripNulls??!1,this.urlLengthLimit=e.urlLengthLimit??8e3,this.retryEnabled=e.retry??!0,e.fetch?this.fetch=e.fetch:this.fetch=fetch}throwOnError(){return this.shouldThrowOnError=!0,this}stripNulls(){if(this.headers.get(`Accept`)===`text/csv`)throw Error(`stripNulls() cannot be used with csv()`);return this.shouldStripNulls=!0,this}setHeader(e,t){return this.headers=new Headers(this.headers),this.headers.set(e,t),this}retry(e){return this.retryEnabled=e,this}then(e,t){var n=this;if(this.schema===void 0||([`GET`,`HEAD`].includes(this.method)?this.headers.set(`Accept-Profile`,this.schema):this.headers.set(`Content-Profile`,this.schema)),this.method!==`GET`&&this.method!==`HEAD`&&this.headers.set(`Content-Type`,`application/json`),this.shouldStripNulls){let e=this.headers.get(`Accept`);e===`application/vnd.pgrst.object+json`?this.headers.set(`Accept`,`application/vnd.pgrst.object+json;nulls=stripped`):(!e||e===`application/json`)&&this.headers.set(`Accept`,`application/vnd.pgrst.array+json;nulls=stripped`)}let r=this.fetch,i=(async()=>{let e=0;for(;;){let t=new Headers(n.headers);e>0&&t.set(`X-Retry-Count`,String(e));let i;try{i=await r(n.url.toString(),{method:n.method,headers:t,body:JSON.stringify(n.body,(e,t)=>typeof t==`bigint`?t.toString():t),signal:n.signal})}catch(t){if(t?.name===`AbortError`||t?.code===`ABORT_ERR`||!f.includes(n.method))throw t;if(n.retryEnabled&&e<3){let t=u(e);e++,await m(t,n.signal);continue}throw t}if(h(n.method,i.status,e,n.retryEnabled)){let t=i.headers?.get(`Retry-After`)??null,r=t===null?u(e):Math.max(0,parseInt(t,10)||0)*1e3;await i.text(),e++,await m(r,n.signal);continue}return await n.processResponse(i)}})();return this.shouldThrowOnError||(i=i.catch(e=>{let t=``,n=``,r=``,i=e?.cause;if(i){let n=i?.message??``,r=i?.code??``;t=`${e?.name??`FetchError`}: ${e?.message}`,t+=`\n\nCaused by: ${i?.name??`Error`}: ${n}`,r&&(t+=` (${r})`),i?.stack&&(t+=`\n${i.stack}`)}else t=e?.stack??``;let a=this.url.toString().length;return e?.name===`AbortError`||e?.code===`ABORT_ERR`?(r=``,n=`Request was aborted (timeout or manual cancellation)`,a>this.urlLengthLimit&&(n+=`. Note: Your request URL is ${a} characters, which may exceed server limits. If selecting many fields, consider using views. If filtering with large arrays (e.g., .in('id', [many IDs])), consider using an RPC function to pass values server-side.`)):(i?.name===`HeadersOverflowError`||i?.code===`UND_ERR_HEADERS_OVERFLOW`)&&(r=``,n=`HTTP headers exceeded server limits (typically 16KB)`,a>this.urlLengthLimit&&(n+=`. Your request URL is ${a} characters. If selecting many fields, consider using views. If filtering with large arrays (e.g., .in('id', [200+ IDs])), consider using an RPC function instead.`)),{success:!1,error:{message:`${e?.name??`FetchError`}: ${e?.message}`,details:t,hint:n,code:r},data:null,count:null,status:0,statusText:``}})),i.then(e,t)}async processResponse(e){var t=this;let n=null,r=null,i=null,a=e.status,o=e.statusText;if(e.ok){if(t.method!==`HEAD`){let n=await e.text();n===``||(r=t.headers.get(`Accept`)===`text/csv`||t.headers.get(`Accept`)&&t.headers.get(`Accept`)?.includes(`application/vnd.pgrst.plan+text`)?n:JSON.parse(n))}let s=t.headers.get(`Prefer`)?.match(/count=(exact|planned|estimated)/),c=e.headers.get(`content-range`)?.split(`/`);s&&c&&c.length>1&&(i=parseInt(c[1])),t.isMaybeSingle&&Array.isArray(r)&&(r.length>1?(n={code:`PGRST116`,details:`Results contain ${r.length} rows, application/vnd.pgrst.object+json requires 1 row`,hint:null,message:`JSON object requested, multiple (or no) rows returned`},r=null,i=null,a=406,o=`Not Acceptable`):r=r.length===1?r[0]:null)}else{let i=await e.text();try{n=JSON.parse(i),Array.isArray(n)&&e.status===404&&(r=[],n=null,a=200,o=`OK`)}catch{e.status===404&&i===``?(a=204,o=`No Content`):n={message:i}}if(n&&t.shouldThrowOnError)throw new p(n)}return{success:n===null,error:n,data:r,count:i,status:a,statusText:o}}returns(){return this}overrideTypes(){return this}},g=class extends ee{select(e){let t=!1,n=(e??`*`).split(``).map(e=>/\s/.test(e)&&!t?``:(e===`"`&&(t=!t),e)).join(``);return this.url.searchParams.set(`select`,n),this.headers.append(`Prefer`,`return=representation`),this}order(e,{ascending:t=!0,nullsFirst:n,foreignTable:r,referencedTable:i=r}={}){let a=i?`${i}.order`:`order`,o=this.url.searchParams.get(a);return this.url.searchParams.set(a,`${o?`${o},`:``}${e}.${t?`asc`:`desc`}${n===void 0?``:n?`.nullsfirst`:`.nullslast`}`),this}limit(e,{foreignTable:t,referencedTable:n=t}={}){let r=n===void 0?`limit`:`${n}.limit`;return this.url.searchParams.set(r,`${e}`),this}range(e,t,{foreignTable:n,referencedTable:r=n}={}){let i=r===void 0?`offset`:`${r}.offset`,a=r===void 0?`limit`:`${r}.limit`;return this.url.searchParams.set(i,`${e}`),this.url.searchParams.set(a,`${t-e+1}`),this}abortSignal(e){return this.signal=e,this}single(){return this.headers.set(`Accept`,`application/vnd.pgrst.object+json`),this}maybeSingle(){return this.isMaybeSingle=!0,this}csv(){return this.headers.set(`Accept`,`text/csv`),this}geojson(){return this.headers.set(`Accept`,`application/geo+json`),this}explain({analyze:e=!1,verbose:t=!1,settings:n=!1,buffers:r=!1,wal:i=!1,format:a=`text`}={}){let o=[e?`analyze`:null,t?`verbose`:null,n?`settings`:null,r?`buffers`:null,i?`wal`:null].filter(Boolean).join(`|`),s=this.headers.get(`Accept`)??`application/json`;return this.headers.set(`Accept`,`application/vnd.pgrst.plan+${a}; for="${s}"; options=${o};`),this}rollback(){return this.headers.append(`Prefer`,`tx=rollback`),this}returns(){return this}maxAffected(e){return this.headers.append(`Prefer`,`handling=strict`),this.headers.append(`Prefer`,`max-affected=${e}`),this}};let te=RegExp(`[,()]`);var _=class extends g{eq(e,t){return this.url.searchParams.append(e,`eq.${t}`),this}neq(e,t){return this.url.searchParams.append(e,`neq.${t}`),this}gt(e,t){return this.url.searchParams.append(e,`gt.${t}`),this}gte(e,t){return this.url.searchParams.append(e,`gte.${t}`),this}lt(e,t){return this.url.searchParams.append(e,`lt.${t}`),this}lte(e,t){return this.url.searchParams.append(e,`lte.${t}`),this}like(e,t){return this.url.searchParams.append(e,`like.${t}`),this}likeAllOf(e,t){return this.url.searchParams.append(e,`like(all).{${t.join(`,`)}}`),this}likeAnyOf(e,t){return this.url.searchParams.append(e,`like(any).{${t.join(`,`)}}`),this}ilike(e,t){return this.url.searchParams.append(e,`ilike.${t}`),this}ilikeAllOf(e,t){return this.url.searchParams.append(e,`ilike(all).{${t.join(`,`)}}`),this}ilikeAnyOf(e,t){return this.url.searchParams.append(e,`ilike(any).{${t.join(`,`)}}`),this}regexMatch(e,t){return this.url.searchParams.append(e,`match.${t}`),this}regexIMatch(e,t){return this.url.searchParams.append(e,`imatch.${t}`),this}is(e,t){return this.url.searchParams.append(e,`is.${t}`),this}isDistinct(e,t){return this.url.searchParams.append(e,`isdistinct.${t}`),this}in(e,t){let n=Array.from(new Set(t)).map(e=>typeof e==`string`&&te.test(e)?`"${e}"`:`${e}`).join(`,`);return this.url.searchParams.append(e,`in.(${n})`),this}notIn(e,t){let n=Array.from(new Set(t)).map(e=>typeof e==`string`&&te.test(e)?`"${e}"`:`${e}`).join(`,`);return this.url.searchParams.append(e,`not.in.(${n})`),this}contains(e,t){return typeof t==`string`?this.url.searchParams.append(e,`cs.${t}`):Array.isArray(t)?this.url.searchParams.append(e,`cs.{${t.join(`,`)}}`):this.url.searchParams.append(e,`cs.${JSON.stringify(t)}`),this}containedBy(e,t){return typeof t==`string`?this.url.searchParams.append(e,`cd.${t}`):Array.isArray(t)?this.url.searchParams.append(e,`cd.{${t.join(`,`)}}`):this.url.searchParams.append(e,`cd.${JSON.stringify(t)}`),this}rangeGt(e,t){return this.url.searchParams.append(e,`sr.${t}`),this}rangeGte(e,t){return this.url.searchParams.append(e,`nxl.${t}`),this}rangeLt(e,t){return this.url.searchParams.append(e,`sl.${t}`),this}rangeLte(e,t){return this.url.searchParams.append(e,`nxr.${t}`),this}rangeAdjacent(e,t){return this.url.searchParams.append(e,`adj.${t}`),this}overlaps(e,t){return typeof t==`string`?this.url.searchParams.append(e,`ov.${t}`):this.url.searchParams.append(e,`ov.{${t.join(`,`)}}`),this}textSearch(e,t,{config:n,type:r}={}){let i=``;r===`plain`?i=`pl`:r===`phrase`?i=`ph`:r===`websearch`&&(i=`w`);let a=n===void 0?``:`(${n})`;return this.url.searchParams.append(e,`${i}fts${a}.${t}`),this}match(e){return Object.entries(e).filter(([e,t])=>t!==void 0).forEach(([e,t])=>{this.url.searchParams.append(e,`eq.${t}`)}),this}not(e,t,n){return this.url.searchParams.append(e,`not.${t}.${n}`),this}or(e,{foreignTable:t,referencedTable:n=t}={}){let r=n?`${n}.or`:`or`;return this.url.searchParams.append(r,`(${e})`),this}filter(e,t,n){return this.url.searchParams.append(e,`${t}.${n}`),this}},ne=class{constructor(e,{headers:t={},schema:n,fetch:r,urlLengthLimit:i=8e3,retry:a}){this.url=e,this.headers=new Headers(t),this.schema=n,this.fetch=r,this.urlLengthLimit=i,this.retry=a}cloneRequestState(){return{url:new URL(this.url.toString()),headers:new Headers(this.headers)}}select(e,t){let{head:n=!1,count:r}=t??{},i=n?`HEAD`:`GET`,a=!1,o=(e??`*`).split(``).map(e=>/\s/.test(e)&&!a?``:(e===`"`&&(a=!a),e)).join(``),{url:s,headers:c}=this.cloneRequestState();return s.searchParams.set(`select`,o),r&&c.append(`Prefer`,`count=${r}`),new _({method:i,url:s,headers:c,schema:this.schema,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}insert(e,{count:t,defaultToNull:n=!0}={}){let{url:r,headers:i}=this.cloneRequestState();if(t&&i.append(`Prefer`,`count=${t}`),n||i.append(`Prefer`,`missing=default`),Array.isArray(e)){let t=e.reduce((e,t)=>e.concat(Object.keys(t)),[]);if(t.length>0){let e=[...new Set(t)].map(e=>`"${e}"`);r.searchParams.set(`columns`,e.join(`,`))}}return new _({method:`POST`,url:r,headers:i,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}upsert(e,{onConflict:t,ignoreDuplicates:n=!1,count:r,defaultToNull:i=!0}={}){let{url:a,headers:o}=this.cloneRequestState();if(o.append(`Prefer`,`resolution=${n?`ignore`:`merge`}-duplicates`),t!==void 0&&a.searchParams.set(`on_conflict`,t),r&&o.append(`Prefer`,`count=${r}`),i||o.append(`Prefer`,`missing=default`),Array.isArray(e)){let t=e.reduce((e,t)=>e.concat(Object.keys(t)),[]);if(t.length>0){let e=[...new Set(t)].map(e=>`"${e}"`);a.searchParams.set(`columns`,e.join(`,`))}}return new _({method:`POST`,url:a,headers:o,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}update(e,{count:t}={}){let{url:n,headers:r}=this.cloneRequestState();return t&&r.append(`Prefer`,`count=${t}`),new _({method:`PATCH`,url:n,headers:r,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}delete({count:e}={}){let{url:t,headers:n}=this.cloneRequestState();return e&&n.append(`Prefer`,`count=${e}`),new _({method:`DELETE`,url:t,headers:n,schema:this.schema,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}};function re(e){"@babel/helpers - typeof";return re=typeof Symbol==`function`&&typeof Symbol.iterator==`symbol`?function(e){return typeof e}:function(e){return e&&typeof Symbol==`function`&&e.constructor===Symbol&&e!==Symbol.prototype?`symbol`:typeof e},re(e)}function ie(e,t){if(re(e)!=`object`||!e)return e;var n=e[Symbol.toPrimitive];if(n!==void 0){var r=n.call(e,t||`default`);if(re(r)!=`object`)return r;throw TypeError(`@@toPrimitive must return a primitive value.`)}return(t===`string`?String:Number)(e)}function ae(e){var t=ie(e,`string`);return re(t)==`symbol`?t:t+``}function oe(e,t,n){return(t=ae(t))in e?Object.defineProperty(e,t,{value:n,enumerable:!0,configurable:!0,writable:!0}):e[t]=n,e}function se(e,t){var n=Object.keys(e);if(Object.getOwnPropertySymbols){var r=Object.getOwnPropertySymbols(e);t&&(r=r.filter(function(t){return Object.getOwnPropertyDescriptor(e,t).enumerable})),n.push.apply(n,r)}return n}function ce(e){for(var t=1;t<arguments.length;t++){var n=arguments[t]==null?{}:arguments[t];t%2?se(Object(n),!0).forEach(function(t){oe(e,t,n[t])}):Object.getOwnPropertyDescriptors?Object.defineProperties(e,Object.getOwnPropertyDescriptors(n)):se(Object(n)).forEach(function(t){Object.defineProperty(e,t,Object.getOwnPropertyDescriptor(n,t))})}return e}var le=class e{constructor(e,{headers:t={},schema:n,fetch:r,timeout:i,urlLengthLimit:a=8e3,retry:o}={}){this.url=e,this.headers=new Headers(t),this.schemaName=n,this.urlLengthLimit=a;let s=r??globalThis.fetch;i!==void 0&&i>0?this.fetch=(e,t)=>{let n=new AbortController,r=setTimeout(()=>n.abort(),i),a=t?.signal;if(a){if(a.aborted)return clearTimeout(r),s(e,t);let i=()=>{clearTimeout(r),n.abort()};return a.addEventListener(`abort`,i,{once:!0}),s(e,ce(ce({},t),{},{signal:n.signal})).finally(()=>{clearTimeout(r),a.removeEventListener(`abort`,i)})}return s(e,ce(ce({},t),{},{signal:n.signal})).finally(()=>clearTimeout(r))}:this.fetch=s,this.retry=o}from(e){if(!e||typeof e!=`string`||e.trim()===``)throw Error(`Invalid relation name: relation must be a non-empty string.`);return new ne(new URL(`${this.url}/${e}`),{headers:new Headers(this.headers),schema:this.schemaName,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}schema(t){return new e(this.url,{headers:this.headers,schema:t,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}rpc(e,t={},{head:n=!1,get:r=!1,count:i}={}){let a,o=new URL(`${this.url}/rpc/${e}`),s,c=e=>typeof e==`object`&&!!e&&(!Array.isArray(e)||e.some(c)),l=n&&Object.values(t).some(c);l?(a=`POST`,s=t):n||r?(a=n?`HEAD`:`GET`,Object.entries(t).filter(([e,t])=>t!==void 0).map(([e,t])=>[e,Array.isArray(t)?`{${t.join(`,`)}}`:`${t}`]).forEach(([e,t])=>{o.searchParams.append(e,t)})):(a=`POST`,s=t);let u=new Headers(this.headers);return l?u.set(`Prefer`,i?`count=${i},return=minimal`:`return=minimal`):i&&u.set(`Prefer`,`count=${i}`),new _({method:a,url:o,headers:u,schema:this.schemaName,body:s,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}},ue=class{constructor(){}static detectEnvironment(){if(typeof WebSocket<`u`)return{type:`native`,constructor:WebSocket};if(typeof globalThis<`u`&&globalThis.WebSocket!==void 0)return{type:`native`,constructor:globalThis.WebSocket};if(typeof global<`u`&&global.WebSocket!==void 0)return{type:`native`,constructor:global.WebSocket};if(typeof globalThis<`u`&&globalThis.WebSocketPair!==void 0&&globalThis.WebSocket===void 0)return{type:`cloudflare`,error:`Cloudflare Workers detected. WebSocket clients are not supported in Cloudflare Workers.`,workaround:`Use Cloudflare Workers WebSocket API for server-side WebSocket handling, or deploy to a different runtime.`};if(typeof globalThis<`u`&&globalThis.EdgeRuntime||typeof navigator<`u`&&navigator.userAgent?.includes(`Vercel-Edge`))return{type:`unsupported`,error:`Edge runtime detected (Vercel Edge/Netlify Edge). WebSockets are not supported in edge functions.`,workaround:`Use serverless functions or a different deployment target for WebSocket functionality.`};let e=globalThis.process;if(e){let t=e.versions;if(t&&t.node){let e=t.node,n=parseInt(e.replace(/^v/,``).split(`.`)[0]);return n>=22?globalThis.WebSocket===void 0?{type:`unsupported`,error:`Node.js ${n} detected but native WebSocket not found.`,workaround:`Provide a WebSocket implementation via the transport option.`}:{type:`native`,constructor:globalThis.WebSocket}:{type:`unsupported`,error:`Node.js ${n} detected without native WebSocket support.`,workaround:`For Node.js < 22, install "ws" package and provide it via the transport option:
@@ -2955,6 +3077,17 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <div id="cf-tc-seqname" style="font-family:var(--cond);font-size:clamp(11px,2vw,18px);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-low);max-width:80%;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
   </div>
 </div>
+
+<!-- Camera Prompter screen — chroma-key overlay for the switcher. The whole window is
+     green; only the text survives the key and lands over PGM. Blocks are built by
+     _cfpBuild() and only their text is touched per frame (no reflow, no flicker). -->
+<div id="cf-prompter-screen">
+  <div id="cfp-panel">
+    <div id="cfp-notc"><span>NO TC</span><span id="cfp-notc-sub">HOLDING</span></div>
+    <div id="cfp-blocks"></div>
+  </div>
+</div>
+
 <!-- Viewer/crew cockpit screen -->
 <div id="cf-viewer-screen" style="display:none;position:fixed;inset:0;z-index:9996;background:var(--bg);flex-direction:column;overflow:hidden;">
 
@@ -4250,8 +4383,22 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
           <option value="editor">Editor — can create &amp; edit cues</option>
           <option value="tc">TC Display — timecode only</option>
           <option value="cam-viewer">Camera — single-camera cockpit</option>
+          <option value="prompter">Camera Prompter — chroma-key overlay</option>
         </select>
         <div id="cf-pin-camviewer-hint" class="sbp-camhint" style="display:none;margin-top:4px;border:none;padding:6px 0 0;font-style:italic;color:var(--txt-low);font-family:var(--cond);font-size:10px;letter-spacing:.03em;"></div>
+      </div>
+      <!-- Camera Prompter config: which cameras, and how deep the lookahead goes -->
+      <div id="cf-pin-prompt-wrap" style="display:none;">
+        <div class="sbp-cl-tracks-lbl">Cameras on the prompter</div>
+        <div id="cf-pin-prompt-cams" style="margin-top:6px;display:flex;flex-direction:column;gap:4px;"></div>
+        <div class="sbp-cl-lbl" style="margin-top:12px;">Shots per camera</div>
+        <select id="cf-pin-prompt-depth" class="sbp-cl-select">
+          <option value="auto">Auto — fit as many as the screen allows</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
       </div>
       <div id="cf-pin-tracks-wrap" style="display:none;">
         <div class="sbp-cl-tracks-lbl" id="cf-pin-tracks-lbl">Visible tracks</div>
@@ -6254,6 +6401,7 @@ function _doRedraw(target,frames){
     // ── Cockpit layout update ──
     _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,liveSongId);
     _updateViewerCockpit(frames,allCues,curIdx,upNextSongId);
+    _updatePrompter(frames);   // camera prompter rides the same TC as every other view
 
     // Setlist / mini-songs
     renderMiniSongs('live',liveSongId,upNextSongId);
@@ -6353,6 +6501,312 @@ function _renderNextTwins(boxId,twins,canFlag,cdTxt,isWarn,fillPct){
     el.classList.toggle('warn',isWarn);
     const uf=el.querySelector('[data-uf]'); if(uf)uf.style.width=fillPct.toFixed(1)+'%';
   }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CAMERA PROMPTER — chroma-key overlay showing each selected camera's next shots.
+   Read-only, driven by the same TC as every other view. Layout is built once and
+   only text is rewritten per frame: blocks must never reorder or reflow, because
+   this is keyed live over PGM and read off a 7" monitor in a gallery.
+   ══════════════════════════════════════════════════════════════════════════ */
+const CFP={
+  cams:[],           // configured camera ids ([] = all)
+  depth:'auto',      // lookahead per camera: a number, or 'auto' (fit to height)
+  MAX_DEPTH:8,
+  _autoDepth:3,
+  _built:'',         // signature of the DOM currently in the panel
+  _els:{},           // cameraId → {block, live, next, desc, cd, ahead[], empty}
+  _txt:{},           // last text written per node, so we skip no-op DOM writes
+  _fitting:false,
+};
+
+/* Configured cameras, sorted by camera number. Sorting here (not by config order) is
+   what keeps every block in a fixed, predictable position on the monitor. */
+function _cfpCameras(){
+  const all=(state.cameraTrack&&state.cameraTrack.cameras)||[];
+  const want=(CFP.cams&&CFP.cams.length)?CFP.cams:null;
+  return all.filter(c=>!want||want.indexOf(c.id)!==-1)
+            .slice().sort((a,b)=>(a.number||0)-(b.number||0));
+}
+
+/* Every camera cue in the active playlist, carrying its song (cueEndFrames needs it).
+   Per-device visibility is deliberately ignored — a show-critical feed must not depend
+   on which tracks somebody happened to hide on this device. */
+function _cfpCamCues(){
+  const out=[];
+  getActivePlaylistSongs().forEach(s=>(s.cues||[]).forEach(c=>{
+    if(c.cameraId) out.push({...c,_f:tcF(c.tc),song:s});
+  }));
+  return out.sort((a,b)=>a._f-b._f);
+}
+
+/* What each camera is doing at `frames`.
+
+   Both states are properties of the SEQUENCE, not of a camera — they just get drawn in
+   whichever camera's block owns the cue:
+     RED   = the current cue (the one on air right now)
+     AMBER = the next cue (the one the director takes next)
+   A camera's auto-duration shot ends when the next camera cue is taken (cueEndFrames
+   treats the camera track as a single track), so the current cue is genuinely the shot
+   that is up. Cues sharing a TC are equally current / equally next, as in the cockpit. */
+function _cfpModel(frames){
+  const cues=_cfpCamCues();
+
+  const upcomingAll=cues.filter(c=>c._f>frames);
+  const nextF=upcomingAll.length?upcomingAll[0]._f:null;   // cues are sorted ascending
+
+  // Current = the last cue that has started and has not ended. An explicit duration can
+  // expire before the next cue is taken, and then nothing is current — no red anywhere,
+  // rather than a stale tally left burning on a camera that is off air.
+  let curF=null;
+  for(const c of cues){
+    if(frames>=c._f && frames<cueEndFrames(c,c.song)) curF=c._f;
+  }
+
+  const cams=_cfpCameras().map(cam=>{
+    const mine=cues.filter(c=>c.cameraId===cam.id);
+    const live=curF!=null?(mine.find(c=>c._f===curF)||null):null;
+    return {cam, live, upcoming:mine.filter(c=>c._f>frames)};
+  });
+  return {cams, nextF, curF};
+}
+
+/* Two of the camera colours (#59AC44, #7CEEB2) are green — a badge in either would key
+   out and the camera number would vanish from the feed. Lift blue to the green level,
+   which turns a green into its teal/cyan sibling: still recognisably that camera's
+   colour, still distinct from the others, and no longer green-dominant. Prompter only —
+   the app's own camera colours are untouched. */
+function _cfpKeySafe(hex){
+  const m=/^#?([0-9a-f]{6})$/i.exec(String(hex||'')); if(!m) return hex;
+  const n=parseInt(m[1],16);
+  const r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+  if(!(g>r+30 && g>b+30)) return hex;              // already keyable
+  const b2=Math.min(255,g);                        // b == g ⇒ no longer green-dominant
+  return '#'+[r,g,b2].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+
+function _cfpCountdown(framesLeft){
+  const s=Math.max(0,Math.ceil(framesLeft/(state.fps||25)));
+  return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+}
+
+function _cfpSpan(cls,parent){
+  const s=document.createElement('span'); s.className=cls; parent.appendChild(s); return s;
+}
+
+/* One shot card: name + countdown on the first line, description underneath. Which of
+   those show depends on the card's state, set per frame in _updatePrompter. */
+function _cfpItem(){
+  const it=document.createElement('div');
+  it.className='cfp-item hidden';
+  const line=document.createElement('div'); line.className='cfp-line'; it.appendChild(line);
+  const tag=_cfpSpan('cfp-tag',line);   tag.textContent='ON AIR';
+  const name=_cfpSpan('cfp-name',line);
+  const cd=_cfpSpan('cfp-cd',line);
+  const desc=document.createElement('div'); desc.className='cfp-desc'; it.appendChild(desc);
+  return {el:it,tag,name,cd,desc};
+}
+
+/* Build the panel DOM for the current cameras + depth. No-op when nothing changed.
+   Every slot is created up front; per-frame updates only rewrite text and swap the
+   state class, so the layout never reflows. */
+function _cfpBuild(depth){
+  const box=document.getElementById('cfp-blocks'); if(!box) return;
+  const cams=_cfpCameras();
+  const sig=cams.map(c=>c.id+':'+c.number+':'+c.colorIdx).join(',')+'|'+depth;
+  if(CFP._built===sig) return;
+  CFP._built=sig; CFP._els={}; CFP._txt={};
+  box.innerHTML='';
+
+  cams.forEach(cam=>{
+    const block=document.createElement('div');
+    block.className='cfp-block';
+
+    // Header — UI Kit camera badge: coloured background, black text (never override it).
+    const hdr=document.createElement('div');
+    hdr.className='cfp-hdr';
+    const badge=document.createElement('div');
+    badge.className='cam-badge';
+    badge.style.background=_cfpKeySafe(getCameraColor(cam.colorIdx||0));
+    badge.textContent=String(cam.number!=null?cam.number:'?').padStart(2,'0');
+    hdr.appendChild(badge);
+    const hlbl=document.createElement('div');
+    hlbl.className='cfp-hdr-lbl';
+    hlbl.textContent=cam.label||('CAM '+(cam.number!=null?cam.number:'?'));
+    hdr.appendChild(hlbl);
+    block.appendChild(hdr);
+
+    const rows=document.createElement('div');
+    rows.className='cfp-rows';
+
+    // Slot 0 is the live card; the rest are the lookahead, in TC order.
+    const live=_cfpItem();
+    rows.appendChild(live.el);
+    const items=[];
+    for(let i=0;i<Math.max(1,depth);i++){
+      const it=_cfpItem();
+      items.push(it);
+      rows.appendChild(it.el);
+    }
+
+    const empty=document.createElement('div');
+    empty.className='cfp-empty'; empty.textContent='—'; empty.style.display='none';
+    rows.appendChild(empty);
+
+    block.appendChild(rows);
+    box.appendChild(block);
+    CFP._els[cam.id]={block,live,items,empty};
+  });
+}
+
+/* Write text only when it actually changed — a keyed overlay must not repaint needlessly. */
+function _cfpSet(node,key,txt){
+  if(CFP._txt[key]===txt) return;
+  CFP._txt[key]=txt;
+  node.textContent=txt;
+}
+function _cfpShow(row,on){ row.classList.toggle('hidden',!on); }
+function _cfpState(item,cls){                       // 'live' | 'next' | 'ahead'
+  item.el.className='cfp-item '+cls;
+  item.tag.style.display = cls==='live' ? '' : 'none';
+  item.cd.style.display  = cls==='next' ? '' : 'none';
+  item.desc.style.display= cls==='next' ? '' : 'none';
+}
+
+/* Per-frame update. Called from _doRedraw, so it rides the same TC as every other view. */
+function _updatePrompter(frames){
+  const scr=document.getElementById('cf-prompter-screen');
+  if(!scr||scr.style.display==='none') return;
+
+  const depth=(CFP.depth==='auto')?CFP._autoDepth:CFP.depth;
+  const camsSig=_cfpCameras().map(c=>c.id+':'+c.number+':'+c.colorIdx).join(',')+'|'+depth;
+  if(CFP._built!==camsSig && !CFP._fitting){    // cameras changed under us (remote edit)
+    requestAnimationFrame(_cfpAutoFit);
+    return;
+  }
+
+  const stale=_cfpTcStale();
+  const {cams,nextF}=_cfpModel(frames);
+
+  cams.forEach(m=>{
+    const e=CFP._els[m.cam.id]; if(!e) return;
+    const id=m.cam.id;
+
+    // 1. LIVE — red tally, only while this camera is actually on air.
+    _cfpShow(e.live.el,!!m.live);
+    if(m.live){
+      _cfpState(e.live,'live');
+      _cfpSet(e.live.name,id+'-live',m.live.name||'—');
+    }
+
+    // 2. UPCOMING — the sequence's next cue is amber (with countdown + description),
+    //    wherever it falls; every other card is a plain lookahead.
+    e.items.forEach((it,i)=>{
+      const c=m.upcoming[i]||null;
+      _cfpShow(it.el,!!c);
+      if(!c) return;
+      const isNext = nextF!=null && c._f===nextF;
+      _cfpState(it,isNext?'next':'ahead');
+      _cfpSet(it.name,id+'-n'+i,c.name||'—');
+      if(isNext){
+        _cfpSet(it.desc,id+'-d'+i,(c.desc||'').trim());
+        it.desc.style.display=(c.desc||'').trim()?'':'none';
+        // With no TC we are free-running: a ticking countdown would be a lie. Blank it.
+        _cfpSet(it.cd,id+'-c'+i, stale?'—':_cfpCountdown(c._f-frames));
+      }
+    });
+
+    // 3. HOLD — camera is out of cues. The block stays put and shows an em dash.
+    e.empty.style.display=(!m.live&&!m.upcoming.length)?'block':'none';
+  });
+}
+
+/* TC watchdog. Viewers free-run when packets stop, which is right for the waterfall but
+   dangerous here — so the prompter holds its content and says NO TC out loud. */
+function _cfpTcStale(){
+  if(!window.CF) return false;
+  return !CF._lastTcRx || (Date.now()-CF._lastTcRx)>2000;
+}
+function _cfpTcWatch(){
+  const scr=document.getElementById('cf-prompter-screen');
+  if(!scr||scr.style.display==='none') return;
+  scr.classList.toggle('notc',_cfpTcStale());
+}
+
+/* Fit the panel: pick the largest lookahead depth that fits the height without
+   scrolling, then shrink the type if even one row per camera still overflows.
+   Measured against a worst-case fill (every row populated) so the layout can't start
+   overflowing later just because a shot went live or a description appeared. */
+function _cfpFillWorstCase(){
+  /* The tallest the PANEL can ever be — not the tallest each block could be in
+     isolation. Only one cue in the sequence is current and only one is next, so across
+     the whole panel there is at most ONE red card and ONE amber card (amber being the
+     only one with a description line). Reserving both in every block is what made auto
+     mode pick a needlessly shallow depth and leave the screen half empty.
+     Total height is the same wherever the red and amber land, so we just pin them to the
+     first two blocks and measure. */
+  const ids=Object.keys(CFP._els);
+  const amberBlock=ids.length>1?1:0;   // worst case: red and amber on different blocks
+  ids.forEach((id,bi)=>{
+    const e=CFP._els[id];
+    e.empty.style.display='none';
+    _cfpShow(e.live.el, bi===0);
+    if(bi===0){ _cfpState(e.live,'live'); e.live.name.textContent='SHOT NAME'; }
+    e.items.forEach((it,i)=>{
+      _cfpShow(it.el,true);
+      const isAmber=(bi===amberBlock && i===0);
+      _cfpState(it,isAmber?'next':'ahead');
+      it.name.textContent='SHOT NAME';
+      if(isAmber){ it.cd.textContent='0:00'; it.desc.textContent='Description line'; }
+    });
+  });
+  CFP._txt={}; // the real values must be rewritten after fitting
+}
+
+function _cfpAutoFit(){
+  const box=document.getElementById('cfp-blocks');
+  const panel=document.getElementById('cfp-panel');
+  if(!box||!panel||CFP._fitting) return;
+  CFP._fitting=true;
+  try{
+    const fits=()=>box.scrollHeight<=box.clientHeight+1;
+    panel.style.setProperty('--cfp-s','1');
+
+    if(CFP.depth==='auto'){
+      for(let d=CFP.MAX_DEPTH;d>=1;d--){
+        CFP._autoDepth=d;
+        CFP._built=''; _cfpBuild(d); _cfpFillWorstCase();
+        if(fits()) break;
+      }
+    } else {
+      CFP._built=''; _cfpBuild(CFP.depth); _cfpFillWorstCase();
+    }
+
+    // Too many cameras for the height even at depth 1 → scale the type down rather than
+    // clip a block. Nothing may be cut off on this feed.
+    let s=1;
+    while(!fits()&&s>0.6){ s=+(s-0.05).toFixed(2); panel.style.setProperty('--cfp-s',String(s)); }
+  } finally {
+    CFP._fitting=false;
+  }
+  _updatePrompter(state.currentFrames||0);   // replace the worst-case fill with real content
+}
+
+/* Enter the prompter view (role 'prompter'). */
+function showPrompterScreen(show){
+  const scr=document.getElementById('cf-prompter-screen'); if(!scr) return;
+  CFP.cams=(window.CF&&CF.cameraIds)?CF.cameraIds.slice():[];
+  CFP.depth=(window.CF&&CF.promptDepth)?CF.promptDepth:'auto';
+  scr.style.display='block';
+  CFP._built='';
+  _cfpAutoFit();
+  if(!CFP._bound){
+    CFP._bound=true;
+    let rt=null;
+    window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(_cfpAutoFit,150); });
+    setInterval(_cfpTcWatch,500);
+  }
+  _cfpTcWatch();
 }
 
 function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,curSeqId){
@@ -19141,6 +19595,19 @@ function _applyAccessRow(role, accessId, rawTrackIds){
      source of truth for "restricted?" — CF.tracks alone is ambiguous because a
      camera-only editor has no regular streams (CF.tracks ends up null), which
      otherwise reads as "unrestricted / show everything" (BUG 2). */
+  /* The prompter's lookahead depth rides along in track_ids as "depth:auto" / "depth:3"
+     (no schema change needed). Strip it before anything reads the list as track ids —
+     including _trackRestricted, or a depth token alone would read as a restriction. */
+  CF.promptDepth=null;
+  if(rawTrackIds&&rawTrackIds.length){
+    rawTrackIds.forEach(function(id){
+      if(id&&id.indexOf('depth:')===0){
+        var d=id.slice(6);
+        CF.promptDepth=(d==='auto')?'auto':(parseInt(d,10)||'auto');
+      }
+    });
+    rawTrackIds=rawTrackIds.filter(function(id){return !(id&&id.indexOf('depth:')===0);});
+  }
   CF._trackRestricted = !!(rawTrackIds && rawTrackIds.length);
   if(rawTrackIds&&rawTrackIds.length){
     var rawCamIds=rawTrackIds.filter(function(id){return id&&id.indexOf('cam:')===0;}).map(function(id){return id.replace('cam:','');});
@@ -19152,6 +19619,8 @@ function _applyAccessRow(role, accessId, rawTrackIds){
     if(!CF.tracks.length) CF.tracks=null;
   } else { CF.tracks=null; CF.cameraIds=null; }
 }
+
+CF._applyAccessRow=_applyAccessRow;   /* exposed like its peers below (and for tests) */
 
 /* The regular streams a restricted role may see/edit ([] = none, e.g. camera-only). */
 CF._allowedStreamIds=function(){
@@ -19211,7 +19680,8 @@ function _cfRestoreCollabOffline(showId){
     hideLoading();
     var js=document.getElementById('cf-join-screen'); if(js) js.style.display='none';
     var show={name:cached.name, project_data:cached};
-    if(s.role==='tc') showTcScreen(show);
+    if(s.role==='prompter') showPrompterScreen(show);
+    else if(s.role==='tc') showTcScreen(show);
     else if(s.role==='editor'||s.role==='track-editor'){ showEditorApp(show); restoreSessionState(); }
     else { showViewerScreen(show); restoreSessionState(); }
     return true;
@@ -19290,7 +19760,8 @@ function cfJoin(){
     startPresence();
     hideLoading();
     document.getElementById('cf-join-screen').style.display='none';
-    if(CF.role==='tc') showTcScreen(show);
+    if(CF.role==='prompter') showPrompterScreen(show);
+    else if(CF.role==='tc') showTcScreen(show);
     else if(CF.role==='editor'||CF.role==='track-editor'){ showEditorApp(show); restoreSessionState(); }
     else if(_camSelectMode){ showViewerScreen(show); showCameraPickerModal(show); }
     else { showViewerScreen(show); restoreSessionState(); }
@@ -19398,7 +19869,8 @@ function _cfLanEnterAsViewer(snap){
   hideLoading();
   var js=document.getElementById('cf-join-screen'); if(js) js.style.display='none';
   var show={name:(snap&&snap.name)||state.name};
-  if(CF.role==='tc') showTcScreen(show);
+  if(CF.role==='prompter') showPrompterScreen(show);
+  else if(CF.role==='tc') showTcScreen(show);
   else if(CF.role==='editor'||CF.role==='track-editor'){ showEditorApp(show); }
   else if(CF._camSelectMode){ showViewerScreen(show); showCameraPickerModal(show); }
   else { showViewerScreen(show); }
@@ -20680,9 +21152,10 @@ function renderPinsList(){
        control (BUG 1), collapsing it to a static "Camera" label. */
     var _camT0=p.track_ids&&p.track_ids.length===1&&p.track_ids[0];
     var isCamPin=p.role==='viewer'&&_camT0&&_camT0.indexOf('cam:')===0&&_camT0!=='cam:track'&&_camT0!=='cam:all';
-    var roleTxt=p.role==='tc'?'TC':p.role==='owner'?'ADMIN':(p.role==='editor'||p.role==='track-editor'?'EDITOR':isCamPin?'CAMERA':'VIEWER');
-    var roleCls=isCamPin?'camera':p.role==='owner'?'admin':(p.role==='editor'||p.role==='track-editor')?'editor':p.role==='tc'?'tc':'viewer';
-    var canEditTracks=!isCamPin&&(p.role==='viewer'||p.role==='editor'||p.role==='crew'||p.role==='track-editor');
+    var roleTxt=p.role==='prompter'?'PROMPTER':p.role==='tc'?'TC':p.role==='owner'?'ADMIN':(p.role==='editor'||p.role==='track-editor'?'EDITOR':isCamPin?'CAMERA':'VIEWER');
+    var roleCls=p.role==='prompter'?'camera':isCamPin?'camera':p.role==='owner'?'admin':(p.role==='editor'||p.role==='track-editor')?'editor':p.role==='tc'?'tc':'viewer';
+    /* The prompter's track_ids are its camera+depth config, not editable track access. */
+    var canEditTracks=!isCamPin&&p.role!=='prompter'&&(p.role==='viewer'||p.role==='editor'||p.role==='crew'||p.role==='track-editor');
     var trackSummary='';
     if(isCamPin){
       var camId=p.track_ids[0].replace('cam:','');
@@ -20795,6 +21268,30 @@ function onRoleChange(){
   if(!wrap) return;
   var needsTracks=role==='viewer'||role==='editor';
   var isCamViewer=role==='cam-viewer';
+
+  /* Camera Prompter: pick the cameras and the lookahead depth. */
+  var pWrap=document.getElementById('cf-pin-prompt-wrap');
+  if(pWrap){
+    pWrap.style.display=(role==='prompter')?'block':'none';
+    if(role==='prompter'){
+      var pList=document.getElementById('cf-pin-prompt-cams');
+      if(pList){
+        pList.innerHTML='';
+        var cams=(state.cameraTrack&&state.cameraTrack.cameras)||[];
+        if(!cams.length){
+          pList.innerHTML='<div style="font-size:11px;color:var(--txt-low);">This show has no cameras yet.</div>';
+        } else {
+          cams.slice().sort(function(a,b){return (a.number||0)-(b.number||0);}).forEach(function(cam){
+            var lb=document.createElement('label');
+            lb.className='sbp-cl-chk-row';
+            lb.innerHTML='<input type="checkbox" checked value="'+escH(cam.id)+'" style="accent-color:var(--primary);margin-right:2px;"> '+
+                         escH('CAM '+(cam.number!=null?cam.number:'?')+(cam.label?' · '+cam.label:''));
+            pList.appendChild(lb);
+          });
+        }
+      }
+    }
+  }
   /* Camera cues checkbox: only for viewers when a camera track exists */
   var camAllWrap=document.getElementById('cf-pin-cam-all-wrap');
   var hasCamTrack=!!(state.cameraTrack);
@@ -20842,6 +21339,14 @@ function addPin(){
   if(role==='cam-viewer'){
     dbRole='viewer';
     trackIds=['cam:select'];
+  } else if(role==='prompter'){
+    /* Config rides in track_ids: one cam:<id> per selected camera plus a depth token.
+       _applyAccessRow() strips the depth token back out on join. */
+    var pBoxes=document.querySelectorAll('#cf-pin-prompt-cams input:checked');
+    trackIds=Array.from(pBoxes).map(function(b){return 'cam:'+b.value;});
+    var depthEl=document.getElementById('cf-pin-prompt-depth');
+    trackIds.push('depth:'+((depthEl&&depthEl.value)||'auto'));
+    if(!label||label===role) label='Camera Prompter';
   } else if(role==='viewer'||role==='editor'){
     var boxes=document.querySelectorAll('#cf-pin-tracks-list input:checked');
     if(boxes.length){
