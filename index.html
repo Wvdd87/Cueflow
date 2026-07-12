@@ -1024,6 +1024,11 @@ body.mode-live #edit-mode-banner { display: none; }
 .etl-cue:hover .etl-cue-handle-r { background: rgba(240,168,56,.35); }
 /* Auto-duration cues: subtle trailing arrow indicating "extends to next cue" */
 .etl-cue-arrow { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); font-size: 12px; line-height: 1; color: rgba(255,255,255,.4); pointer-events: none; z-index: 1; font-family: var(--mono); }
+/* Hover-only edit affordance, top-right of a cue block. Sits above the duration handle
+   (z-index 3) so it stays clickable on narrow cues. */
+.etl-cue-edit { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; display: none; align-items: center; justify-content: center; z-index: 6; cursor: pointer; font-size: 11px; line-height: 1; border-radius: 3px; border: 1px solid var(--hair3); background: rgba(6,6,10,.82); color: var(--txt); }
+.etl-cue:hover .etl-cue-edit { display: flex; }
+.etl-cue-edit:hover { background: var(--primary); border-color: var(--primary); color: #06060a; }
 
 /* Stream cells */
 .etl-stream-cell, .etl-stream-cell.active-stream { cursor: pointer; transition: background .1s; }
@@ -3055,6 +3060,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         </div>
         <div class="nh-bar"><div class="nh-fill" id="vw-next-bar-fill" style="width:0%"></div></div>
       </div>
+      <!-- Identical heroes for any cues sharing NEXT's exact TC -->
+      <div id="vw-next-twins"></div>
 
       <!-- THEN queue -->
       <div class="live-then">
@@ -3819,6 +3826,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         </div>
         <div class="nh-bar"><div class="nh-fill" id="live-next-bar-fill" style="width:0%"></div></div>
       </div>
+      <!-- Identical heroes for any cues sharing NEXT's exact TC -->
+      <div id="live-next-twins"></div>
 
       <!-- THEN queue (upcoming cues 2–5+) -->
       <div class="live-then">
@@ -5956,9 +5965,12 @@ function updateStreamDots(){
 // ═══════════════════════════════════════════════════════════
 const wf = {
   cache: {},    // {songId: Float32Array of normalised RMS blocks}
+  pcm: {},      // {songId: {ch:Float32Array, sr}} — mono samples for a VIDEO's audio track.
+                // Kept out of audio.buffers on purpose: that map feeds the playback
+                // engine, and a video's soundtrack must only come from the <video>.
   visible: true,
   generating: new Set(),
-  BLOCKS: 4000, // RMS blocks for overview (fallback when audio buffer not in memory)
+  BLOCKS: 4000, // min RMS blocks for the overview; scaled up with duration below
   // current waveform row height in px (user-resizable) — restored from last session (per-device)
   rowH: (function(){ try{ var v=parseInt(localStorage.getItem('cf_wf_rowH'),10); return (v>=30&&v<=300)?v:64; }catch(e){ return 64; } })(),
   ROW_MIN: 30,
@@ -5982,7 +5994,9 @@ async function wfGenerateForSong(songId){
   if(audio.buffers[songId]){
     ch=audio.buffers[songId].getChannelData(0);
   } else {
-    // Priority 2: video object URL — decode its audio track
+    // Priority 2: video — decode its audio track and KEEP the samples. Without them
+    // wfDraw has no PCM to sample and every zoom level is stretched out of the coarse
+    // block cache, which is what made a zoomed-in video waveform look stair-stepped.
     const vm=vid.meta?.[songId];
     if(vm?.objUrl){
       try{
@@ -5992,20 +6006,27 @@ async function wfGenerateForSong(songId){
         const buf=await actx.decodeAudioData(ab);
         actx.close();
         ch=buf.getChannelData(0);
+        wf.pcm[songId]={ch:ch, sr:buf.sampleRate};
       }catch(e){console.warn('wf video decode',e);}
     }
   }
 
   if(!ch){wf.generating.delete(songId);return;}
 
-  const N=wf.BLOCKS,step=Math.max(1,Math.floor(ch.length/N));
+  // Block count scales with length (~50/s) so the zoomed-out overview keeps its
+  // shape on a long clip instead of smearing a fixed 4000 blocks across an hour.
+  const durSec=ch.length/((wf.pcm[songId]?.sr)||audio.buffers[songId]?.sampleRate||22050);
+  const N=Math.min(60000,Math.max(wf.BLOCKS,Math.round(durSec*50)));
+  const step=Math.max(1,Math.floor(ch.length/N));
   const out=new Float32Array(N);
+  let peak=1e-6;
   for(let i=0;i<N;i++){
     let s=0;const a=i*step,b=Math.min(ch.length,a+step);
     for(let j=a;j<b;j++)s+=ch[j]*ch[j];
-    out[i]=Math.sqrt(s/(b-a));
+    const v=Math.sqrt(s/Math.max(1,b-a));
+    out[i]=v;
+    if(v>peak)peak=v;             // loop, not Math.max(...out) — N can exceed the arg limit
   }
-  const peak=Math.max(1e-6,...out);
   for(let i=0;i<N;i++)out[i]/=peak;
   wf.cache[songId]=out;
   wf.generating.delete(songId);
@@ -6014,6 +6035,7 @@ async function wfGenerateForSong(songId){
 
 function wfInvalidate(songId){
   delete wf.cache[songId];
+  delete wf.pcm[songId];
 }
 
 /* Draw waveform — B&W, adaptive resolution.
@@ -6050,15 +6072,18 @@ function wfDraw(canvasEl, songId, startSec, endSec, durationSec, offsetSec){
   const midY = H >> 1; // integer centre line
   ctx.beginPath(); ctx.moveTo(x0, midY); ctx.lineTo(x1, midY); ctx.stroke();
 
-  // Choose data source: raw buffer for narrow views, cached blocks otherwise
+  // Choose data source: raw PCM for narrow views, cached blocks otherwise.
+  // An audio sequence has its samples in audio.buffers; a video sequence has them
+  // in wf.pcm (decoded from its audio track) — both give per-pixel detail on zoom.
   const buf = audio.buffers?.[songId];
+  const pcm = buf ? {ch: buf.getChannelData(0), sr: buf.sampleRate} : wf.pcm?.[songId];
   const visibleSec = endSec - startSec;
-  const useHighRes = buf && visibleSec < 90; // direct sampling under 90s window
+  const useHighRes = pcm && visibleSec < 90; // direct sampling under 90s window
 
   if(useHighRes){
     // Per-pixel RMS from raw PCM — full detail regardless of zoom
-    const ch = buf.getChannelData(0);
-    const sr = buf.sampleRate;
+    const ch = pcm.ch;
+    const sr = pcm.sr;
     const secPerPx = (drawEnd - drawStart) / pixelW;
 
     // Pre-normalise: find peak over visible range for local contrast
@@ -6283,6 +6308,46 @@ function _makeLiveBadge(cue,size){
   return `<span class="track-glyph ${size}" style="background:#06060a;color:#fff;">${escH(shortName)}</span>`;
 }
 
+/* Cues that fire on the exact same frame are equally "next" — none of them outranks
+   the other, so the cockpit gives each an identical hero instead of arbitrarily
+   promoting the first and demoting the rest into Upcoming. Returns how many cues,
+   starting at idx, share idx's frame. */
+function _coTimedCount(allCues,idx){
+  if(idx<0||idx>=allCues.length)return 0;
+  const f=allCues[idx]._f;
+  let n=1;
+  while(idx+n<allCues.length&&allCues[idx+n]._f===f)n++;
+  return n;
+}
+
+/* Renders the 2nd..Nth cue of a co-timed group as clones of the NEXT hero. The
+   countdown, warn state and urgency fill are by definition identical across the
+   group (same frame), so they're passed in already computed. */
+function _renderNextTwins(boxId,twins,canFlag,cdTxt,isWarn,fillPct){
+  const box=document.getElementById(boxId); if(!box) return;
+  const key=twins.map(c=>[c.id,c.flagged?1:0,c.name||'',c.desc||''].join('')).join(',')+'|'+(canFlag?'f':'');
+  if(box._twKey!==key){
+    box._twKey=key;
+    box.innerHTML=twins.map(c=>
+      '<div class="live-next">'+
+        (canFlag?'<button class="ck-flag-btn live-next-flag'+(c.flagged?' on':'')+'" data-cid="'+escH(c.id)+'" title="Flag for attention">⚑</button>':'')+
+        '<div class="nh-eyebrow">Next</div>'+
+        '<div class="nh-main" style="margin-top:4px;">'+
+          '<div class="nh-badge">'+_makeLiveBadge(c,'lg')+'<div class="nh-name">'+escH(c.name||'—')+'</div></div>'+
+          '<div class="nh-desc">'+escH(c.desc||'')+'</div>'+
+        '</div>'+
+        '<div class="nh-count"><div class="v" data-cd>—</div><div class="nh-cd-lbl">Until cue</div></div>'+
+        '<div class="nh-bar"><div class="nh-fill" data-uf style="width:0%"></div></div>'+
+      '</div>').join('');
+  }
+  for(const el of box.children){
+    const cd=el.querySelector('[data-cd]'); if(cd)cd.textContent=cdTxt;
+    const cnt=el.querySelector('.nh-count'); if(cnt)cnt.classList.toggle('warn',isWarn);
+    el.classList.toggle('warn',isWarn);
+    const uf=el.querySelector('[data-uf]'); if(uf)uf.style.width=fillPct.toFixed(1)+'%';
+  }
+}
+
 function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,curSeqId){
   const WARN_SEC=state.warnSec||10;
   const URGENCY_SEC=20;
@@ -6328,23 +6393,26 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,curSeqId){
 
   const _ckCanFlag=!window.CF||!CF.role||CF.role==='owner'||CF.role==='editor'||CF.role==='track-editor';
   const nhFlag=document.getElementById('live-next-flag');
+  // Everything on the same frame as NEXT is just as next — hero the first, clone the rest.
+  const _nGroup=_coTimedCount(allCues,nextIdx);
+  const _twins=_nGroup>1?allCues.slice(nextIdx+1,nextIdx+_nGroup):[];
   if(nextCue){
     const cdF=Math.max(0,nextCue._f-frames);
     const cdSec=cdF/state.fps;
+    const cdTxt=cdF>0?fmtCD(cdF):'GO';
     if(nhName)nhName.textContent=nextCue.name||'—';
     if(nhBadge)nhBadge.innerHTML=_makeLiveBadge(nextCue,'lg');
     if(nhDesc)nhDesc.textContent=nextCue.desc||'';
-    if(nhCd)nhCd.textContent=cdF>0?fmtCD(cdF):'GO';
+    if(nhCd)nhCd.textContent=cdTxt;
     const isWarn=cdSec<=WARN_SEC&&cdSec>=0;
     if(nhCount)nhCount.classList.toggle('warn',isWarn);
     if(nhHero)nhHero.classList.toggle('warn',isWarn);
     if(nhFlag&&_ckCanFlag){nhFlag.style.display='';nhFlag.dataset.cid=nextCue.id;nhFlag.classList.toggle('on',!!nextCue.flagged);}
     // Urgency bar — fills as we approach the cue (within 30s)
-    if(nhBarFill){
-      const FILL_SEC=Math.max(WARN_SEC*3,30);
-      const fillPct=cdSec<=FILL_SEC?Math.max(0,Math.min(100,(1-cdSec/FILL_SEC)*100)):0;
-      nhBarFill.style.width=fillPct.toFixed(1)+'%';
-    }
+    const FILL_SEC=Math.max(WARN_SEC*3,30);
+    const fillPct=cdSec<=FILL_SEC?Math.max(0,Math.min(100,(1-cdSec/FILL_SEC)*100)):0;
+    if(nhBarFill)nhBarFill.style.width=fillPct.toFixed(1)+'%';
+    _renderNextTwins('live-next-twins',_twins,_ckCanFlag,cdTxt,isWarn,fillPct);
   } else {
     if(nhName)nhName.textContent='—';
     if(nhBadge)nhBadge.innerHTML='';
@@ -6354,14 +6422,15 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,curSeqId){
     if(nhHero)nhHero.classList.remove('warn');
     if(nhBarFill)nhBarFill.style.width='0%';
     if(nhFlag)nhFlag.style.display='none';
+    _renderNextTwins('live-next-twins',[],_ckCanFlag,'—',false,0);
   }
 
   // ── THEN queue (cues after NEXT, up to 5) ──
   const thenRows=document.getElementById('live-then-rows');
   if(thenRows){
-    // Collect queue cues
+    // Collect queue cues — skip the whole co-timed NEXT group, it's all up in the heroes.
     const _tq=[];
-    for(let qi=nextIdx+1;qi<allCues.length&&_tq.length<5;qi++)_tq.push({qc:allCues[qi],qi});
+    for(let qi=nextIdx+Math.max(1,_nGroup);qi<allCues.length&&_tq.length<5;qi++)_tq.push({qc:allCues[qi],qi});
     // The queue is exhausted (no more upcoming cues to show) → cap it with an end affordance
     // so the remaining vertical space reads as "done", not as a missing-content void.
     const _atSeqEnd=_tq.length<5 && (curIdx>=0||!!nextCue||_tq.length>0);
@@ -6569,18 +6638,26 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
   const _ckCanFlagV=window.CF&&(CF.role==='editor'||CF.role==='track-editor');
   const vwFlag=_e('vw-next-flag');
   const nhHero=_e('vw-next-hero'),nhCount=_e('vw-next-count');
+  // Cues on NEXT's exact frame are equally next — each gets its own identical hero.
+  // Same song-boundary guard as the hero itself, so a co-timed cue can't bleed across.
+  const _nGroupV=nextCue?_coTimedCount(allCues,nextIdx):0;
+  const _twinsV=_nGroupV>1?allCues.slice(nextIdx+1,nextIdx+_nGroupV)
+    .filter(qc=>!(_isTrackViewer&&_vwCurSongId&&qc.songId!==_vwCurSongId)):[];
   if(nextCue){
     const cdF=Math.max(0,nextCue._f-frames),cdSec=cdF/state.fps;
+    const cdTxt=cdF>0?fmtCD(cdF):'GO';
     const e=_e('vw-next-name');if(e)e.textContent=nextCue.name||'—';
     const b=_e('vw-next-badge');if(b)b.innerHTML=_makeLiveBadge(nextCue,'lg');
     const d=_e('vw-next-desc-txt');if(d)d.textContent=nextCue.desc||'';
-    const c=_e('vw-next-cd');if(c)c.textContent=cdF>0?fmtCD(cdF):'GO';
+    const c=_e('vw-next-cd');if(c)c.textContent=cdTxt;
     const isWarn=cdSec<=WARN_SEC&&cdSec>=0;
     if(nhCount)nhCount.classList.toggle('warn',isWarn);
     if(nhHero)nhHero.classList.toggle('warn',isWarn);
     if(vwFlag&&_ckCanFlagV){vwFlag.style.display='';vwFlag.dataset.cid=nextCue.id;vwFlag.classList.toggle('on',!!nextCue.flagged);}
-    const bf=_e('vw-next-bar-fill');
-    if(bf){const FILL_SEC=20;const fp=cdSec<=FILL_SEC?Math.max(0,Math.min(100,(1-cdSec/FILL_SEC)*100)):0;bf.style.width=fp.toFixed(1)+'%';}
+    const FILL_SEC=20;
+    const fp=cdSec<=FILL_SEC?Math.max(0,Math.min(100,(1-cdSec/FILL_SEC)*100)):0;
+    const bf=_e('vw-next-bar-fill');if(bf)bf.style.width=fp.toFixed(1)+'%';
+    _renderNextTwins('vw-next-twins',_twinsV,_ckCanFlagV,cdTxt,isWarn,fp);
   } else {
     const e=_e('vw-next-name');if(e)e.textContent='—';
     const b=_e('vw-next-badge');if(b)b.innerHTML='';
@@ -6590,13 +6667,15 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
     if(nhHero)nhHero.classList.remove('warn');
     if(vwFlag)vwFlag.style.display='none';
     const bf=_e('vw-next-bar-fill');if(bf)bf.style.width='0%';
+    _renderNextTwins('vw-next-twins',[],_ckCanFlagV,'—',false,0);
   }
 
   // ── THEN queue ──
   const tr=_e('vw-then-rows');
   if(tr){
     const _tqV=[];
-    for(let qi=nextIdx+1;qi<allCues.length&&_tqV.length<5;qi++){
+    // Skip the whole co-timed NEXT group — those cues are already shown as heroes.
+    for(let qi=nextIdx+Math.max(1,_nGroupV);qi<allCues.length&&_tqV.length<5;qi++){
       const qc=allCues[qi];
       if(_isTrackViewer&&_vwCurSongId&&qc.songId!==_vwCurSongId)break;
       _tqV.push({qc,qi});
@@ -8360,7 +8439,7 @@ function showStreamCtxMenu(e,cueId){
       _ctxItem(
         `<span class="track-glyph xs" style="background:#06060a;color:#fff;opacity:.45;">${escH(shortName)}</span>`,
         'Remove camera',false,
-        ()=>{snapshot();state.songs.forEach(sg=>{const c=sg.cues.find(x=>x.id===cueId);if(c){delete c.cameraId;c.streamId=state.streams[0]?.id||'';}});persist();renderCueList();redrawActive();_ctxMenu.remove();_ctxMenu=null;}
+        ()=>{snapshot();state.songs.forEach(sg=>{const c=sg.cues.find(x=>x.id===cueId);if(c){delete c.cameraId;c.streamId=state.streams[0]?.id||'';}});persist();renderCueList();redrawActive();if(ETL.visible)renderEditTimeline();_ctxMenu.remove();_ctxMenu=null;}
       );
       _ctxSep();
     }
@@ -8371,7 +8450,7 @@ function showStreamCtxMenu(e,cueId){
       _ctxItem(
         `<span class="cam-badge-sq xs" style="background:${hex};color:#06060a;">${numStr}</span>`,
         cam.label||`CAM ${cam.number}`,isCur,
-        ()=>{if(isCur){_ctxMenu.remove();_ctxMenu=null;return;}snapshot();state.songs.forEach(sg=>{const c=sg.cues.find(x=>x.id===cueId);if(c){c.cameraId=cam.id;delete c.streamId;}});persist();renderCueList();redrawActive();_ctxMenu.remove();_ctxMenu=null;}
+        ()=>{if(isCur){_ctxMenu.remove();_ctxMenu=null;return;}snapshot();state.songs.forEach(sg=>{const c=sg.cues.find(x=>x.id===cueId);if(c){c.cameraId=cam.id;delete c.streamId;}});persist();renderCueList();redrawActive();if(ETL.visible)renderEditTimeline();_ctxMenu.remove();_ctxMenu=null;}
       );
     });
     if(!_isCtxCam)_ctxSep();
@@ -8387,7 +8466,7 @@ function showStreamCtxMenu(e,cueId){
       _ctxItem(
         `<span class="track-glyph xs" style="background:#06060a;color:#fff;">${escH(shortName)}</span>`,
         s.name,isCur,
-        ()=>{if(isCur){_ctxMenu.remove();_ctxMenu=null;return;}snapshot();state.songs.forEach(sg=>{const c=sg.cues.find(x=>x.id===cueId);if(c){c.streamId=s.id;delete c.cameraId;}});persist();renderCueList();redrawActive();_ctxMenu.remove();_ctxMenu=null;}
+        ()=>{if(isCur){_ctxMenu.remove();_ctxMenu=null;return;}snapshot();state.songs.forEach(sg=>{const c=sg.cues.find(x=>x.id===cueId);if(c){c.streamId=s.id;delete c.cameraId;}});persist();renderCueList();redrawActive();if(ETL.visible)renderEditTimeline();_ctxMenu.remove();_ctxMenu=null;}
       );
     });
   }
@@ -8415,7 +8494,9 @@ document.getElementById('cue-list-wrap').addEventListener('input',e=>{
   // For non-TC fields update immediately; TC updated on blur with validation
   if(field!=='tc'){
     state.songs.forEach(s=>{const c=s.cues.find(x=>x.id===id);if(c)c[field]=inp.value;});
-    persist();redrawActive();
+    // redrawActive() only repaints the waterfall — the timeline needs its own call
+    // (the TC commit path does the same), or a rename never reaches the cue block.
+    persist();redrawActive();if(ETL.visible)renderEditTimeline();
   }
 });
 document.getElementById('cue-list-wrap').addEventListener('blur',e=>{
@@ -10710,6 +10791,11 @@ const CF_MEDIA_EXT = {
 };
 function cfMediaKind(name){ const m=/\.([a-z0-9]+)$/i.exec(name||''); return m?(CF_MEDIA_EXT[m[1].toLowerCase()]||null):null; }
 function cfMediaBaseName(name){ return String(name||'').replace(/\.[^.]+$/,''); }
+/* Finder-invisible entries must never show up in the media library. Dotfiles, and in
+   particular the AppleDouble sidecars macOS drops beside real media on non-Mac volumes
+   (`._clip.mov`) — those carry a genuine media extension but are a few KB of metadata,
+   so an extension check alone lets them through. */
+function cfMediaHidden(name){ return String(name||'').charAt(0)==='.'; }
 
 const cfMedia = {
   backend:null,         // 'fsapi' | 'electron'
@@ -10755,7 +10841,7 @@ function cfMediaClearMeta(projId){ try{ localStorage.removeItem(_cfMediaMetaKey(
 async function _cfScanFsApi(handle){
   var map=new Map();
   for await (const entry of handle.values()){
-    if(entry.kind!=='file') continue;
+    if(entry.kind!=='file'||cfMediaHidden(entry.name)) continue;
     var kind=cfMediaKind(entry.name); if(!kind) continue;
     (function(en,kn){ map.set(en.name.toLowerCase(),{name:en.name,kind:kn,getFile:function(){ return en.getFile(); }}); })(entry,kind);
   }
@@ -10764,11 +10850,31 @@ async function _cfScanFsApi(handle){
 async function _cfScanElectron(p){
   var map=new Map();
   var res; try{ res=await window.cfNativeFs.scanMediaFolder(p); }catch(e){ res=null; }
-  if(res&&res.ok&&res.files){ res.files.forEach(function(f){ var kind=cfMediaKind(f.name); if(!kind)return; map.set(f.name.toLowerCase(),{name:f.name,kind:kind,getFile:async function(){ var ab=await window.cfNativeFs.readMediaFile(p,f.name); return new File([ab],f.name); }}); }); }
+  if(res&&res.ok&&res.files){ res.files.forEach(function(f){ if(cfMediaHidden(f.name))return; var kind=cfMediaKind(f.name); if(!kind)return; map.set(f.name.toLowerCase(),{name:f.name,kind:kind,url:f.url,getFile:async function(){ var ab=await window.cfNativeFs.readMediaFile(p,f.name); return new File([ab],f.name); }}); }); }
   return map;
 }
 
-function cfMediaReset(){ cfMedia.backend=null; cfMedia.dirHandle=null; cfMedia.folderPath=null; cfMedia.folderName=null; cfMedia.files=new Map(); cfMedia.durations=new Map(); cfMedia.ready=false; cfMedia.needsReconnect=false; }
+/* Streaming URL for a folder file. Electron serves it from disk over cfmedia://,
+   so a video never enters the JS heap; the FS-API backend falls back to a blob
+   URL, which Chromium also streams straight off disk. Blob URLs are cached per
+   filename and owned here — release them with cfMediaReleaseUrls(). */
+var _cfMediaUrls=new Map();
+async function cfMediaGetUrl(filename){
+  var key=filename&&String(filename).toLowerCase();
+  var e=key&&cfMedia.files.get(key); if(!e) return null;
+  if(e.url) return e.url;
+  if(_cfMediaUrls.has(key)) return _cfMediaUrls.get(key);
+  var file=await cfMediaGetFile(filename); if(!file) return null;
+  var url=URL.createObjectURL(file);
+  _cfMediaUrls.set(key,url);
+  return url;
+}
+function cfMediaReleaseUrls(){
+  _cfMediaUrls.forEach(function(u){ URL.revokeObjectURL(u); });
+  _cfMediaUrls.clear();
+}
+
+function cfMediaReset(){ cfMediaReleaseUrls(); cfMedia.backend=null; cfMedia.dirHandle=null; cfMedia.folderPath=null; cfMedia.folderName=null; cfMedia.files=new Map(); cfMedia.durations=new Map(); cfMedia.ready=false; cfMedia.needsReconnect=false; }
 
 /* Owner picks (or replaces) the media folder. Returns true on success. */
 async function cfMediaPickFolder(){
@@ -10833,12 +10939,19 @@ function cfMediaList(){ return Array.from(cfMedia.files.values()).sort(function(
 async function cfMediaProbeDuration(name){
   var key=String(name).toLowerCase();
   if(cfMedia.durations.has(key)) return cfMedia.durations.get(key);
-  var file=await cfMediaGetFile(name); if(!file){ cfMedia.durations.set(key,null); return null; }
+  var url=await cfMediaGetUrl(name); if(!url){ cfMedia.durations.set(key,null); return null; }
   return await new Promise(function(res){
     var kind=cfMediaKind(name);
     var el=document.createElement(kind==='video'?'video':'audio');
-    var url=URL.createObjectURL(file); var done=false;
-    var finish=function(v){ if(done)return; done=true; URL.revokeObjectURL(url); cfMedia.durations.set(key,v); res(v); };
+    var done=false;
+    /* Tear the probe element down on every exit path — a live <video> keeps a
+       decoder (and the file) alive even after it falls out of scope. */
+    var finish=function(v){
+      if(done)return; done=true;
+      el.onloadedmetadata=el.onerror=null;
+      el.removeAttribute('src'); el.load();
+      cfMedia.durations.set(key,v); res(v);
+    };
     el.preload='metadata';
     el.onloadedmetadata=function(){ finish(isFinite(el.duration)?el.duration:null); };
     el.onerror=function(){ finish(null); };
@@ -10849,11 +10962,14 @@ async function cfMediaProbeDuration(name){
 function cfFmtDur(sec){ if(sec==null||!isFinite(sec)) return ''; var m=Math.floor(sec/60),s=Math.floor(sec%60); return m+':'+String(s).padStart(2,'0'); }
 
 /* Load one sequence's media from the folder into the playback/waveform engine. */
-function _cfMediaLoadVideo(songId,file){
-  if(vid.meta[songId]&&vid.meta[songId].objUrl) URL.revokeObjectURL(vid.meta[songId].objUrl);
-  var url=URL.createObjectURL(file);
-  vid.meta[songId]={filename:file.name,durationSec:0,ready:false,objUrl:url,thumbs:[]};
-  _vidLoad(songId);
+async function _cfMediaLoadVideo(songId,filename){
+  var url=await cfMediaGetUrl(filename); if(!url) return;
+  _vidRevokeMeta(songId);
+  vid.meta[songId]={filename:filename,durationSec:0,ready:false,objUrl:url,ownsUrl:false,thumbs:[]};
+  /* Only the active sequence goes into the shared player. Pointing the player at
+     every sequence in turn spins up (and abandons) a decoder per sequence. */
+  if(songId===state.activeSongId) _vidLoad(songId);
+  else _vidGenerateThumbs(songId);
 }
 async function cfMediaLoadSong(songId){
   if(!cfMediaEnabled()) return;
@@ -10864,8 +10980,9 @@ async function cfMediaLoadSong(songId){
     delete audio.buffers[songId];
     return; // missing — UI shows the warning, sequence still works
   }
+  /* Video streams from a URL; only audio needs the bytes (for decodeAudioData). */
+  if(kind==='video'){ await _cfMediaLoadVideo(songId,song.mediaFile); return; }
   var file=await cfMediaGetFile(song.mediaFile); if(!file) return;
-  if(kind==='video'){ _cfMediaLoadVideo(songId,file); return; }
   _ensureCtx(); if(audio.ctx.state!=='running'){ try{ audio.ctx.resume(); }catch(e){} }
   _teardownSource(); audio.meta[songId]=null; delete audio.buffers[songId];
   audio.meta[songId]={filename:file.name,durationSec:0,loading:true,ready:false};
@@ -10881,6 +10998,9 @@ async function cfMediaLoadAllSongs(){
 /* Called from applyProject — restore the project's folder and load its media. */
 async function cfMediaOnProjectLoad(){
   _cfApplyEditMediaTabs(); // hide media tabs for editors/viewers/mobile
+  // Only ever runs on a genuine project switch (applyProject guards on project id),
+  // so the outgoing project's decoders, blobs and buffers are dropped here.
+  _cfMediaInvalidateAll();
   if(!cfMediaEnabled()){ cfMediaReset(); return; }
   var ok=await cfMediaRestore(state.projectId);
   if(window._cfMediaRefreshUI) _cfMediaRefreshUI();
@@ -10902,8 +11022,8 @@ async function cfMediaLinkSong(songId,filename){
 function cfMediaUnlinkSong(songId){
   var song=state.songs.find(function(s){return s.id===songId;}); if(!song) return;
   delete song.mediaFile; delete song.mediaType; delete song.audioFilename; delete song.videoFilename;
-  if(vid.meta[songId]&&vid.meta[songId].objUrl){ URL.revokeObjectURL(vid.meta[songId].objUrl); delete vid.meta[songId]; }
-  delete audio.buffers[songId]; delete audio.meta[songId]; delete wf.cache[songId];
+  _vidRevokeMeta(songId);
+  delete audio.buffers[songId]; delete audio.meta[songId]; wfInvalidate(songId);
   persist();
   renderSongList(); renderCueList(); _mediaUpdateSSP(songId);
   if(window._cfMediaRefreshUI) _cfMediaRefreshUI();
@@ -10914,7 +11034,11 @@ function _cfMediaInvalidateAll(){
   Object.keys(audio.buffers).forEach(function(k){ delete audio.buffers[k]; });
   Object.keys(audio.meta).forEach(function(k){ delete audio.meta[k]; });
   Object.keys(wf.cache).forEach(function(k){ delete wf.cache[k]; });
-  Object.keys(vid.meta||{}).forEach(function(k){ if(vid.meta[k]&&vid.meta[k].objUrl) URL.revokeObjectURL(vid.meta[k].objUrl); delete vid.meta[k]; });
+  Object.keys(wf.pcm).forEach(function(k){ delete wf.pcm[k]; });
+  _vidThumbsCancelAll();
+  Object.keys(vid.meta||{}).forEach(function(k){ _vidRevokeMeta(k); });
+  cfMediaReleaseUrls();
+  _vidDetachPlayer();
 }
 
 /* Change media folder → rescan → relink by filename → summary. */
@@ -11231,15 +11355,9 @@ async function _mediaRemoveInternal(songId){
     try{await idbDelete(songId);}catch(e){}
   }
   // Tear down video engine
-  const vm=vid.meta?.[songId];
-  if(vm){
-    if(vm.objUrl)URL.revokeObjectURL(vm.objUrl);
-    delete vid.meta[songId];
-    if(vid.songId===songId){
-      vid.songId=null;vid.ready=false;
-      const el=document.getElementById('video-el-main');
-      if(el){el.src='';el.removeAttribute('src');}
-    }
+  if(vid.meta?.[songId]){
+    _vidRevokeMeta(songId);
+    if(vid.songId===songId) _vidDetachPlayer();
   }
 }
 
@@ -13088,6 +13206,7 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       block.appendChild(handleR);
       block.appendChild(inner);
       if(_isAuto){ const ar=document.createElement('span'); ar.className='etl-cue-arrow'; ar.textContent='→'; block.appendChild(ar); }
+      block.appendChild(_etlCueEditBtn(cue.id));
       track.appendChild(block);
     });
     tracksScroll.appendChild(track);
@@ -13148,6 +13267,7 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       block.appendChild(handleR);
       block.appendChild(inner);
       if(_isAuto){ const ar=document.createElement('span'); ar.className='etl-cue-arrow'; ar.textContent='→'; block.appendChild(ar); }
+      block.appendChild(_etlCueEditBtn(cue.id));
       block.addEventListener('click',e=>{
         e.stopPropagation();
         ETL.selId=cue.id;_etlHighlightList(cue.id);
@@ -13362,10 +13482,15 @@ function renderEditTimeline(){
   const _rHalf=Math.max(500*_tickS,60);
   const rulerCentreSec=Math.floor(frames/fps/_rHalf)*_rHalf+_rHalf;
 
-  // Struct key — rebuild DOM only when structure/content changes (not just position)
-  const cueStructKey=songCues.map(c=>c.id+':'+c._f+':'+(c.duration||'')).join(',');
+  // Struct key — rebuild DOM only when structure/content changes (not just position).
+  // Every field the timeline PAINTS has to be in here: a cue block shows its name and
+  // its camera number/colour, and its streamId decides which track row it lands in.
+  // Leaving those out is why a rename or a camera change stayed stale until reload.
+  const SEP='';
+  const cueStructKey=songCues.map(c=>[c.id,c._f,c.duration||'',c.streamId||'',c.cameraId||'',c.name||''].join(SEP)).join(',');
+  const camDefKey=(state.cameraTrack?.cameras||[]).map(c=>[c.id,c.number,c.colorIdx,c.label||''].join(SEP)).join(',');
   const chapterKey=(song?.chapters||[]).map(ch=>ch.id+':'+ch.tc).join(',');
-  const structKey=[fps,pxPS,tlW,visStreams.join(','),song?.id||'',cueStructKey,chapterKey,
+  const structKey=[fps,pxPS,tlW,visStreams.join(','),song?.id||'',cueStructKey,chapterKey,camDefKey,
     hasCamTrack,song?.mediaFile||song?.audioFilename||'',song?.mediaType||'',
     wf?.visible,ETL.selId||'',rulerCentreSec,state.activeStreamId||''].join('|');
 
@@ -13452,11 +13577,98 @@ function commitTlCreate(){
 
 // Selected target in the new cue modal: {type:'stream',id} or {type:'camera',id}
 let _ncSelTarget=null;
+// Cue being edited, or null when the modal is creating. The edit flow reuses the New Cue
+// modal outright rather than cloning it, so the two can't drift apart visually.
+let _ncEditId=null;
+
+/* Hover-only edit button on a timeline cue block. mousedown is swallowed: the timeline's
+   mousedown handler would otherwise start a cue/boundary drag before this becomes a click. */
+function _etlCueEditBtn(cueId){
+  const b=document.createElement('div');
+  b.className='etl-cue-edit';
+  b.title='Edit cue';
+  b.textContent='✎';
+  b.addEventListener('mousedown',e=>{e.stopPropagation();e.preventDefault();});
+  b.addEventListener('click',e=>{e.stopPropagation();openEditCueModal(cueId);});
+  return b;
+}
+
+/* Open the New Cue modal in edit mode, prefilled from an existing cue. */
+function openEditCueModal(cueId){
+  const song=getActiveSong();if(!song)return;
+  const cue=song.cues.find(c=>c.id===cueId);if(!cue)return;
+
+  // Preselect the cue's own camera/track, and stop _ncBuildPicker falling back to the
+  // active track. Set before _ncOpenModal so the picker opens on the right badge.
+  _ncSelTarget=cue.cameraId?{type:'camera',id:cue.cameraId}:{type:'stream',id:cue.streamId};
+  _ncOpenModal(tcF(cue.tc));
+  _ncEditId=cueId;   // after _ncOpenModal — it resets create-mode state
+
+  const nameInp=document.getElementById('nc-name-inp');
+  const descInp=document.getElementById('nc-desc-inp');
+  const nameCnt=document.getElementById('nc-name-cnt');
+  if(nameInp){ nameInp.value=cue.name||''; if(nameCnt)nameCnt.textContent=nameInp.value.length?nameInp.value.length+'/60':''; }
+  if(descInp)descInp.value=cue.desc||'';
+
+  // Duration: an explicit cue prefills the Set field, an auto cue stays on Auto.
+  const durInp=document.getElementById('nc-dur-inp');
+  const durSet=document.querySelector('input[name=nc-dur-mode][value=set]');
+  const durAuto=document.getElementById('nc-dur-auto');
+  if(!cueIsAuto(cue)&&durInp&&durSet){
+    durSet.checked=true;
+    durInp.disabled=false; durInp.style.opacity='1';
+    durInp.value=cue.duration||'';
+  } else if(durAuto){ durAuto.checked=true; }
+
+  _ncSetMode(true);
+  setTimeout(()=>{ if(nameInp){nameInp.focus();nameInp.select();} },60);
+}
+
+/* Retitle the shared modal for create vs edit. */
+function _ncSetMode(isEdit){
+  const title=document.querySelector('#tl-create-popup .ntm-title');
+  const btn=document.getElementById('nc-create-btn');
+  const bc=document.getElementById('nc-breadcrumb');
+  if(title)title.textContent=isEdit?'Edit Cue':'New Cue';
+  if(btn)btn.textContent=isEdit?'Edit Cue':'Create Cue';
+  if(bc&&isEdit){
+    const song=getActiveSong(),pl=getActivePlaylist();
+    let txt='EDITING IN';
+    if(pl)txt+=' · '+pl.name.toUpperCase();
+    if(song)txt+=' · '+song.name.toUpperCase();
+    bc.textContent=txt;
+  }
+}
+
+/* Shot names repeat constantly on a camera ("Wide", "Close", "2-shot"), so pressing
+   Enter on an empty name field reuses that camera's most recent cue name rather than
+   forcing a retype. Nearest cue at or before the insertion TC; if the camera has no
+   earlier cue, its last one anywhere in the sequence. '' when it has none at all. */
+function _ncPrevNameFor(target,beforeF){
+  if(!target||!target.id)return '';
+  const song=getActiveSong();if(!song)return '';
+  const onTarget=c=>target.type==='camera'?c.cameraId===target.id:c.streamId===target.id;
+  const cues=getSortedCues(song.id,false).filter(c=>onTarget(c)&&(c.name||'').trim());
+  if(!cues.length)return '';
+  let prev=null;
+  for(const c of cues){ if(c._f<=beforeF)prev=c; else break; } // getSortedCues is ascending
+  return ((prev||cues[cues.length-1]).name||'').trim();
+}
+
+/* Show the name Enter would repeat, so the affordance is visible before you press it. */
+function _ncUpdateNamePlaceholder(){
+  const inp=document.getElementById('nc-name-inp');if(!inp)return;
+  const prev=_ncPrevNameFor(_ncSelTarget,_tlCreateTcF);
+  inp.placeholder=prev?prev+'  ⏎ to repeat':'Cue name';
+}
 
 function _ncOpenModal(tcFrames){
   if(window.CF && !CF.showId){ openNewProjectModal(); return; }
   const pop=document.getElementById('tl-create-popup');if(!pop)return;
   _tlCreateTcF=Math.floor(tcFrames!=null?tcFrames:state.simFrames);
+  // Default to create mode; openEditCueModal() flips it after this returns.
+  _ncEditId=null;
+  _ncSetMode(false);
 
   // Breadcrumb
   const song=getActiveSong();
@@ -13580,6 +13792,10 @@ function _ncBuildPicker(){
       row2.appendChild(btn);
     });
   }
+
+  // The repeatable name depends on which camera/track is selected — refresh it here,
+  // which also covers the initial selection made at the top of this function.
+  _ncUpdateNamePlaceholder();
 }
 
 function openTlCreateFromBtn(tcFrames){
@@ -13595,12 +13811,12 @@ function closeTlCreatePopup(){
   if(p._ncKeyHandler){document.removeEventListener('keydown',p._ncKeyHandler);p._ncKeyHandler=null;}
   if(_tlOutside){document.removeEventListener('mousedown',_tlOutside);_tlOutside=null;}
   _ncSelTarget=null;
+  _ncEditId=null;
+  _ncSetMode(false); // leave the shared modal ready for the next Create
 }
 
 function commitTlCreateCue(){
   const nameInp=document.getElementById('nc-name-inp');
-  const name=(nameInp?.value||'').trim();
-  if(!name){nameInp?.focus();return;}
   const desc=(document.getElementById('nc-desc-inp')?.value||'').trim();
   const song=getActiveSong();if(!song)return;
 
@@ -13613,13 +13829,30 @@ function commitTlCreateCue(){
   }
   if(!f||isNaN(f))f=_tlCreateTcF;
 
+  // Empty name → repeat the selected camera/track's previous cue name (needs the parsed
+  // TC, so it happens here rather than at the top). Creating only: when EDITING, a cleared
+  // name means the user wants to retype it, not inherit the neighbouring cue's.
+  let name=(nameInp?.value||'').trim();
+  if(!name&&!_ncEditId)name=_ncPrevNameFor(_ncSelTarget,f);
+  if(!name){nameInp?.focus();return;}
+  if(nameInp)nameInp.value=name;
+
   // Duration field → explicit string or auto (omitted)
   let _durStr=null;
   const _durSet=document.querySelector('input[name=nc-dur-mode][value=set]');
   if(_durSet&&_durSet.checked){ const df=_parseDurInput(document.getElementById('nc-dur-inp')?.value); if(df!=null)_durStr=fTC(Math.max(1,df)); }
 
   snapshot();
-  if(_ncSelTarget?.type==='camera'){
+  const editing=_ncEditId?song.cues.find(c=>c.id===_ncEditId):null;
+  if(editing){
+    // Same modal, same fields — just applied to the existing cue.
+    editing.tc=fTC(f);
+    editing.name=name;
+    editing.desc=desc;
+    if(_ncSelTarget?.type==='camera'){ editing.cameraId=_ncSelTarget.id; delete editing.streamId; }
+    else if(_ncSelTarget?.type==='stream'){ editing.streamId=_ncSelTarget.id; delete editing.cameraId; }
+    if(_durStr)editing.duration=_durStr; else delete editing.duration; // no explicit duration ⇒ auto
+  } else if(_ncSelTarget?.type==='camera'){
     const _c={id:uid(),tc:fTC(f),name,desc,cameraId:_ncSelTarget.id};
     if(_durStr)_c.duration=_durStr;
     song.cues.push(_c);
@@ -13665,6 +13898,20 @@ function _etlTrackCues(song,sid){
      into an explicit cue + gap.
    • Orphan START (no prev, or a gap before) → '[' across the whole zone (move start, keep end).
    • Orphan END (gap after / last cue) → ']' across the whole zone (move end, keep start). */
+/* Magnetic snap for timeline drags: the playhead first, then the sequence's other cues.
+   Returns rawF untouched when snap is off or nothing is within the 10px window.
+   Nearest target wins — the old code kept whichever cue it happened to test last, so a
+   sibling could silently beat the playhead. The playhead wins exact ties. */
+function _etlSnapF(rawF,song,excludeCueId){
+  if(!ETL.snapOn)return rawF;
+  const snapF=10/(ETL.zoom/state.fps); // 10px expressed in frames
+  let best=null,bestD=Infinity;
+  const consider=f=>{const d=Math.abs(rawF-f);if(d<=snapF&&d<bestD){bestD=d;best=f;}};
+  consider(Math.floor(state.simFrames)); // playhead — considered first so ties go to it
+  if(song)song.cues.forEach(c=>{ if(c.id!==excludeCueId)consider(tcF(c.tc)); });
+  return best!=null?best:rawF;
+}
+
 function _etlZoneAt(e){
   const container=document.getElementById('edit-tl'); if(!container) return null;
   const rect=container.getBoundingClientRect();
@@ -14028,10 +14275,10 @@ function _initEditTimeline(){
       ETL._dragging=true;
       const bd=ETL.bdrag, pxPF=ETL.zoom/state.fps;
       let targetF=bd.origBoundaryF+(e.clientX-bd.startX)/pxPF;
-      if(ETL.snapOn){
-        const snapF=10/pxPF;
-        bd.song.cues.forEach(c=>{const cf=tcF(c.tc); if(Math.abs(targetF-cf)<=snapF)targetF=cf;});
-      }
+      // A cue's start edge IS its drag handle, so _etlZoneAt claims most "move the cue"
+      // drags — and this path had no playhead snap, which is why dragging a cue never
+      // snapped to the playhead.
+      targetF=_etlSnapF(targetF,bd.song,null);
       _etlBdragPreview(bd,targetF);
       const tip=document.getElementById('tl-drag-tip');
       if(tip){tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-30)+'px';tip.textContent=bd._tip||'';}
@@ -14046,22 +14293,11 @@ function _initEditTimeline(){
     // Frame-snap (always)
     newF=Math.round(newF);
 
-    // Magnetic snap
-    if(ETL.snapOn){
-      const snapPx=10,snapF=Math.round(snapPx/ETL.zoom*state.fps);
-      // Snap to playhead
-      if(Math.abs(newF-state.simFrames)<=snapF)newF=Math.floor(state.simFrames);
-      // Snap to sibling cues
-      const song=state.songs.find(s=>s.id===ETL.drag.songId);
-      song?.cues.forEach(c=>{
-        if(c.id===ETL.drag.cueId)return;
-        const cf=tcF(c.tc);
-        if(Math.abs(newF-cf)<=snapF)newF=cf;
-      });
-    }
+    // Magnetic snap — playhead and sibling cues, nearest target wins
+    const song=state.songs.find(s=>s.id===ETL.drag.songId);
+    newF=Math.round(_etlSnapF(newF,song,ETL.drag.cueId));
 
     // Overlap rule: if another cue in same stream has this exact TC, displace by 1 frame
-    const song=state.songs.find(s=>s.id===ETL.drag.songId);
     if(song){
       const cue=song.cues.find(c=>c.id===ETL.drag.cueId);
       const sameTc=song.cues.find(c=>c.id!==ETL.drag.cueId&&c.streamId===cue?.streamId&&tcF(c.tc)===newF);
@@ -14286,9 +14522,8 @@ const vid = {
   songId: null,      // song the current video belongs to
   objUrl: null,      // current object URL (revoke on change)
   ready: false,      // video metadata loaded
-  meta: {},          // {songId: {filename, durationSec, ready, objUrl, thumbs:[]}}
+  meta: {},          // {songId: {filename, durationSec, ready, objUrl, ownsUrl, thumbs:[]}}
   _syncTimer: null,
-  _thumbCanvas: null,
   _isScrubbing: false,
 };
 
@@ -14299,21 +14534,39 @@ function attachVideoToSong(songId, file){
   if(!file)return;
   const song = state.songs.find(s=>s.id===songId); if(!song) return;
   song.videoFilename = file.name;
-  // Revoke old URL if same song
-  if(vid.meta[songId]?.objUrl) URL.revokeObjectURL(vid.meta[songId].objUrl);
-  const url = URL.createObjectURL(file);
-  vid.meta[songId] = {filename:file.name, durationSec:0, ready:false, objUrl:url, thumbs:[]};
+  _vidRevokeMeta(songId);
+  // ownsUrl: this blob URL belongs to the meta entry (unlike folder-sourced URLs,
+  // which are owned by the cfMedia URL cache), so revoking it here is correct.
+  vid.meta[songId] = {filename:file.name, durationSec:0, ready:false, objUrl:URL.createObjectURL(file), ownsUrl:true, thumbs:[]};
   persist();
   _vidLoad(songId);
+}
+
+/* Drop a sequence's video meta, revoking its blob URL only if it owns one. */
+function _vidRevokeMeta(songId){
+  const m = vid.meta?.[songId];
+  if(!m) return;
+  if(m.ownsUrl && m.objUrl) URL.revokeObjectURL(m.objUrl);
+  delete vid.meta[songId];
+}
+
+/* Release the shared player's decoder and its hold on the current source. */
+function _vidDetachPlayer(){
+  _vidStopSync();
+  vid.songId = null; vid.ready = false;
+  const el = _vidEl(); if(!el) return;
+  el.onloadedmetadata = null;
+  el.pause();
+  el.removeAttribute('src');
+  el.load();
 }
 
 function _vidLoad(songId){
   const m = vid.meta[songId]; if(!m) return;
   const el = _vidEl(); if(!el) return;
-  el.src = m.objUrl;
   vid.songId = songId;
-  vid.ready = false;
-  el.onloadedmetadata = ()=>{
+
+  const onReady = ()=>{
     m.durationSec = el.duration;
     m.ready = true;
     vid.ready = true;
@@ -14322,6 +14575,13 @@ function _vidLoad(songId){
     _updateVidEmptyState();
     if(ETL.visible) renderEditTimeline();
   };
+
+  // Re-assigning the same src tears the decoder down and rebuilds it for nothing.
+  if(el.src === m.objUrl && el.readyState >= 1){ onReady(); return; }
+
+  vid.ready = false;
+  el.onloadedmetadata = onReady;   // property, not addEventListener — never accumulates
+  el.src = m.objUrl;
   el.load();
 }
 
@@ -14436,31 +14696,110 @@ function sspAttachVideo(){
 }
 
 // ── Thumbnail generation ───────────────────────────────────
+// One scratch <video>, reused and released, serving a serial queue. A fresh
+// element per sequence strands a decoder holding the whole file open, and the
+// old code re-entered load() from inside its own loadedmetadata handler, which
+// re-fired the event forever — the runaway CPU and GC churn came from here.
+const THUMB_COUNT = 5;
+let _thumbEl = null;          // shared scratch element
+let _thumbCanvas = null;      // shared scratch canvas
+let _thumbToken = 0;          // invalidates callbacks from a superseded run
+let _thumbBusy = false;
+const _thumbQueue = [];
+const _thumbCache = new Map(); // filename (lc) → {dur, thumbs} — survives meta rebuilds
+
+function _thumbRelease(){
+  if(!_thumbEl) return;
+  _thumbEl.onloadedmetadata = _thumbEl.onseeked = _thumbEl.onerror = null;
+  _thumbEl.removeAttribute('src');
+  _thumbEl.load();
+}
+
+function _vidThumbsCancelAll(){
+  _thumbToken++;
+  _thumbQueue.length = 0;
+  _thumbBusy = false;
+  _thumbRelease();
+  _thumbCache.clear();
+}
+
+/* Adopt an already-generated result. Two sequences on the same file (or the same
+   sequence reloaded) must never decode it twice. */
+function _thumbAdopt(m, hit){
+  m.thumbs = hit.thumbs;
+  if(!m.durationSec && hit.dur){ m.durationSec = hit.dur; m.ready = true; }
+}
+
 function _vidGenerateThumbs(songId){
   const m = vid.meta[songId]; if(!m?.objUrl) return;
-  const el = document.createElement('video');
-  el.src = m.objUrl;
-  el.muted = true;
-  el.onloadedmetadata = ()=>{
-    const dur = el.duration;
-    const count = 5; // 5 evenly-spaced thumbnails
-    m.thumbs = [];
-    let i = 0;
-    const doThumb = ()=>{
-      if(i>=count){ if(ETL.visible) renderEditTimeline(); return; }
-      const t = (i+0.5) * dur / count;
-      el.currentTime = t;
-    };
-    el.onseeked = ()=>{
-      const canvas = document.createElement('canvas');
-      canvas.width=120; canvas.height=68;
-      canvas.getContext('2d').drawImage(el,0,0,120,68);
-      m.thumbs.push({t: el.currentTime, dataUrl: canvas.toDataURL('image/jpeg',0.6)});
-      i++;
-      doThumb();
-    };
-    el.load(); doThumb();
+  const hit = _thumbCache.get(String(m.filename||'').toLowerCase());
+  if(hit){ _thumbAdopt(m, hit); return; }
+  if(_thumbQueue.indexOf(songId) === -1) _thumbQueue.push(songId);
+  _thumbPump();
+}
+
+function _thumbPump(){
+  if(_thumbBusy) return;
+  let songId, m;
+  while(_thumbQueue.length){
+    songId = _thumbQueue.shift();
+    m = vid.meta[songId];
+    if(!m?.objUrl){ m = null; continue; }
+    // The cache may have been filled by an earlier run while this one sat queued —
+    // re-check on dequeue, or every sequence sharing a file re-decodes it.
+    const queuedHit = _thumbCache.get(String(m.filename||'').toLowerCase());
+    if(queuedHit){ _thumbAdopt(m, queuedHit); m = null; continue; }
+    break;
+  }
+  if(!m) return;
+
+  _thumbBusy = true;
+  const token = ++_thumbToken;
+  const key = String(m.filename||'').toLowerCase();
+  const shots = [];
+  let i = 0, timer = null;
+
+  if(!_thumbEl){ _thumbEl = document.createElement('video'); _thumbEl.muted = true; _thumbEl.preload = 'auto'; }
+  if(!_thumbCanvas){ _thumbCanvas = document.createElement('canvas'); _thumbCanvas.width = 120; _thumbCanvas.height = 68; }
+  const el = _thumbEl;
+
+  const done = ()=>{
+    if(token !== _thumbToken) return;   // a cancel/newer run already owns the state
+    clearTimeout(timer);
+    if(shots.length){
+      m.thumbs = shots;
+      _thumbCache.set(key, {dur: m.durationSec || el.duration || 0, thumbs: shots});
+    }
+    _thumbRelease();
+    _thumbBusy = false;
+    if(ETL.visible) renderEditTimeline();
+    _thumbPump();
   };
+
+  const grab = ()=>{
+    if(token !== _thumbToken) return;
+    if(i >= THUMB_COUNT || !isFinite(el.duration) || el.duration <= 0){ done(); return; }
+    el.currentTime = Math.min((i+0.5) * el.duration / THUMB_COUNT, Math.max(0, el.duration - 0.05));
+  };
+
+  el.onloadedmetadata = ()=>{
+    if(token !== _thumbToken) return;
+    if(!m.durationSec && isFinite(el.duration)){ m.durationSec = el.duration; m.ready = true; }
+    grab();                            // no load() here — that re-fires this handler
+  };
+  el.onseeked = ()=>{
+    if(token !== _thumbToken) return;
+    try{
+      _thumbCanvas.getContext('2d').drawImage(el, 0, 0, 120, 68);
+      shots.push({t: el.currentTime, dataUrl: _thumbCanvas.toDataURL('image/jpeg', 0.6)});
+    }catch(e){ /* tainted or not decodable — keep what we have */ }
+    i++;
+    grab();
+  };
+  el.onerror = done;
+  timer = setTimeout(done, 15000);     // a bad file must never stall the queue
+
+  el.src = m.objUrl;
   el.load();
 }
 
@@ -20048,21 +20387,32 @@ function deleteProject(id){
 
 function renameProject(id){
   var s=CF._showList.find(function(x){return x.id===id;});
-  if(window.openRenameModal){
-    openRenameModal(s?s.name:'',function(name){
-      db().from('shows').update({name:name}).eq('id',id).then(function(){
-        if(s) s.name=name;
-        saveShowCache(CF._showList);
-        if(id===CF.showId){
-          state.name=name;
-          if(window.persist) persist();
-          if(window._syncEditTopbar) _syncEditTopbar();
-          if(window._meRenderTopbar) _meRenderTopbar();
-        }
-        if(window._sbRender) _sbRender('save');
-      });
+  if(!window.openRenameModal) return;
+  openRenameModal(s?s.name:'',function(name){
+    /* A freshly imported/created show may still be INSERTing. Renaming into that gap
+       used to update zero rows, and the landing INSERT wrote the old name back. */
+    Promise.resolve(CF._showReady).catch(function(){}).then(function(){
+      var patch={name:name};
+      if(id===CF.showId){
+        state.name=name;
+        /* The name lives twice: the shows.name column AND inside the project_data blob,
+           and applyProject() takes state.name from the blob. Writing only the column and
+           leaving the blob to a debounced persist() is how a reload resurrected the old
+           name — so both go out in this one UPDATE. */
+        patch.project_data=snapshot();
+      }
+      return db().from('shows').update(patch).eq('id',id);
+    }).then(function(){
+      if(s) s.name=name;
+      saveShowCache(CF._showList);
+      if(id===CF.showId){
+        if(window.persist) persist();
+        if(window._syncEditTopbar) _syncEditTopbar();
+        if(window._meRenderTopbar) _meRenderTopbar();
+      }
+      if(window._sbRender) _sbRender('save');
     });
-  }
+  });
 }
 
 function makeFreshProject(name, trackName, fps){
@@ -20101,9 +20451,10 @@ function createShow(name, trackName, fps){
   openTcChan();
   subscribeProject();
   if(window._sbRender) _sbRender('save');
-  /* Push to Supabase — may fail if offline; onComeOnline / TOKEN_REFRESHED will retry */
+  /* Push to Supabase — may fail if offline; onComeOnline / TOKEN_REFRESHED will retry.
+     Held as a promise so a rename issued before it lands can't race the INSERT. */
   var ownerId=authUser?authUser.id:null;
-  db().from('shows').insert({id:showId,name:name,owner_id:ownerId,project_data:snapshot()})
+  CF._showReady=db().from('shows').insert({id:showId,name:name,owner_id:ownerId,project_data:snapshot()})
     .then(function(r){
       if(r.error){
         /* Insert failed (offline, or no live session). Mark unsynced so a later open
@@ -20142,7 +20493,10 @@ function importShow(proj){
   subscribeProject();
   if(window._sbRender)_sbRender('save');
   var ownerId=authUser?authUser.id:null;
-  db().from('shows').insert({id:showId,name:p.name,owner_id:ownerId,project_data:snapshot()})
+  /* Anything that mutates this row (rename, in particular) must wait for the INSERT:
+     an UPDATE issued before the row exists matches zero rows and silently succeeds,
+     and the in-flight INSERT then writes the pre-edit name straight back. */
+  CF._showReady=db().from('shows').insert({id:showId,name:p.name,owner_id:ownerId,project_data:snapshot()})
     .then(function(r){
       if(r.error){
         CF.dirty=true;

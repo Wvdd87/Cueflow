@@ -1,6 +1,9 @@
-const { app, BrowserWindow, session, ipcMain } = require('electron');
+const { app, BrowserWindow, session, ipcMain, protocol } = require('electron');
 const path = require('path');
 const { startLanServer } = require('./lan-server');
+const media = require('./media-protocol');
+
+media.registerScheme(protocol); // must happen before app ready
 
 let win = null;
 let lan = null;            // LAN server handle (null until started)
@@ -81,12 +84,8 @@ ipcMain.on('lan:broadcast', (_e, msg) => { if (lan && msg) lan.broadcast(msg); }
  * The renderer's media library is sourced from a folder the owner picks. These
  * handlers provide the desktop fallback to the browser File System Access API. */
 const fs = require('fs');
-const MEDIA_EXTS = ['.mp3', '.wav', '.m4a', '.mp4', '.mov', '.aac', '.flac', '.ogg', '.m4v', '.webm'];
-function isMediaFile(name) {
-  const dot = name.lastIndexOf('.');
-  if (dot < 0) return false;
-  return MEDIA_EXTS.indexOf(name.slice(dot).toLowerCase()) !== -1;
-}
+const { isMediaFile, addMediaDir, mediaUrl } = media;
+
 ipcMain.handle('media:pick-folder', async () => {
   const { dialog } = require('electron');
   const res = await dialog.showOpenDialog(win, {
@@ -95,6 +94,7 @@ ipcMain.handle('media:pick-folder', async () => {
   });
   if (res.canceled || !res.filePaths || !res.filePaths.length) return { canceled: true };
   const p = res.filePaths[0];
+  addMediaDir(p);
   return { path: p, name: path.basename(p) };
 });
 ipcMain.handle('media:scan-folder', async (_e, dir) => {
@@ -105,9 +105,10 @@ ipcMain.handle('media:scan-folder', async (_e, dir) => {
       if (!isMediaFile(n)) continue;
       try {
         const st = await fs.promises.stat(path.join(dir, n));
-        if (st.isFile()) files.push({ name: n, size: st.size });
+        if (st.isFile()) files.push({ name: n, size: st.size, url: mediaUrl(dir, n) });
       } catch (_) { /* skip unreadable entry */ }
     }
+    addMediaDir(dir);
     return { ok: true, files: files };
   } catch (e) {
     return { ok: false, error: (e && e.message) || 'scan failed', files: [] };
@@ -124,6 +125,7 @@ ipcMain.handle('media:read-file', async (_e, { path: dir, name }) => {
 });
 
 app.whenReady().then(() => {
+  media.registerMediaProtocol(protocol);
   createWindow();
   startLan(); // always-on so viewers can connect the moment they need to
 });

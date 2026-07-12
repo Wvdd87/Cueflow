@@ -124,14 +124,14 @@
       "norm_label": "main.js"
     },
     {
-      "label": "{ app, BrowserWindow, session, ipcMain }",
+      "label": "{ app, BrowserWindow, session, ipcMain, protocol }",
       "file_type": "code",
       "source_file": "main.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "main_app_browserwindow_session_ipcmain",
+      "id": "main_app_browserwindow_session_ipcmain_protocol",
       "community": 4,
-      "norm_label": "{ app, browserwindow, session, ipcmain }"
+      "norm_label": "{ app, browserwindow, session, ipcmain, protocol }"
     },
     {
       "label": "path",
@@ -154,10 +154,20 @@
       "norm_label": "{ startlanserver }"
     },
     {
+      "label": "media",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "main_media",
+      "community": 4,
+      "norm_label": "media"
+    },
+    {
       "label": "latestPins",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L8",
+      "source_location": "L11",
       "_origin": "ast",
       "id": "main_latestpins",
       "community": 4,
@@ -167,7 +177,7 @@
       "label": "createWindow()",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L10",
+      "source_location": "L13",
       "_origin": "ast",
       "id": "main_createwindow",
       "community": 4,
@@ -177,7 +187,7 @@
       "label": "statusObj()",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L39",
+      "source_location": "L42",
       "_origin": "ast",
       "id": "main_statusobj",
       "community": 4,
@@ -187,7 +197,7 @@
       "label": "pushStatus()",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L48",
+      "source_location": "L51",
       "_origin": "ast",
       "id": "main_pushstatus",
       "community": 4,
@@ -197,7 +207,7 @@
       "label": "startLan()",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L52",
+      "source_location": "L55",
       "_origin": "ast",
       "id": "main_startlan",
       "community": 4,
@@ -207,31 +217,131 @@
       "label": "fs",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L83",
+      "source_location": "L86",
       "_origin": "ast",
       "id": "main_fs",
       "community": 4,
       "norm_label": "fs"
     },
     {
+      "label": "media-protocol.js",
+      "file_type": "code",
+      "source_file": "media-protocol.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "media_protocol",
+      "community": 6,
+      "norm_label": "media-protocol.js"
+    },
+    {
+      "label": "fs",
+      "file_type": "code",
+      "source_file": "media-protocol.js",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "media_protocol_fs",
+      "community": 6,
+      "norm_label": "fs"
+    },
+    {
+      "label": "path",
+      "file_type": "code",
+      "source_file": "media-protocol.js",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "media_protocol_path",
+      "community": 6,
+      "norm_label": "path"
+    },
+    {
+      "label": "{ Readable }",
+      "file_type": "code",
+      "source_file": "media-protocol.js",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "media_protocol_readable",
+      "community": 6,
+      "norm_label": "{ readable }"
+    },
+    {
       "label": "MEDIA_EXTS",
       "file_type": "code",
-      "source_file": "main.js",
-      "source_location": "L84",
+      "source_file": "media-protocol.js",
+      "source_location": "L16",
       "_origin": "ast",
-      "id": "main_media_exts",
-      "community": 4,
+      "id": "media_protocol_media_exts",
+      "community": 6,
       "norm_label": "media_exts"
+    },
+    {
+      "label": "MEDIA_MIME",
+      "file_type": "code",
+      "source_file": "media-protocol.js",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "media_protocol_media_mime",
+      "community": 6,
+      "norm_label": "media_mime"
     },
     {
       "label": "isMediaFile()",
       "file_type": "code",
-      "source_file": "main.js",
-      "source_location": "L85",
+      "source_file": "media-protocol.js",
+      "source_location": "L26",
       "_origin": "ast",
-      "id": "main_ismediafile",
-      "community": 4,
+      "id": "media_protocol_ismediafile",
+      "community": 6,
       "norm_label": "ismediafile()"
+    },
+    {
+      "label": "mediaDirs",
+      "file_type": "code",
+      "source_file": "media-protocol.js",
+      "source_location": "L33",
+      "_origin": "ast",
+      "id": "media_protocol_mediadirs",
+      "community": 6,
+      "norm_label": "mediadirs"
+    },
+    {
+      "label": "addMediaDir()",
+      "file_type": "code",
+      "source_file": "media-protocol.js",
+      "source_location": "L34",
+      "_origin": "ast",
+      "id": "media_protocol_addmediadir",
+      "community": 6,
+      "norm_label": "addmediadir()"
+    },
+    {
+      "label": "mediaUrl()",
+      "file_type": "code",
+      "source_file": "media-protocol.js",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "media_protocol_mediaurl",
+      "community": 6,
+      "norm_label": "mediaurl()"
+    },
+    {
+      "label": "registerScheme()",
+      "file_type": "code",
+      "source_file": "media-protocol.js",
+      "source_location": "L38",
+      "_origin": "ast",
+      "id": "media_protocol_registerscheme",
+      "community": 6,
+      "norm_label": "registerscheme()"
+    },
+    {
+      "label": "registerMediaProtocol()",
+      "file_type": "code",
+      "source_file": "media-protocol.js",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "media_protocol_registermediaprotocol",
+      "community": 6,
+      "norm_label": "registermediaprotocol()"
     },
     {
       "label": "package.json",
@@ -790,7 +900,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "context_architecture",
-      "community": 6,
+      "community": 1,
       "norm_label": "architecture"
     },
     {
@@ -800,7 +910,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "context_three_script_blocks_in_order",
-      "community": 6,
+      "community": 1,
       "norm_label": "three script blocks (in order)"
     },
     {
@@ -810,7 +920,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "context_supabase_configuration",
-      "community": 6,
+      "community": 1,
       "norm_label": "supabase configuration"
     },
     {
@@ -820,7 +930,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "context_supabase_tables",
-      "community": 6,
+      "community": 1,
       "norm_label": "supabase tables"
     },
     {
@@ -830,7 +940,7 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "context_rls_policies_all_currently_open_to_be_tightened_when_auth_is_added",
-      "community": 6,
+      "community": 1,
       "norm_label": "rls policies (all currently open \u2014 to be tightened when auth is added)"
     },
     {
@@ -1080,7 +1190,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "security_audit_critical_findings",
-      "community": 5,
+      "community": 7,
       "norm_label": "critical findings"
     },
     {
@@ -1090,7 +1200,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "security_audit_c1_shows_is_world_readable_any_internet_user_can_read_every_show_s_full_data",
-      "community": 5,
+      "community": 7,
       "norm_label": "c1 \u2014 `shows` is world-readable: any internet user can read every show's full data"
     },
     {
@@ -1100,7 +1210,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "security_audit_c2_show_access_is_world_readable_and_pins_are_stored_in_plaintext",
-      "community": 5,
+      "community": 7,
       "norm_label": "c2 \u2014 `show_access` is world-readable and pins are stored in plaintext"
     },
     {
@@ -1110,7 +1220,7 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "security_audit_c3_stored_xss_via_rich_text_sequence_description_rendered_raw_in_the_live_cockpit",
-      "community": 5,
+      "community": 7,
       "norm_label": "c3 \u2014 stored xss via rich-text sequence description, rendered raw in the live cockpit"
     },
     {
@@ -1170,7 +1280,7 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "security_audit_medium_findings",
-      "community": 7,
+      "community": 5,
       "norm_label": "medium findings"
     },
     {
@@ -1180,7 +1290,7 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "security_audit_m1_read_only_viewers_crew_can_write_cue_descriptions",
-      "community": 7,
+      "community": 5,
       "norm_label": "m1 \u2014 \"read-only\" viewers/crew can write cue descriptions"
     },
     {
@@ -1190,7 +1300,7 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "security_audit_m2_no_durable_offline_edit_queue_offline_reconnect_is_whole_snapshot_last_write_wins",
-      "community": 7,
+      "community": 5,
       "norm_label": "m2 \u2014 no durable offline edit queue; offline reconnect is whole-snapshot last-write-wins"
     },
     {
@@ -1200,7 +1310,7 @@
       "source_location": "L115",
       "_origin": "ast",
       "id": "security_audit_m3_leaked_password_protection_disabled_on_supabase_auth",
-      "community": 7,
+      "community": 5,
       "norm_label": "m3 \u2014 leaked-password protection disabled on supabase auth"
     },
     {
@@ -1210,7 +1320,7 @@
       "source_location": "L123",
       "_origin": "ast",
       "id": "security_audit_m4_offline_logged_out_show_creation_can_strand_data",
-      "community": 7,
+      "community": 5,
       "norm_label": "m4 \u2014 offline/logged-out show creation can strand data"
     },
     {
@@ -1220,7 +1330,7 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "security_audit_m5_lan_inbound_handler_does_no_role_enforcement",
-      "community": 7,
+      "community": 5,
       "norm_label": "m5 \u2014 lan inbound handler does no role enforcement"
     },
     {
@@ -1445,9 +1555,9 @@
       "source_file": "main.js",
       "source_location": "L1",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "main",
-      "target": "main_app_browserwindow_session_ipcmain"
+      "target": "main_app_browserwindow_session_ipcmain_protocol",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -1473,16 +1583,6 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "main.js",
-      "source_location": "L85",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "main",
-      "target": "main_ismediafile"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "main.js",
       "source_location": "L8",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -1493,11 +1593,11 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "main.js",
-      "source_location": "L84",
+      "source_location": "L4",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "main",
-      "target": "main_media_exts"
+      "target": "main_media",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -1550,6 +1650,17 @@
       "target": "main_statusobj"
     },
     {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "main",
+      "target": "media_protocol",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
@@ -1570,6 +1681,116 @@
       "confidence_score": 1.0,
       "source": "main_startlan",
       "target": "main_pushstatus"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "media-protocol.js",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "media_protocol",
+      "target": "media_protocol_addmediadir",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "media-protocol.js",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "media_protocol",
+      "target": "media_protocol_fs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "media-protocol.js",
+      "source_location": "L26",
+      "weight": 1.0,
+      "source": "media_protocol",
+      "target": "media_protocol_ismediafile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "media-protocol.js",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "media_protocol",
+      "target": "media_protocol_media_exts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "media-protocol.js",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "media_protocol",
+      "target": "media_protocol_media_mime",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "media-protocol.js",
+      "source_location": "L33",
+      "weight": 1.0,
+      "source": "media_protocol",
+      "target": "media_protocol_mediadirs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "media-protocol.js",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "media_protocol",
+      "target": "media_protocol_mediaurl",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "media-protocol.js",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "media_protocol",
+      "target": "media_protocol_path",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "media-protocol.js",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "media_protocol",
+      "target": "media_protocol_readable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "media-protocol.js",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "media_protocol",
+      "target": "media_protocol_registermediaprotocol",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "media-protocol.js",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "media_protocol",
+      "target": "media_protocol_registerscheme",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -2317,9 +2538,9 @@
       "source_file": "PRIORITY_ACTIONS.md",
       "source_location": "L96",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "priority_actions_cueflow_top_10_priority_actions",
-      "target": "priority_actions_fix_log_2026_07_04_batch_4_remaining_hardening_deploy",
-      "confidence_score": 1.0
+      "target": "priority_actions_fix_log_2026_07_04_batch_4_remaining_hardening_deploy"
     },
     {
       "relation": "contains",
@@ -2327,9 +2548,9 @@
       "source_file": "PRIORITY_ACTIONS.md",
       "source_location": "L112",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "priority_actions_cueflow_top_10_priority_actions",
-      "target": "priority_actions_fix_log_2026_07_05_m4_deploy_notes",
-      "confidence_score": 1.0
+      "target": "priority_actions_fix_log_2026_07_05_m4_deploy_notes"
     },
     {
       "relation": "contains",
@@ -2573,5 +2794,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "efdb6fc9183c968b3ecc7c1f89f11fc717f228d4"
+  "built_at_commit": "10d529dbc72e813b94b53b4d01742de4077a19ae"
 }
