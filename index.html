@@ -4832,7 +4832,7 @@ function sspAddChapter(){
   const name = (document.getElementById('chapter-name-inp')?.value||'').trim() || 'Chapter';
   const rawTc = (document.getElementById('chapter-tc-inp')?.value||'').trim() || song.startTc || '01:00:00:00';
   const tc = normalizeTcInput(rawTc);
-  if(!validateTc(tc)){ alert('Invalid timecode'); return; }
+  if(!validateTc(tc)){ openAlertModal('“'+rawTc+'” isn’t a valid timecode. Use hh:mm:ss:ff.','Invalid timecode'); return; }
   snapshot();
   song.chapters.push({id:uid(), name, tc});
   persist();
@@ -5783,10 +5783,14 @@ function removeCameraFromTrack(camId){
   const cam=state.cameraTrack.cameras.find(c=>c.id===camId);
   if(!cam)return;
   const cueCount=state.songs.reduce((n,s)=>n+s.cues.filter(c=>c.cameraId===camId).length,0);
-  if(cueCount>0&&!confirm(`Remove Camera ${cam.number}? ${cueCount} cue${cueCount===1?'':'s'} assigned to this camera will lose their camera assignment.`))return;
-  state.cameraTrack.cameras=state.cameraTrack.cameras.filter(c=>c.id!==camId);
-  state.songs.forEach(s=>s.cues.forEach(c=>{if(c.cameraId===camId)delete c.cameraId;}));
-  const el=document.getElementById('cam-track-cameras-list');if(el)_renderCamTrackCameraList(el);
+  const _doRemove=()=>{
+    state.cameraTrack.cameras=state.cameraTrack.cameras.filter(c=>c.id!==camId);
+    state.songs.forEach(s=>s.cues.forEach(c=>{if(c.cameraId===camId)delete c.cameraId;}));
+    const el=document.getElementById('cam-track-cameras-list');if(el)_renderCamTrackCameraList(el);
+  };
+  if(!cueCount){ _doRemove(); return; }
+  openConfirmModal(`Remove Camera ${cam.number}? ${cueCount} cue${cueCount===1?'':'s'} assigned to this camera will lose their camera assignment.`,
+    _doRemove,null,'Remove','danger','Remove camera');
 }
 
 function saveCameraTrack(){
@@ -5809,12 +5813,15 @@ function saveCameraTrack(){
 function deleteCameraTrack(){
   if(!state.cameraTrack)return;
   const camCueCount=state.songs.reduce((n,s)=>n+s.cues.filter(c=>c.cameraId).length,0);
-  if(!confirm(`Delete Camera Track "${state.cameraTrack.name}"? ${camCueCount>0?camCueCount+` camera cue${camCueCount===1?'':'s'} will also be deleted.`:''}`.trim()))return;
-  snapshot();
-  state.songs.forEach(s=>{s.cues=s.cues.filter(c=>!c.cameraId);});
-  state.cameraTrack=null;
-  persist();_updateCamerasTab();renderStreamsBar();renderCueList();
-  closeModal('camera-track-modal');
+  openConfirmModal(
+    `Delete Camera Track "${state.cameraTrack.name}"? ${camCueCount>0?camCueCount+` camera cue${camCueCount===1?'':'s'} will also be deleted.`:''}`.trim(),
+    function(){
+      snapshot();
+      state.songs.forEach(s=>{s.cues=s.cues.filter(c=>!c.cameraId);});
+      state.cameraTrack=null;
+      persist();_updateCamerasTab();renderStreamsBar();renderCueList();
+      closeModal('camera-track-modal');
+    },null,'Delete','danger','Delete camera track');
 }
 
 let _pendingCamId=null;
@@ -8781,7 +8788,7 @@ function addSong(){
   persist();renderSongList();renderCueList();
 }
 function deleteSong(){
-  if(state.songs.length<=1){alert('A show must have at least one sequence.');return;}
+  if(state.songs.length<=1){openAlertModal('A show must have at least one sequence.','Cannot delete');return;}
   snapshot();const name=getActiveSong()?.name;
   state.songs=state.songs.filter(s=>s.id!==state.activeSongId);
   state.activeSongId=state.songs[0].id;
@@ -8873,7 +8880,7 @@ function parseCueLines(text){
   }).filter(Boolean);
 }
 function importCSVData(text,mode){
-  const cues=parseCueLines(text);if(!cues.length){alert('No valid cues found.');return;}
+  const cues=parseCueLines(text);if(!cues.length){openAlertModal('No valid cues were found in that file.','Nothing to import');return;}
   const song=getActiveSong();if(!song)return;snapshot();
   cues.forEach(c=>{
     if(c._chapterName&&song.chapters){
@@ -8884,7 +8891,7 @@ function importCSVData(text,mode){
   });
   if(mode==='replace')song.cues=cues;else song.cues.push(...cues);
   persist();renderCueList();redrawActive();
-  alert(`${mode==='replace'?'Replaced with':'Imported'} ${cues.length} cue${cues.length!==1?'s':''}.`);
+  openAlertModal(`${mode==='replace'?'Replaced with':'Imported'} ${cues.length} cue${cues.length!==1?'s':''}.`,'Import complete');
 }
 function handleCSVFile(e){
   const f=e.target.files[0];if(!f)return;state.pendingCSVFile=f;
@@ -8899,7 +8906,7 @@ function doFileImport(mode){
 function importCSVAction(mode){importCSVData(document.getElementById('csv-txt').value,mode);closeModal('csv-modal');}
 function exportCSV(){
   const song=getActiveSong();if(!song)return;
-  const sorted=getSortedCues(song.id,false);if(!sorted.length){alert('No cues to export.');return;}
+  const sorted=getSortedCues(song.id,false);if(!sorted.length){openAlertModal('This sequence has no cues to export.','Nothing to export');return;}
   const lines=['timecode,cue_name,description,stream,chapter'];
   sorted.forEach(c=>{
     let streamCol;
@@ -9778,9 +9785,9 @@ function importShowFile(e){
     try{
       const data=JSON.parse(ev.target.result);
       const proj=data.project||data;
-      if(!proj?.songs){alert('Invalid show file.');return;}
+      if(!proj?.songs){openAlertModal('That file isn’t a valid CueFlow show.','Invalid show file');return;}
       _openImportModal(proj,f.name,f.size,data.exported);
-    }catch(err){alert('Could not read file: '+err.message);}
+    }catch(err){openAlertModal('Could not read that file.\n\n'+err.message,'Import failed');}
   };
   r.readAsText(f);
 }
@@ -9790,9 +9797,9 @@ function _importDropAnother(e){
   r.onload=ev=>{
     try{
       const data=JSON.parse(ev.target.result);const proj=data.project||data;
-      if(!proj?.songs){alert('Invalid show file.');return;}
+      if(!proj?.songs){openAlertModal('That file isn’t a valid CueFlow show.','Invalid show file');return;}
       _openImportModal(proj,f.name,f.size,data.exported);
-    }catch(err){alert('Could not read file: '+err.message);}
+    }catch(err){openAlertModal('Could not read that file.\n\n'+err.message,'Import failed');}
   };
   r.readAsText(f);
 }
@@ -10037,14 +10044,15 @@ function renderProjectList(){
     });
     div.querySelector('.proj-entry-del').addEventListener('click',e=>{
       e.stopPropagation();
-      if(!confirm('Delete "'+p.name+'"?'))return;
-      const wasCurrent=p.id===state.projectId;
-      deleteProjectData(p.id);
-      if(wasCurrent){
-        const remaining=allProjects().sort((a,b)=>(b.updated||0)-(a.updated||0));
-        if(remaining.length){const d=loadProjectData(remaining[0].id);if(d)applyProject(d);}
-      }
-      renderProjectList();
+      openConfirmModal('Delete "'+p.name+'"? This cannot be undone.',()=>{
+        const wasCurrent=p.id===state.projectId;
+        deleteProjectData(p.id);
+        if(wasCurrent){
+          const remaining=allProjects().sort((a,b)=>(b.updated||0)-(a.updated||0));
+          if(remaining.length){const d=loadProjectData(remaining[0].id);if(d)applyProject(d);}
+        }
+        renderProjectList();
+      },null,'Delete','danger','Delete project');
     });
     el.appendChild(div);
   });
@@ -10644,19 +10652,37 @@ function openConfirmModal(msg,onConfirm,onCancel,okLabel,okClass,title){
   if(okBtn){okBtn.textContent=okLabel||'Confirm';okBtn.className='ntm-btn '+(cls==='primary'?'primary':'danger');}
   const titleEl=document.getElementById('confirm-title');
   if(titleEl) titleEl.textContent=title||'Confirm';
+  const cancelBtn=document.getElementById('confirm-cancel-btn');
+  if(cancelBtn) cancelBtn.style.display=''; // openAlertModal hides it — restore for real confirms
   document.getElementById('confirm-modal').classList.add('show');
 }
 function doConfirm(){closeModal('confirm-modal');if(_confirmCb)_confirmCb();}
 function doCancel(){closeModal('confirm-modal');if(_cancelCb)_cancelCb();}
+
+/* ── ALERT MODAL ──
+   Replaces window.alert(): the same confirm shell with a single dismiss button, so a
+   message never drops the operator into an OS dialog mid-show. */
+function openAlertModal(msg,title,onClose){
+  openConfirmModal(msg,onClose,onClose,'OK','primary',title||'CueFlow');
+  const cancelBtn=document.getElementById('confirm-cancel-btn');
+  if(cancelBtn) cancelBtn.style.display='none';
+}
+
+/* ── PROMPT MODAL ──
+   Replaces window.prompt(). opts: {title, label, okLabel, placeholder}. */
 var _renameCb=null;
-function openRenameModal(currentName,onConfirm){
+function openRenameModal(currentName,onConfirm,opts){
+  opts=opts||{};
   var inp=document.getElementById('rename-modal-input');
+  var titleEl=document.getElementById('rename-title');
+  var lblEl=document.getElementById('rename-label');
+  var okBtn=document.getElementById('rename-ok-btn');
+  if(titleEl)titleEl.textContent=opts.title||'Rename Project';
+  if(lblEl)lblEl.textContent=opts.label||'Name';
+  if(okBtn)okBtn.textContent=opts.okLabel||'Rename';
   if(inp){
     inp.value=currentName||'';
-    inp.onkeydown=function(e){
-      if(e.key==='Enter'){e.preventDefault();doRenameConfirm();}
-      else if(e.key==='Escape'){doRenameCancel();}
-    };
+    inp.placeholder=opts.placeholder||'';
   }
   _renameCb=onConfirm;
   document.getElementById('rename-modal').classList.add('show');
@@ -11474,9 +11500,11 @@ function sbLoadProject(id){
   }
 }
 function sbDeleteProject(id){
-  if(!confirm('Delete this project?'))return;
-  deleteProjectData(id);
-  _sbRender('save');
+  const p=allProjects().find(x=>x.id===id);
+  openConfirmModal('Delete "'+(p?.name||'this project')+'"? This cannot be undone.',()=>{
+    deleteProjectData(id);
+    _sbRender('save');
+  },null,'Delete','danger','Delete project');
 }
 function sbCreateProject(){ openNewProjectModal(); }
 
@@ -16444,23 +16472,35 @@ document.addEventListener('DOMContentLoaded',function(){
       <span class="ntm-title" id="confirm-title">Confirm</span>
     </div>
     <div class="ntm-body">
-      <div style="font-size:13px;color:var(--txt);line-height:1.65;" id="confirm-msg"></div>
+      <div style="font-size:13px;color:var(--txt);line-height:1.65;white-space:pre-line;" id="confirm-msg"></div>
     </div>
     <div class="ntm-footer">
-      <button class="ntm-btn" onclick="doCancel()">Cancel</button>
+      <button class="ntm-btn" id="confirm-cancel-btn" onclick="doCancel()">Cancel</button>
       <button class="ntm-btn danger" id="confirm-ok-btn" onclick="doConfirm()">Confirm</button>
     </div>
   </div>
 </div>
 
-<div id="rename-modal" class="modal-bg"><div class="modal-box" style="max-width:340px;">
-  <div class="modal-title">Rename Project</div>
-  <input id="rename-modal-input" type="text" style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:13px;padding:7px 10px;margin-bottom:4px;" onkeydown="if(event.key==='Enter')doRenameConfirm();else if(event.key==='Escape')doRenameCancel();" />
-  <div class="modal-actions">
-    <button class="mbtn" onclick="doRenameCancel()">Cancel</button>
-    <button class="mbtn primary" onclick="doRenameConfirm()">Rename</button>
+<!-- Text-prompt modal — replaces window.prompt() for renames and "name this thing" flows -->
+<div id="rename-modal" class="ntm-bg" role="dialog" aria-modal="true">
+  <div class="ntm-box" style="width:400px;">
+    <div class="ntm-header">
+      <span class="ntm-title" id="rename-title">Rename</span>
+      <button class="tcs-close" onclick="doRenameCancel()">✕</button>
+    </div>
+    <div class="ntm-body">
+      <div class="ntm-fg">
+        <div class="ntm-lbl" id="rename-label">Name</div>
+        <input id="rename-modal-input" class="ntm-inp" type="text" maxlength="80" spellcheck="false" autocomplete="off"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();doRenameConfirm();}else if(event.key==='Escape')doRenameCancel();">
+      </div>
+    </div>
+    <div class="ntm-footer">
+      <button class="ntm-btn" onclick="doRenameCancel()">Cancel</button>
+      <button class="ntm-btn primary" id="rename-ok-btn" onclick="doRenameConfirm()">Rename</button>
+    </div>
   </div>
-</div></div>
+</div>
 
 
 
@@ -17672,7 +17712,7 @@ function _restoreFromHistory(historyId, timeStr, desc){
       db().from('show_history').select('project_data').eq('id', historyId).single()
         .then(function(r){
           if(r.error || !r.data || !r.data.project_data){
-            alert('Could not load snapshot.'); return;
+            openAlertModal('Could not load that snapshot.','Restore failed'); return;
           }
           if(window.applyProject) applyProject(r.data.project_data);
           CF.dirty = true;
@@ -20825,7 +20865,7 @@ function addPin(){
       role:dbRole,label:label,track_ids:trackIds
     }).select().single();
   }).then(function(r){
-    if(r.error){alert('Error: '+r.error.message);return;}
+    if(r.error){openAlertModal(r.error.message,'Something went wrong');return;}
     CF._pinList.push(r.data);
     renderPinsList();
     _cfLanPushPins();
@@ -20861,7 +20901,7 @@ CF._addCameraPin=function(camId){
       role:'viewer',label:label,track_ids:trackIds
     }).select().single();
   }).then(function(r){
-    if(r.error){alert('Error: '+r.error.message);return;}
+    if(r.error){openAlertModal(r.error.message,'Something went wrong');return;}
     CF._pinList.push(r.data);
     renderPinsList();
   });
@@ -21020,31 +21060,33 @@ CF._deleteSelected = function(){
 /* ── Playlist management ─────────────────────────────────── */
 
 function createPlaylist(){
-  // Use Block 1's custom modal — falls back to prompt only if modal unavailable
   if(window.openNewPlaylistModal){openNewPlaylistModal();return;}
-  var name=prompt('Playlist name:','New Playlist');
-  if(!name||!name.trim())return;
-  var id='pl_'+Date.now();
-  var songId='s_'+Date.now();
-  if(!state.songs)state.songs=[];
-  state.songs.push({id:songId,name:'Sequence 1',description:'',startTc:'01:00:00:00',cues:[],chapters:[]});
-  if(!state.playlists)state.playlists=[];
-  state.playlists.push({id:id,name:name.trim(),songIds:[songId]});
-  switchPlaylist(id);
+  openRenameModal('New Playlist',function(name){
+    var id='pl_'+Date.now();
+    var songId='s_'+Date.now();
+    if(!state.songs)state.songs=[];
+    state.songs.push({id:songId,name:'Sequence 1',description:'',startTc:'01:00:00:00',cues:[],chapters:[]});
+    if(!state.playlists)state.playlists=[];
+    state.playlists.push({id:id,name:name,songIds:[songId]});
+    switchPlaylist(id);
+  },{title:'New Playlist',label:'Playlist name',okLabel:'Create Playlist',placeholder:'Playlist name'});
 }
 function renamePlaylist(id){
   var pl=state.playlists&&state.playlists.find(function(p){return p.id===id;});
   if(!pl)return;
-  var name=prompt('Rename playlist:',pl.name);
-  if(!name||!name.trim())return;
-  pl.name=name.trim();
-  if(window.persist)persist();
-  _flushPersist();
-  if(window._sbRender)_sbRender('playlists');
+  openRenameModal(pl.name,function(name){
+    pl.name=name;
+    if(window.persist)persist();
+    _flushPersist();
+    if(window._sbRender)_sbRender('playlists');
+  },{title:'Rename Playlist',label:'Playlist name',okLabel:'Rename'});
 }
 function deletePlaylist(id){
   if(window.CF&&(CF.role==='editor'||CF.role==='track-editor'))return;
-  if(!state.playlists||state.playlists.length<=1){alert('Cannot delete the only playlist.');return;}
+  if(!state.playlists||state.playlists.length<=1){
+    openAlertModal('A show must have at least one playlist.','Cannot delete');
+    return;
+  }
   var pl=state.playlists.find(function(p){return p.id===id;});
   if(!pl)return;
   var _doDelete=function(){
@@ -21059,11 +21101,8 @@ function deletePlaylist(id){
     if(window.redrawActive)redrawActive();
     if(window._sbRender)_sbRender('playlists');
   };
-  if(window.openConfirmModal){
-    openConfirmModal('Delete playlist "'+pl.name+'" and all its sequences? This cannot be undone.',_doDelete,null);
-  }else{
-    if(confirm('Delete playlist "'+pl.name+'" and all its sequences? This cannot be undone.'))_doDelete();
-  }
+  openConfirmModal('Delete playlist "'+pl.name+'" and all its sequences? This cannot be undone.',
+    _doDelete,null,'Delete','danger','Delete playlist');
 }
 function duplicatePlaylist(id){
   var pl=state.playlists&&state.playlists.find(function(p){return p.id===id;});
