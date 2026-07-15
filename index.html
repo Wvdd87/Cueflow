@@ -2912,101 +2912,111 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
   position:absolute; top:0; right:0; bottom:0;
   width:20%;                       /* never more than 20% of frame width */
   display:flex; flex-direction:column;
-  padding:1.6vh 1.1vw;
+  /* The bottom strip is reserved for the NO TC chip, always — so the chip can never
+     overlap the shot list, and the auto-fit (which measures #cfp-blocks) accounts for
+     it whether TC is present or not. Nothing moves when it appears. */
+  padding:1.6vh 1.1vw 4.4vh;
   box-sizing:border-box;
   background:transparent;          /* the green field shows through and keys out */
 }
 #cfp-blocks { flex:1; display:flex; flex-direction:column; overflow:hidden; }
 
-/* One camera. Fixed position, sorted by number — the block never moves, only its
-   content changes, so a small gallery monitor stays calm. */
-.cfp-block { display:flex; flex-direction:column; margin-bottom:1.8vh; }
+/* One camera block: a FIXED identity header + a shot stack below it. The header never
+   changes — same camera number, same name, same position, whatever TC is doing — so an
+   operator scans one vertical line of numbers to find their camera and reads straight
+   down. State (live / next / lookahead) lives only in the shot rows, never the header.
+   Blocks are separated by whitespace, not rules — borders key poorly and add noise. */
+.cfp-block { display:flex; flex-direction:column; margin-bottom:2.4vh; }
 .cfp-block:last-child { margin-bottom:0; }
 
-/* Header: the camera badge (UI Kit rule — coloured background, black text) on an
-   opaque surface bar, so the number reads at a glance from across the gallery. */
+/* FIXED HEADER — camera identity only. Big number (leftmost, same X in every block) plus
+   the camera name to its right. An opaque surface bar so the number AND the name read
+   cleanly over any PGM background — a bare name floating on the key was hard to read.
+   Opaque (never a translucent tint) so it composites solid and doesn't key out. Never
+   shows a shot name. */
 .cfp-hdr {
-  display:flex; align-items:center; gap:.5vw;
-  background:var(--surface); border-left:4px solid var(--hair3);
-  padding:.5vh .6vw; margin-bottom:.4vh;
+  display:flex; align-items:center; gap:.55vw;
+  background:var(--surface); padding:.35vh .6vw; margin-bottom:.45vh;
 }
 .cfp-hdr .cam-badge {
-  width:calc(clamp(30px,2.6vw,50px) * var(--cfp-s,1));
-  height:calc(clamp(30px,2.6vw,50px) * var(--cfp-s,1));
-  font-size:calc(clamp(17px,1.5vw,29px) * var(--cfp-s,1));
+  width:calc(clamp(34px,3vw,58px) * var(--cfp-s,1));
+  height:calc(clamp(34px,3vw,58px) * var(--cfp-s,1));
+  font-size:calc(clamp(20px,1.8vw,34px) * var(--cfp-s,1));
   border-radius:0; flex-shrink:0;
 }
 .cfp-hdr-lbl {
   font-family:var(--cond); font-weight:700; text-transform:uppercase;
-  letter-spacing:.1em; color:var(--txt-mid);
-  font-size:calc(clamp(10px,.85vw,17px) * var(--cfp-s,1));
-  overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+  letter-spacing:.08em; color:var(--txt-hi);
+  font-size:calc(clamp(14px,1.2vw,24px) * var(--cfp-s,1));
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; min-width:0;
 }
 
-.cfp-rows { display:flex; flex-direction:column; gap:.35vh; }
+.cfp-rows { display:flex; flex-direction:column; gap:.4vh; }
 
-/* A shot. Opaque card, hard edges, left rule carrying the state colour. */
+/* A shot row. Opaque card (a translucent one would key out with the green under it), hard
+   edges, a left rule in the state colour. Every slot keeps its box for the life of the
+   view — an unused slot is invisible but still occupies space — so no row above can push a
+   camera's list up or down as the show runs. */
 .cfp-item {
-  display:flex; flex-direction:column;
+  display:flex; align-items:flex-start; gap:.5vw;
   background:var(--surface); border-left:4px solid var(--hair2);
-  padding:.45vh .6vw;
+  padding:.5vh .6vw;
 }
-.cfp-item.hidden { display:none; }
-.cfp-line { display:flex; align-items:baseline; gap:.5vw; }
+.cfp-item.blank { visibility:hidden; }   /* holds its space; paints nothing */
 .cfp-name {
   font-family:var(--cond); font-weight:700; text-transform:uppercase;
-  letter-spacing:.01em; color:var(--txt-hi);
-  font-size:calc(clamp(15px,1.4vw,28px) * var(--cfp-s,1));
-  overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
-  flex:1 1 auto; min-width:0;   /* absorbs free space so the countdown lands right */
+  letter-spacing:.01em; color:var(--txt-hi); line-height:1.08;
+  font-size:calc(clamp(16px,1.5vw,30px) * var(--cfp-s,1));
+  /* Wrap to two lines before truncating — a clipped "DANSER OP GR…" is useless to an
+     operator. Height is pinned to two lines so a one- or two-line name is the same box
+     and nothing below it moves. Truncation only bites past two full lines. */
+  display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2;
+  overflow:hidden; word-break:break-word;
+  height:calc(clamp(16px,1.5vw,30px) * var(--cfp-s,1) * 1.08 * 2);
+  flex:1 1 auto; min-width:0;
 }
-.cfp-cd {
-  font-family:var(--mono), monospace; font-weight:700;
-  font-variant-numeric:tabular-nums; flex-shrink:0; margin-left:.5vw;
-  font-size:calc(clamp(18px,1.75vw,35px) * var(--cfp-s,1));
-  color:var(--txt-hi);
+/* Right-hand marker (countdown or LIVE). display:none when absent — NOT hidden — so it
+   never reserves width on a plain lookahead row. Reserving it was what squeezed every
+   shot name into an early "…". Its appearing/disappearing only reflows within the row
+   (horizontal), never changes row height. */
+.cfp-mark {
+  flex-shrink:0; align-self:flex-start; margin-left:.4vw;
+  font-family:var(--mono), monospace; font-weight:700; font-variant-numeric:tabular-nums;
+  font-size:calc(clamp(16px,1.6vw,32px) * var(--cfp-s,1));
+  line-height:calc(clamp(16px,1.5vw,30px) * var(--cfp-s,1) * 1.08);
+  display:none;
 }
-.cfp-desc {
-  font-family:var(--sans), Arial, sans-serif; font-weight:600;
-  font-size:calc(clamp(12px,1vw,20px) * var(--cfp-s,1));
-  margin-top:.2vh; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
-}
+.cfp-item.live .cfp-mark, .cfp-item.next .cfp-mark { display:block; }
 
-/* LIVE (red tally) — solid broadcast red, black text. Unmistakable after keying. */
+/* LIVE — solid broadcast red, black text, a small LIVE marker at the right. */
 .cfp-item.live { background:var(--red); border-left-color:#7d0018; }
-.cfp-item.live .cfp-name { color:#06060a; }
-.cfp-item.live .cfp-tag {
-  font-family:var(--cond); font-weight:800; letter-spacing:.14em;
-  font-size:calc(clamp(10px,.8vw,16px) * var(--cfp-s,1));
-  color:#06060a; flex-shrink:0;
+.cfp-item.live .cfp-name, .cfp-item.live .cfp-mark { color:#06060a; }
+.cfp-item.live .cfp-mark {
+  font-family:var(--cond); font-weight:800; letter-spacing:.1em;
+  font-size:calc(clamp(11px,.95vw,19px) * var(--cfp-s,1));
 }
 
-/* NEXT (amber) — the next cue in the SEQUENCE, on whichever camera takes it. Solid
-   amber, black text, steady (never flashing). Only this card carries the countdown
-   and the description. */
+/* NEXT — the sequence's next cue, amber, with a countdown. Steady, never flashing. */
 .cfp-item.next { background:var(--amber); border-left-color:#8a5c14; }
-.cfp-item.next .cfp-name,
-.cfp-item.next .cfp-cd   { color:#06060a; }
-.cfp-item.next .cfp-desc { color:rgba(6,6,10,.78); }   /* alpha over an opaque card — safe */
+.cfp-item.next .cfp-name, .cfp-item.next .cfp-mark { color:#06060a; }
 
-/* LOOKAHEAD — plain surface card, shot name only. */
+/* LOOKAHEAD — plain surface card, shot name only, full width. */
 .cfp-item.ahead .cfp-name { color:var(--txt-hi); }
 
-/* Camera with nothing left to do — the block stays, the card shows an em dash. */
-.cfp-empty {
-  background:var(--surface); border-left:4px solid var(--hair2);
-  padding:.45vh .6vw; color:var(--txt-mid); font-weight:700;
-  font-size:calc(clamp(15px,1.4vw,28px) * var(--cfp-s,1));
-}
+/* Camera with nothing left to do — an em dash in its first slot; the block never moves. */
+.cfp-item.dash .cfp-name { color:var(--txt-mid); -webkit-line-clamp:1; }
 
-/* TC loss. Never silently free-run on a show-critical feed: hold the content and
-   say so, loudly, in a colour that cannot be confused with a tally. */
+/* TC loss. A show-critical feed must never silently free-run, but the warning must not
+   shove the layout around or read as a tally: a small chip pinned to the bottom of the
+   panel, out of the operator's shot list, amber rather than red. */
 #cfp-notc {
-  display:none; align-items:center; gap:.4vw; margin-bottom:.8vh;
-  background:var(--red); color:#06060a; font-weight:800;
+  display:none; position:absolute; left:1.1vw; right:1.1vw; bottom:1.2vh;
+  align-items:center; gap:.4vw;
+  background:var(--surface); border-left:4px solid var(--amber);
+  color:var(--amber); font-weight:700;
   font-family:var(--cond); letter-spacing:.12em; text-transform:uppercase;
-  font-size:calc(clamp(12px,1vw,20px) * var(--cfp-s,1));
-  padding:.4vh .6vw;
+  font-size:calc(clamp(10px,.8vw,16px) * var(--cfp-s,1));
+  padding:.3vh .6vw;
 }
 #cf-prompter-screen.notc #cfp-notc { display:flex; }
 </style>
@@ -6594,17 +6604,15 @@ function _cfpSpan(cls,parent){
   const s=document.createElement('span'); s.className=cls; parent.appendChild(s); return s;
 }
 
-/* One shot card: name + countdown on the first line, description underneath. Which of
-   those show depends on the card's state, set per frame in _updatePrompter. */
+/* One shot card: name + countdown on the first line, description underneath. Every part
+   is built once and always occupies its space; the state set each frame in
+   _updatePrompter only decides what is painted. No "ON AIR" label — red says it. */
 function _cfpItem(){
   const it=document.createElement('div');
-  it.className='cfp-item hidden';
-  const line=document.createElement('div'); line.className='cfp-line'; it.appendChild(line);
-  const tag=_cfpSpan('cfp-tag',line);   tag.textContent='ON AIR';
-  const name=_cfpSpan('cfp-name',line);
-  const cd=_cfpSpan('cfp-cd',line);
-  const desc=document.createElement('div'); desc.className='cfp-desc'; it.appendChild(desc);
-  return {el:it,tag,name,cd,desc};
+  it.className='cfp-item blank';
+  const name=_cfpSpan('cfp-name',it);   // shot name — wraps to 2 lines, full width
+  const mark=_cfpSpan('cfp-mark',it);   // right marker: countdown (amber) or LIVE (red)
+  return {el:it,name,mark};
 }
 
 /* Build the panel DOM for the current cameras + depth. No-op when nothing changed.
@@ -6622,7 +6630,9 @@ function _cfpBuild(depth){
     const block=document.createElement('div');
     block.className='cfp-block';
 
-    // Header — UI Kit camera badge: coloured background, black text (never override it).
+    // FIXED HEADER — camera identity only, never touched by the per-frame update: the
+    // UI Kit camera badge (coloured background, black text — never override it) plus the
+    // camera name. Same content, same position, all show long.
     const hdr=document.createElement('div');
     hdr.className='cfp-hdr';
     const badge=document.createElement('div');
@@ -6639,9 +6649,9 @@ function _cfpBuild(depth){
     const rows=document.createElement('div');
     rows.className='cfp-rows';
 
-    // Slot 0 is the live card; the rest are the lookahead, in TC order.
-    const live=_cfpItem();
-    rows.appendChild(live.el);
+    // The shot stack: live shot (if on air) then upcoming, in TC order. Every slot exists
+    // for the life of the view — an unused slot is invisible but space-holding, so nothing
+    // below ever shifts.
     const items=[];
     for(let i=0;i<Math.max(1,depth);i++){
       const it=_cfpItem();
@@ -6649,13 +6659,9 @@ function _cfpBuild(depth){
       rows.appendChild(it.el);
     }
 
-    const empty=document.createElement('div');
-    empty.className='cfp-empty'; empty.textContent='—'; empty.style.display='none';
-    rows.appendChild(empty);
-
     block.appendChild(rows);
     box.appendChild(block);
-    CFP._els[cam.id]={block,live,items,empty};
+    CFP._els[cam.id]={block,items};
   });
 }
 
@@ -6665,12 +6671,11 @@ function _cfpSet(node,key,txt){
   CFP._txt[key]=txt;
   node.textContent=txt;
 }
-function _cfpShow(row,on){ row.classList.toggle('hidden',!on); }
-function _cfpState(item,cls){                       // 'live' | 'next' | 'ahead'
+/* 'live' | 'next' | 'ahead' | 'dash' | 'blank'. A card NEVER changes size between these —
+   'blank' is invisible but still holds its box — so no row above can push a camera's shot
+   list up or down while the show runs. */
+function _cfpState(item,cls){
   item.el.className='cfp-item '+cls;
-  item.tag.style.display = cls==='live' ? '' : 'none';
-  item.cd.style.display  = cls==='next' ? '' : 'none';
-  item.desc.style.display= cls==='next' ? '' : 'none';
 }
 
 /* Per-frame update. Called from _doRedraw, so it rides the same TC as every other view. */
@@ -6692,32 +6697,34 @@ function _updatePrompter(frames){
     const e=CFP._els[m.cam.id]; if(!e) return;
     const id=m.cam.id;
 
-    // 1. LIVE — red tally, only while this camera is actually on air.
-    _cfpShow(e.live.el,!!m.live);
-    if(m.live){
-      _cfpState(e.live,'live');
-      _cfpSet(e.live.name,id+'-live',m.live.name||'—');
-    }
+    // The shot stack, top to bottom: the live shot (if this camera is on air) followed by
+    // its upcoming shots. The header (camera number + name) is fixed and never touched
+    // here. Across the whole panel exactly one row is red (the current cue) and one is
+    // amber (the sequence's next cue) - each in whichever camera owns it.
+    const list = m.live ? [m.live].concat(m.upcoming) : m.upcoming.slice();
+    const idle = list.length===0;
 
-    // 2. UPCOMING — the sequence's next cue is amber (with countdown + description),
-    //    wherever it falls; every other card is a plain lookahead.
     e.items.forEach((it,i)=>{
-      const c=m.upcoming[i]||null;
-      _cfpShow(it.el,!!c);
-      if(!c) return;
-      const isNext = nextF!=null && c._f===nextF;
-      _cfpState(it,isNext?'next':'ahead');
-      _cfpSet(it.name,id+'-n'+i,c.name||'—');
-      if(isNext){
-        _cfpSet(it.desc,id+'-d'+i,(c.desc||'').trim());
-        it.desc.style.display=(c.desc||'').trim()?'':'none';
+      const c=list[i]||null;
+      if(!c){
+        _cfpState(it, (idle&&i===0)?'dash':'blank');
+        _cfpSet(it.name, id+'-n'+i, (idle&&i===0)?'—':'');
+        _cfpSet(it.mark, id+'-m'+i, '');
+        return;
+      }
+      _cfpSet(it.name, id+'-n'+i, c.name||'—');
+      if(c===m.live){
+        _cfpState(it,'live');
+        _cfpSet(it.mark, id+'-m'+i, 'LIVE');
+      } else if(nextF!=null && c._f===nextF){
+        _cfpState(it,'next');
         // With no TC we are free-running: a ticking countdown would be a lie. Blank it.
-        _cfpSet(it.cd,id+'-c'+i, stale?'—':_cfpCountdown(c._f-frames));
+        _cfpSet(it.mark, id+'-m'+i, stale?'—':_cfpCountdown(c._f-frames));
+      } else {
+        _cfpState(it,'ahead');
+        _cfpSet(it.mark, id+'-m'+i, '');
       }
     });
-
-    // 3. HOLD — camera is out of cues. The block stays put and shows an em dash.
-    e.empty.style.display=(!m.live&&!m.upcoming.length)?'block':'none';
   });
 }
 
@@ -6735,29 +6742,19 @@ function _cfpTcWatch(){
 
 /* Fit the panel: pick the largest lookahead depth that fits the height without
    scrolling, then shrink the type if even one row per camera still overflows.
-   Measured against a worst-case fill (every row populated) so the layout can't start
-   overflowing later just because a shot went live or a description appeared. */
+   Every slot is a fixed size in every state (see the .cfp-item rules), so the built
+   layout IS the worst case — its height cannot grow later when a shot goes live or a
+   description appears. That is what lets the fit be exact and the rows stay still. */
 function _cfpFillWorstCase(){
-  /* The tallest the PANEL can ever be — not the tallest each block could be in
-     isolation. Only one cue in the sequence is current and only one is next, so across
-     the whole panel there is at most ONE red card and ONE amber card (amber being the
-     only one with a description line). Reserving both in every block is what made auto
-     mode pick a needlessly shallow depth and leave the screen half empty.
-     Total height is the same wherever the red and amber land, so we just pin them to the
-     first two blocks and measure. */
-  const ids=Object.keys(CFP._els);
-  const amberBlock=ids.length>1?1:0;   // worst case: red and amber on different blocks
-  ids.forEach((id,bi)=>{
+  // The header is a fixed height (badge + name) and each shot row reserves two lines of
+  // name regardless of state or marker, so a full stack of two-line names IS the worst
+  // case — the panel can never grow taller than this once real content lands.
+  Object.keys(CFP._els).forEach(id=>{
     const e=CFP._els[id];
-    e.empty.style.display='none';
-    _cfpShow(e.live.el, bi===0);
-    if(bi===0){ _cfpState(e.live,'live'); e.live.name.textContent='SHOT NAME'; }
     e.items.forEach((it,i)=>{
-      _cfpShow(it.el,true);
-      const isAmber=(bi===amberBlock && i===0);
-      _cfpState(it,isAmber?'next':'ahead');
-      it.name.textContent='SHOT NAME';
-      if(isAmber){ it.cd.textContent='0:00'; it.desc.textContent='Description line'; }
+      _cfpState(it,i===0?'live':'ahead');
+      it.name.textContent='SHOT NAME LINE TWO';
+      it.mark.textContent=i===0?'LIVE':'0:00';
     });
   });
   CFP._txt={}; // the real values must be rewritten after fitting
@@ -6807,6 +6804,11 @@ function showPrompterScreen(show){
     setInterval(_cfpTcWatch,500);
   }
   _cfpTcWatch();
+  /* The viewer TC loop only drives a redraw while appMode is 'live' (see viewerTcRaf) —
+     without this the prompter renders once and then sits frozen as TC rolls. Every other
+     role view sets this the same way. */
+  state.appMode='live';
+  if(window.redrawActive) redrawActive();
 }
 
 function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,curSeqId){
