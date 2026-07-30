@@ -13474,7 +13474,15 @@ function switchEditView(view){
 
    Width and collapsed state are a per-device UI preference, so they live in
    localStorage per project and never go near the synced project data. */
-const VIDP={MIN:200,MAX:760,DEF:360};
+const VIDP={MIN:200,DEF:360,LIST_MIN:320};
+/* No fixed maximum — the panel may take everything the cue list does not need
+   (LIST_MIN matches #er-list-content's min-width; below that the list scrolls
+   horizontally anyway). Recomputed on use so a resized window re-clamps. */
+function _vidPanelMaxW(){
+  const split=document.getElementById('er-split');
+  const w=split?split.clientWidth:0;
+  return w?Math.max(VIDP.MIN,w-VIDP.LIST_MIN-6):1200;   // 6px divider
+}
 let _vidPanel=null;                 // {collapsed,width} for the current project
 function _vidPanelKey(){ return 'cf_vidpanel_'+(state.projectId||'none'); }
 function _vidPanelState(){
@@ -13489,7 +13497,7 @@ function _vidPanelState(){
          the button in a one-click "Reopen" state. */
       st.poppedOut=!!v.poppedOut;
       const w=parseInt(v.width,10);
-      if(w>=VIDP.MIN&&w<=VIDP.MAX) st.width=w;
+      if(w>=VIDP.MIN) st.width=w;   // clamped to the live maximum in _applyVidPanel
     }
   }catch(e){}
   _vidPanel=st; return st;
@@ -13513,7 +13521,10 @@ function _applyVidPanel(){
   const popped=vidPopActive();
   const open=on&&!st.collapsed&&!popped;   // popped out ⇒ the inline panel stands down
   panel.style.display=open?'flex':'none';
-  if(open) panel.style.width=st.width+'px';
+  if(open){
+    st.width=Math.max(VIDP.MIN,Math.min(_vidPanelMaxW(),st.width));
+    panel.style.width=st.width+'px';
+  }
   /* Explicit 'block', not '' — the base rule for these two is display:none, so an
      empty string would fall straight back to hidden. */
   if(div) div.style.display=open?'block':'none';
@@ -13561,7 +13572,7 @@ function _vidPanelResizeMove(e){
   const panel=document.getElementById('er-vid-panel'); if(!panel) return;
   if(e.cancelable) e.preventDefault();
   const x=e.touches?e.touches[0].clientX:e.clientX;
-  const w=Math.max(VIDP.MIN,Math.min(VIDP.MAX,_vidPanelDragW+(_vidPanelDragX-x)));
+  const w=Math.max(VIDP.MIN,Math.min(_vidPanelMaxW(),_vidPanelDragW+(_vidPanelDragX-x)));
   _vidPanelState().width=w;
   panel.style.width=w+'px';
 }
@@ -15368,7 +15379,7 @@ function vidPopOpen(){
   /* Must be called straight from a click — anything async first and the popup
      blocker takes it. */
   var w=null;
-  try{ w=window.open('','cfVideoPop','width=960,height=560,menubar=no,toolbar=no,location=no,status=no'); }catch(e){ w=null; }
+  try{ w=window.open('','cfVideoPop','width=960,height=560,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no'); }catch(e){ w=null; }
   if(!w){
     cfMediaToast('Popup blocked — allow popups for CueFlow to use a separate video window.');
     var stb=_vidPanelState(); stb.poppedOut=false; _vidPanelSave(); _applyVidPanel();
