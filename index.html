@@ -5465,7 +5465,7 @@ function undoRedo(dir){
   }
   ETL.selId=null; // clear selection after undo/redo
   persist();renderSongList();renderStreamsBar();renderCueList();redrawActive();updateUndoButtons();
-  if(ETL.visible) requestAnimationFrame(renderEditTimeline);
+  _etlRenderSoon();
   // Re-open seq settings panel if it was open
   if(document.getElementById('seq-settings-modal').classList.contains('show')) openSeqSettingsPanel();
 }
@@ -6313,7 +6313,7 @@ async function wfGenerateForSong(songId){
   for(let i=0;i<N;i++)out[i]/=peak;
   wf.cache[songId]=out;
   wf.generating.delete(songId);
-  if(ETL.visible)requestAnimationFrame(renderEditTimeline);
+  _etlRenderSoon();
 }
 
 function wfInvalidate(songId){
@@ -8974,7 +8974,7 @@ function renderCueList(){
       if(_sspTc&&document.activeElement!==_sspTc)_sspTc.value=song.startTc||'01:00:00:00';
     }
   }
-  if(ETL.visible)requestAnimationFrame(renderEditTimeline);
+  _etlRenderSoon();
   // Refresh mobile editor: show it if we're in edit mode on a narrow screen
   if(state.appMode==='edit'&&isMobileEditMode()){
     var _msEl=document.getElementById('mobile-edit-screen');
@@ -11677,7 +11677,7 @@ async function cfMediaLoadSong(songId){
 async function cfMediaLoadAllSongs(){
   if(!cfMediaEnabled()||!cfMedia.ready) return;
   for(var i=0;i<state.songs.length;i++){ if(state.songs[i].mediaFile){ try{ await cfMediaLoadSong(state.songs[i].id); }catch(e){} } }
-  renderSongList(); if(ETL.visible) requestAnimationFrame(renderEditTimeline);
+  renderSongList(); _etlRenderSoon();
 }
 
 /* Called from applyProject — restore the project's folder and load its media. */
@@ -11702,7 +11702,7 @@ async function cfMediaLinkSong(songId,filename){
   await cfMediaLoadSong(songId);
   renderSongList(); renderCueList(); _mediaUpdateSSP(songId);
   if(window._cfMediaRefreshUI) _cfMediaRefreshUI();
-  if(ETL.visible) requestAnimationFrame(renderEditTimeline);
+  _etlRenderSoon();
 }
 function cfMediaUnlinkSong(songId){
   var song=state.songs.find(function(s){return s.id===songId;}); if(!song) return;
@@ -11712,7 +11712,7 @@ function cfMediaUnlinkSong(songId){
   persist();
   renderSongList(); renderCueList(); _mediaUpdateSSP(songId);
   if(window._cfMediaRefreshUI) _cfMediaRefreshUI();
-  if(ETL.visible) requestAnimationFrame(renderEditTimeline);
+  _etlRenderSoon();
 }
 
 function _cfMediaInvalidateAll(){
@@ -12015,7 +12015,7 @@ async function _attachMediaFile(songId,f){
     _mediaUpdateVidTab(songId);
     wfInvalidate(songId);
     renderSongList();renderCueList();
-    if(ETL.visible)requestAnimationFrame(renderEditTimeline);
+    _etlRenderSoon();
   // Store FS handle for persistence
   if(f._fsHandle) await _storeVidHandle(songId,f._fsHandle);
 }
@@ -12034,7 +12034,7 @@ async function mediaRemove(songId){
   _mediaUpdateSSP(songId);
   _mediaUpdateVidTab(songId);
   renderSongList();renderCueList();
-  if(ETL.visible)requestAnimationFrame(renderEditTimeline);
+  _etlRenderSoon();
 }
 
 async function _mediaRemoveInternal(songId){
@@ -12943,7 +12943,7 @@ async function _decodeAndStore(songId, arrayBuffer, filename, opts){
     wfGenerateForSong(songId);
     _mediaUpdateSSP(songId);
     _mediaUpdateVidTab(songId);
-    if(ETL.visible)requestAnimationFrame(renderEditTimeline);
+    _etlRenderSoon();
   } catch(err){
     console.error('decodeAudioData error', err);
     if(audio.meta[songId]) audio.meta[songId] = { ...audio.meta[songId], loading: false, ready: false };
@@ -13953,7 +13953,7 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
     cell.className='etl-stream-cell'+(isActiveSid?' sel-stream':'');
     cell.style.cssText=`height:${trackH}px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid rgba(255,255,255,.05);overflow:hidden;cursor:pointer;position:relative;${isActiveSid?'border-left:3px solid var(--primary);':'border-left:3px solid transparent;'}`;
     cell.title=streamName(sid)+' — click to select';
-    cell.onclick=()=>{state.activeStreamId=sid;renderStreamsBar();requestAnimationFrame(renderEditTimeline);};
+    cell.onclick=()=>{state.activeStreamId=sid;renderStreamsBar();_etlRenderSoon();};
     const lbl=document.createElement('div');
     lbl.style.cssText='display:inline-flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txt);background:transparent;border:1px solid var(--hair3);flex-shrink:0;width:32px;height:32px;';
     lbl.textContent=short;cell.appendChild(lbl);lblStrip.appendChild(cell);
@@ -14276,7 +14276,23 @@ function _etlWfResizeEnd(){
   try{ localStorage.setItem('cf_wf_rowH', String(wf.rowH)); }catch(e){}
 }
 
+/* A full timeline rebuild costs ~10ms and ~700 nodes, and most actions triggered two:
+   one synchronously (redrawTest → renderEditTimeline) and one scheduled on the next
+   frame, rebuilding identical DOM. Schedule through this instead of calling rAF
+   directly: the queued rebuild drops itself if a synchronous one has happened since
+   it was requested. */
+let _etlRenderSeq=0,_etlRafReq=0;
+function _etlRenderSoon(){
+  if(!ETL.visible||_etlRafReq)return;
+  const at=_etlRenderSeq;
+  _etlRafReq=requestAnimationFrame(()=>{
+    _etlRafReq=0;
+    if(_etlRenderSeq!==at)return;   // already rebuilt in the meantime — nothing to do
+    renderEditTimeline();
+  });
+}
 function renderEditTimeline(){
+  _etlRenderSeq++;
   if(!ETL.visible)return;
   const container=document.getElementById('edit-tl');if(!container)return;
   const fps=state.fps,pxPS=ETL.zoom,pxPF=pxPS/fps;
