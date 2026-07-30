@@ -817,6 +817,15 @@ body.mode-live #edit-mode-banner { display: none; }
 .desc-cell.is-filled { color: var(--txt-hi); font-style: normal; }
 .cue-field:focus { background: var(--surface3); box-shadow: inset 0 0 0 1px var(--primary); }
 .cue-readonly { cursor: pointer !important; user-select: none; }
+/* One cursor per row state. A row is made of inline inputs separated by non-editable
+   cells, so moving along it used to cycle arrow → hand → I-beam → hand → I-beam.
+   Not selected: the whole row is click-to-select, so it is a hand end to end.
+   Selected: the whole row is in edit mode, so it is an I-beam — except the two real
+   buttons, which stay hands. */
+.cue-row, .cue-row *:not(.cue-del):not(.cue-flag-btn) { cursor: pointer; }
+.cue-row:has(.cue-field:not(.cue-readonly)),
+.cue-row:has(.cue-field:not(.cue-readonly)) *:not(.cue-del):not(.cue-flag-btn) { cursor: text; }
+.cue-del, .cue-flag-btn { cursor: pointer; }
 .cue-readonly:focus { background: var(--surface2) !important; }
 .cue-col-del { display: flex; align-items: center; justify-content: center; border-left: 1px solid var(--hair); }
 .cue-del { background: none; border: none; color: var(--txt-low); cursor: pointer; font-size: 13px; padding: 6px; min-width: 28px; min-height: 28px; display: flex; align-items: center; justify-content: center; transition: color .1s; }
@@ -1062,6 +1071,13 @@ body.mode-live #edit-mode-banner { display: none; }
 .etl-cue-edit { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; display: none; align-items: center; justify-content: center; z-index: 6; cursor: pointer; font-size: 11px; line-height: 1; border-radius: 3px; border: 1px solid var(--hair3); background: rgba(6,6,10,.82); color: var(--txt); }
 .etl-cue:hover .etl-cue-edit { display: flex; }
 .etl-cue-edit:hover { background: var(--primary); border-color: var(--primary); color: #06060a; }
+/* Boundary zones are decided geometrically in the timeline's mousemove handler and
+   applied to #edit-tl. Children normally inherit that, but any child with a cursor of
+   its own wins for the pixels it covers — the hover pencil sits on a cue's right edge,
+   exactly where the resize zone is, so the cursor flipped between a hand and a resize
+   arrow with a few px of vertical movement. While a zone is live, the container owns
+   the cursor outright. */
+#edit-tl.etl-in-zone * { cursor: inherit !important; }
 
 /* Stream cells */
 .etl-stream-cell, .etl-stream-cell.active-stream { cursor: pointer; transition: background .1s; }
@@ -14766,7 +14782,9 @@ function _etlZoneAt(e){
   return null;
 }
 function _etlZoneCursor(mode){
-  return mode==='both'?'col-resize':mode==='shortenPrev'||mode==='durLast'?'w-resize':mode==='moveNext'||mode==='orphanStart'?'e-resize':'';
+  /* Falls back to ew-resize, never '' — an empty string resets the container to the
+     plain arrow, which is what a zone must never show. */
+  return mode==='both'?'col-resize':mode==='shortenPrev'||mode==='durLast'?'w-resize':mode==='moveNext'||mode==='orphanStart'?'e-resize':'ew-resize';
 }
 /* The same-track cue immediately AFTER cue `c` (object), for clamping. */
 function _etlNextSibling(song,sid,c){
@@ -14936,6 +14954,8 @@ function _initEditTimeline(){
     }
     // Cursor: boundary zones (‖ / ] / [) take priority, then move-handle, then block.
     const _z=_etlZoneAt(e);
+    // .etl-in-zone stops a child's own cursor (the hover pencil) overriding the zone.
+    container.classList.toggle('etl-in-zone',!!_z);
     if(_z){ container.style.cursor=_etlZoneCursor(_z.mode); }
     else {
       const block=e.target.closest('.etl-cue');
@@ -14947,6 +14967,7 @@ function _initEditTimeline(){
   container.addEventListener('mouseleave',()=>{
     const hover=document.getElementById('tl-ruler-hover');
     if(hover)hover.style.display='none';
+    container.classList.remove('etl-in-zone');   // don't leave children pinned to inherit
   });
 
   container.addEventListener('mousedown',e=>{
