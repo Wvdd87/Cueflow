@@ -844,6 +844,19 @@ body.mode-live #edit-mode-banner { display: none; }
 .dcm-effects-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); margin-bottom:10px; }
 .dcm-effect-row { display:flex; align-items:flex-start; gap:10px; margin-bottom:7px; font-size:12px; color:var(--txt-mid); line-height:1.55; }
 .dcm-effect-icon { color:var(--txt-low); flex-shrink:0; font-size:12px; }
+/* What happens to the previous cue on the same track once this one is gone. */
+.dcm-opts { margin-bottom:16px; }
+.dcm-opt {
+  display:flex; align-items:flex-start; gap:10px; padding:9px 12px; cursor:pointer;
+  background:var(--surface2); border:1px solid var(--hair2); margin-bottom:6px;
+  transition:border-color .12s, background .12s;
+}
+.dcm-opt:hover { background:var(--surface3); border-color:var(--hair3); }
+.dcm-opt:has(input:checked) { border-color:var(--primary); background:var(--primary-bg); }
+.dcm-opt input { accent-color:var(--primary); margin:2px 0 0; flex-shrink:0; }
+.dcm-opt-txt { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.dcm-opt-main { font-size:12px; font-weight:700; color:var(--txt-hi); }
+.dcm-opt-sub { font-size:11px; color:var(--txt-mid); line-height:1.45; }
 .ntm-btn.danger-solid { background:var(--red); border-color:var(--red); color:#fff; }
 .ntm-btn.danger-solid:hover { filter:brightness(1.12); }
 .cue-checkbox { width: 13px; height: 13px; accent-color: var(--primary); }
@@ -4236,6 +4249,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         </div>
         <div class="dcm-card-tc" id="dcm-tc"></div>
       </div>
+      <!-- Only rendered when a previous cue on the same track exists -->
+      <div id="dcm-prev-opts" class="dcm-opts" style="display:none;"></div>
       <div id="dcm-effects"></div>
     </div>
     <div class="ntm-footer">
@@ -9203,6 +9218,34 @@ function openCueDurationPopover(cueId,anchorEl){
 }
 // ─── DELETE CUE MODAL ───
 let _deleteCueId=null;
+/* What happens to the previous cue on the same track when this one is removed.
+   'gap'    — it keeps the length it has now. An AUTO cue would otherwise silently
+              stretch across the hole, so its current length is pinned first.
+   'extend' — it runs on to the next cue on the track, which is what auto means. */
+function _applyPrevCueLength(song,cue,mode){
+  const prev=_prevSameTrackCue(cue,song);
+  if(!prev) return null;
+  if(mode==='extend'){
+    prev.duration='auto';
+  } else if(cueIsAuto(prev)){
+    const end=cueEndFrames(prev,song);          // still ends at `cue` — call before the splice
+    if(isFinite(end)){
+      const len=Math.max(1,end-tcF(prev.tc));
+      prev.duration=fTC(len);
+    }
+  }
+  return prev;
+}
+function _dcmPrevMode(){
+  const el=document.querySelector('#dcm-prev-opts input[name="dcm-prev"]:checked');
+  return el?el.value:'gap';
+}
+/* Enter confirms, Escape cancels. Capture phase so the global shortcut handler
+   never sees the key while this modal owns the screen. */
+function _dcmKeydown(e){
+  if(e.key==='Enter'){ e.preventDefault(); e.stopPropagation(); confirmDeleteCue(); }
+  else if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); closeDeleteCueModal(); }
+}
 function openDeleteCueModal(cueId){
   let cue=null,song=null,cueIdx=-1;
   state.songs.forEach(s=>{
@@ -9254,21 +9297,52 @@ function openDeleteCueModal(cueId){
     efEl.innerHTML='<div class="dcm-effects-lbl">What this will do</div>'+
       rows.map(r=>`<div class="dcm-effect-row"><span class="dcm-effect-icon">↳</span><span>${escH(r)}</span></div>`).join('');
   }
+  // Previous cue on this track: keep its length (gap) or run it on to the next cue
+  const optsEl=document.getElementById('dcm-prev-opts');
+  if(optsEl){
+    const prev=_prevSameTrackCue(cue,song);
+    if(!prev){
+      optsEl.style.display='none';
+      optsEl.innerHTML='';
+    } else {
+      const pName=escH(prev.name||'previous cue');
+      const nextSame=_nextSameTrackCue(cue,song);
+      optsEl.style.display='';
+      optsEl.innerHTML=
+        '<div class="dcm-effects-lbl">Previous cue on this track</div>'+
+        '<label class="dcm-opt"><input type="radio" name="dcm-prev" value="gap" checked>'+
+          '<span class="dcm-opt-txt"><span class="dcm-opt-main">Leave a gap</span>'+
+          '<span class="dcm-opt-sub">“'+pName+'” keeps its current length.</span></span></label>'+
+        '<label class="dcm-opt"><input type="radio" name="dcm-prev" value="extend">'+
+          '<span class="dcm-opt-txt"><span class="dcm-opt-main">Extend the previous cue</span>'+
+          '<span class="dcm-opt-sub">“'+pName+'” runs on until '+
+            (nextSame?('“'+escH(nextSame.name||'the next cue')+'”'):'the next cue on this track')+'.</span></span></label>';
+    }
+  }
   const m=document.getElementById('delete-cue-modal');
   if(m)m.classList.add('show');
+  document.addEventListener('keydown',_dcmKeydown,true);
 }
 function closeDeleteCueModal(){
   const m=document.getElementById('delete-cue-modal');
   if(m)m.classList.remove('show');
+  document.removeEventListener('keydown',_dcmKeydown,true);
   _deleteCueId=null;
 }
 function confirmDeleteCue(){
   if(!_deleteCueId)return;
   const id=_deleteCueId;
+  const mode=_dcmPrevMode();
   snapshot();
-  state.songs.forEach(s=>{const idx=s.cues.findIndex(c=>c.id===id);if(idx>=0)s.cues.splice(idx,1);});
+  state.songs.forEach(s=>{
+    const idx=s.cues.findIndex(c=>c.id===id);
+    if(idx<0) return;
+    _applyPrevCueLength(s,s.cues[idx],mode);   // reads the neighbours — before the splice
+    s.cues.splice(idx,1);
+  });
   if(window.ETL&&ETL.selId===id)ETL.selId=null;
   persist();renderCueList();redrawActive();
+  if(window.ETL&&ETL.visible)renderEditTimeline();
   showUndoToast('Cue deleted');
   closeDeleteCueModal();
 }
