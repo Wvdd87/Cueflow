@@ -6279,6 +6279,7 @@ async function wfGenerateForSong(songId){
         const buf=await actx.decodeAudioData(ab);
         ch=buf.getChannelData(0);
         wf.pcm[songId]={ch:ch, sr:buf.sampleRate};
+        _wfPcmTouch(songId); _wfPcmEvict(songId);
         wf.failed.delete(songId);
       }catch(e){
         // Remember it: silent/undecodable audio track, or a blob URL revoked out from
@@ -6319,7 +6320,46 @@ async function wfGenerateForSong(songId){
 function wfInvalidate(songId){
   delete wf.cache[songId];
   delete wf.pcm[songId];
+  _wfPcmForget(songId);
   wf.failed.delete(songId);   // re-attached media deserves a fresh decode attempt
+}
+
+/* ── Full-rate PCM retention ───────────────────────────────────────────────
+   wf.pcm holds a VIDEO's decoded audio at 22050 Hz mono Float32 so the waveform
+   keeps per-pixel detail when you zoom in — about 88 KB per second of video, so
+   a single 60-minute clip is ~317 MB. Nothing dropped it, and it is only ever
+   read for the sequence currently drawn in the timeline.
+
+   So: keep a byte budget, evict least-recently-drawn first, and never evict the
+   sequence on screen. The low-res wf.cache block array (a few hundred KB) stays
+   for every sequence, so an evicted one still draws — it just re-decodes if you
+   zoom back in past the high-res threshold. */
+const WF_PCM_BUDGET = 192*1024*1024;
+wf.pcmLru = [];                     // songIds, least-recently-used first
+function _wfPcmTouch(songId){
+  const i=wf.pcmLru.indexOf(songId);
+  if(i>=0) wf.pcmLru.splice(i,1);
+  wf.pcmLru.push(songId);
+}
+function _wfPcmForget(songId){
+  const i=wf.pcmLru.indexOf(songId);
+  if(i>=0) wf.pcmLru.splice(i,1);
+}
+function _wfPcmBytes(){
+  let n=0;
+  for(const k in wf.pcm){ const e=wf.pcm[k]; if(e&&e.ch) n+=e.ch.length*4; }
+  return n;
+}
+function _wfPcmEvict(keepId){
+  let bytes=_wfPcmBytes();
+  for(let i=0;i<wf.pcmLru.length && bytes>WF_PCM_BUDGET;){
+    const id=wf.pcmLru[i];
+    if(id===keepId){ i++; continue; }          // never drop what is on screen
+    const e=wf.pcm[id];
+    if(e&&e.ch) bytes-=e.ch.length*4;
+    delete wf.pcm[id];
+    wf.pcmLru.splice(i,1);
+  }
 }
 
 /* Draw waveform — B&W, adaptive resolution.
@@ -6361,6 +6401,7 @@ function wfDraw(canvasEl, songId, startSec, endSec, durationSec, offsetSec){
   // in wf.pcm (decoded from its audio track) — both give per-pixel detail on zoom.
   const buf = audio.buffers?.[songId];
   const pcm = buf ? {ch: buf.getChannelData(0), sr: buf.sampleRate} : wf.pcm?.[songId];
+  if(!buf && pcm) _wfPcmTouch(songId);   // drawn now — last to be evicted
   const visibleSec = endSec - startSec;
   const useHighRes = pcm && visibleSec < 90; // direct sampling under 90s window
 
@@ -11720,6 +11761,7 @@ function _cfMediaInvalidateAll(){
   Object.keys(audio.meta).forEach(function(k){ delete audio.meta[k]; });
   Object.keys(wf.cache).forEach(function(k){ delete wf.cache[k]; });
   Object.keys(wf.pcm).forEach(function(k){ delete wf.pcm[k]; });
+  wf.pcmLru.length=0;
   wf.failed.clear();   // also drops songIds of the outgoing project
 
   _vidMetaCancelAll();
