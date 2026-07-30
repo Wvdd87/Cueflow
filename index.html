@@ -126,7 +126,9 @@ body { height: 100%; overflow: hidden; background: var(--bg); color: var(--txt);
 button { font-family: inherit; cursor: pointer; touch-action: manipulation; }
 button:disabled, button[disabled] { opacity: .4; cursor: not-allowed; pointer-events: none; }
 input, select, textarea { font-family: inherit; }
-::-webkit-scrollbar { width: 4px; }
+/* width styles the vertical bar, height the horizontal one — both needed, or a
+   horizontal scroller falls back to the chunky OS default. */
+::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--hair2); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--hair3); }
@@ -725,7 +727,22 @@ body.mode-live #edit-mode-banner { display: none; }
    CUE LIST TABLE
    cols: # | TRK | TIMECODE | CUE | DESC | TYPE | NEXT | ×
    ═══════════════════════════════════════════ */
-:root { --col-tc: 108px; --col-name: 1fr; --col-desc: 1fr; --col-type: 70px; --col-next: 52px; }
+/* Cue and Description are the only flexible columns: they hold a comfortable
+   minimum, grow into whatever space is left, and never size to the longest entry
+   (minmax() pins the track's min, so one 200-character cue name cannot widen it —
+   it ellipsises instead). Everything else is fixed. */
+:root {
+  --col-tc: 108px; --col-dur: 96px; --col-type: 70px; --col-next: 52px;
+  --col-name: minmax(220px, 1.1fr);
+  --col-desc: minmax(260px, 1.5fr);
+  /* Sum of every column minimum: 30+32+108+96+220+260+70+52+28+28.
+     Below this the list scrolls sideways instead of crushing the text columns. */
+  --cue-cols-min: 924px;
+}
+/* Horizontal scroll is a fallback for a narrow container (video panel open, small
+   window) — header and rows live inside it so they scroll together. */
+#cue-list-hscroll { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-x: auto; overflow-y: hidden; }
+#cue-list-grid { flex: 1; min-height: 0; display: flex; flex-direction: column; min-width: var(--cue-cols-min); }
 #cue-list-wrap { flex: 1; overflow-y: auto; overflow-x: hidden !important; }
 .cue-list-wrap { overflow-x: hidden !important; }
 .cue-row {
@@ -782,10 +799,13 @@ body.mode-live #edit-mode-banner { display: none; }
 .cue-field {
   background: transparent; border: none; outline: none;
   font-size: 12px; color: var(--txt);
-  padding: 8px 8px; width: 100%;
+  padding: 8px 8px; width: 100%; min-width: 0;
   border-right: 1px solid var(--hair);
   transition: background .1s;
   font-family: var(--sans);
+  /* Entries longer than the column truncate rather than wrap or stretch it.
+     The full text is still there — it scrolls into view on focus/edit. */
+  text-overflow: ellipsis;
 }
 .cue-field.tc { font-family: var(--mono); font-size: 11px; color: var(--txt-hi); font-variant-numeric: tabular-nums; }
 .cue-field.desc { color: var(--txt-mid); font-size: 11px; border-right: none; }
@@ -1210,7 +1230,27 @@ body.mode-live #edit-mode-banner { display: none; }
 .video-bar-name { font-size: 10px; color: var(--txt-mid); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .video-bar-btn { background: none; border: none; color: var(--txt-mid); cursor: pointer; font-size: 11px; padding: 2px 5px; }
 .video-bar-btn:hover { color: var(--txt-hi); background: var(--surface3); }
-#er-vid-content { flex: 1; min-height: 0; display: none; flex-direction: column; background: #000; overflow: hidden; }
+/* ── Sequence editor split: cue list + inline video panel ──────────────────
+   Replaces the old MEDIA tab. The video is a reference while placing cues, so
+   it sits beside the list instead of on a tab you have to jump to. Only shown
+   for VIDEO sequences (see _applyVidPanel). */
+#er-split { flex: 1; min-height: 0; display: flex; overflow: hidden; }
+#er-vid-panel { display: none; flex-direction: column; background: #000; overflow: hidden; position: relative; flex-shrink: 0; }
+#er-vid-divider {
+  display: none; width: 6px; flex-shrink: 0; cursor: col-resize;
+  background: var(--hair); transition: background .12s;
+}
+#er-vid-divider:hover, #er-vid-divider.dragging { background: var(--primary); }
+/* Collapsed: a thin vertical strip on the right edge to bring the video back. */
+#er-vid-reopen {
+  display: none; width: 26px; flex-shrink: 0; align-items: center; justify-content: center;
+  background: var(--surface); border: none; border-left: 1px solid var(--hair);
+  color: var(--txt-mid); cursor: pointer; font-family: var(--cond); font-size: 10px;
+  font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  writing-mode: vertical-rl; text-orientation: mixed; padding: 10px 0;
+  transition: color .12s, background .12s;
+}
+#er-vid-reopen:hover { color: var(--txt-hi); background: var(--surface2); }
 #video-el-main { flex: 1; min-height: 0; width: 100%; object-fit: contain; display: block; background: #000; cursor: pointer; }
 .vid-tab-bar { display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: var(--surface); border-top: 1px solid var(--hair); flex-shrink: 0; }
 .vid-tab-filename { flex: 1; font-size: 11px; color: var(--txt-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -3637,7 +3677,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <!-- View tab bar -->
       <div class="edit-right-tabs" id="edit-right-tabs">
         <button class="er-tab active" id="ertab-list"  onclick="switchEditView('list')">CUES</button>
-        <button class="er-tab"        id="ertab-vid"   onclick="switchEditView('vid')">MEDIA</button>
+        <!-- MEDIA tab removed: the video is now an inline panel beside the cue list. -->
         <button class="er-tab"        id="ertab-notes" onclick="switchEditView('notes')">NOTES</button>
         <!-- Cameras tab removed: camera track managed via streams bar + cam-track-bar -->
         <button class="er-tab" id="ertab-cams" onclick="switchEditView('cams')" style="display:none;"></button>
@@ -3654,8 +3694,9 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <button class="er-tab-icon" id="more-menu-btn" onclick="toggleMoreMenu(event)" aria-label="More options" style="font-size:16px;letter-spacing:.05em;">⋯</button>
       </div>
 
-      <!-- LIST view -->
-      <div id="er-list-content" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
+      <!-- LIST view + inline video panel, side by side -->
+      <div id="er-split">
+      <div id="er-list-content" style="display:flex;flex-direction:column;flex:1;min-width:320px;min-height:0;overflow:hidden;">
         <!-- Filter panel (toggled by funnel button) -->
         <div class="cl-filter-panel" id="cl-filter-panel" style="display:none;"></div>
         <div class="batch-bar" id="batch-bar">
@@ -3672,15 +3713,22 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
           <button class="batch-del-btn" id="batch-del-btn" onclick="batchDeleteStage()">Delete</button>
           <button class="batch-cancel-btn" onclick="toggleBatchMode()" title="Exit selection" aria-label="Cancel selection"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
-        <div class="cue-list-header"><span style="justify-content:center;padding:0;">#</span><span style="padding:0 4px;justify-content:center;border-right:1px solid var(--hair);">TRK</span><span>Timecode</span><span>Duration</span><span>Cue</span><span>Description</span><span>Type</span><span>Next</span><span style="justify-content:center;padding:0;font-size:15px">⚑</span><span style="justify-content:center;padding:0;font-size:15px">×</span></div>
-        <div id="cue-list-wrap"></div>
+        <!-- Header + rows share one horizontal scroll container so they stay aligned -->
+        <div id="cue-list-hscroll">
+          <div id="cue-list-grid">
+            <div class="cue-list-header"><span style="justify-content:center;padding:0;">#</span><span style="padding:0 4px;justify-content:center;border-right:1px solid var(--hair);">TRK</span><span>Timecode</span><span>Duration</span><span>Cue</span><span>Description</span><span>Type</span><span>Next</span><span style="justify-content:center;padding:0;font-size:15px">⚑</span><span style="justify-content:center;padding:0;font-size:15px">×</span></div>
+            <div id="cue-list-wrap"></div>
+          </div>
+        </div>
         <div style="display:none;"><span id="desc-has-content"></span></div>
       </div>
 
       <!-- PREVIEW view removed — Live Mode + Generated TC replace it. -->
 
-      <!-- VIDEO tab view -->
-      <div id="er-vid-content" style="display:none;flex:1;min-height:0;flex-direction:column;background:#000;overflow:hidden;position:relative;">
+      <!-- Inline VIDEO panel: read-only mirror of the timeline playhead. Shown only
+           for video sequences on an owner desktop (_applyVidPanel). -->
+      <div id="er-vid-divider" title="Drag to resize"></div>
+      <div id="er-vid-panel">
         <video id="video-el-main" playsinline onclick="videoEl_click()" style="flex:1;min-height:0;width:100%;object-fit:contain;display:block;background:#000;cursor:pointer;"></video>
         <div id="vid-empty-msg" style="flex-direction:column;gap:12px;">
           <span class="vid-no-media-lbl" style="font-size:13px;color:var(--text3);font-weight:600;">No video</span>
@@ -3693,8 +3741,11 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
           <button class="btn-icon" onclick="mediaAttach(state.activeSongId)" style="font-size:10px;">↑ Attach</button>
           <button class="btn-icon" id="vid-fs-btn" onclick="videoFullscreen()" aria-label="Video fullscreen" style="font-size:10px;display:none;">⛶</button>
           <button class="btn-icon" id="vid-rm-btn" onclick="mediaRemove(state.activeSongId)" style="font-size:10px;color:var(--red);display:none;">✕ Remove</button>
+          <button class="btn-icon" id="vid-collapse-btn" onclick="toggleVidPanel()" title="Hide video panel" aria-label="Hide video panel" style="font-size:11px;">›</button>
         </div>
       </div>
+      <button id="er-vid-reopen" onclick="toggleVidPanel()" title="Show video panel" aria-label="Show video panel">Video</button>
+      </div><!-- /er-split -->
       <!-- NOTES view -->
       <div id="er-notes-content">
         <div class="cf-rte-tb" data-rte="notes-tab-rte"></div>
@@ -4561,6 +4612,7 @@ function saveSessionState(){
 
 function applyProject(proj){
   state.projectId=proj.id;state.name=proj.name;
+  if(window._vidPanelReset)_vidPanelReset();   // video panel width/collapse is per project
   state.fps=proj.fps||25;state.visibleCount=proj.visibleCount||6;
   state.warnSec=proj.warnSec||10;state.autoAdvanceSec=proj.autoAdvanceSec||10;
   state.songs=proj.songs||[];
@@ -8516,7 +8568,7 @@ function selectSong(id){
   _vidUpdateForActiveSong();
   _syncTopbarSeqName();
   if(_editView==='notes')_loadNotesTab();
-  if(_editView==='vid')_updateVidEmptyState();
+  _applyVidPanel();   // video panel only applies to VIDEO sequences — re-evaluate per selection
   _vidUpdateForActiveSong();
   const song=state.songs.find(s=>s.id===id);
   const tcInp=document.getElementById('new-song-tc');
@@ -10589,6 +10641,11 @@ function init(){
   applyProject(_bootPlaceholderProject());
   updateUndoButtons();updateStreamDots();
   initResize('live-resize-handle','live-right');
+  const _vpd=document.getElementById('er-vid-divider');
+  if(_vpd){
+    _vpd.addEventListener('mousedown',_vidPanelResizeStart);
+    _vpd.addEventListener('touchstart',_vidPanelResizeStart,{passive:false});
+  }
   state.tlVisible={edit:false,live:false};
   ETL.visible=true;
   switchMode('edit');
@@ -11733,11 +11790,11 @@ function cfMediaOpenFolderSettings(){
   openSettingsModal('media');
 }
 
-/* Hide the desktop edit MEDIA tab unless this is an owner on desktop. */
+/* Media surfaces in the edit view. The MEDIA tab is gone — the only surface left is
+   the inline video panel, and _applyVidPanel() already refuses it without media. */
 function _cfApplyEditMediaTabs(){
-  var ok=cfMediaEnabled();
-  var v=document.getElementById('ertab-vid'); if(v) v.style.display=ok?'':'none';
-  if(!ok && _editView==='vid') switchEditView('list');
+  if(_editView==='vid') switchEditView('list');   // legacy view id from an older session
+  if(window._applyVidPanel) _applyVidPanel();
 }
 
 /* Refresh any open media UI after an async folder/link change (called by the module). */
@@ -13289,28 +13346,113 @@ let _listFilterFlagged=false;
 let _listFilterType='all';  // 'all' | 'cue' | 'marker'
 function switchEditView(view){
   // PREVIEW view removed — any lingering 'wf' request falls back to the LIST editor.
-  if(view==='wf') view='list';
-  // MEDIA tab is owner-desktop only. Hide it for editors/viewers/mobile and never let
-  // that view be active there.
-  const mediaOk=cfMediaEnabled();
-  const vidTabBtn=document.getElementById('ertab-vid'); if(vidTabBtn) vidTabBtn.style.display=mediaOk?'':'none';
-  if(!mediaOk && view==='vid') view='list';
+  // 'vid' likewise: the MEDIA tab is gone, the video is an inline panel next to the list.
+  if(view==='wf'||view==='vid') view='list';
   _editView=view;
-  const isList=view==='list',isVid=view==='vid',isNotes=view==='notes',isCams=view==='cams';
-  document.getElementById('er-list-content').style.display=isList?'flex':'none';
-  const vc=document.getElementById('er-vid-content');if(vc)vc.style.display=isVid?'flex':'none';
+  const isList=view==='list',isNotes=view==='notes',isCams=view==='cams';
+  const sp=document.getElementById('er-split');if(sp)sp.style.display=isList?'flex':'none';
   const nc=document.getElementById('er-notes-content');if(nc)nc.style.display=isNotes?'flex':'none';
   const cc=document.getElementById('er-cams-content');if(cc)cc.style.display=isCams?'flex':'none';
   document.getElementById('ertab-list')?.classList.toggle('active',isList);
-  document.getElementById('ertab-vid')?.classList.toggle('active',isVid);
   document.getElementById('ertab-notes')?.classList.toggle('active',isNotes);
   document.getElementById('ertab-cams')?.classList.toggle('active',isCams);
-  if(isVid){_vidUpdateForActiveSong();_updateVidEmptyState();}
+  if(isList){_applyVidPanel();}
   if(isNotes){_loadNotesTab();}
   if(isCams){renderCamerasTab();}
   // Sync filter button active state whenever list tab is shown
   const _fbtn=document.getElementById('list-filter-btn');
   if(_fbtn)_fbtn.classList.toggle('active',_listFilterOpen);
+}
+
+/* ── Inline video panel ─────────────────────────────────────────────────────
+   The video is a reference for placing cues, so it lives beside the cue list
+   instead of on a tab. Read-only: it mirrors the playhead (videoOnSeek already
+   drives it from _doRedraw) and never steers it.
+
+   Shown only when the active sequence is VIDEO and this client actually has
+   media (owner + desktop + file access) — editors, viewers and mobile owners
+   get the plain full-width cue list, exactly as with no media.
+
+   Width and collapsed state are a per-device UI preference, so they live in
+   localStorage per project and never go near the synced project data. */
+const VIDP={MIN:200,MAX:760,DEF:360};
+let _vidPanel=null;                 // {collapsed,width} for the current project
+function _vidPanelKey(){ return 'cf_vidpanel_'+(state.projectId||'none'); }
+function _vidPanelState(){
+  if(_vidPanel) return _vidPanel;
+  let st={collapsed:false,width:VIDP.DEF};
+  try{
+    const v=JSON.parse(localStorage.getItem(_vidPanelKey())||'null');
+    if(v&&typeof v==='object'){
+      st.collapsed=!!v.collapsed;
+      const w=parseInt(v.width,10);
+      if(w>=VIDP.MIN&&w<=VIDP.MAX) st.width=w;
+    }
+  }catch(e){}
+  _vidPanel=st; return st;
+}
+function _vidPanelSave(){ try{ localStorage.setItem(_vidPanelKey(),JSON.stringify(_vidPanelState())); }catch(e){} }
+/* Called on project load — the next read picks up the new project's preference. */
+function _vidPanelReset(){ _vidPanel=null; }
+/* Video panel applies to VIDEO sequences only; audio and no-media look identical. */
+function _vidPanelApplies(){
+  const s=getActiveSong(); if(!s) return false;
+  const mt=s.mediaType||(s.videoFilename?'video':null);
+  return mt==='video'&&cfMediaEnabled();
+}
+/* Pure layout — never loads media, so it can be called from any render path. */
+function _applyVidPanel(){
+  const panel=document.getElementById('er-vid-panel'); if(!panel) return;
+  const div=document.getElementById('er-vid-divider');
+  const reopen=document.getElementById('er-vid-reopen');
+  const on=_vidPanelApplies()&&_editView==='list';
+  const st=_vidPanelState();
+  const open=on&&!st.collapsed;
+  panel.style.display=open?'flex':'none';
+  if(open) panel.style.width=st.width+'px';
+  /* Explicit 'block', not '' — the base rule for these two is display:none, so an
+     empty string would fall straight back to hidden. */
+  if(div) div.style.display=open?'block':'none';
+  if(reopen) reopen.style.display=(on&&st.collapsed)?'flex':'none';
+  if(open) _updateVidEmptyState();
+}
+function toggleVidPanel(){
+  const st=_vidPanelState();
+  st.collapsed=!st.collapsed;
+  _vidPanelSave();
+  _applyVidPanel();
+  // Re-opening may reveal a player still pointed at a previous sequence.
+  if(!st.collapsed) _vidUpdateForActiveSong();
+}
+/* Divider drag. The panel is on the right, so dragging left widens it. */
+let _vidPanelDragX=0,_vidPanelDragW=0;
+function _vidPanelResizeStart(e){
+  const panel=document.getElementById('er-vid-panel'); if(!panel) return;
+  e.preventDefault();
+  _vidPanelDragX=e.touches?e.touches[0].clientX:e.clientX;
+  _vidPanelDragW=panel.offsetWidth;
+  document.getElementById('er-vid-divider')?.classList.add('dragging');
+  document.addEventListener('mousemove',_vidPanelResizeMove);
+  document.addEventListener('mouseup',_vidPanelResizeEnd);
+  document.addEventListener('touchmove',_vidPanelResizeMove,{passive:false});
+  document.addEventListener('touchend',_vidPanelResizeEnd);
+}
+function _vidPanelResizeMove(e){
+  const panel=document.getElementById('er-vid-panel'); if(!panel) return;
+  if(e.cancelable) e.preventDefault();
+  const x=e.touches?e.touches[0].clientX:e.clientX;
+  const w=Math.max(VIDP.MIN,Math.min(VIDP.MAX,_vidPanelDragW+(_vidPanelDragX-x)));
+  _vidPanelState().width=w;
+  panel.style.width=w+'px';
+}
+function _vidPanelResizeEnd(){
+  document.getElementById('er-vid-divider')?.classList.remove('dragging');
+  document.removeEventListener('mousemove',_vidPanelResizeMove);
+  document.removeEventListener('mouseup',_vidPanelResizeEnd);
+  document.removeEventListener('touchmove',_vidPanelResizeMove);
+  document.removeEventListener('touchend',_vidPanelResizeEnd);
+  _vidPanelSave();
+  if(ETL.visible) renderEditTimeline();   // timeline width changed with the split
 }
 function _updateCamerasTab(){
   // Cameras tab is hidden; camera track managed via streams bar + cam-track-bar
@@ -20683,13 +20825,9 @@ function showEditorApp(show){
     state.cameraTrackVisible=true;
   }
 
-  /* Editors get NO media UI: hide the MEDIA tab and force the LIST view. cfMediaEnabled()
-     is false for editors, so switchEditView() also hides it and refuses that view — this
-     just applies it immediately on entry. */
+  /* Editors get NO media UI. cfMediaEnabled() is false for them, so the inline video
+     panel refuses to show — this just applies the LIST view immediately on entry. */
   if(window.switchEditView){ try{ switchEditView('list'); }catch(e){} }
-  else {
-    var _vidTab=document.getElementById('ertab-vid'); if(_vidTab) _vidTab.style.display='none';
-  }
 
   /* All editors go directly to the edit screen */
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
