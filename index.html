@@ -3712,6 +3712,11 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <div id="er-list-header" style="display:none;"><div id="cue-editor-song-name" class="seq-name-badge" style="display:none;">Select a sequence</div><div id="audio-hdr-status" style="display:none;"></div></div>
         <div style="flex:1;"></div>
         <!-- Right-side action icons -->
+        <!-- Attach media, so it does not mean a trip to the sequence settings. Shows only
+             while the active sequence has nothing attached (see _erApplyAttachBtn). -->
+        <button class="er-tab-icon" id="er-attach-btn" onclick="mediaAttach(state.activeSongId)" title="Attach media to this sequence" aria-label="Attach media" style="display:none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h11l5 5v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M12 17v-6"/><path d="M9 14l3-3 3 3"/></svg>
+        </button>
         <button class="er-tab-icon" id="list-filter-btn" onclick="toggleListFilter()" title="Filter cues by track or camera">
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 2h11M3 6.5h7M5 11h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
@@ -13511,8 +13516,18 @@ function _vidPanelApplies(){
   const mt=s.mediaType||(s.videoFilename?'video':null);
   return mt==='video'&&cfMediaEnabled();
 }
+/* Attach-media button in the tab bar: only while the active sequence has nothing
+   attached, and only where media exists at all (owner + desktop + file access). */
+function _erApplyAttachBtn(){
+  const btn=document.getElementById('er-attach-btn'); if(!btn) return;
+  const song=getActiveSong();
+  const has=!!(song&&(song.mediaFile||song.audioFilename||song.videoFilename));
+  btn.style.display=(cfMediaEnabled()&&song&&!has)?'flex':'none';
+}
+
 /* Pure layout — never loads media, so it can be called from any render path. */
 function _applyVidPanel(){
+  _erApplyAttachBtn();
   const panel=document.getElementById('er-vid-panel'); if(!panel) return;
   const div=document.getElementById('er-vid-divider');
   const reopen=document.getElementById('er-vid-reopen');
