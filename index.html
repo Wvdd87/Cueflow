@@ -3856,6 +3856,12 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
             <input id="nc-dur-inp" class="ntm-inp" style="flex:1;min-width:80px;font-family:var(--mono);font-size:13px;opacity:.4;" placeholder="00:00:04:20" spellcheck="false" autocomplete="off" disabled>
           </div>
         </div>
+        <!-- Delete section — edit mode only (see _ncApplyDeleteSection) -->
+        <div class="ntm-fg nc-del-fg" id="nc-del-section" style="display:none;">
+          <div class="ntm-lbl" style="color:var(--red);">Delete this cue</div>
+          <div id="nc-del-opts" class="dcm-opts" style="margin-bottom:10px;"></div>
+          <button class="ntm-btn danger-solid" id="nc-del-btn" onclick="ncDeleteCue()" style="width:100%;">Delete cue</button>
+        </div>
       </div>
       <div class="ntm-footer">
         <button class="ntm-btn" onclick="closeTlCreatePopup()">Cancel</button>
@@ -9236,10 +9242,31 @@ function _applyPrevCueLength(song,cue,mode){
   }
   return prev;
 }
-function _dcmPrevMode(){
-  const el=document.querySelector('#dcm-prev-opts input[name="dcm-prev"]:checked');
+/* Renders the gap/extend choice into `container`. Shared by the delete-cue modal
+   and the edit-cue modal's delete section. Hides itself when the cue has no
+   previous cue on its track (nothing to lengthen). Returns that previous cue. */
+function _renderPrevCueOpts(container,song,cue,radioName){
+  const prev=_prevSameTrackCue(cue,song);
+  if(!prev){ container.style.display='none'; container.innerHTML=''; return null; }
+  const next=_nextSameTrackCue(cue,song);
+  const pName=escH(prev.name||'previous cue');
+  container.style.display='';
+  container.innerHTML=
+    '<div class="dcm-effects-lbl">Previous cue on this track</div>'+
+    '<label class="dcm-opt"><input type="radio" name="'+radioName+'" value="gap" checked>'+
+      '<span class="dcm-opt-txt"><span class="dcm-opt-main">Leave a gap</span>'+
+      '<span class="dcm-opt-sub">“'+pName+'” keeps its current length.</span></span></label>'+
+    '<label class="dcm-opt"><input type="radio" name="'+radioName+'" value="extend">'+
+      '<span class="dcm-opt-txt"><span class="dcm-opt-main">Extend the previous cue</span>'+
+      '<span class="dcm-opt-sub">“'+pName+'” runs on until '+
+        (next?('“'+escH(next.name||'the next cue')+'”'):'the next cue on this track')+'.</span></span></label>';
+  return prev;
+}
+function _prevModeFrom(radioName){
+  const el=document.querySelector('input[name="'+radioName+'"]:checked');
   return el?el.value:'gap';
 }
+function _dcmPrevMode(){ return _prevModeFrom('dcm-prev'); }
 /* Enter confirms, Escape cancels. Capture phase so the global shortcut handler
    never sees the key while this modal owns the screen. */
 function _dcmKeydown(e){
@@ -9299,26 +9326,7 @@ function openDeleteCueModal(cueId){
   }
   // Previous cue on this track: keep its length (gap) or run it on to the next cue
   const optsEl=document.getElementById('dcm-prev-opts');
-  if(optsEl){
-    const prev=_prevSameTrackCue(cue,song);
-    if(!prev){
-      optsEl.style.display='none';
-      optsEl.innerHTML='';
-    } else {
-      const pName=escH(prev.name||'previous cue');
-      const nextSame=_nextSameTrackCue(cue,song);
-      optsEl.style.display='';
-      optsEl.innerHTML=
-        '<div class="dcm-effects-lbl">Previous cue on this track</div>'+
-        '<label class="dcm-opt"><input type="radio" name="dcm-prev" value="gap" checked>'+
-          '<span class="dcm-opt-txt"><span class="dcm-opt-main">Leave a gap</span>'+
-          '<span class="dcm-opt-sub">“'+pName+'” keeps its current length.</span></span></label>'+
-        '<label class="dcm-opt"><input type="radio" name="dcm-prev" value="extend">'+
-          '<span class="dcm-opt-txt"><span class="dcm-opt-main">Extend the previous cue</span>'+
-          '<span class="dcm-opt-sub">“'+pName+'” runs on until '+
-            (nextSame?('“'+escH(nextSame.name||'the next cue')+'”'):'the next cue on this track')+'.</span></span></label>';
-    }
-  }
+  if(optsEl)_renderPrevCueOpts(optsEl,song,cue,'dcm-prev');
   const m=document.getElementById('delete-cue-modal');
   if(m)m.classList.add('show');
   document.addEventListener('keydown',_dcmKeydown,true);
@@ -14398,7 +14406,34 @@ function openEditCueModal(cueId){
   } else if(durAuto){ durAuto.checked=true; }
 
   _ncSetMode(true);
+  _ncApplyDeleteSection(song,cue);
   setTimeout(()=>{ if(nameInp){nameInp.focus();nameInp.select();} },60);
+}
+
+/* The delete section belongs to edit mode only — there is nothing to delete
+   while creating. Same gap/extend choice as the delete-cue modal. */
+function _ncApplyDeleteSection(song,cue){
+  const sec=document.getElementById('nc-del-section');
+  if(!sec) return;
+  if(!cue||!song){ sec.style.display='none'; return; }
+  sec.style.display='';
+  const opts=document.getElementById('nc-del-opts');
+  if(opts)_renderPrevCueOpts(opts,song,cue,'nc-del-prev');
+}
+function ncDeleteCue(){
+  if(!_ncEditId) return;
+  const song=getActiveSong(); if(!song) return;
+  const idx=song.cues.findIndex(c=>c.id===_ncEditId); if(idx<0) return;
+  const id=_ncEditId;
+  const mode=_prevModeFrom('nc-del-prev');
+  snapshot();
+  _applyPrevCueLength(song,song.cues[idx],mode);   // reads the neighbours — before the splice
+  song.cues.splice(idx,1);
+  if(window.ETL&&ETL.selId===id)ETL.selId=null;
+  closeTlCreatePopup();
+  persist();renderCueList();redrawActive();
+  if(window.ETL&&ETL.visible)renderEditTimeline();
+  showUndoToast('Cue deleted');
 }
 
 /* Retitle the shared modal for create vs edit. */
@@ -14446,6 +14481,7 @@ function _ncOpenModal(tcFrames){
   // Default to create mode; openEditCueModal() flips it after this returns.
   _ncEditId=null;
   _ncSetMode(false);
+  _ncApplyDeleteSection(null,null);   // nothing to delete while creating
 
   // Breadcrumb
   const song=getActiveSong();
