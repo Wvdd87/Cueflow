@@ -11688,6 +11688,11 @@ async function cfMediaSettingsPick(){ var ok=await cfMediaPickFolder(); if(ok) a
 async function cfMediaSettingsChange(){ await cfMediaChangeFolder(); renderMediaSettings(); }
 async function cfMediaSettingsReconnect(){ var ok=await cfMediaReconnect(); if(!ok) cfMediaToast('Could not access the folder — try Change folder…'); renderMediaSettings(); }
 async function cfMediaSettingsForget(){ await cfMediaForget(); renderMediaSettings(); }
+/* Jump straight to Settings → Media (used by the "reconnect / set media folder" hints). */
+function cfMediaOpenFolderSettings(){
+  if(!cfMediaTabVisible()) return;
+  openSettingsModal('media');
+}
 
 /* Hide the desktop edit MEDIA tab unless this is an owner on desktop. */
 function _cfApplyEditMediaTabs(){
@@ -13889,7 +13894,16 @@ function _etlRebuildMediaRow(container,song,fps,pxPS,pxPF,tlW,frames){
     const ph=document.createElement('div');
     ph.style.cssText='position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:10px;';
     if(am?.loading||vm?.loading){ ph.style.color='var(--text3)'; ph.textContent='Loading…'; }
-    else if(cfMedia.needsReconnect||!cfMedia.ready){ ph.style.color='var(--text3)'; ph.textContent='♫ '+mediaFile+' — reconnect media folder'; }
+    else if(cfMedia.needsReconnect||!cfMedia.ready){
+      // Passive hint (not a warning) but clickable — takes the owner to Settings → Media.
+      const needsRe=cfMedia.needsReconnect;
+      ph.style.cssText+='color:var(--text3);cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px;';
+      ph.textContent='♫ '+mediaFile+(needsRe?' — reconnect media folder':' — set media folder');
+      ph.title=needsRe?'Reconnect the media folder in Settings → Media':'Choose a media folder in Settings → Media';
+      ph.onmouseenter=function(){ ph.style.color='var(--amber,#f0a838)'; };
+      ph.onmouseleave=function(){ ph.style.color='var(--text3)'; };
+      ph.onclick=function(e){ e.stopPropagation(); cfMediaOpenFolderSettings(); };
+    }
     else if(!cfMediaHas(mediaFile)){
       ph.style.cssText+='color:var(--amber,#f0a838);cursor:pointer;';
       ph.textContent='⚠ '+mediaFile+' — not found in folder (click to fix)';
