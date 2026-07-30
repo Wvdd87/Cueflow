@@ -6134,6 +6134,12 @@ const wf = {
                 // engine, and a video's soundtrack must only come from the <video>.
   visible: true,
   generating: new Set(),
+  failed: new Map(),  // {songId: "filename|objUrl"} — a video whose audio track would not
+                      // decode. The render path asks for a waveform on every media-row
+                      // rebuild, so without this memo a permanent failure (no audio track,
+                      // dead blob URL) is retried forever — each retry re-downloading the
+                      // whole file. Keyed by objUrl too, so a re-linked or reconnected
+                      // file (new blob URL) gets one fresh attempt.
   BLOCKS: 4000, // min RMS blocks for the overview; scaled up with duration below
   // current waveform row height in px (user-resizable) — restored from last session (per-device)
   rowH: (function(){ try{ var v=parseInt(localStorage.getItem('cf_wf_rowH'),10); return (v>=30&&v<=300)?v:64; }catch(e){ return 64; } })(),
@@ -6149,8 +6155,17 @@ function tlToggleWaveform(){
 }
 
 // Generate waveform — reads from in-memory audio.buffers or video objUrl
+function _wfFailKey(vm){ return String(vm&&vm.filename||'')+'|'+String(vm&&vm.objUrl||''); }
+function wfClearDecodeFailure(songId){ if(songId==null) wf.failed.clear(); else wf.failed.delete(songId); }
+
 async function wfGenerateForSong(songId){
   if(wf.cache[songId]||wf.generating.has(songId))return;
+  // A video whose audio would not decode fails identically every time — bail before
+  // spending a download and an AudioContext on it again (see wf.failed).
+  if(!audio.buffers[songId]){
+    const _vm=vid.meta?.[songId];
+    if(_vm&&wf.failed.get(songId)===_wfFailKey(_vm))return;
+  }
   wf.generating.add(songId);
   let ch=null;
 
@@ -6163,15 +6178,26 @@ async function wfGenerateForSong(songId){
     // block cache, which is what made a zoomed-in video waveform look stair-stepped.
     const vm=vid.meta?.[songId];
     if(vm?.objUrl){
+      let actx=null;
       try{
         const resp=await fetch(vm.objUrl);
         const ab=await resp.arrayBuffer();
-        const actx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:22050});
+        actx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:22050});
         const buf=await actx.decodeAudioData(ab);
-        actx.close();
         ch=buf.getChannelData(0);
         wf.pcm[songId]={ch:ch, sr:buf.sampleRate};
-      }catch(e){console.warn('wf video decode',e);}
+        wf.failed.delete(songId);
+      }catch(e){
+        // Remember it: silent/undecodable audio track, or a blob URL revoked out from
+        // under us (folder change / project switch), both permanent for this objUrl.
+        wf.failed.set(songId,_wfFailKey(vm));
+        console.warn('wf video decode',e);
+      }finally{
+        /* close() must never sit after a throwing await: an AudioContext that is never
+           closed keeps a live audio render thread for the life of the page, and the
+           render path would open a new one on every rebuild. */
+        if(actx){ try{ actx.close(); }catch(e){} }
+      }
     }
   }
 
@@ -6200,6 +6226,7 @@ async function wfGenerateForSong(songId){
 function wfInvalidate(songId){
   delete wf.cache[songId];
   delete wf.pcm[songId];
+  wf.failed.delete(songId);   // re-attached media deserves a fresh decode attempt
 }
 
 /* Draw waveform — B&W, adaptive resolution.
@@ -11354,6 +11381,16 @@ async function cfMediaGetUrl(filename){
 function cfMediaReleaseUrls(){
   _cfMediaUrls.forEach(function(u){ URL.revokeObjectURL(u); });
   _cfMediaUrls.clear();
+  /* Folder-sourced meta entries (ownsUrl:false) borrow the URLs just revoked. Leaving
+     the dead string in place makes every later render fetch it again — a permanent
+     net::ERR_FILE_NOT_FOUND per rebuild — and points the <video> at nothing. Drop it
+     here so the state can't outlive the URL, whichever caller did the releasing. */
+  try{
+    Object.keys(vid.meta||{}).forEach(function(k){
+      var m=vid.meta[k];
+      if(m && !m.ownsUrl && m.objUrl){ m.objUrl=null; m.ready=false; }
+    });
+  }catch(e){ /* called before `vid` is initialised — nothing to clean up yet */ }
 }
 
 function cfMediaReset(){ cfMediaReleaseUrls(); cfMedia.backend=null; cfMedia.dirHandle=null; cfMedia.folderPath=null; cfMedia.folderName=null; cfMedia.files=new Map(); cfMedia.durations=new Map(); cfMedia.ready=false; cfMedia.needsReconnect=false; }
@@ -11517,6 +11554,8 @@ function _cfMediaInvalidateAll(){
   Object.keys(audio.meta).forEach(function(k){ delete audio.meta[k]; });
   Object.keys(wf.cache).forEach(function(k){ delete wf.cache[k]; });
   Object.keys(wf.pcm).forEach(function(k){ delete wf.pcm[k]; });
+  wf.failed.clear();   // also drops songIds of the outgoing project
+
   _vidThumbsCancelAll();
   Object.keys(vid.meta||{}).forEach(function(k){ _vidRevokeMeta(k); });
   cfMediaReleaseUrls();
