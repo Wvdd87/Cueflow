@@ -1133,7 +1133,6 @@ body.mode-live #edit-mode-banner { display: none; }
 /* Video track in timeline */
 .etl-video-track { position: absolute; top: 2px; height: calc(100% - 4px); overflow: hidden; border: 1px solid rgba(139,92,246,.5); background: rgba(139,92,246,.08); display: flex; align-items: center; pointer-events: none; user-select: none; }
 .etl-video-track-label { font-size: 9px; font-weight: 700; color: rgba(167,139,250,.7); padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.etl-video-thumb { height: 100%; object-fit: cover; flex-shrink: 0; opacity: .7; border-right: 1px solid rgba(139,92,246,.3); }
 .etl-video-row-label { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: rgba(139,92,246,.7); }
 .etl-media-row { position: relative; display: flex; border-top: 1px solid var(--hair); background: #06060a; }
 .etl-media-lbl { width: 56px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2px; padding: 0 4px; font-family: var(--cond); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.35); border-right: 1px solid rgba(255,255,255,.06); cursor: pointer; background: #080810; z-index: 5; border-left: 3px solid transparent; }
@@ -1141,7 +1140,6 @@ body.mode-live #edit-mode-banner { display: none; }
 .etl-media-track { position: relative; flex: 1; overflow: hidden; background: #06060a; }
 .etl-media-bar { position: absolute; top: 3px; bottom: 3px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); pointer-events: none; }
 .etl-media-bar-lbl { position: absolute; left: 6px; top: 50%; transform: translateY(-50%); font-size: 9px; font-weight: 600; color: rgba(255,255,255,.3); white-space: nowrap; overflow: hidden; pointer-events: none; z-index: 2; }
-.etl-media-thumb { position: absolute; top: 0; bottom: 0; object-fit: cover; opacity: .35; filter: grayscale(1); }
 .etl-wf-canvas { position: absolute; pointer-events: none; }
 .etl-wf-resize { position: absolute; top: 0; left: 0; right: 0; height: 6px; cursor: ns-resize; z-index: 20; }
 .etl-wf-resize::after { content: ''; position: absolute; top: 1px; left: 50%; transform: translateX(-50%); width: 32px; height: 2px; border-radius: 1px; background: rgba(255,255,255,.35); transition: background .15s; }
@@ -11640,11 +11638,11 @@ function cfFmtDur(sec){ if(sec==null||!isFinite(sec)) return ''; var m=Math.floo
 async function _cfMediaLoadVideo(songId,filename){
   var url=await cfMediaGetUrl(filename); if(!url) return;
   _vidRevokeMeta(songId);
-  vid.meta[songId]={filename:filename,durationSec:0,ready:false,objUrl:url,ownsUrl:false,thumbs:[]};
+  vid.meta[songId]={filename:filename,durationSec:0,ready:false,objUrl:url,ownsUrl:false};
   /* Only the active sequence goes into the shared player. Pointing the player at
      every sequence in turn spins up (and abandons) a decoder per sequence. */
   if(songId===state.activeSongId) _vidLoad(songId);
-  else _vidGenerateThumbs(songId);
+  else _vidProbeMeta(songId);
 }
 async function cfMediaLoadSong(songId){
   if(!cfMediaEnabled()) return;
@@ -11712,7 +11710,7 @@ function _cfMediaInvalidateAll(){
   Object.keys(wf.pcm).forEach(function(k){ delete wf.pcm[k]; });
   wf.failed.clear();   // also drops songIds of the outgoing project
 
-  _vidThumbsCancelAll();
+  _vidMetaCancelAll();
   Object.keys(vid.meta||{}).forEach(function(k){ _vidRevokeMeta(k); });
   cfMediaReleaseUrls();
   _vidDetachPlayer();
@@ -14098,7 +14096,7 @@ function _etlUpdateActiveCue(curCueId){
   const num=active.querySelector('.etl-cam-num');if(num)num.style.color='var(--primary)';
 }
 
-/* Rebuild the view-dependent media row (waveform/thumbnails) without touching the GPU scroll */
+/* Rebuild the view-dependent media row (waveform) without touching the GPU scroll */
 function _etlRebuildMediaRow(container,song,fps,pxPS,pxPF,tlW,frames){
   const old=container.querySelector('.etl-media-row');if(old)old.remove();
   // Drop the smooth-scroll handle so the RAF never transforms a detached layer.
@@ -14135,7 +14133,7 @@ function _etlRebuildMediaRow(container,song,fps,pxPS,pxPF,tlW,frames){
   mTrack.className='etl-media-track';
   mTrack.style.cssText='position:relative;flex:1;height:100%;overflow:hidden;';
   if(mediaReady&&durationSec>0){
-    // World-coordinate scroll layer: bar, thumbnails and waveform canvas are placed in
+    // World-coordinate scroll layer: the bar and waveform canvas are placed in
     // timeline (world) px and the whole layer is GPU-translated every frame by the
     // smooth-scroll RAF — exactly like the cue/ruler layers. This keeps the waveform
     // gliding smoothly at 60fps instead of stepping at the rebuild rate.
@@ -14147,15 +14145,6 @@ function _etlRebuildMediaRow(container,song,fps,pxPS,pxPF,tlW,frames){
     bar.className='etl-media-bar';
     bar.style.left=(songStartSec*pxPS).toFixed(2)+'px';
     bar.style.width=Math.max(4,durationSec*pxPS).toFixed(2)+'px';
-    if(mediaType==='video'&&vm?.thumbs?.length){
-      const thW=durationSec/vm.thumbs.length*pxPS;
-      vm.thumbs.forEach(th=>{
-        const img=document.createElement('img');
-        img.className='etl-media-thumb';img.src=th.dataUrl;
-        img.style.cssText=`left:${(th.t*pxPS).toFixed(2)}px;width:${thW.toFixed(2)}px;top:0;bottom:0;`;
-        bar.appendChild(img);
-      });
-    }
     mScroll.appendChild(bar);
     if(wf.visible){
       // Canvas spans the visible window plus a margin each side (clamped to the audio
@@ -15350,13 +15339,13 @@ function closeShortcutsOverlay(){
 
 
 // ═══════════════════════════════════════════════════════════
-// VIDEO SYSTEM — attach, play, sync, thumbnails, scrub
+// VIDEO SYSTEM — attach, play, sync, scrub
 // ═══════════════════════════════════════════════════════════
 const vid = {
   songId: null,      // song the current video belongs to
   objUrl: null,      // current object URL (revoke on change)
   ready: false,      // video metadata loaded
-  meta: {},          // {songId: {filename, durationSec, ready, objUrl, ownsUrl, thumbs:[]}}
+  meta: {},          // {songId: {filename, durationSec, ready, objUrl, ownsUrl}}
   _syncTimer: null,
   _isScrubbing: false,
 };
@@ -15445,7 +15434,7 @@ function attachVideoToSong(songId, file){
   _vidRevokeMeta(songId);
   // ownsUrl: this blob URL belongs to the meta entry (unlike folder-sourced URLs,
   // which are owned by the cfMedia URL cache), so revoking it here is correct.
-  vid.meta[songId] = {filename:file.name, durationSec:0, ready:false, objUrl:URL.createObjectURL(file), ownsUrl:true, thumbs:[]};
+  vid.meta[songId] = {filename:file.name, durationSec:0, ready:false, objUrl:URL.createObjectURL(file), ownsUrl:true};
   persist();
   _vidLoad(songId);
 }
@@ -15478,9 +15467,9 @@ function _vidLoad(songId){
     m.durationSec = el.duration;
     m.ready = true;
     vid.ready = true;
-    _vidGenerateThumbs(songId);
     _vidShowPreview(songId);
     _updateVidEmptyState();
+    if(window.renderSongList) renderSongList();   // the seq-list media badge waits on `ready`
     if(ETL.visible) renderEditTimeline();
   };
 
@@ -15603,106 +15592,91 @@ function sspAttachVideo(){
   input.click();
 }
 
-// ── Thumbnail generation ───────────────────────────────────
+// ── Video metadata probe ───────────────────────────────────
 // One scratch <video>, reused and released, serving a serial queue. A fresh
 // element per sequence strands a decoder holding the whole file open, and the
 // old code re-entered load() from inside its own loadedmetadata handler, which
 // re-fired the event forever — the runaway CPU and GC churn came from here.
-const THUMB_COUNT = 5;
-let _thumbEl = null;          // shared scratch element
-let _thumbCanvas = null;      // shared scratch canvas
-let _thumbToken = 0;          // invalidates callbacks from a superseded run
-let _thumbBusy = false;
-const _thumbQueue = [];
-const _thumbCache = new Map(); // filename (lc) → {dur, thumbs} — survives meta rebuilds
+//
+// This used to seek a video five times and keep each frame as a base64 JPEG, to
+// draw a filmstrip behind the waveform. That strip is gone, so the queue now
+// reads the header and stops: sequences outside the shared player still need a
+// duration and a ready flag for the sequence-list badge and the media row.
+let _vidProbeEl = null;           // shared scratch element
+let _vidProbeToken = 0;           // invalidates callbacks from a superseded run
+let _vidProbeBusy = false;
+const _vidProbeQueue = [];
+const _vidProbeCache = new Map(); // filename (lc) → durationSec — survives meta rebuilds
 
-function _thumbRelease(){
-  if(!_thumbEl) return;
-  _thumbEl.onloadedmetadata = _thumbEl.onseeked = _thumbEl.onerror = null;
-  _thumbEl.removeAttribute('src');
-  _thumbEl.load();
+function _vidProbeRelease(){
+  if(!_vidProbeEl) return;
+  _vidProbeEl.onloadedmetadata = _vidProbeEl.onerror = null;
+  _vidProbeEl.removeAttribute('src');
+  _vidProbeEl.load();
 }
 
-function _vidThumbsCancelAll(){
-  _thumbToken++;
-  _thumbQueue.length = 0;
-  _thumbBusy = false;
-  _thumbRelease();
-  _thumbCache.clear();
+function _vidMetaCancelAll(){
+  _vidProbeToken++;
+  _vidProbeQueue.length = 0;
+  _vidProbeBusy = false;
+  _vidProbeRelease();
+  _vidProbeCache.clear();
 }
 
-/* Adopt an already-generated result. Two sequences on the same file (or the same
-   sequence reloaded) must never decode it twice. */
-function _thumbAdopt(m, hit){
-  m.thumbs = hit.thumbs;
-  if(!m.durationSec && hit.dur){ m.durationSec = hit.dur; m.ready = true; }
+/* Adopt an already-probed duration. Two sequences on the same file (or the same
+   sequence reloaded) must never open it twice. */
+function _vidProbeAdopt(m, dur){
+  if(!m.durationSec && dur){ m.durationSec = dur; m.ready = true; }
 }
 
-function _vidGenerateThumbs(songId){
+function _vidProbeMeta(songId){
   const m = vid.meta[songId]; if(!m?.objUrl) return;
-  const hit = _thumbCache.get(String(m.filename||'').toLowerCase());
-  if(hit){ _thumbAdopt(m, hit); return; }
-  if(_thumbQueue.indexOf(songId) === -1) _thumbQueue.push(songId);
-  _thumbPump();
+  const hit = _vidProbeCache.get(String(m.filename||'').toLowerCase());
+  if(hit){ _vidProbeAdopt(m, hit); return; }
+  if(_vidProbeQueue.indexOf(songId) === -1) _vidProbeQueue.push(songId);
+  _vidProbePump();
 }
 
-function _thumbPump(){
-  if(_thumbBusy) return;
+function _vidProbePump(){
+  if(_vidProbeBusy) return;
   let songId, m;
-  while(_thumbQueue.length){
-    songId = _thumbQueue.shift();
+  while(_vidProbeQueue.length){
+    songId = _vidProbeQueue.shift();
     m = vid.meta[songId];
     if(!m?.objUrl){ m = null; continue; }
     // The cache may have been filled by an earlier run while this one sat queued —
-    // re-check on dequeue, or every sequence sharing a file re-decodes it.
-    const queuedHit = _thumbCache.get(String(m.filename||'').toLowerCase());
-    if(queuedHit){ _thumbAdopt(m, queuedHit); m = null; continue; }
+    // re-check on dequeue, or every sequence sharing a file re-opens it.
+    const queuedHit = _vidProbeCache.get(String(m.filename||'').toLowerCase());
+    if(queuedHit){ _vidProbeAdopt(m, queuedHit); m = null; continue; }
     break;
   }
   if(!m) return;
 
-  _thumbBusy = true;
-  const token = ++_thumbToken;
+  _vidProbeBusy = true;
+  const token = ++_vidProbeToken;
   const key = String(m.filename||'').toLowerCase();
-  const shots = [];
-  let i = 0, timer = null;
+  let timer = null;
 
-  if(!_thumbEl){ _thumbEl = document.createElement('video'); _thumbEl.muted = true; _thumbEl.preload = 'auto'; }
-  if(!_thumbCanvas){ _thumbCanvas = document.createElement('canvas'); _thumbCanvas.width = 120; _thumbCanvas.height = 68; }
-  const el = _thumbEl;
+  // preload='metadata': the header is all this needs, never the whole file.
+  if(!_vidProbeEl){ _vidProbeEl = document.createElement('video'); _vidProbeEl.muted = true; _vidProbeEl.preload = 'metadata'; }
+  const el = _vidProbeEl;
 
   const done = ()=>{
-    if(token !== _thumbToken) return;   // a cancel/newer run already owns the state
+    if(token !== _vidProbeToken) return;   // a cancel/newer run already owns the state
     clearTimeout(timer);
-    if(shots.length){
-      m.thumbs = shots;
-      _thumbCache.set(key, {dur: m.durationSec || el.duration || 0, thumbs: shots});
-    }
-    _thumbRelease();
-    _thumbBusy = false;
-    if(ETL.visible) renderEditTimeline();
-    _thumbPump();
-  };
-
-  const grab = ()=>{
-    if(token !== _thumbToken) return;
-    if(i >= THUMB_COUNT || !isFinite(el.duration) || el.duration <= 0){ done(); return; }
-    el.currentTime = Math.min((i+0.5) * el.duration / THUMB_COUNT, Math.max(0, el.duration - 0.05));
+    _vidProbeRelease();
+    _vidProbeBusy = false;
+    _vidProbePump();
   };
 
   el.onloadedmetadata = ()=>{
-    if(token !== _thumbToken) return;
-    if(!m.durationSec && isFinite(el.duration)){ m.durationSec = el.duration; m.ready = true; }
-    grab();                            // no load() here — that re-fires this handler
-  };
-  el.onseeked = ()=>{
-    if(token !== _thumbToken) return;
-    try{
-      _thumbCanvas.getContext('2d').drawImage(el, 0, 0, 120, 68);
-      shots.push({t: el.currentTime, dataUrl: _thumbCanvas.toDataURL('image/jpeg', 0.6)});
-    }catch(e){ /* tainted or not decodable — keep what we have */ }
-    i++;
-    grab();
+    if(token !== _vidProbeToken) return;
+    if(isFinite(el.duration) && el.duration > 0){
+      _vidProbeCache.set(key, el.duration);
+      _vidProbeAdopt(m, el.duration);
+      if(window.renderSongList) renderSongList();   // media badge waits on `ready`
+    }
+    done();
   };
   el.onerror = done;
   timer = setTimeout(done, 15000);     // a bad file must never stall the queue
