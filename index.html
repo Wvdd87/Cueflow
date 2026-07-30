@@ -3879,7 +3879,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <div class="ntm-fg nc-del-fg" id="nc-del-section" style="display:none;">
           <div class="ntm-lbl" style="color:var(--red);">Delete this cue</div>
           <div id="nc-del-opts" class="dcm-opts" style="margin-bottom:10px;"></div>
-          <button class="ntm-btn danger-solid" id="nc-del-btn" onclick="ncDeleteCue()" style="width:100%;">Delete cue</button>
+          <button class="ntm-btn danger-solid" id="nc-del-btn" onclick="ncDeleteCue()" style="align-self:flex-start;">Delete cue</button>
         </div>
       </div>
       <div class="ntm-footer">
@@ -9266,7 +9266,14 @@ function _applyPrevCueLength(song,cue,mode){
    previous cue on its track (nothing to lengthen). Returns that previous cue. */
 function _renderPrevCueOpts(container,song,cue,radioName){
   const prev=_prevSameTrackCue(cue,song);
-  if(!prev){ container.style.display='none'; container.innerHTML=''; return null; }
+  if(!prev){
+    /* Say why there is no choice rather than showing an empty gap — a hidden block
+       reads as a broken dialog. */
+    container.style.display='';
+    container.innerHTML='<div class="dcm-effects-lbl">Previous cue on this track</div>'+
+      '<div class="dcm-opt-sub" style="padding:2px 2px 4px;">This is the first cue on its track, so there is nothing before it to lengthen.</div>';
+    return null;
+  }
   const next=_nextSameTrackCue(cue,song);
   const pName=escH(prev.name||'previous cue');
   container.style.display='';
