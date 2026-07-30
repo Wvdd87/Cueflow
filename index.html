@@ -3741,6 +3741,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
           <button class="btn-icon" onclick="mediaAttach(state.activeSongId)" style="font-size:10px;">↑ Attach</button>
           <button class="btn-icon" id="vid-fs-btn" onclick="videoFullscreen()" aria-label="Video fullscreen" style="font-size:10px;display:none;">⛶</button>
           <button class="btn-icon" id="vid-rm-btn" onclick="mediaRemove(state.activeSongId)" style="font-size:10px;color:var(--red);display:none;">✕ Remove</button>
+          <button class="btn-icon" id="vid-pop-btn" onclick="vidPopOpen()" title="Open the video in a separate window" aria-label="Pop out video" style="font-size:11px;">⧉</button>
           <button class="btn-icon" id="vid-collapse-btn" onclick="toggleVidPanel()" title="Hide video panel" aria-label="Hide video panel" style="font-size:11px;">›</button>
         </div>
       </div>
@@ -12002,8 +12003,10 @@ function _mediaUpdateVidTab(songId){
   if(nameEl)nameEl.textContent=mf||'No media attached';
   if(fsBtn)fsBtn.style.display=(mt==='video'&&mf)?'':'none';
   if(rmBtn)rmBtn.style.display=mf?'':'none';
-  // Load video into video element if it's a video
-  const el=document.getElementById('video-el-main');
+  // Load video into whichever element currently owns it (inline panel or the
+  // popped-out window) — never the inline one by id, or the file ends up loaded
+  // in both at once.
+  const el=_vidEl();
   if(el&&mt==='video'){
     const vm=vid.meta?.[songId];
     if(vm?.objUrl&&el.src!==vm.objUrl){el.src=vm.objUrl;}
@@ -13380,11 +13383,15 @@ let _vidPanel=null;                 // {collapsed,width} for the current project
 function _vidPanelKey(){ return 'cf_vidpanel_'+(state.projectId||'none'); }
 function _vidPanelState(){
   if(_vidPanel) return _vidPanel;
-  let st={collapsed:false,width:VIDP.DEF};
+  let st={collapsed:false,width:VIDP.DEF,poppedOut:false};
   try{
     const v=JSON.parse(localStorage.getItem(_vidPanelKey())||'null');
     if(v&&typeof v==='object'){
       st.collapsed=!!v.collapsed;
+      /* Preference only. A window is never auto-opened on load — window.open()
+         off a page load is exactly what popup blockers kill — so this just puts
+         the button in a one-click "Reopen" state. */
+      st.poppedOut=!!v.poppedOut;
       const w=parseInt(v.width,10);
       if(w>=VIDP.MIN&&w<=VIDP.MAX) st.width=w;
     }
@@ -13407,14 +13414,31 @@ function _applyVidPanel(){
   const reopen=document.getElementById('er-vid-reopen');
   const on=_vidPanelApplies()&&_editView==='list';
   const st=_vidPanelState();
-  const open=on&&!st.collapsed;
+  const popped=vidPopActive();
+  const open=on&&!st.collapsed&&!popped;   // popped out ⇒ the inline panel stands down
   panel.style.display=open?'flex':'none';
   if(open) panel.style.width=st.width+'px';
   /* Explicit 'block', not '' — the base rule for these two is display:none, so an
      empty string would fall straight back to hidden. */
   if(div) div.style.display=open?'block':'none';
-  if(reopen) reopen.style.display=(on&&st.collapsed)?'flex':'none';
+  if(reopen){
+    /* One strip, two jobs: bring the video back from the second window, or
+       expand it from collapsed. Shown while popped even on a sequence without
+       video, so there is always a way back. */
+    const showStrip=(popped&&_editView==='list')||(on&&st.collapsed);
+    reopen.style.display=showStrip?'flex':'none';
+    reopen.textContent=popped?'Return':'Video';
+    reopen.title=popped?'Bring the video back into this window':'Show video panel';
+    reopen.onclick=popped?vidPopReturn:toggleVidPanel;
+  }
+  const popBtn=document.getElementById('vid-pop-btn');
+  if(popBtn){
+    const reopenState=st.poppedOut&&!popped;   // preference survived a reload
+    popBtn.textContent=reopenState?'⧉ Reopen':'⧉';
+    popBtn.title=reopenState?'Reopen the separate video window':'Open the video in a separate window';
+  }
   if(open) _updateVidEmptyState();
+  vidPopSyncPlaceholder();
 }
 function toggleVidPanel(){
   const st=_vidPanelState();
@@ -15206,7 +15230,81 @@ const vid = {
   _isScrubbing: false,
 };
 
-function _vidEl(){ return document.getElementById('video-el-main'); }
+/* ── Popped-out video window ───────────────────────────────────────────────
+   Dual-screen editing: the video moves to a second, chrome-free window while
+   the cue list takes the full width here. It lives in exactly one place at a
+   time — inline panel OR popped window, never both.
+
+   Everything downstream (load, seek, drift correction, play/stop) keeps
+   working untouched because _vidEl() resolves to whichever element currently
+   owns the video. The popped window reuses the SAME blob URL as the inline
+   player and never mints a new one — see the AudioContext/blob history in
+   wfGenerateForSong for why that matters. */
+const vidPop = { win:null, el:null, msg:null, poll:null };
+function vidPopActive(){ return !!(vidPop.win && !vidPop.win.closed && vidPop.el); }
+
+function vidPopOpen(){
+  if(vidPopActive()){ try{ vidPop.win.focus(); }catch(e){} return true; }
+  /* Must be called straight from a click — anything async first and the popup
+     blocker takes it. */
+  var w=null;
+  try{ w=window.open('','cfVideoPop','width=960,height=560,menubar=no,toolbar=no,location=no,status=no'); }catch(e){ w=null; }
+  if(!w){
+    cfMediaToast('Popup blocked — allow popups for CueFlow to use a separate video window.');
+    var stb=_vidPanelState(); stb.poppedOut=false; _vidPanelSave(); _applyVidPanel();
+    return false;
+  }
+  try{ w.document.title='CueFlow — Video'; }catch(e){}
+  w.document.body.style.cssText='margin:0;padding:0;background:#000;overflow:hidden;height:100vh;';
+  var v=w.document.createElement('video');
+  v.setAttribute('playsinline','');
+  v.style.cssText='width:100vw;height:100vh;object-fit:contain;background:#000;display:block;';
+  var msg=w.document.createElement('div');
+  msg.textContent='No video for this sequence';
+  msg.style.cssText='position:fixed;inset:0;display:none;align-items:center;justify-content:center;'
+    +'color:#8a8a95;background:#000;font:600 14px/1 -apple-system,system-ui,sans-serif;letter-spacing:.04em;';
+  w.document.body.appendChild(v);
+  w.document.body.appendChild(msg);
+  vidPop.win=w; vidPop.el=v; vidPop.msg=msg;
+  /* Let go of the file in the inline element so only one <video> holds it. */
+  var inline=document.getElementById('video-el-main');
+  if(inline){ try{ inline.pause(); }catch(e){} inline.removeAttribute('src'); inline.load(); }
+  vid.songId=null; vid.ready=false;      // force _vidLoad to bind the new element
+  var st=_vidPanelState(); st.poppedOut=true; _vidPanelSave();
+  /* The window can be closed from its own title bar, which fires nothing here. */
+  vidPop.poll=setInterval(function(){ if(!vidPop.win||vidPop.win.closed) vidPopDropped(); },600);
+  _applyVidPanel();
+  _vidUpdateForActiveSong();
+  return true;
+}
+
+/* Second window is gone (closed by us or by the user) — take the video back. */
+function vidPopDropped(){
+  if(vidPop.poll){ clearInterval(vidPop.poll); vidPop.poll=null; }
+  vidPop.win=null; vidPop.el=null; vidPop.msg=null;
+  var st=_vidPanelState(); st.poppedOut=false; st.collapsed=false; _vidPanelSave();
+  vid.songId=null; vid.ready=false;      // rebind to the inline element
+  _applyVidPanel();
+  _vidUpdateForActiveSong();
+}
+function vidPopReturn(){
+  var w=vidPop.win;
+  vidPopDropped();                        // clear the handle FIRST so _vidEl() goes inline
+  try{ if(w && !w.closed) w.close(); }catch(e){}
+}
+/* A sequence without video keeps the window open, showing a placeholder. */
+function vidPopSyncPlaceholder(){
+  if(!vidPopActive()) return;
+  var has=_vidPanelApplies();
+  vidPop.el.style.display=has?'block':'none';
+  vidPop.msg.style.display=has?'none':'flex';
+}
+/* Never orphan the second window: it has no controller once this one is gone. */
+window.addEventListener('beforeunload',function(){
+  try{ if(vidPop.win && !vidPop.win.closed) vidPop.win.close(); }catch(e){}
+});
+
+function _vidEl(){ return vidPopActive()?vidPop.el:document.getElementById('video-el-main'); }
 
 // ── Attach video file ──────────────────────────────────────
 function attachVideoToSong(songId, file){
