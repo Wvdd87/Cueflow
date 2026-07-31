@@ -2760,6 +2760,12 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 .sbp-auth-alt { flex:1; height:32px; background:none; border:1px solid var(--hair2); color:var(--txt-low); cursor:pointer; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; transition:color .12s, border-color .12s; }
 .sbp-auth-alt:hover { color:var(--txt-hi); border-color:var(--hair3); }
 .sbp-empty { padding:12px 16px; font-family:var(--cond); font-size:10px; color:var(--txt-low); letter-spacing:.04em; border-bottom:1px solid var(--hair); }
+/* Offline join readiness (LAN host only) — green when cached links exist, amber when not. */
+.sbp-offline-note { display:flex; align-items:flex-start; gap:8px; margin:0 0 10px; padding:9px 12px; border:1px solid var(--hair2); background:var(--surface2); font-size:11px; line-height:1.5; color:var(--txt-mid); }
+.sbp-offline-note.ok   { border-color:rgba(60,200,120,.35); }
+.sbp-offline-note.warn { border-color:var(--amber,#f0a838); color:var(--txt); }
+.sbp-offline-pip { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:4px; background:var(--green,#3cc878); }
+.sbp-offline-note.warn .sbp-offline-pip { background:var(--amber,#f0a838); }
 .sbp-section-head { padding:9px 14px 7px; font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); border-bottom:1px solid var(--hair); }
 
 /* ── Sidebar Sharing panel ── */
@@ -19342,19 +19348,38 @@ function _cfLanPushSnapshot(){
   try{ cfLAN.setSnapshot({showId:CF.showId, name:state.name, project_data:snapshot()}); }catch(e){}
 }
 
+/* The access list the LAN server should validate joins against: the live list when
+   we have one, otherwise the on-disk cache from the last time we were online.
+   Without the cache fallback an owner that launched offline hands the server an
+   empty list and every LAN join fails with "wrong PIN". */
+function _cfLanPinSource(){
+  if(CF._pinList && CF._pinList.length) return CF._pinList;
+  if(CF.showId && typeof loadPinCache==='function'){ try{ return loadPinCache(CF.showId)||[]; }catch(e){} }
+  return [];
+}
 /* Push the access PIN list (hashes only) to the LAN server so it can validate
-   viewer joins during an outage. Fetched from Supabase while still online. */
+   viewer joins during an outage. */
 function _cfLanPushPins(){
   if(!window.cfLAN || !CF.isOwner) return;
-  try{ cfLAN.setPins((CF._pinList||[]).map(function(p){
+  try{ cfLAN.setPins(_cfLanPinSource().map(function(p){
     return {pin_hash:p.pin_hash, role:p.role, track_ids:p.track_ids||null, label:p.label||p.role};
   })); }catch(e){}
 }
 function _cfLanRefreshPins(){
-  if(!window.cfLAN || !CF.isOwner || !CF.showId || !navigator.onLine) return;
+  if(!window.cfLAN || !CF.isOwner || !CF.showId) return;
+  /* Publish what we already have FIRST — offline that is the cache, and it is the
+     only thing standing between a crew member and a working join. */
+  _cfLanPushPins();
+  if(!navigator.onLine) return;
   db().from('show_access').select('pin_hash,role,track_ids,label').eq('show_id',CF.showId)
     .then(function(r){ if(r&&r.data){ CF._pinList=r.data; _cfLanPushPins(); } });
 }
+
+/* These live inside this block's IIFE, so expose them on CF the way the rest of the
+   cross-block surface is exposed (CF._onRealtimeMsg, CF._relayTcPaused, …). */
+CF._lanInit=_cfLanInit;
+CF._lanPushPins=_cfLanPushPins;
+CF._lanPushSnapshot=_cfLanPushSnapshot;
 
 /* Viewer → owner messages arriving over the LAN WebSocket (Electron main forwards them). */
 /* Roles allowed to write a cue description — matches the cloud update_cue_desc RPC
@@ -19394,7 +19419,7 @@ function _cfLanInit(){
        applyRemote/pushProject hooks (e.g. import). Keep the LAN server's snapshot
        + pins current so any viewer that joins always gets the project. */
     if(!CF._lanKeepalive) CF._lanKeepalive=setInterval(function(){
-      if(CF.showId && CF.isOwner){ _cfLanPushSnapshot(); }
+      if(CF.showId && CF.isOwner){ _cfLanPushSnapshot(); _cfLanPushPins(); }
     }, 4000);
   }catch(e){}
 }
@@ -19520,23 +19545,42 @@ window.addEventListener('online',  function(){ _cfCloudSignal(true); });
 function openTcChan(){
   if(!CF.showId || CF._tcChan) return;
   CF._tcReady = false;
-  CF._tcChan = db()
-    .channel('tc:'+CF.showId, {config:{broadcast:{self:false}}})
-    .on('broadcast',{event:'flag'},_onFlagBroadcast)
-    .on('broadcast',{event:'proj_sync'},_onProjSyncBroadcast)
-    .on('broadcast',{event:'active_sel'},_onActiveSelBroadcast)
-    .subscribe(function(status){
-      CF._tcReady = (status === 'SUBSCRIBED');
-      console.log('[CF] Owner TC channel:', status);
-      if(status==='SUBSCRIBED') _cfCloudSignal(true);
-      else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED') _cfCloudSignal(false);
-    });
+  /* subscribe() can throw synchronously when a socket cannot be created at all
+     (no network stack, blocked/absent WebSocket). This is called from _onEnterLive
+     and from the TC relay, so an unguarded throw would abort switchMode('live')
+     halfway or kill the LAN relay — going live offline has to keep working. */
+  try{
+    CF._tcChan = db()
+      .channel('tc:'+CF.showId, {config:{broadcast:{self:false}}})
+      .on('broadcast',{event:'flag'},_onFlagBroadcast)
+      .on('broadcast',{event:'proj_sync'},_onProjSyncBroadcast)
+      .on('broadcast',{event:'active_sel'},_onActiveSelBroadcast)
+      .subscribe(function(status){
+        CF._tcReady = (status === 'SUBSCRIBED');
+        console.log('[CF] Owner TC channel:', status);
+        if(status==='SUBSCRIBED') _cfCloudSignal(true);
+        else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED') _cfCloudSignal(false);
+      });
+  }catch(e){
+    CF._tcChan=null; CF._tcReady=false;
+    _cfCloudSignal(false);
+  }
 }
 
 function relayTC(frames, source, paused){
-  if(!CF._tcChan || !CF.showId) return;
+  if(!CF.showId) return;
   if(!CF._tcRelayActive) return; /* only relay in live mode */
-  if(!CF._tcReady){ openTcChan(); return; }
+  /* The cloud channel not being subscribed must NOT stop the relay: offline,
+     _tcReady never goes true, and returning here meant the LAN mirror inside
+     netSend() was never reached — LAN viewers got the project but no clock.
+     Kick a re-subscribe (throttled, this runs per frame) and carry on; netSend
+     skips the cloud leg on its own when the channel isn't usable. */
+  if(CF._tcChan && !CF._tcReady){
+    var _rn=Date.now();
+    /* openTcChan() swallows a failed re-subscribe, so this cannot take the LAN
+       relay below down with it. */
+    if(!CF._tcReopenAt || _rn-CF._tcReopenAt>5000){ CF._tcReopenAt=_rn; openTcChan(); }
+  }
   var now = Date.now();
   /* Paused packets bypass the 12fps throttle so the freeze lands immediately. */
   if(!paused && now - CF._lastBcast < 80) return; /* ~12fps — enough for smooth interpolation */
@@ -19676,18 +19720,22 @@ window._updateLiveStatusChip = _updateLiveStatusChip;
 
 function startPresence(){
   if(!CF.showId) return;
-  if(CF._presChan){ CF._presChan.unsubscribe(); CF._presChan = null; }
-  CF._presChan = db()
-    .channel('presence:'+CF.showId, {config:{presence:{key:_presKey}}})
-    .on('presence', {event:'sync'}, function(){
-      _updateLiveStatusChip();
-    })
-    .subscribe(function(status){
-      if(status === 'SUBSCRIBED'){
-        CF._presChan.track({role: CF.role || 'owner'});
+  if(CF._presChan){ try{ CF._presChan.unsubscribe(); }catch(e){} CF._presChan = null; }
+  /* Same guard as openTcChan(): this runs from _onEnterLive, and presence is a
+     nice-to-have — it must never stop the owner going live with no network. */
+  try{
+    CF._presChan = db()
+      .channel('presence:'+CF.showId, {config:{presence:{key:_presKey}}})
+      .on('presence', {event:'sync'}, function(){
         _updateLiveStatusChip();
-      }
-    });
+      })
+      .subscribe(function(status){
+        if(status === 'SUBSCRIBED'){
+          CF._presChan.track({role: CF.role || 'owner'});
+          _updateLiveStatusChip();
+        }
+      });
+  }catch(e){ CF._presChan=null; }
 }
 window.addEventListener('online',  _updateLiveStatusChip);
 window.addEventListener('offline', _updateLiveStatusChip);
@@ -21592,6 +21640,9 @@ function buildRolesPanel(){
   h+='<div class="sbp-share-url-val">'+joinUrl+'</div>';
   h+='</div>';
 
+  /* Offline/LAN readiness — filled by _cfRenderShareOffline() */
+  h+='<div id="cf-share-offline"></div>';
+
   /* Access links section */
   h+='<div id="cf-pins-list"><div class="sbp-empty">Loading…</div></div>';
 
@@ -21612,6 +21663,10 @@ function afterRolesRender(){
      network round-trip resolves. The cache is refreshed from Supabase when online. */
   var cached=loadPinCache(CF.showId);
   if(cached.length){ CF._pinList=cached; renderPinsList(); }
+  /* Hand the access list to the LAN server before any online-only work below —
+     offline this is the only chance to make a local join validate. */
+  _cfLanPushPins();
+  _cfRenderShareOffline();
   if(!navigator.onLine) return; /* offline → keep showing cached links, skip the fetch */
   db().from('show_access').select('*').eq('show_id',CF.showId)
     .then(function(r){
@@ -21627,9 +21682,33 @@ function afterRolesRender(){
 var _svgTrashXs='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
 var _svgSlidersXs='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>';
 
+/* Offline join readiness, stated before showtime rather than discovered when a
+   viewer can't connect. Access links live in Supabase and are cached locally on
+   every online render; a PIN can only be CREATED online, so with no cache there
+   is nothing for the LAN server to validate against. */
+function _cfRenderShareOffline(){
+  var el=document.getElementById('cf-share-offline'); if(!el) return;
+  var hosting=!!window.cfLAN;                     /* Electron owner runs the LAN server */
+  if(navigator.onLine || !hosting){ el.innerHTML=''; return; }
+  var n=0;
+  try{ n=(_cfLanPinSource()||[]).length; }catch(e){}
+  var ok=n>0;
+  el.innerHTML='<div class="sbp-offline-note'+(ok?' ok':' warn')+'">'
+    +'<span class="sbp-offline-pip"></span>'
+    +'<span>'+(ok
+      ? 'Offline — '+n+' access link'+(n===1?'':'s')+' available locally. Crew on this network can still join.'
+      : 'Offline — no cached access links. Connect to the internet once to enable offline join.')
+    +'</span></div>';
+}
+window._cfRenderShareOffline=_cfRenderShareOffline;
+/* Keep it truthful as the connection comes and goes while the panel is open. */
+window.addEventListener('online', function(){ _cfRenderShareOffline(); });
+window.addEventListener('offline', function(){ _cfRenderShareOffline(); });
+
 function renderPinsList(){
   /* Mirror the rendered list into the offline cache (covers add/delete too). */
   if(window.CF&&CF.showId) savePinCache(CF.showId, CF._pinList||[]);
+  _cfRenderShareOffline();
   var c=document.getElementById('cf-pins-list'); if(!c) return;
   c.innerHTML='';
   if(!CF._pinList.length){
