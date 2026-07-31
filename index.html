@@ -3875,14 +3875,11 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
             <input id="nc-dur-inp" class="ntm-inp" style="flex:1;min-width:80px;font-family:var(--mono);font-size:13px;opacity:.4;" placeholder="00:00:04:20" spellcheck="false" autocomplete="off" disabled>
           </div>
         </div>
-        <!-- Delete section — edit mode only (see _ncApplyDeleteSection) -->
-        <div class="ntm-fg nc-del-fg" id="nc-del-section" style="display:none;">
-          <div class="ntm-lbl" style="color:var(--red);">Delete this cue</div>
-          <div id="nc-del-opts" class="dcm-opts" style="margin-bottom:10px;"></div>
-          <button class="ntm-btn danger-solid" id="nc-del-btn" onclick="ncDeleteCue()" style="align-self:flex-start;">Delete cue</button>
-        </div>
       </div>
       <div class="ntm-footer">
+        <!-- Edit mode only (see _ncApplyDeleteSection). margin-right:auto parks it far
+             left, away from the confirm button. Hands off to the delete-cue modal. -->
+        <button class="ntm-btn danger" id="nc-del-btn" onclick="ncDeleteCue()" style="margin-right:auto;display:none;">Delete cue</button>
         <button class="ntm-btn" onclick="closeTlCreatePopup()">Cancel</button>
         <button class="ntm-btn primary" id="nc-create-btn" onclick="commitTlCreateCue()">Create Cue</button>
       </div>
@@ -14509,27 +14506,16 @@ function openEditCueModal(cueId){
 /* The delete section belongs to edit mode only — there is nothing to delete
    while creating. Same gap/extend choice as the delete-cue modal. */
 function _ncApplyDeleteSection(song,cue){
-  const sec=document.getElementById('nc-del-section');
-  if(!sec) return;
-  if(!cue||!song){ sec.style.display='none'; return; }
-  sec.style.display='';
-  const opts=document.getElementById('nc-del-opts');
-  if(opts)_renderPrevCueOpts(opts,song,cue,'nc-del-prev');
+  const btn=document.getElementById('nc-del-btn');
+  if(btn) btn.style.display=(song&&cue)?'':'none';   // edit mode only
 }
+/* Hands off to the delete-cue modal rather than deleting from here: that dialog
+   owns the gap/extend choice and the confirmation, so there is one delete flow
+   and one place where those semantics live. */
 function ncDeleteCue(){
-  if(!_ncEditId) return;
-  const song=getActiveSong(); if(!song) return;
-  const idx=song.cues.findIndex(c=>c.id===_ncEditId); if(idx<0) return;
-  const id=_ncEditId;
-  const mode=_prevModeFrom('nc-del-prev');
-  snapshot();
-  _applyPrevCueLength(song,song.cues[idx],mode);   // reads the neighbours — before the splice
-  song.cues.splice(idx,1);
-  if(window.ETL&&ETL.selId===id)ETL.selId=null;
+  const id=_ncEditId; if(!id) return;
   closeTlCreatePopup();
-  persist();renderCueList();redrawActive();
-  if(window.ETL&&ETL.visible)renderEditTimeline();
-  showUndoToast('Cue deleted');
+  openDeleteCueModal(id);
 }
 
 /* Retitle the shared modal for create vs edit. */
