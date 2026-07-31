@@ -10356,7 +10356,30 @@ function _jumpCue(dir){
     syncAudioToTC(newF);
   }
 }
+/* Space is the app's transport key, so it must never re-activate whatever button was
+   clicked last — a focused <button> is activated by Space by default, which is why
+   clicking rewind (or a tab) and then hitting Space re-fired that button instead of
+   toggling playback. Claimed here for every mode, before any branch decides what to
+   do with it; typing surfaces keep their space, and so do checkboxes/radios/selects,
+   which are inputs and use Space meaningfully. */
+function _cfSpaceIsTyping(){
+  var a=document.activeElement;
+  return !!(a && (a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT'||a.isContentEditable));
+}
+/* A button clicked with the mouse keeps focus and shows the focus ring, and the next
+   Space would fire it again. Drop focus for POINTER activation only — :focus-visible
+   is false there but true for keyboard navigation, so tab-and-space users are
+   untouched. Runs on bubble, after the button's own handler. */
+document.addEventListener('click',function(e){
+  var b=e.target&&e.target.closest&&e.target.closest('button');
+  if(!b||b.disabled) return;
+  var keyboard=false;
+  try{ keyboard=b.matches(':focus-visible'); }catch(err){}
+  if(!keyboard) b.blur();
+});
+
 document.addEventListener('keydown',e=>{
+  if(e.code==='Space' && !_cfSpaceIsTyping()) e.preventDefault();
   // Generated TC: Space toggles play/pause in Live Mode for a desktop owner — works even
   // when the floating TC field is focused (commits its edit first). Handled BEFORE the
   // input guard so it isn't swallowed; other inputs/modals still get the key normally.
