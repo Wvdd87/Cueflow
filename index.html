@@ -2859,6 +2859,10 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 /* Add link button in sharing panel */
 .sbp-add-link-btn { display:flex; align-items:center; justify-content:center; gap:6px; width:calc(100% - 28px); margin:12px 14px; height:36px; background:none; border:1px dashed var(--hair3); color:var(--txt-mid); cursor:pointer; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; transition:color .12s, border-color .12s; }
 .sbp-add-link-btn:hover { color:var(--primary); border-color:var(--primary); }
+/* Offline: creation writes to Supabase, so the control stands down and explains itself. */
+.sbp-add-link-btn:disabled { opacity:.4; cursor:not-allowed; border-style:dashed; }
+.sbp-add-link-btn:disabled:hover { color:var(--txt-mid); border-color:var(--hair3); }
+.sbp-addlink-note { margin:-4px 14px 12px; font-size:11px; line-height:1.5; color:var(--txt-low); }
 /* Camera select in viewer topbar — now uses cf-sel.compact */
 .vw-cam-select { display:none; } /* hidden; custom cf-sel renders in its place */
 
@@ -12249,6 +12253,13 @@ function sbClose(){
   if(_sbPanel) sbOpen(_sbPanel); // toggle off
 }
 function openAddPinModal(){
+  /* Offline a new link would be a dead credential — the Sharing panel says why. */
+  if(window.CF && CF._canCreateLinks && !CF._canCreateLinks()){
+    if(window.openAlertModal) openAlertModal(
+      'Connect to the internet to create access links. Existing links still work offline on this network.',
+      'Offline');
+    return;
+  }
   var m=document.getElementById('cf-addpin-modal');
   if(!m)return;
   // Populate cam-viewer option dynamically based on project state
@@ -21647,7 +21658,8 @@ function buildRolesPanel(){
   h+='<div id="cf-pins-list"><div class="sbp-empty">Loading…</div></div>';
 
   /* + New Link button — opens modal */
-  h+='<button class="sbp-add-link-btn" onclick="if(window.openAddPinModal)openAddPinModal()">＋ New access link</button>';
+  h+='<button class="sbp-add-link-btn" id="cf-add-link-btn" onclick="if(window.openAddPinModal)openAddPinModal()">＋ New access link</button>';
+  h+='<div id="cf-add-link-note"></div>';
 
   return h;
 }
@@ -21687,19 +21699,44 @@ var _svgSlidersXs='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
    every online render; a PIN can only be CREATED online, so with no cache there
    is nothing for the LAN server to validate against. */
 function _cfRenderShareOffline(){
-  var el=document.getElementById('cf-share-offline'); if(!el) return;
-  var hosting=!!window.cfLAN;                     /* Electron owner runs the LAN server */
-  if(navigator.onLine || !hosting){ el.innerHTML=''; return; }
-  var n=0;
-  try{ n=(_cfLanPinSource()||[]).length; }catch(e){}
-  var ok=n>0;
-  el.innerHTML='<div class="sbp-offline-note'+(ok?' ok':' warn')+'">'
-    +'<span class="sbp-offline-pip"></span>'
-    +'<span>'+(ok
-      ? 'Offline — '+n+' access link'+(n===1?'':'s')+' available locally. Crew on this network can still join.'
-      : 'Offline — no cached access links. Connect to the internet once to enable offline join.')
-    +'</span></div>';
+  var online=navigator.onLine;
+
+  /* (1) Join readiness — only meaningful while hosting the LAN server. */
+  var el=document.getElementById('cf-share-offline');
+  if(el){
+    var hosting=!!window.cfLAN;
+    if(online || !hosting){ el.innerHTML=''; }
+    else {
+      var n=0;
+      try{ n=(_cfLanPinSource()||[]).length; }catch(e){}
+      var ok=n>0;
+      el.innerHTML='<div class="sbp-offline-note'+(ok?' ok':' warn')+'">'
+        +'<span class="sbp-offline-pip"></span>'
+        +'<span>'+(ok
+          ? 'Offline — '+n+' access link'+(n===1?'':'s')+' available locally. Crew on this network can still join.'
+          : 'Offline — no cached access links. Connect to the internet once to enable offline join.')
+        +'</span></div>';
+    }
+  }
+
+  /* (2) Creating a link writes to Supabase, so offline it would mint a credential
+     that looks real and can never be joined. Block just that — never the join path,
+     the LAN server, or the existing cached links. Applies everywhere, not only while
+     hosting, because creation fails offline in a plain browser too. */
+  var btn=document.getElementById('cf-add-link-btn');
+  if(btn){
+    btn.disabled=!online;
+    btn.title=online?'':'Requires an internet connection';
+  }
+  var note=document.getElementById('cf-add-link-note');
+  if(note){
+    note.innerHTML=online?'':'<div class="sbp-addlink-note">Connect to the internet to create access links. '
+      +'Existing links still work offline on this network.</div>';
+  }
 }
+/* Creation is online-only; the guards below all funnel through this. */
+function _cfCanCreateLinks(){ return !!navigator.onLine; }
+CF._canCreateLinks=_cfCanCreateLinks;
 window._cfRenderShareOffline=_cfRenderShareOffline;
 /* Keep it truthful as the connection comes and goes while the panel is open. */
 window.addEventListener('online', function(){ _cfRenderShareOffline(); });
@@ -21908,6 +21945,10 @@ function onRoleChange(){
 }
 
 function addPin(){
+  if(!_cfCanCreateLinks()){
+    openAlertModal('Connect to the internet to create access links. Existing links still work offline on this network.','Offline');
+    return;
+  }
   var role=(document.getElementById('cf-pin-role')||{}).value||'viewer';
   var label=((document.getElementById('cf-pin-label')||{}).value||'').trim()||(role==='cam-viewer'?'Camera Viewer':role);
   var trackIds=null;
@@ -21970,6 +22011,10 @@ function deletePin(id){
 }
 
 CF._addCameraPin=function(camId){
+  if(!_cfCanCreateLinks()){
+    openAlertModal('Connect to the internet to create access links. Existing links still work offline on this network.','Offline');
+    return;
+  }
   if(!state.cameraTrack)return;
   var cam=state.cameraTrack.cameras.find(function(c){return c.id===camId;});
   if(!cam)return;
@@ -21985,6 +22030,7 @@ CF._addCameraPin=function(camId){
     if(r.error){openAlertModal(r.error.message,'Something went wrong');return;}
     CF._pinList.push(r.data);
     renderPinsList();
+    _cfLanPushPins();
   });
 };
 
