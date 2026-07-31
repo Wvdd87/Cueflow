@@ -14,9 +14,18 @@
   "build": {
     "appId": "com.cueflow.app",
     "productName": "Cueflow",
+    "fileAssociations": [
+      {
+        "ext": "cueflow",
+        "name": "CueFlow Show",
+        "description": "CueFlow show file",
+        "role": "Editor",
+        "mimeType": "application/x-cueflow"
+      }
+    ],
     "mac": {
       "category": "public.app-category.music",
-      "icon": "build/icon.png",
+      "icon": "favicon.png",
       "identity": null,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist",
@@ -32,6 +41,8 @@
       "preload.js",
       "lan-server.js",
       "index.html",
+      "favicon.png",
+      "media-protocol.js",
       "build/**",
       "node_modules/**"
     ]

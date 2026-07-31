@@ -188,9 +188,16 @@ Role checks: `CF.role === 'editor' || CF.role === 'track-editor'`
 
 ## Electron
 
-- `main.js` — standard Electron shell, loads `cueflow_v18.html`; grants MIDI permission only
+- `main.js` — standard Electron shell, loads `index.html`; grants MIDI + audio-input permission,
+  registers the `cfmedia://` scheme, and starts the always-on LAN server
 - `build/entitlements.mac.plist` — required for Web MIDI API on macOS
-- `build/icon.png` — app icon for DMG
+- `favicon.png` — app icon source (electron-builder generates `icon.icns` from it) AND used
+  by the app at runtime. `build/` is gitignored, so the icon must live at a tracked path.
+- `.cueflow` exports are declared as a document type in `build.fileAssociations`, so they
+  carry the app icon in Finder. Note: no `open-file` handler yet — double-clicking one
+  launches the app but does not import it.
+- `build.files` is an explicit allow-list: anything `main.js` requires must be added there
+  or the packaged app throws "Cannot find module" at launch.
 
 ## graphify
 
