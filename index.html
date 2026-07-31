@@ -6969,6 +6969,27 @@ function showPrompterScreen(show){
   if(window.redrawActive) redrawActive();
 }
 
+/* How many THEN rows actually fit, rather than a fixed five — a taller window
+   should show more of the show, not more empty space.
+
+   Rows are content-sized (a long cue name wraps to two lines), so the height is
+   measured from what is on screen and cached per container; the first paint uses
+   the fallback and self-corrects on the next frame. The tallest current row is
+   used, not the average, so the last row is never left half-clipped. */
+function _thenFitCount(container,fallback){
+  fallback=fallback||5;
+  if(!container) return fallback;
+  const areaH=container.clientHeight;
+  if(!areaH) return fallback;
+  let rowH=0;
+  container.querySelectorAll('.live-then-row').forEach(function(r){
+    rowH=Math.max(rowH,Math.round(r.getBoundingClientRect().height));
+  });
+  if(rowH>8) container._rowH=rowH; else rowH=container._rowH||0;
+  if(!rowH) return fallback;                       // nothing measured yet
+  return Math.max(1,Math.floor(areaH/rowH));
+}
+
 function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,curSeqId){
   const WARN_SEC=state.warnSec||10;
   const URGENCY_SEC=20;
@@ -7046,17 +7067,19 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,curSeqId){
     _renderNextTwins('live-next-twins',[],_ckCanFlag,'—',false,0);
   }
 
-  // ── THEN queue (cues after NEXT, up to 5) ──
+  // ── THEN queue (cues after NEXT — as many as fit the window) ──
   const thenRows=document.getElementById('live-then-rows');
   if(thenRows){
+    const _tqMax=_thenFitCount(thenRows,5);
     // Collect queue cues — skip the whole co-timed NEXT group, it's all up in the heroes.
     const _tq=[];
-    for(let qi=nextIdx+Math.max(1,_nGroup);qi<allCues.length&&_tq.length<5;qi++)_tq.push({qc:allCues[qi],qi});
+    for(let qi=nextIdx+Math.max(1,_nGroup);qi<allCues.length&&_tq.length<_tqMax;qi++)_tq.push({qc:allCues[qi],qi});
     // The queue is exhausted (no more upcoming cues to show) → cap it with an end affordance
     // so the remaining vertical space reads as "done", not as a missing-content void.
-    const _atSeqEnd=_tq.length<5 && (curIdx>=0||!!nextCue||_tq.length>0);
+    const _atSeqEnd=_tq.length<_tqMax && (curIdx>=0||!!nextCue||_tq.length>0);
     const flagKey=_ckCanFlag?_tq.map(x=>(x.qc.flagged?'1':'0')).join(''):'';
-    const qKey=_tq.map(x=>x.qc.id).join(',')+flagKey+'|'+state.visibleStreamIds.join(',')+'|'+(_atSeqEnd?'end':'');
+    /* _tqMax in the key: a window resize changes the count, and that must rebuild. */
+    const qKey=_tq.map(x=>x.qc.id).join(',')+flagKey+'|'+state.visibleStreamIds.join(',')+'|'+(_atSeqEnd?'end':'')+'|'+_tqMax;
     if(thenRows._qKey!==qKey){
       // Rebuild structure only when the set of cues (or their flag states) changes
       thenRows._qKey=qKey;thenRows.innerHTML='';
@@ -7192,7 +7215,7 @@ function _updateTestCockpit(frames,allCues,curIdx,upNextSongId){
   if(thenRows){
     thenRows.innerHTML='';
     const queueStart=nextIdx+1;
-    const queueEnd=Math.min(allCues.length,queueStart+5);
+    const queueEnd=Math.min(allCues.length,queueStart+_thenFitCount(thenRows,5));
     for(let qi=queueStart;qi<queueEnd;qi++){
       const qc=allCues[qi];
       const cdF=Math.max(0,qc._f-frames);
@@ -7294,18 +7317,19 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
   // ── THEN queue ──
   const tr=_e('vw-then-rows');
   if(tr){
+    const _tqMaxV=_thenFitCount(tr,5);
     const _tqV=[];
     // Skip the whole co-timed NEXT group — those cues are already shown as heroes.
-    for(let qi=nextIdx+Math.max(1,_nGroupV);qi<allCues.length&&_tqV.length<5;qi++){
+    for(let qi=nextIdx+Math.max(1,_nGroupV);qi<allCues.length&&_tqV.length<_tqMaxV;qi++){
       const qc=allCues[qi];
       if(_isTrackViewer&&_vwCurSongId&&qc.songId!==_vwCurSongId)break;
       _tqV.push({qc,qi});
     }
     // Queue exhausted (sequence end for track-viewers, list end otherwise) → cap with the
     // end affordance so the remaining space doesn't read as a missing-content void.
-    const _atSeqEndV=_tqV.length<5 && (!!curCue||!!nextCue||_tqV.length>0);
+    const _atSeqEndV=_tqV.length<_tqMaxV && (!!curCue||!!nextCue||_tqV.length>0);
     const flagKeyV=_ckCanFlagV?_tqV.map(x=>(x.qc.flagged?'1':'0')).join(''):'';
-    const qKeyV=_tqV.map(x=>x.qc.id).join(',')+flagKeyV+'|'+state.visibleStreamIds.join(',')+'|'+(_atSeqEndV?'end':'');
+    const qKeyV=_tqV.map(x=>x.qc.id).join(',')+flagKeyV+'|'+state.visibleStreamIds.join(',')+'|'+(_atSeqEndV?'end':'')+'|'+_tqMaxV;
     if(tr._qKey!==qKeyV){
       tr._qKey=qKeyV;tr.innerHTML='';
       _tqV.forEach(({qc,qi})=>{
