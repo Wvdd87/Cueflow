@@ -15087,17 +15087,40 @@ function _initEditTimeline(){
     // .etl-in-zone stops a child's own cursor (the hover pencil) overriding the zone.
     container.classList.toggle('etl-in-zone',!!_z);
     if(_z){ container.style.cursor=_etlZoneCursor(_z.mode); }
+    else if(y<ETL.RULER_H&&y>=0){
+      /* Ruler: hand = click to seek, "+" = Cmd/Ctrl held, click adds a cue. */
+      ETL._rulerHover=true;
+      container.style.cursor=_etlAddModifier(e)?'crosshair':'pointer';
+    }
     else {
+      ETL._rulerHover=false;
       const block=e.target.closest('.etl-cue');
       const handle=e.target.closest('.etl-cue-handle');
       container.style.cursor=handle?'ew-resize':(block?'pointer':'crosshair');
     }
   });
 
+  /* Cmd (mac) or Ctrl (win/linux) — accept either so a wrong guess never strands
+     the add-cue action. */
+  function _etlAddModifier(e){ return !!(e&&(e.metaKey||e.ctrlKey)); }
+
+  /* The cursor has to flip the moment the modifier is pressed, without waiting for
+     the mouse to move, so listen for the key itself while the pointer is on the ruler. */
+  function _etlSyncRulerCursor(e){
+    if(!ETL._rulerHover) return;
+    const c=document.getElementById('edit-tl'); if(!c) return;
+    if(c.classList.contains('etl-in-zone')) return;      // a boundary zone owns the cursor
+    c.style.cursor=_etlAddModifier(e)?'crosshair':'pointer';
+  }
+  document.addEventListener('keydown',_etlSyncRulerCursor);
+  document.addEventListener('keyup',_etlSyncRulerCursor);
+  window.addEventListener('blur',function(){ ETL._rulerHover=false; });
+
   container.addEventListener('mouseleave',()=>{
     const hover=document.getElementById('tl-ruler-hover');
     if(hover)hover.style.display='none';
     container.classList.remove('etl-in-zone');   // don't leave children pinned to inherit
+    ETL._rulerHover=false;
   });
 
   container.addEventListener('mousedown',e=>{
@@ -15179,11 +15202,17 @@ function _initEditTimeline(){
       ETL.selId=cueId;
       _etlHighlightList(cueId);
     } else if(y<ETL.RULER_H){
-      // RULER CLICK: open new cue modal at clicked TC
+      /* RULER: plain click seeks, Cmd/Ctrl+click adds a cue. Seeking is the far more
+         frequent action, so it gets the bare click; adding sits behind the modifier
+         (and the "+" cursor advertises it — see the mousemove handler). */
       e.preventDefault();
       const clickedTcF=_xToTcF(container,e.clientX);
-      _ncSelTarget=null; // reset so it picks up active stream
-      _ncOpenModal(clickedTcF);
+      if(_etlAddModifier(e)){
+        _ncSelTarget=null;          // reset so it picks up active stream
+        _ncOpenModal(clickedTcF);   // playhead deliberately stays where it was
+      } else {
+        redrawTest(Math.max(0,Math.round(clickedTcF)));   // seek: everything downstream follows
+      }
     } else {
       // Click on empty track area — deselect
       ETL.selId=null;
