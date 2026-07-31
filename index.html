@@ -2987,7 +2987,8 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 }
 #cfp-panel {
   position:absolute; top:0; right:0; bottom:0;
-  width:20%;                       /* never more than 20% of frame width */
+  width:25%;                       /* 25% of frame width (was 20%) — wider shot names
+                                      and room for the per-camera countdown */
   display:flex; flex-direction:column;
   /* The bottom strip is reserved for the NO TC chip, always — so the chip can never
      overlap the shot list, and the auto-fit (which measures #cfp-blocks) accounts for
@@ -3064,6 +3065,10 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
   display:none;
 }
 .cfp-item.live .cfp-mark, .cfp-item.next .cfp-mark { display:block; }
+/* Every camera's FIRST upcoming shot carries a countdown, not just the one that happens
+   to be the show's next cue — an operator needs their own time-to-air, not someone
+   else's. Neutral white here; red/amber rows keep their own colours above. */
+.cfp-item.cd .cfp-mark { display:block; color:var(--txt-hi); }
 
 /* LIVE — solid broadcast red, black text, a small LIVE marker at the right. */
 .cfp-item.live { background:var(--red); border-left-color:#7d0018; }
@@ -6842,8 +6847,8 @@ function _cfpSet(node,key,txt){
 /* 'live' | 'next' | 'ahead' | 'dash' | 'blank'. A card NEVER changes size between these —
    'blank' is invisible but still holds its box — so no row above can push a camera's shot
    list up or down while the show runs. */
-function _cfpState(item,cls){
-  item.el.className='cfp-item '+cls;
+function _cfpState(item,cls,extra){
+  item.el.className='cfp-item '+cls+(extra?' '+extra:'');
 }
 
 /* Per-frame update. Called from _doRedraw, so it rides the same TC as every other view. */
@@ -6871,6 +6876,8 @@ function _updatePrompter(frames){
     // amber (the sequence's next cue) - each in whichever camera owns it.
     const list = m.live ? [m.live].concat(m.upcoming) : m.upcoming.slice();
     const idle = list.length===0;
+    /* This camera's first upcoming shot: index 0, or 1 when its live shot heads the stack. */
+    const firstUpIdx = m.live ? 1 : 0;
 
     e.items.forEach((it,i)=>{
       const c=list[i]||null;
@@ -6887,6 +6894,10 @@ function _updatePrompter(frames){
       } else if(nextF!=null && c._f===nextF){
         _cfpState(it,'next');
         // With no TC we are free-running: a ticking countdown would be a lie. Blank it.
+        _cfpSet(it.mark, id+'-m'+i, stale?'—':_cfpCountdown(c._f-frames));
+      } else if(i===firstUpIdx){
+        /* Not the show's next cue, but it IS this camera's next — give it a countdown. */
+        _cfpState(it,'ahead','cd');
         _cfpSet(it.mark, id+'-m'+i, stale?'—':_cfpCountdown(c._f-frames));
       } else {
         _cfpState(it,'ahead');
