@@ -1600,6 +1600,16 @@ body.mode-live #edit-mode-banner { display: none; }
 .imp-options{display:grid;grid-template-columns:repeat(2,1fr);border:1px solid var(--hair2);}
 .imp-option-btn{padding:10px 6px;border:none;border-right:1px solid var(--hair2);background:none;color:var(--txt-low);font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:color .12s,background .12s;text-align:center;}
 .imp-option-btn:last-child{border-right:none;}
+.imp-option-btn:disabled{opacity:.35;cursor:not-allowed;}
+/* Same project already in the account. Amber when that copy is NEWER than the file
+   (the case that can lose work), neutral when it is merely present. */
+.imp-newer-note{padding:14px 20px;border-bottom:1px solid var(--hair);background:var(--surface2);}
+.imp-newer-note.warn{border-left:3px solid var(--amber,#f0a838);}
+.imp-newer-hd{display:flex;align-items:center;gap:8px;font-family:var(--cond);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--amber,#f0a838);margin-bottom:6px;}
+.imp-newer-note:not(.warn) .imp-newer-hd{color:var(--txt-mid);}
+.imp-newer-txt{font-size:12px;line-height:1.55;color:var(--txt-mid);}
+.imp-newer-txt b{color:var(--txt-hi);font-weight:700;}
+.imp-newer-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
 .imp-option-btn:hover{color:var(--txt-hi);background:var(--surface2);}
 .imp-option-btn.active{background:var(--primary);color:#000;}
 .imp-option-desc{font-size:11px;color:var(--txt-mid);margin-top:8px;line-height:1.55;min-height:2.4em;}
@@ -3536,6 +3546,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       </div>
       <div class="imp-detected"><div style="width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;"></div>DETECTED</div>
     </div>
+    <!-- "the account already has this project, and it's newer" — filled by _impRenderNewer() -->
+    <div id="imp-newer"></div>
     <div class="imp-stats">
       <div class="imp-stat"><div class="imp-stat-lbl">Sequences</div><div class="imp-stat-val" id="imp-stat-seqs">—</div></div>
       <div class="imp-stat"><div class="imp-stat-lbl">Cues</div><div class="imp-stat-val" id="imp-stat-cues">—</div></div>
@@ -10553,8 +10565,84 @@ function _importDropAnother(e){
   };
   r.readAsText(f);
 }
+/* ── "this project is already in the account" detection ────────────────────────
+   The export carries project.id and an `exported` timestamp; the account's show
+   list carries id + updated_at. That is enough to tell an operator, before they
+   import, that the copy in the account has moved on since this file was saved —
+   the case where a careless import loses work. */
+var _impAcctInfo=null;
+function _impAccountCopy(proj,exportedAt){
+  if(!proj||!proj.id||!window.CF||!Array.isArray(CF._showList)) return null;
+  var row=CF._showList.find(function(s){ return s&&s.id===proj.id; });
+  if(!row) return null;
+  var acctAt=row.updated_at?Date.parse(row.updated_at):NaN;
+  var fileAt=exportedAt?Date.parse(exportedAt):NaN;
+  return {
+    row:row, acctAt:acctAt, fileAt:fileAt,
+    /* true = account is ahead, false = file is newer/equal, null = can't tell */
+    newer:(isFinite(acctAt)&&isFinite(fileAt))?(acctAt>fileAt):null,
+    isOpen:CF.showId===proj.id
+  };
+}
+function _impWhen(ms){
+  if(!isFinite(ms)) return 'an unknown time';
+  var d=new Date(ms);
+  return d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+function _impRenderNewer(){
+  var el=document.getElementById('imp-newer'); if(!el) return;
+  var i=_impAcctInfo;
+  if(!i){ el.innerHTML=''; return; }
+  var warn=(i.newer===true);
+  var name=escH(i.row.name||_pendingImportProj&&_pendingImportProj.name||'this project');
+  var body;
+  if(warn){
+    body='The copy in your account was saved <b>'+_impWhen(i.acctAt)+'</b>; this file was exported <b>'
+        +_impWhen(i.fileAt)+'</b>. Importing over it would lose the newer work.';
+  } else if(i.newer===false){
+    body='Your account already has this project (saved <b>'+_impWhen(i.acctAt)+'</b>). This file is the newer one.';
+  } else {
+    body='Your account already has this project. The two versions could not be compared by date.';
+  }
+  el.innerHTML='<div class="imp-newer-note'+(warn?' warn':'')+'">'
+    +'<div class="imp-newer-hd">'+(warn?'⚠ Newer version already in your account':'Already in your account')+'</div>'
+    +'<div class="imp-newer-txt"><b>'+name+'</b> — '+body+'</div>'
+    +'<div class="imp-newer-acts">'
+      +'<button class="ntm-btn'+(warn?' primary':'')+'" onclick="_impOpenAccountVersion()">Open the account version</button>'
+      +'<button class="ntm-btn" onclick="_impImportSeparate()">Import as a separate copy</button>'
+      +'<button class="ntm-btn" onclick="_closeImportModal()">Cancel</button>'
+    +'</div></div>';
+}
+/* Leave the file alone and open what the account already holds. */
+function _impOpenAccountVersion(){
+  var i=_impAcctInfo; if(!i) return;
+  var id=i.row.id;
+  _closeImportModal(); closeModal('proj-modal');
+  if(CF.showId===id) return;                       // already the open project
+  if(window.CF&&CF._switchProject) CF._switchProject(id);
+}
+/* Import without touching the account copy. importShow() mints a fresh UUID, so the
+   existing row is never written to — this is the safe path, made explicit. */
+function _impImportSeparate(){
+  _setImportMode('new');
+  _executeImport();
+}
+
 function _openImportModal(proj,fileName,fileSize,exportedAt){
   _pendingImportProj=proj;
+  _impAcctInfo=_impAccountCopy(proj,exportedAt);
+  _impRenderNewer();
+  /* The cached list can be stale; refresh it and re-decide when it lands. */
+  if(navigator.onLine && window.CF && CF._refreshShowList){
+    try{
+      CF._refreshShowList().then(function(){
+        if(_pendingImportProj!==proj) return;      // modal moved on
+        _impAcctInfo=_impAccountCopy(proj,exportedAt);
+        _impRenderNewer();
+        _impApplyGuards();
+      });
+    }catch(e){}
+  }
   // Filename
   const fnEl=document.getElementById('imp-filename');
   if(fnEl)fnEl.textContent=fileName||proj.name||'Unknown';
@@ -10597,12 +10685,15 @@ function _openImportModal(proj,fileName,fileSize,exportedAt){
   }
   // Always show the options section; default to 'new' (safest)
   _setImportMode('new');
+  _impApplyGuards();
   const modal=document.getElementById('cf-import-modal');
   if(modal)modal.classList.add('show');
 }
 function _closeImportModal(){
   const m=document.getElementById('cf-import-modal');if(m)m.classList.remove('show');
-  _pendingImportProj=null;_importMode='fresh';
+  _pendingImportProj=null;_importMode='fresh';_impAcctInfo=null;
+  var w=document.getElementById('imp-newer'); if(w) w.innerHTML='';
+  var mb=document.getElementById('imp-opt-merge'); if(mb){ mb.disabled=false; mb.title=''; }
 }
 function _calcImportRuntime(songs,fps){
   if(!songs||!songs.length||!window.tcF)return '—';
@@ -10621,7 +10712,22 @@ const _IMP_DESCS={
   merge:'Add sequences from this file into the current project. Sequences with matching names will have their cues merged. The current project name is kept.',
   new:'Save as a separate new project alongside the current one.'
 };
+/* Merge writes into the CURRENTLY OPEN project. If that project is the very copy the
+   account says is newer, merging is the one action that can destroy the newer work —
+   so it is taken off the table rather than left as a trap. */
+function _impApplyGuards(){
+  var i=_impAcctInfo;
+  var block=!!(i && i.newer===true && i.isOpen);
+  var btn=document.getElementById('imp-opt-merge');
+  if(btn){
+    btn.disabled=block;
+    btn.title=block?'The open project is the newer copy of this file — merging would overwrite it':'';
+  }
+  if(block && _importMode==='merge') _setImportMode('new');
+}
 function _setImportMode(mode){
+  var mb=document.getElementById('imp-opt-merge');
+  if(mode==='merge' && mb && mb.disabled) return;   // guarded above
   _importMode=mode;
   ['merge','new'].forEach(m=>{
     const btn=document.getElementById('imp-opt-'+m);
@@ -18427,6 +18533,7 @@ window.CF = {
   /* actions */
   _createShow: createShow,
   _importShow: importShow,
+  _refreshShowList: refreshShowList,
   _onRoleChange: onRoleChange,
   _addPin: addPin,
   _deletePin: deletePin,

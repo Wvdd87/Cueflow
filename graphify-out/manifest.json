@@ -20,8 +20,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1780587692.7131383,
-    "ast_hash": "5ff69fdc6741310cc87323bb9bbb5a49",
+    "mtime": 1785571587.7351565,
+    "ast_hash": "74f4b1fbfc0deec36d25c838e1327f47",
     "semantic_hash": ""
   },
   "preload.js": {
@@ -30,8 +30,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1781853608.8940957,
-    "ast_hash": "b7849ef719b92a967aa8fd68016c522d",
+    "mtime": 1785531857.840242,
+    "ast_hash": "1adb07e2610aa7ad033784bd01f518a4",
     "semantic_hash": ""
   },
   "CONTEXT.md": {
@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1785528214.9983692,
-    "ast_hash": "40e09b1a8383530b6ef356e5b21956a2",
+    "mtime": 1785572218.4448318,
+    "ast_hash": "9087c74c8a101f9ee2b7f1e3cc9b8f3b",
     "semantic_hash": ""
   },
   "favicon.png": {
@@ -72,6 +72,11 @@
   "media-protocol.js": {
     "mtime": 1783790162.1001384,
     "ast_hash": "e3e4ef3439d9fa67f93248cba90f0bce",
+    "semantic_hash": ""
+  },
+  "file-icon.png": {
+    "mtime": 1785571520.261494,
+    "ast_hash": "cea0966902f6c2c985d6c7aaede8dbe7",
     "semantic_hash": ""
   }
 }
