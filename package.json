@@ -20,7 +20,8 @@
         "name": "CueFlow Show",
         "description": "CueFlow show file",
         "role": "Editor",
-        "mimeType": "application/x-cueflow"
+        "mimeType": "application/x-cueflow",
+        "icon": "file-icon.icns"
       }
     ],
     "mac": {
