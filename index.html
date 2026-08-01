@@ -10347,37 +10347,50 @@ function _jklJ(){
   else if(_jklSpeed===-4)_setJKL(-8);
   else _setJKL(-16);
 }
+/* Frames tolerance for "these two edges are the same point" — also what counts as a
+   cue being welded to the next one on its track. */
+const _EDGE_TOL=1;
+/* Every position up/down can step to, across ALL tracks in the sequence:
+     · every cue's START
+     · every cue's END, but only when it is NOT welded to the next cue on its own
+       track. A welded end sits on that next start, so it is already in the list;
+       counting it twice would make the playhead appear to stop in the same place
+       twice. An end with a gap after it, or the last cue on a track, IS a stop.
+   Merged into one ascending list with edges on the same frame collapsed.
+   Recomputed per keypress, so edits are always reflected.
+
+   Track identity matches cueEndFrames(): all camera cues count as one track, which
+   is the same grouping that decided the end frame in the first place. */
+function _tlEdgePoints(song){
+  if(!song||!song.cues) return [];
+  const pts=[];
+  song.cues.forEach(function(c){
+    const s=tcF(c.tc);
+    if(isFinite(s)) pts.push(Math.round(s));
+    const e=cueEndFrames(c,song);
+    if(!isFinite(e)) return;                       // auto cue with nothing after it
+    const nxt=_nextSameTrackCue(c,song);
+    const welded=!!(nxt && Math.abs(e-tcF(nxt.tc))<=_EDGE_TOL);
+    if(!welded) pts.push(Math.round(e));
+  });
+  pts.sort(function(a,b){return a-b;});
+  const out=[];
+  for(const f of pts){ if(!out.length || f-out[out.length-1]>_EDGE_TOL) out.push(f); }
+  return out;
+}
 function _jumpCue(dir){
-  // If a track is actively selected, navigate within that track only
-  const frames=Math.floor(state.simFrames);
-  let cuePool;
-  if(state.activeStreamId){
-    const song=getActiveSong();
-    if(state.activeStreamId==='CAMERA'){
-      cuePool=song?getSortedCues(song.id,true).filter(c=>!!c.cameraId):[];
-    } else {
-      cuePool=song?getSortedCues(song.id,true).filter(c=>c.streamId===state.activeStreamId):[];
-    }
-  } else {
-    cuePool=getAllCues(true);
-  }
-  const allCues=cuePool;
-  let target=-1;
-  if(dir>0){
-    // Jump to EXACT next cue TC (no 0.1 offset — just strictly greater)
-    for(let i=0;i<allCues.length;i++){if(allCues[i]._f>frames){target=i;break;}}
-  } else {
-    // Jump to EXACT previous cue TC (strictly less than current floor)
-    for(let i=allCues.length-1;i>=0;i--){if(allCues[i]._f<frames){target=i;break;}}
-  }
-  if(target>=0){
-    simStop();
-    // Jump to exact cue TC — arrow keys do NOT apply preroll
-    const newF=allCues[target]._f;
-    state.simFrames=newF; // set float too so next jump works correctly
-    redrawTest(newF);
-    syncAudioToTC(newF);
-  }
+  const song=getActiveSong(); if(!song) return;
+  const pts=_tlEdgePoints(song);
+  if(!pts.length) return;
+  const cur=Math.floor(state.simFrames);
+  let target=null;
+  if(dir>0){ for(let i=0;i<pts.length;i++){ if(pts[i]>cur){ target=pts[i]; break; } } }
+  else     { for(let i=pts.length-1;i>=0;i--){ if(pts[i]<cur){ target=pts[i]; break; } } }
+  if(target==null) return;                         // past the last / before the first — no wrap
+  simStop();
+  state.simFrames=target;                          // float too, so the next step works
+  redrawTest(target);                              // TC + everything downstream follows
+  syncAudioToTC(target);
 }
 /* Space is the app's transport key, so it must never re-activate whatever button was
    clicked last — a focused <button> is activated by Space by default, which is why
