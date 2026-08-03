@@ -1,0 +1,47 @@
+CueFlow — how to install
+========================
+
+1.  Drag  Cueflow  onto the  Applications  folder.
+
+2.  Open Terminal (Applications → Utilities → Terminal) and run this once,
+    copying the line exactly:
+
+        xattr -dr com.apple.quarantine /Applications/Cueflow.app
+
+3.  Open CueFlow from your Applications folder. Done — step 2 is never
+    needed again on this Mac.
+
+
+Why is step 2 necessary?
+------------------------
+CueFlow is not signed with a paid Apple developer certificate, so when it
+arrives by download, AirDrop or a message, macOS flags it and refuses to
+open it — usually with "Cueflow is damaged and can't be opened."
+
+It is not damaged. That is simply the message macOS shows for an unsigned
+app. The command in step 2 removes the "downloaded from the internet" flag
+from this one app. Nothing else on your Mac is changed.
+
+On macOS 15 and later there is no way to do this from the Finder — the old
+"right-click → Open" trick was removed — so the Terminal command is the
+only route.
+
+Tip: if you received CueFlow on a USB stick or over a local network share,
+that flag is never set, and you can skip step 2 entirely.
+
+
+First launch
+------------
+CueFlow will ask for two permissions. Both are for timecode:
+
+  • Microphone — to read LTC from an audio interface
+  • MIDI       — to read MTC
+
+Allow them, or the matching timecode source will not work.
+
+
+Trouble?
+--------
+"command not found" or a permissions error in step 2 usually means the app
+is not in /Applications yet. Complete step 1 first, then run the command
+again.
