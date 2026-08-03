@@ -83,7 +83,9 @@
       "media-protocol.js",
       "build/**",
       "node_modules/**"
-    ]
+    ],
+    "afterPack": "scripts/adhoc-sign.js",
+    "afterSign": "scripts/adhoc-sign.js"
   },
   "dependencies": {
     "qrcode": "^1.5.4",

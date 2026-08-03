@@ -17564,36 +17564,54 @@ document.addEventListener('DOMContentLoaded',function(){
     <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">A <strong>Playlist</strong> is a named set of sequences — think of it as one night's show or one performance. You can have multiple playlists (e.g. "Night 1", "Night 2", "Rehearsal"). Only the <em>active</em> playlist is used in live mode; sequences from other playlists are completely invisible to TC tracking. Switch playlists using the Playlists panel in the sidebar.</p>
     <div class="setup-section">Sequences</div>
     <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">A <strong>Sequence</strong> (or song) is a timed block within a playlist — typically one song, act, or scene. Each sequence has its own start TC, duration, and a list of cues. In the sidebar's Sequences panel you can reorder them by dragging the ⠿ handle, select multiple to move or delete them, and add new sequences.</p>
-    <div class="setup-section">Tracks</div>
-    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;"><strong>Tracks</strong> are the departments or data streams in your show — for example "Lighting", "Audio", "Video". Each cue belongs to one track. In the Tracks panel you can create, rename, and toggle which tracks are visible. Editor roles can be restricted to specific tracks they are allowed to edit.</p>
-    <div class="setup-section">Roles</div>
-    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 6px;">Roles control what each collaborator can see and do:</p>
+    <div class="setup-section">Tracks and cameras</div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;"><strong>Tracks</strong> are the departments or data streams in your show — for example "Lighting", "Audio", "Video". Each cue belongs to one track. In the Tracks panel you can create, rename, and toggle which tracks are visible.</p>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">A show can also have one <strong>camera track</strong>. Its cues are assigned to a numbered camera rather than a normal track, and they drive the camera views: the single-camera cockpit and the Camera Prompter.</p>
+    <div class="setup-section">Cues and durations</div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">A cue has a timecode, a name, an optional description, and a duration. Duration is <strong>Auto</strong> by default, meaning the cue runs until the next cue on the same track. Set an explicit length instead when a cue should end early and leave a gap. Deleting a cue asks what should happen to the one before it — leave the gap, or extend it to fill the space.</p>
+    <div class="setup-section">Edit mode</div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">In <strong>Edit Mode</strong> you add, edit and rearrange cues. Select a sequence from the sidebar, then edit any cue row directly — timecode, name, description. The <strong>+ CUE</strong> button adds one at the current playhead, and right-clicking a cue row opens quick actions.</p>
+    <div class="setup-section">Timeline</div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">The <strong>Timeline</strong> along the bottom shows every cue in the active sequence on a time axis.</p>
     <ul style="font-size:12px;color:var(--text2);line-height:1.8;margin:0 0 10px;padding-left:18px;">
-      <li><strong>Admin</strong> — full access: create, edit, delete, manage roles</li>
-      <li><strong>Editor</strong> — can create and edit sequences, playlists, and cues; cannot delete</li>
-      <li><strong>Track Editor</strong> — same as Editor but restricted to assigned tracks only</li>
-      <li><strong>Viewer</strong> — read-only access to the full show</li>
-      <li><strong>Crew</strong> — sees a simplified live view for their assigned tracks</li>
-      <li><strong>TC</strong> — displays a minimal timecode screen only</li>
+      <li><strong>Click the ruler</strong> to move the playhead there. <strong>⌘/Ctrl + click the ruler</strong> to add a cue at that point without moving the playhead.</li>
+      <li><strong>Drag a cue</strong> by its handle to change its timecode; drag the <strong>boundary between two cues</strong> to change where one ends and the next begins.</li>
+      <li>Hover a cue and click the <strong>✎</strong> to open it for editing.</li>
+      <li><kbd style="background:var(--surface3);border:1px solid var(--border2);padding:1px 4px;border-radius:3px;font-size:10px;">↑</kbd> / <kbd style="background:var(--surface3);border:1px solid var(--border2);padding:1px 4px;border-radius:3px;font-size:10px;">↓</kbd> step the playhead through every cue edge across all tracks.</li>
+      <li>Zoom with <kbd style="background:var(--surface3);border:1px solid var(--border2);padding:1px 4px;border-radius:3px;font-size:10px;">+</kbd> / <kbd style="background:var(--surface3);border:1px solid var(--border2);padding:1px 4px;border-radius:3px;font-size:10px;">−</kbd>, toggle snapping with <kbd style="background:var(--surface3);border:1px solid var(--border2);padding:1px 4px;border-radius:3px;font-size:10px;">S</kbd>, add a chapter marker with <kbd style="background:var(--surface3);border:1px solid var(--border2);padding:1px 4px;border-radius:3px;font-size:10px;">M</kbd>.</li>
     </ul>
-    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">Invite collaborators via the Sharing button (globe icon) in the sidebar.</p>
-    <div class="setup-section">Edit Mode</div>
-    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">In <strong>Edit Mode</strong> you can add, edit, and rearrange cues. Select a sequence from the sidebar, then click any cue row to edit its timecode, label, notes, or media. Use the <kbd style="background:var(--surface3);border:1px solid var(--border2);padding:1px 4px;border-radius:3px;font-size:10px;">+</kbd> button to add new cues manually, or drag in the timeline to create them visually.</p>
-    <div class="setup-section">Timeline Editing</div>
-    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">The <strong>Timeline</strong> (bottom panel) shows all cues for the active sequence plotted on a time axis. Click the timeline to jump TC to that position. Drag cue markers to shift their timecode. Right-click a cue marker to open quick edit options. Use the zoom controls at the top-right to zoom in and out. To add a new cue directly on the timeline, click an empty area while holding <kbd style="background:var(--surface3);border:1px solid var(--border2);padding:1px 4px;border-radius:3px;font-size:10px;">Alt</kbd>.</p>
-    <div class="setup-section">Adding Media &amp; Notes</div>
-    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">Each cue can have a <strong>note</strong> (rich text) and attached <strong>media</strong> (image or video file). Click the note icon on a cue row to open the rich-text notes editor. Click the media icon to attach a file — it will display in the cue detail panel when that cue is active in live mode, useful for reference images or score PDFs.</p>
-    <div class="setup-section">Live Mode</div>
-    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">Press <kbd style="background:var(--surface3);border:1px solid var(--border2);padding:1px 4px;border-radius:3px;font-size:10px;">Space</kbd> or the ▶ button to enter <strong>Live Mode</strong>. The screen switches to a large cue waterfall showing the current, next, and upcoming cues based on the incoming timecode. Only sequences in the <em>active playlist</em> are shown. The header bar shows the current sequence name and TC position. Pressing Space again (or the ■ button) exits live mode.</p>
-    <div class="setup-section">Connecting MTC</div>
-    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 4px;"><strong>MIDI Timecode (MTC)</strong> is the standard way to sync CueFlow to a show's master clock (DAW, playback system, lighting console). To connect:</p>
-    <ol style="font-size:12px;color:var(--text2);line-height:1.8;margin:0 0 10px;padding-left:18px;">
-      <li>Connect your MTC source to your computer via USB-MIDI or a MIDI interface.</li>
-      <li>Click the MTC button (clock icon) in the toolbar.</li>
-      <li>Select your MIDI input device from the list and click <strong>Connect MTC Input</strong>.</li>
-      <li>When MTC is running, the TC display in the header will update in real time and CueFlow will track cues automatically.</li>
-    </ol>
-    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">If your MTC lands slightly off, use the <strong>TC Offset</strong> setting to apply a global frame offset correction.</p>
+    <div class="setup-section">Media</div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">Audio and video come from a <strong>media folder</strong> on your own computer, chosen in Settings → Media. Sequences reference files by name and resolve them from that folder. The files themselves are never uploaded — only the filename is shared with your collaborators, so everyone stays fast and your media stays yours.</p>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">Attach a file to a sequence with the <strong>↑ Attach</strong> button next to the filter icon, or from Sequence Settings. Audio shows as a waveform in the timeline; video also opens a <strong>video panel</strong> beside the cue list.</p>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">Media is owner-only and desktop-only. Editors, viewers and phones see no media UI at all.</p>
+    <div class="setup-section">Video panel</div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">For a sequence with video, the cue list and the video sit side by side. The panel is resizable and collapsible, and its width is remembered per project. It's a read-only mirror of the playhead — it never drives the timeline. Use <strong>⧉</strong> to pop the video into a second, clean window for dual-screen work; close that window and it returns inline.</p>
+    <div class="setup-section">Live mode</div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">Press <strong>Go Live</strong> to switch to the live cockpit: what's ON AIR, the NEXT cue as a large hero, then as many upcoming cues as fit your window. Only sequences in the <em>active playlist</em> are tracked.</p>
+    <div class="setup-section">Timecode</div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">CueFlow follows three sources, chosen in Settings → Timecode:</p>
+    <ul style="font-size:12px;color:var(--text2);line-height:1.8;margin:0 0 10px;padding-left:18px;">
+      <li><strong>MTC</strong> — MIDI timecode from a DAW, playback system or console. Connect the device, then pick it from the MIDI input list.</li>
+      <li><strong>LTC</strong> — audio timecode from an audio interface input. Needs microphone permission.</li>
+      <li><strong>Internal</strong> — a built-in transport for rehearsal and programming when there's no external clock. <kbd style="background:var(--surface3);border:1px solid var(--border2);padding:1px 4px;border-radius:3px;font-size:10px;">Space</kbd> plays and pauses it. Desktop owner only.</li>
+    </ul>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">If timecode lands slightly off, apply a global correction with <strong>TC Offset</strong>.</p>
+    <div class="setup-section">Sharing and roles</div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">Share the show with the <strong>globe</strong> icon in the sidebar. Each access link carries a PIN and a role:</p>
+    <ul style="font-size:12px;color:var(--text2);line-height:1.8;margin:0 0 10px;padding-left:18px;">
+      <li><strong>Viewer</strong> — the full waterfall, read-only</li>
+      <li><strong>Editor</strong> — can create and edit cues (optionally limited to specific tracks)</li>
+      <li><strong>TC Display</strong> — a fullscreen timecode readout, nothing else</li>
+      <li><strong>Camera</strong> — a single-camera cockpit for one operator</li>
+      <li><strong>Camera Prompter</strong> — a chroma-key overlay to key over a PGM feed</li>
+    </ul>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">Links can only be <strong>created</strong> while you're online, since they live in your account. Once created they keep working offline.</p>
+    <div class="setup-section">Camera Prompter</div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">The <strong>Camera Prompter</strong> is a green-screen overlay for camera operators. Each selected camera gets its own block showing what it's on now (red), what's next with a countdown (amber), and what's coming after. Key the green out in your switcher and the text sits over the program image.</p>
+    <div class="setup-section">Working offline</div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">With CueFlow running on your computer, crew on the <strong>same network</strong> can still join, load the show and follow timecode with no internet — using access links created earlier. The Sharing panel tells you before showtime whether offline join will work.</p>
+    <div class="setup-section">Import and export</div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 10px;">Export a show to a <strong>.cueflow</strong> file from the project menu, and import one the same way. If the file matches a project already in your account, CueFlow says so — and if your account's copy is newer, it offers to open that instead of importing over your work.</p>
   </div>
   <div class="modal-actions" style="margin-top:12px;">
     <button class="mbtn primary" onclick="closeModal('help-modal')">Close</button>

@@ -1,16 +1,16 @@
 # Graph Report - Cueflow  (2026-08-03)
 
 ## Corpus Check
-- 12 files · ~118,803 words
+- 13 files · ~119,711 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 156 nodes · 153 edges · 13 communities (12 shown, 1 thin omitted)
+- 163 nodes · 159 edges · 13 communities (11 shown, 2 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f2a573e9`
+- Built from commit: `a255aa59`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -31,10 +31,10 @@
 
 ## God Nodes (most connected - your core abstractions)
 1. `CueFlow — Project Context` - 15 edges
-2. `CueFlow — Security, Data Integrity & Reliability Audit` - 9 edges
-3. `mac` - 8 edges
-4. `build` - 7 edges
-5. `Building and distributing CueFlow (macOS)` - 6 edges
+2. `build` - 9 edges
+3. `CueFlow — Security, Data Integrity & Reliability Audit` - 9 edges
+4. `mac` - 8 edges
+5. `Building and distributing CueFlow (macOS)` - 7 edges
 6. `CueFlow — Top 10 Priority Actions` - 6 edges
 7. `MEDIUM findings` - 6 edges
 8. `Architecture` - 5 edges
@@ -48,15 +48,15 @@
 ## Import Cycles
 - None detected.
 
-## Communities (13 total, 1 thin omitted)
+## Communities (13 total, 2 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.10
 Nodes (19): Architecture — the three script blocks, Badge rules — enforced design spec, Block 1 — main app globals, Block 2 — collab IIFE, Camera badges (`.cam-badge`, `.cam-badge-sq`), Commands, Data model, Electron (+11 more)
 
 ### Community 1 - "Community 1"
-Cohesion: 0.11
-Nodes (17): Auth pass (planned, not started), Conflict detection, CueFlow — Project Context, Current file, Data model, Development notes, File history, Future features discussed (+9 more)
+Cohesion: 0.09
+Nodes (22): Architecture, Auth pass (planned, not started), Conflict detection, CueFlow — Project Context, Current file, Data model, Development notes, File history (+14 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.14
@@ -71,52 +71,48 @@ Cohesion: 0.11
 Nodes (19): crypto, fs, getLanIPs(), http, os, path, QRCode, startLanServer() (+11 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.11
-Nodes (18): Assessment: are the `true` RLS policies acceptable for this threat model?, C1 — `shows` is world-readable: any internet user can read every show's full data, C2 — `show_access` is world-readable AND PINs are stored in plaintext, C3 — Stored XSS via rich-text sequence description, rendered raw in the live cockpit, CRITICAL findings, CueFlow — Security, Data Integrity & Reliability Audit, Executive summary, H1 — `track-editor` restriction is client-side only; the server lets them overwrite the whole show (+10 more)
+Cohesion: 0.10
+Nodes (19): Assessment: are the `true` RLS policies acceptable for this threat model?, C1 — `shows` is world-readable: any internet user can read every show's full data, C2 — `show_access` is world-readable AND PINs are stored in plaintext, C3 — Stored XSS via rich-text sequence description, rendered raw in the live cockpit, CRITICAL findings, CueFlow — Security, Data Integrity & Reliability Audit, Executive summary, L1 — `escH` does not escape `'` or `>` (+11 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.17
 Nodes (6): fs, MEDIA_EXTS, MEDIA_MIME, mediaDirs, path, { Readable }
 
 ### Community 7 - "Community 7"
-Cohesion: 0.18
-Nodes (11): build, appId, dmg, fileAssociations, files, productName, contents, title (+3 more)
+Cohesion: 0.15
+Nodes (13): build, afterPack, afterSign, appId, dmg, fileAssociations, files, productName (+5 more)
 
 ### Community 9 - "Community 9"
 Cohesion: 0.29
 Nodes (6): CueFlow — Top 10 Priority Actions, Fix log — 2026-07-04, Fix log — 2026-07-04 (batch 2: H1/H2/H3 + PIN hardening), Fix log — 2026-07-04 (batch 3: M1/M2/M3), Fix log — 2026-07-04 (batch 4: remaining hardening + deploy), Fix log — 2026-07-05 (M4 + deploy notes)
 
 ### Community 10 - "Community 10"
-Cohesion: 0.20
-Nodes (9): Best: hand it over on a USB stick or local file share, Build, Building and distributing CueFlow (macOS), First launch will ask for permissions, If you ever do sign it ($99/year), Installing on any OTHER Mac, Installing on the machine that built it, Known gaps (+1 more)
+Cohesion: 0.18
+Nodes (10): Ad-hoc signing (automatic, free), Best: hand it over on a USB stick or local file share, Build, Building and distributing CueFlow (macOS), If you ever do sign it ($99/year), Installing on any OTHER Mac, Installing on the machine that built it, Known gaps (+2 more)
 
 ### Community 11 - "Community 11"
-Cohesion: 0.33
-Nodes (6): M1 — "Read-only" viewers/crew can write cue descriptions, M2 — No durable offline edit queue; offline reconnect is whole-snapshot last-write-wins, M3 — Leaked-password protection disabled on Supabase Auth, M4 — Offline/logged-out show creation can strand data, M5 — LAN inbound handler does no role enforcement, MEDIUM findings
-
-### Community 12 - "Community 12"
 Cohesion: 0.40
-Nodes (5): Architecture, RLS policies (all currently open — to be tightened when auth is added), Supabase configuration, Supabase tables, Three script blocks (in order)
+Nodes (5): H1 — `track-editor` restriction is client-side only; the server lets them overwrite the whole show, H2 — 6-digit PINs from `Math.random()`, no server-side rate limiting, H3 — Editor writes are blind last-write-wins with no conflict detection, H4 — SECURITY DEFINER RPCs are callable by `anon`, HIGH findings
 
 ## Knowledge Gaps
-- **111 isolated node(s):** `http`, `os`, `fs`, `zlib`, `path` (+106 more)
+- **116 isolated node(s):** `http`, `os`, `fs`, `zlib`, `path` (+111 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **1 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **2 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `build` connect `Community 7` to `Community 2`, `Community 3`?**
-  _High betweenness centrality (0.032) - this node is a cross-community bridge._
-- **Why does `CueFlow — Security, Data Integrity & Reliability Audit` connect `Community 5` to `Community 11`?**
-  _High betweenness centrality (0.020) - this node is a cross-community bridge._
+  _High betweenness centrality (0.035) - this node is a cross-community bridge._
 - **Why does `mac` connect `Community 3` to `Community 7`?**
   _High betweenness centrality (0.019) - this node is a cross-community bridge._
+- **Why does `CueFlow — Security, Data Integrity & Reliability Audit` connect `Community 5` to `Community 11`?**
+  _High betweenness centrality (0.018) - this node is a cross-community bridge._
 - **What connects `http`, `os`, `fs` to the rest of the system?**
-  _111 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _116 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.09523809523809523 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.1111111111111111 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08695652173913043 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
   _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._

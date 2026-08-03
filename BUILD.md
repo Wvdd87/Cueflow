@@ -18,6 +18,21 @@ to whatever Mac is in the room.
 Bump `version` in `package.json` before a release — the filename and the in-app
 version come from it.
 
+## Ad-hoc signing (automatic, free)
+
+`scripts/adhoc-sign.js` runs after packaging and gives the bundle an **ad-hoc**
+signature. This is not a trusted signature — Gatekeeper still quarantines
+downloads — but without any signature at all two things break on Apple Silicon:
+
+- macOS refuses to execute an unsigned arm64 binary, so a universal app silently
+  falls back to its Intel slice under Rosetta.
+- TCC (the privacy system) identifies apps by signature. With none, the
+  microphone prompt for LTC may never appear and access is simply denied.
+
+The hook signs only the merged universal bundle: signing the per-architecture
+halves makes their CodeResources differ and the merge aborts. It fails the build
+if the signature does not take, rather than shipping unsigned again.
+
 ## Installing on the machine that built it
 
 Open the DMG, drag CueFlow to Applications. It opens normally: a locally built app
@@ -51,12 +66,21 @@ Then it opens normally, forever. Notes:
   blocked attempt. When it appears it works, but it is not reliable across versions.
 - The command is safe and specific: it removes the download flag from this app only.
 
-### First launch will ask for permissions
+### Permissions on first use
 
-- **Microphone** — required for LTC from an audio interface. Denying it disables LTC.
-- **MIDI** — required for MTC.
+- **Microphone** — asked for the first time you actually start LTC (Settings →
+  Timecode → LTC), not at launch. Denying it disables LTC.
+- **MIDI** — never prompts. `main.js` grants it automatically and macOS does not
+  gate USB MIDI, so MTC devices simply appear in the MTC list.
 
-Both prompts are normal and appear once. The entitlements that permit them live in
+If the microphone prompt never appears, macOS may have cached a denial against an
+earlier unsigned build. Clear it with:
+
+```bash
+tccutil reset Microphone com.cueflow.app
+```
+
+then delete the old copy from /Applications and reinstall from the current DMG. The entitlements that permit them live in
 `build/entitlements.mac.plist`, which is tracked in git precisely so builds from a
 clean clone keep them.
 

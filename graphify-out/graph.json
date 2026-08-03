@@ -654,10 +654,30 @@
       "norm_label": "files"
     },
     {
-      "label": "dependencies",
+      "label": "afterPack",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L87",
+      "_origin": "ast",
+      "id": "package_build_afterpack",
+      "community": 7,
+      "norm_label": "afterpack"
+    },
+    {
+      "label": "afterSign",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L88",
+      "_origin": "ast",
+      "id": "package_build_aftersign",
+      "community": 7,
+      "norm_label": "aftersign"
+    },
+    {
+      "label": "dependencies",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L90",
       "_origin": "ast",
       "id": "package_dependencies",
       "community": 2,
@@ -667,7 +687,7 @@
       "label": "qrcode",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L89",
+      "source_location": "L91",
       "_origin": "ast",
       "id": "package_dependencies_qrcode",
       "community": 2,
@@ -677,7 +697,7 @@
       "label": "ws",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L90",
+      "source_location": "L92",
       "_origin": "ast",
       "id": "package_dependencies_ws",
       "community": 2,
@@ -702,6 +722,46 @@
       "id": "preload_contextbridge_ipcrenderer",
       "community": 8,
       "norm_label": "{ contextbridge, ipcrenderer }"
+    },
+    {
+      "label": "adhoc-sign.js",
+      "file_type": "code",
+      "source_file": "scripts/adhoc-sign.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "scripts_adhoc_sign",
+      "community": 12,
+      "norm_label": "adhoc-sign.js"
+    },
+    {
+      "label": "{ execFileSync, spawnSync }",
+      "file_type": "code",
+      "source_file": "scripts/adhoc-sign.js",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "scripts_adhoc_sign_execfilesync_spawnsync",
+      "community": 12,
+      "norm_label": "{ execfilesync, spawnsync }"
+    },
+    {
+      "label": "path",
+      "file_type": "code",
+      "source_file": "scripts/adhoc-sign.js",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "scripts_adhoc_sign_path",
+      "community": 12,
+      "norm_label": "path"
+    },
+    {
+      "label": "default()",
+      "file_type": "code",
+      "source_file": "scripts/adhoc-sign.js",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "scripts_adhoc_sign_default",
+      "community": 12,
+      "norm_label": "default()"
     },
     {
       "label": "BUILD.md",
@@ -734,10 +794,20 @@
       "norm_label": "build"
     },
     {
-      "label": "Installing on the machine that built it",
+      "label": "Ad-hoc signing (automatic, free)",
       "file_type": "document",
       "source_file": "BUILD.md",
       "source_location": "L21",
+      "_origin": "ast",
+      "id": "build_ad_hoc_signing_automatic_free",
+      "community": 10,
+      "norm_label": "ad-hoc signing (automatic, free)"
+    },
+    {
+      "label": "Installing on the machine that built it",
+      "file_type": "document",
+      "source_file": "BUILD.md",
+      "source_location": "L36",
       "_origin": "ast",
       "id": "build_installing_on_the_machine_that_built_it",
       "community": 10,
@@ -747,7 +817,7 @@
       "label": "Installing on any OTHER Mac",
       "file_type": "document",
       "source_file": "BUILD.md",
-      "source_location": "L26",
+      "source_location": "L41",
       "_origin": "ast",
       "id": "build_installing_on_any_other_mac",
       "community": 10,
@@ -757,7 +827,7 @@
       "label": "Best: hand it over on a USB stick or local file share",
       "file_type": "document",
       "source_file": "BUILD.md",
-      "source_location": "L32",
+      "source_location": "L47",
       "_origin": "ast",
       "id": "build_best_hand_it_over_on_a_usb_stick_or_local_file_share",
       "community": 10,
@@ -767,27 +837,27 @@
       "label": "Otherwise: strip the flag after copying",
       "file_type": "document",
       "source_file": "BUILD.md",
-      "source_location": "L38",
+      "source_location": "L53",
       "_origin": "ast",
       "id": "build_otherwise_strip_the_flag_after_copying",
       "community": 10,
       "norm_label": "otherwise: strip the flag after copying"
     },
     {
-      "label": "First launch will ask for permissions",
+      "label": "Permissions on first use",
       "file_type": "document",
       "source_file": "BUILD.md",
-      "source_location": "L54",
+      "source_location": "L69",
       "_origin": "ast",
-      "id": "build_first_launch_will_ask_for_permissions",
+      "id": "build_permissions_on_first_use",
       "community": 10,
-      "norm_label": "first launch will ask for permissions"
+      "norm_label": "permissions on first use"
     },
     {
       "label": "If you ever do sign it ($99/year)",
       "file_type": "document",
       "source_file": "BUILD.md",
-      "source_location": "L63",
+      "source_location": "L87",
       "_origin": "ast",
       "id": "build_if_you_ever_do_sign_it_99_year",
       "community": 10,
@@ -797,7 +867,7 @@
       "label": "Known gaps",
       "file_type": "document",
       "source_file": "BUILD.md",
-      "source_location": "L80",
+      "source_location": "L104",
       "_origin": "ast",
       "id": "build_known_gaps",
       "community": 10,
@@ -1060,7 +1130,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "context_architecture",
-      "community": 12,
+      "community": 1,
       "norm_label": "architecture"
     },
     {
@@ -1070,7 +1140,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "context_three_script_blocks_in_order",
-      "community": 12,
+      "community": 1,
       "norm_label": "three script blocks (in order)"
     },
     {
@@ -1080,7 +1150,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "context_supabase_configuration",
-      "community": 12,
+      "community": 1,
       "norm_label": "supabase configuration"
     },
     {
@@ -1090,7 +1160,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "context_supabase_tables",
-      "community": 12,
+      "community": 1,
       "norm_label": "supabase tables"
     },
     {
@@ -1100,7 +1170,7 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "context_rls_policies_all_currently_open_to_be_tightened_when_auth_is_added",
-      "community": 12,
+      "community": 1,
       "norm_label": "rls policies (all currently open \u2014 to be tightened when auth is added)"
     },
     {
@@ -1390,7 +1460,7 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "security_audit_high_findings",
-      "community": 5,
+      "community": 11,
       "norm_label": "high findings"
     },
     {
@@ -1400,7 +1470,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "security_audit_h1_track_editor_restriction_is_client_side_only_the_server_lets_them_overwrite_the_whole_show",
-      "community": 5,
+      "community": 11,
       "norm_label": "h1 \u2014 `track-editor` restriction is client-side only; the server lets them overwrite the whole show"
     },
     {
@@ -1410,7 +1480,7 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "security_audit_h2_6_digit_pins_from_math_random_no_server_side_rate_limiting",
-      "community": 5,
+      "community": 11,
       "norm_label": "h2 \u2014 6-digit pins from `math.random()`, no server-side rate limiting"
     },
     {
@@ -1420,7 +1490,7 @@
       "source_location": "L75",
       "_origin": "ast",
       "id": "security_audit_h3_editor_writes_are_blind_last_write_wins_with_no_conflict_detection",
-      "community": 5,
+      "community": 11,
       "norm_label": "h3 \u2014 editor writes are blind last-write-wins with no conflict detection"
     },
     {
@@ -1430,7 +1500,7 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "security_audit_h4_security_definer_rpcs_are_callable_by_anon",
-      "community": 5,
+      "community": 11,
       "norm_label": "h4 \u2014 security definer rpcs are callable by `anon`"
     },
     {
@@ -1440,7 +1510,7 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "security_audit_medium_findings",
-      "community": 11,
+      "community": 5,
       "norm_label": "medium findings"
     },
     {
@@ -1450,7 +1520,7 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "security_audit_m1_read_only_viewers_crew_can_write_cue_descriptions",
-      "community": 11,
+      "community": 5,
       "norm_label": "m1 \u2014 \"read-only\" viewers/crew can write cue descriptions"
     },
     {
@@ -1460,7 +1530,7 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "security_audit_m2_no_durable_offline_edit_queue_offline_reconnect_is_whole_snapshot_last_write_wins",
-      "community": 11,
+      "community": 5,
       "norm_label": "m2 \u2014 no durable offline edit queue; offline reconnect is whole-snapshot last-write-wins"
     },
     {
@@ -1470,7 +1540,7 @@
       "source_location": "L115",
       "_origin": "ast",
       "id": "security_audit_m3_leaked_password_protection_disabled_on_supabase_auth",
-      "community": 11,
+      "community": 5,
       "norm_label": "m3 \u2014 leaked-password protection disabled on supabase auth"
     },
     {
@@ -1480,7 +1550,7 @@
       "source_location": "L123",
       "_origin": "ast",
       "id": "security_audit_m4_offline_logged_out_show_creation_can_strand_data",
-      "community": 11,
+      "community": 5,
       "norm_label": "m4 \u2014 offline/logged-out show creation can strand data"
     },
     {
@@ -1490,7 +1560,7 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "security_audit_m5_lan_inbound_handler_does_no_role_enforcement",
-      "community": 11,
+      "community": 5,
       "norm_label": "m5 \u2014 lan inbound handler does no role enforcement"
     },
     {
@@ -2076,6 +2146,26 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
+      "source_location": "L87",
+      "weight": 1.0,
+      "source": "package_build",
+      "target": "package_build_afterpack",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L88",
+      "weight": 1.0,
+      "source": "package_build",
+      "target": "package_build_aftersign",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
       "source_location": "L15",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -2198,9 +2288,9 @@
       "source_file": "package.json",
       "source_location": "L36",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_build_mac",
-      "target": "package_mac_target",
-      "confidence_score": 1.0
+      "target": "package_mac_target"
     },
     {
       "relation": "contains",
@@ -2218,9 +2308,9 @@
       "source_file": "package.json",
       "source_location": "L57",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_build_dmg",
-      "target": "package_dmg_contents",
-      "confidence_score": 1.0
+      "target": "package_dmg_contents"
     },
     {
       "relation": "contains",
@@ -2238,9 +2328,9 @@
       "source_file": "package.json",
       "source_location": "L53",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_build_dmg",
-      "target": "package_dmg_window",
-      "confidence_score": 1.0
+      "target": "package_dmg_window"
     },
     {
       "relation": "contains",
@@ -2248,9 +2338,9 @@
       "source_file": "package.json",
       "source_location": "L55",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_dmg_window",
-      "target": "package_window_height",
-      "confidence_score": 1.0
+      "target": "package_window_height"
     },
     {
       "relation": "contains",
@@ -2258,9 +2348,9 @@
       "source_file": "package.json",
       "source_location": "L54",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_dmg_window",
-      "target": "package_window_width",
-      "confidence_score": 1.0
+      "target": "package_window_width"
     },
     {
       "relation": "contains",
@@ -2295,42 +2385,42 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "scripts/adhoc-sign.js",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "scripts_adhoc_sign",
+      "target": "scripts_adhoc_sign_default",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/adhoc-sign.js",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "scripts_adhoc_sign",
+      "target": "scripts_adhoc_sign_execfilesync_spawnsync",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/adhoc-sign.js",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "scripts_adhoc_sign",
+      "target": "scripts_adhoc_sign_path",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "BUILD.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "build",
-      "target": "build_building_and_distributing_cueflow_macos",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "BUILD.md",
-      "source_location": "L7",
-      "weight": 1.0,
-      "source": "build_building_and_distributing_cueflow_macos",
-      "target": "build_build",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "BUILD.md",
-      "source_location": "L63",
-      "weight": 1.0,
-      "source": "build_building_and_distributing_cueflow_macos",
-      "target": "build_if_you_ever_do_sign_it_99_year",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "BUILD.md",
-      "source_location": "L26",
-      "weight": 1.0,
-      "source": "build_building_and_distributing_cueflow_macos",
-      "target": "build_installing_on_any_other_mac",
-      "confidence_score": 1.0
+      "target": "build_building_and_distributing_cueflow_macos"
     },
     {
       "relation": "contains",
@@ -2339,8 +2429,48 @@
       "source_location": "L21",
       "weight": 1.0,
       "source": "build_building_and_distributing_cueflow_macos",
-      "target": "build_installing_on_the_machine_that_built_it",
+      "target": "build_ad_hoc_signing_automatic_free",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "BUILD.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "build_building_and_distributing_cueflow_macos",
+      "target": "build_build"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "BUILD.md",
+      "source_location": "L63",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "build_building_and_distributing_cueflow_macos",
+      "target": "build_if_you_ever_do_sign_it_99_year"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "BUILD.md",
+      "source_location": "L26",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "build_building_and_distributing_cueflow_macos",
+      "target": "build_installing_on_any_other_mac"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "BUILD.md",
+      "source_location": "L21",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "build_building_and_distributing_cueflow_macos",
+      "target": "build_installing_on_the_machine_that_built_it"
     },
     {
       "relation": "contains",
@@ -2348,9 +2478,9 @@
       "source_file": "BUILD.md",
       "source_location": "L80",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "build_building_and_distributing_cueflow_macos",
-      "target": "build_known_gaps",
-      "confidence_score": 1.0
+      "target": "build_known_gaps"
     },
     {
       "relation": "contains",
@@ -2358,19 +2488,9 @@
       "source_file": "BUILD.md",
       "source_location": "L32",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "build_installing_on_any_other_mac",
-      "target": "build_best_hand_it_over_on_a_usb_stick_or_local_file_share",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "BUILD.md",
-      "source_location": "L54",
-      "weight": 1.0,
-      "source": "build_installing_on_any_other_mac",
-      "target": "build_first_launch_will_ask_for_permissions",
-      "confidence_score": 1.0
+      "target": "build_best_hand_it_over_on_a_usb_stick_or_local_file_share"
     },
     {
       "relation": "contains",
@@ -2378,8 +2498,18 @@
       "source_file": "BUILD.md",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "build_installing_on_any_other_mac",
-      "target": "build_otherwise_strip_the_flag_after_copying",
+      "target": "build_otherwise_strip_the_flag_after_copying"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "BUILD.md",
+      "source_location": "L69",
+      "weight": 1.0,
+      "source": "build_installing_on_any_other_mac",
+      "target": "build_permissions_on_first_use",
       "confidence_score": 1.0
     },
     {
@@ -3104,5 +3234,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "f2a573e9e9a866f7a70ffa8e1a9ba53d07c1b659"
+  "built_at_commit": "a255aa59f6774bde0eafb152916605d473d2206d"
 }

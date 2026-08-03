@@ -20,8 +20,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1785763527.3303094,
-    "ast_hash": "38c2d398583f4c0480b664f7e4baff98",
+    "mtime": 1785765007.7337215,
+    "ast_hash": "21b7280aa1ea0e57a88c49c80524565b",
     "semantic_hash": ""
   },
   "preload.js": {
@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1785764003.6387634,
-    "ast_hash": "7ba4835199480761dfeb8c945b66da55",
+    "mtime": 1785764833.4308755,
+    "ast_hash": "27a6438357a8fbd17a19d8aa1822d65c",
     "semantic_hash": ""
   },
   "favicon.png": {
@@ -80,13 +80,18 @@
     "semantic_hash": ""
   },
   "BUILD.md": {
-    "mtime": 1785763527.3647006,
-    "ast_hash": "62920cf2e73cf8af9c9fe81affe245da",
+    "mtime": 1785765207.3394053,
+    "ast_hash": "4573cba179792bdc865021d073ddd89d",
     "semantic_hash": ""
   },
   "dmg/READ ME FIRST.txt": {
     "mtime": 1785763514.6163242,
     "ast_hash": "1363c55605225443f5b373368e51c3bc",
+    "semantic_hash": ""
+  },
+  "scripts/adhoc-sign.js": {
+    "mtime": 1785764995.5449033,
+    "ast_hash": "6ce3652602235554c4c06fca11448a11",
     "semantic_hash": ""
   }
 }
