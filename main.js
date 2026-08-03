@@ -27,13 +27,67 @@ function createWindow() {
   /* Grant the hardware permissions CueFlow needs: MIDI (MTC) and microphone/audio
      input (LTC is decoded from an audio interface via getUserMedia). Everything
      else is denied. Both the request- and check-handlers must allow 'media'/
-     'audioCapture' or getUserMedia + enumerateDevices(with labels) fail silently. */
-  const ALLOWED = ['midi', 'midiSysex', 'media', 'audioCapture'];
+     'audioCapture' or getUserMedia + enumerateDevices(with labels) fail silently.
+
+     'fullscreen' belongs here too: Electron routes element.requestFullscreen()
+     through this handler, and denying it drops the request without firing
+     fullscreenerror — the returned promise simply never settles. That is why the
+     video panel's fullscreen button did nothing in the packaged app while working
+     in a browser. */
+  const ALLOWED = ['midi', 'midiSysex', 'media', 'audioCapture', 'fullscreen'];
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
     callback(ALLOWED.indexOf(permission) !== -1);
   });
   session.defaultSession.setPermissionCheckHandler((webContents, permission) => {
     return ALLOWED.indexOf(permission) !== -1;
+  });
+
+  /* The popped-out video window (window.open from the renderer). */
+  win.webContents.setWindowOpenHandler(() => ({
+    action: 'allow',
+    overrideBrowserWindowOptions: { fullscreenable: true, resizable: true, backgroundColor: '#000000' }
+  }));
+
+  /* A window opened while the app is in macOS native fullscreen inherits that
+     state: instead of the second window the operator asked for, the video took
+     over the whole screen, unresizable. Passing fullscreen:false above does not
+     prevent it — macOS puts the new window in the parent's fullscreen Space
+     regardless — so it has to be undone once the window exists, and the requested
+     size restored, since being created fullscreen threw it away.
+     Leaving fullscreen is animated, hence waiting for the event before placing. */
+  win.webContents.on('did-create-window', (child, details) => {
+    const opts = (details && details.options) || {};
+    const w = opts.width || 960;
+    const h = opts.height || 560;
+
+    const place = () => {
+      if (child.isDestroyed()) return;
+      child.setResizable(true);
+      try {
+        const { screen } = require('electron');
+        const area = screen.getDisplayMatching(child.getBounds()).workArea;
+        child.setBounds({
+          x: Math.round(area.x + (area.width - w) / 2),
+          y: Math.round(area.y + (area.height - h) / 2),
+          width: w, height: h
+        });
+      } catch (e) {
+        child.setSize(w, h);
+      }
+      /* macOS gives a fullscreen window its own Space and an ordinary window cannot
+         share it, so without this the video window sits on another desktop — the
+         operator would have to swipe away from the show to see it. */
+      try {
+        child.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
+      } catch (e) { /* non-macOS — nothing to work around */ }
+    };
+
+    if (child.isFullScreen()) {
+      child.once('leave-full-screen', place);
+      child.setFullScreen(false);
+    } else {
+      place();
+    }
   });
 
   win.loadFile('index.html');

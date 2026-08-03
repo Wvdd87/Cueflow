@@ -15772,6 +15772,34 @@ function vidPopOpen(){
   w.document.body.appendChild(v);
   w.document.body.appendChild(msg);
   vidPop.win=w; vidPop.el=v; vidPop.msg=msg;
+
+  /* Click to play/pause and double-click for fullscreen, the same gestures the
+     inline player answers to. Fullscreen has to be asked for from inside this
+     window: the request needs a user gesture in the window that makes it, so the
+     main window's toolbar button can never fullscreen this one. */
+  v.addEventListener('click',function(){ if(window.videoEl_click) videoEl_click(); });
+  v.addEventListener('dblclick',function(){
+    try{
+      if(w.document.fullscreenElement) w.document.exitFullscreen();
+      else v.requestFullscreen();
+    }catch(e){}
+  });
+
+  /* Every shortcut lives on the main document, so a focused second window used to
+     swallow the lot — no play, pause or scrub once the operator clicked the video.
+     Forward the unmodified keys; anything with Cmd/Ctrl/Alt is a menu or system
+     shortcut and stays with the OS. */
+  w.document.addEventListener('keydown',function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    if(e.key==='Escape' && w.document.fullscreenElement) return;  // let it leave fullscreen
+    e.preventDefault();
+    var ev;
+    try{
+      ev=new KeyboardEvent('keydown',{key:e.key,code:e.code,shiftKey:e.shiftKey,
+        bubbles:true,cancelable:true});
+    }catch(err){ return; }
+    document.dispatchEvent(ev);
+  });
   /* Let go of the file in the inline element so only one <video> holds it. */
   var inline=document.getElementById('video-el-main');
   if(inline){ try{ inline.pause(); }catch(e){} inline.removeAttribute('src'); inline.load(); }
@@ -15960,9 +15988,28 @@ function videoEl_click(){
   if(el.paused) simPlay(); else simStop();
 }
 function videoFullscreen(){
+  /* Popped out, the video lives in another window, and fullscreen can only be
+     requested from the window the gesture happened in — pressing this button would
+     silently do nothing. Hand the operator the gesture that does work. */
+  if(vidPopActive()){
+    try{ vidPop.win.focus(); }catch(e){}
+    cfMediaToast('Double-click the video window to make it fullscreen.');
+    return;
+  }
   const el = _vidEl(); if(!el) return;
-  if(el.requestFullscreen) el.requestFullscreen();
-  else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  const req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if(!req) return;
+  /* Report failures rather than swallowing them: this call did nothing at all in
+     the packaged app until the Electron shell started granting the fullscreen
+     permission, and there was no sign of it anywhere. */
+  try{
+    const p = req.call(el);
+    if(p && p.catch) p.catch(function(err){
+      cfMediaToast('Could not go fullscreen'+(err&&err.message?': '+err.message:'.'));
+    });
+  }catch(e){
+    cfMediaToast('Could not go fullscreen.');
+  }
 }
 
 // ── Seq-settings integration ───────────────────────────────
@@ -17845,6 +17892,22 @@ document.addEventListener('DOMContentLoaded',function(){
             <div class="sc-row">
               <span class="sc-desc">Add a cue there (playhead stays)</span>
               <span class="sc-keys"><span class="sc-key">⌘</span><span class="sc-sep">/</span><span class="sc-key">Ctrl</span><span class="sc-key">Click</span></span>
+            </div>
+          </div>
+
+          <div class="sc-section">
+            <div class="sc-section-title">Video window</div>
+            <div class="sc-row">
+              <span class="sc-desc">Play / pause</span>
+              <span class="sc-keys"><span class="sc-key">Click</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Fullscreen the video window</span>
+              <span class="sc-keys"><span class="sc-key">Double&#8209;click</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">All transport shortcuts work here too</span>
+              <span class="sc-keys"><span class="sc-key">Space</span><span class="sc-key">J</span><span class="sc-key">K</span><span class="sc-key">L</span><span class="sc-key">←</span><span class="sc-key">→</span></span>
             </div>
           </div>
 
