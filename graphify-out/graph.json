@@ -484,10 +484,20 @@
       "norm_label": "productname"
     },
     {
-      "label": "mac",
+      "label": "fileAssociations",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L17",
+      "_origin": "ast",
+      "id": "package_build_fileassociations",
+      "community": 3,
+      "norm_label": "fileassociations"
+    },
+    {
+      "label": "mac",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L27",
       "_origin": "ast",
       "id": "package_build_mac",
       "community": 3,
@@ -497,7 +507,7 @@
       "label": "category",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L18",
+      "source_location": "L28",
       "_origin": "ast",
       "id": "package_mac_category",
       "community": 3,
@@ -507,7 +517,7 @@
       "label": "icon",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L19",
+      "source_location": "L29",
       "_origin": "ast",
       "id": "package_mac_icon",
       "community": 3,
@@ -517,7 +527,7 @@
       "label": "identity",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L20",
+      "source_location": "L30",
       "_origin": "ast",
       "id": "package_mac_identity",
       "community": 3,
@@ -527,7 +537,7 @@
       "label": "entitlements",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L21",
+      "source_location": "L31",
       "_origin": "ast",
       "id": "package_mac_entitlements",
       "community": 3,
@@ -537,7 +547,7 @@
       "label": "entitlementsInherit",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L22",
+      "source_location": "L32",
       "_origin": "ast",
       "id": "package_mac_entitlementsinherit",
       "community": 3,
@@ -547,7 +557,7 @@
       "label": "extendInfo",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L23",
+      "source_location": "L33",
       "_origin": "ast",
       "id": "package_mac_extendinfo",
       "community": 3,
@@ -557,7 +567,7 @@
       "label": "NSMicrophoneUsageDescription",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L24",
+      "source_location": "L34",
       "_origin": "ast",
       "id": "package_extendinfo_nsmicrophoneusagedescription",
       "community": 3,
@@ -567,7 +577,7 @@
       "label": "dmg",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L27",
+      "source_location": "L37",
       "_origin": "ast",
       "id": "package_build_dmg",
       "community": 3,
@@ -577,7 +587,7 @@
       "label": "title",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L28",
+      "source_location": "L38",
       "_origin": "ast",
       "id": "package_dmg_title",
       "community": 3,
@@ -587,7 +597,7 @@
       "label": "files",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L30",
+      "source_location": "L40",
       "_origin": "ast",
       "id": "package_build_files",
       "community": 3,
@@ -597,7 +607,7 @@
       "label": "dependencies",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L39",
+      "source_location": "L51",
       "_origin": "ast",
       "id": "package_dependencies",
       "community": 2,
@@ -607,7 +617,7 @@
       "label": "qrcode",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L40",
+      "source_location": "L52",
       "_origin": "ast",
       "id": "package_dependencies_qrcode",
       "community": 2,
@@ -617,7 +627,7 @@
       "label": "ws",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L41",
+      "source_location": "L53",
       "_origin": "ast",
       "id": "package_dependencies_ws",
       "community": 2,
@@ -847,7 +857,7 @@
       "label": "graphify",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L195",
+      "source_location": "L202",
       "_origin": "ast",
       "id": "claude_graphify",
       "community": 0,
@@ -1555,9 +1565,9 @@
       "source_file": "main.js",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "main",
-      "target": "main_app_browserwindow_session_ipcmain_protocol",
-      "confidence_score": 1.0
+      "target": "main_app_browserwindow_session_ipcmain_protocol"
     },
     {
       "relation": "contains",
@@ -1595,9 +1605,9 @@
       "source_file": "main.js",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "main",
-      "target": "main_media",
-      "confidence_score": 1.0
+      "target": "main_media"
     },
     {
       "relation": "contains",
@@ -1656,9 +1666,9 @@
       "source_file": "main.js",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "main",
-      "target": "media_protocol",
-      "confidence_score": 1.0
+      "target": "media_protocol"
     },
     {
       "relation": "calls",
@@ -1688,9 +1698,9 @@
       "source_file": "media-protocol.js",
       "source_location": "L34",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "media_protocol",
-      "target": "media_protocol_addmediadir",
-      "confidence_score": 1.0
+      "target": "media_protocol_addmediadir"
     },
     {
       "relation": "contains",
@@ -1698,9 +1708,9 @@
       "source_file": "media-protocol.js",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "media_protocol",
-      "target": "media_protocol_fs",
-      "confidence_score": 1.0
+      "target": "media_protocol_fs"
     },
     {
       "relation": "contains",
@@ -1708,9 +1718,9 @@
       "source_file": "media-protocol.js",
       "source_location": "L26",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "media_protocol",
-      "target": "media_protocol_ismediafile",
-      "confidence_score": 1.0
+      "target": "media_protocol_ismediafile"
     },
     {
       "relation": "contains",
@@ -1718,9 +1728,9 @@
       "source_file": "media-protocol.js",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "media_protocol",
-      "target": "media_protocol_media_exts",
-      "confidence_score": 1.0
+      "target": "media_protocol_media_exts"
     },
     {
       "relation": "contains",
@@ -1728,9 +1738,9 @@
       "source_file": "media-protocol.js",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "media_protocol",
-      "target": "media_protocol_media_mime",
-      "confidence_score": 1.0
+      "target": "media_protocol_media_mime"
     },
     {
       "relation": "contains",
@@ -1738,9 +1748,9 @@
       "source_file": "media-protocol.js",
       "source_location": "L33",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "media_protocol",
-      "target": "media_protocol_mediadirs",
-      "confidence_score": 1.0
+      "target": "media_protocol_mediadirs"
     },
     {
       "relation": "contains",
@@ -1748,9 +1758,9 @@
       "source_file": "media-protocol.js",
       "source_location": "L35",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "media_protocol",
-      "target": "media_protocol_mediaurl",
-      "confidence_score": 1.0
+      "target": "media_protocol_mediaurl"
     },
     {
       "relation": "contains",
@@ -1758,9 +1768,9 @@
       "source_file": "media-protocol.js",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "media_protocol",
-      "target": "media_protocol_path",
-      "confidence_score": 1.0
+      "target": "media_protocol_path"
     },
     {
       "relation": "contains",
@@ -1768,9 +1778,9 @@
       "source_file": "media-protocol.js",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "media_protocol",
-      "target": "media_protocol_readable",
-      "confidence_score": 1.0
+      "target": "media_protocol_readable"
     },
     {
       "relation": "contains",
@@ -1778,9 +1788,9 @@
       "source_file": "media-protocol.js",
       "source_location": "L46",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "media_protocol",
-      "target": "media_protocol_registermediaprotocol",
-      "confidence_score": 1.0
+      "target": "media_protocol_registermediaprotocol"
     },
     {
       "relation": "contains",
@@ -1788,9 +1798,9 @@
       "source_file": "media-protocol.js",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "media_protocol",
-      "target": "media_protocol_registerscheme",
-      "confidence_score": 1.0
+      "target": "media_protocol_registerscheme"
     },
     {
       "relation": "contains",
@@ -1931,6 +1941,16 @@
       "confidence_score": 1.0,
       "source": "package_build",
       "target": "package_build_dmg"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "package_build",
+      "target": "package_build_fileassociations",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -2794,5 +2814,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "10d529dbc72e813b94b53b4d01742de4077a19ae"
+  "built_at_commit": "3887986d1356e00f0365ea96547365b49c2da317"
 }

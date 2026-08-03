@@ -1,16 +1,16 @@
-# Graph Report - Cueflow  (2026-07-12)
+# Graph Report - Cueflow  (2026-08-01)
 
 ## Corpus Check
-- 11 files · ~109,218 words
+- 11 files · ~118,201 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 140 nodes · 138 edges · 10 communities (9 shown, 1 thin omitted)
+- 141 nodes · 139 edges · 10 communities (9 shown, 1 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `10d529db`
+- Built from commit: `3887986d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -29,8 +29,8 @@
 ## God Nodes (most connected - your core abstractions)
 1. `CueFlow — Project Context` - 15 edges
 2. `CueFlow — Security, Data Integrity & Reliability Audit` - 9 edges
-3. `mac` - 7 edges
-4. `build` - 6 edges
+3. `build` - 7 edges
+4. `mac` - 7 edges
 5. `CueFlow — Top 10 Priority Actions` - 6 edges
 6. `MEDIUM findings` - 6 edges
 7. `Architecture` - 5 edges
@@ -60,8 +60,8 @@ Cohesion: 0.14
 Nodes (13): dependencies, qrcode, ws, description, devDependencies, electron, electron-builder, main (+5 more)
 
 ### Community 3 - "Community 3"
-Cohesion: 0.14
-Nodes (14): build, appId, dmg, files, mac, productName, title, NSMicrophoneUsageDescription (+6 more)
+Cohesion: 0.13
+Nodes (15): build, appId, dmg, fileAssociations, files, mac, productName, title (+7 more)
 
 ### Community 4 - "Community 4"
 Cohesion: 0.11
@@ -84,19 +84,19 @@ Cohesion: 0.29
 Nodes (6): CueFlow — Top 10 Priority Actions, Fix log — 2026-07-04, Fix log — 2026-07-04 (batch 2: H1/H2/H3 + PIN hardening), Fix log — 2026-07-04 (batch 3: M1/M2/M3), Fix log — 2026-07-04 (batch 4: remaining hardening + deploy), Fix log — 2026-07-05 (M4 + deploy notes)
 
 ## Knowledge Gaps
-- **99 isolated node(s):** `http`, `os`, `fs`, `zlib`, `path` (+94 more)
+- **100 isolated node(s):** `http`, `os`, `fs`, `zlib`, `path` (+95 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **1 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
+- **Why does `build` connect `Community 3` to `Community 2`?**
+  _High betweenness centrality (0.027) - this node is a cross-community bridge._
 - **Why does `CueFlow — Security, Data Integrity & Reliability Audit` connect `Community 5` to `Community 7`?**
   _High betweenness centrality (0.025) - this node is a cross-community bridge._
-- **Why does `build` connect `Community 3` to `Community 2`?**
-  _High betweenness centrality (0.024) - this node is a cross-community bridge._
 - **What connects `http`, `os`, `fs` to the rest of the system?**
-  _99 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _100 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.09523809523809523 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
@@ -104,4 +104,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `Community 2` be split into smaller, more focused modules?**
   _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
 - **Should `Community 3` be split into smaller, more focused modules?**
-  _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
