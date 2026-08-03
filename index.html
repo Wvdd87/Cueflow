@@ -1900,13 +1900,16 @@ body.mode-live #edit-mode-banner { display: none; }
 .live-then-row {
   display: grid; grid-template-columns: 40px 80px 1fr auto auto 28px;
   align-items: center; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--hair);
+  position: relative;   /* containing block for .urg-bar — see below */
 }
 /* Cockpit flag button — NEXT hero (absolute) + THEN rows */
 .ck-flag-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 6px; line-height: 1; color: rgba(255,255,255,.3); opacity: .45; transition: opacity .15s, color .15s; }
 .ck-flag-btn:hover { opacity: .75; }
 .ck-flag-btn.on { color: #FFB020; opacity: 1; text-shadow: 0 0 14px rgba(255,176,32,.8); }
 .live-next-flag { position: absolute; top: 10px; right: 12px; }
-.live-then-row:last-child { border-bottom: none; }
+/* Last row on screen, which is not always :last-child — rows that overflow the
+   queue are hidden rather than removed (see _thenFitTrim). */
+.live-then-row:last-child, .live-then-row.tq-last { border-bottom: none; }
 .live-then-row .ix { font-family: var(--mono); font-size: 12px; color: var(--txt-low); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
 .live-then-row .nm { font-family: var(--cond); font-size: 30px; font-weight: 700; color: var(--txt-hi); letter-spacing: 0; text-transform: uppercase; white-space: wrap; overflow: hidden; text-overflow: ellipsis; }
 .live-then-row .nm .ds { font-family: var(--sans); font-size: 18px; font-weight: 400; color: var(--txt-mid); text-transform: none; letter-spacing: 0; display: block; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1914,7 +1917,10 @@ body.mode-live #edit-mode-banner { display: none; }
 .live-then-row .cd { font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--txt); letter-spacing: -0.02em; text-align: right; min-width: 80px; font-variant-numeric: tabular-nums; }
 .live-then-row .cd.warn   { color: var(--primary); }
 .live-then-row .cd.urgent { color: var(--red); }
-.live-then-row .urg-bar { grid-column: 1/-1; height: 3px; background: var(--hair); position: relative; margin: 4px 0 -4px; }
+/* Out of flow on purpose: in-flow it added ~3px to the row the moment a cue came
+   within the urgency window, which changed the measured row height and so changed
+   how many rows the queue thought it could fit. */
+.live-then-row .urg-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--hair); }
 .live-then-row .urg-bar .urg-fill { position: absolute; inset: 0 auto 0 0; background: var(--primary); transition: width 250ms linear; }
 .live-then-row .urg-bar.urgent .urg-fill { background: var(--red); animation: bar-pulse .8s ease-in-out infinite; }
 
@@ -7006,25 +7012,55 @@ function showPrompterScreen(show){
   if(window.redrawActive) redrawActive();
 }
 
-/* How many THEN rows actually fit, rather than a fixed five — a taller window
-   should show more of the show, not more empty space.
+/* How many THEN rows to BUILD — deliberately a row or two more than can be shown.
+   Which of them are actually visible is decided afterwards by _thenFitTrim, from
+   real geometry.
 
-   Rows are content-sized (a long cue name wraps to two lines), so the height is
-   measured from what is on screen and cached per container; the first paint uses
-   the fallback and self-corrects on the next frame. The tallest current row is
-   used, not the average, so the last row is never left half-clipped. */
+   Splitting it this way is the whole point. Rows are content-sized (a long cue name
+   wraps to a second line), so sizing the queue by "the tallest row currently on
+   screen" feeds back on itself: a tall row scrolls off the end, the estimate says
+   two more rows now fit, one of those is tall, the estimate shrinks again — and the
+   bottom one or two rows flicker on every frame as the queue slides. Here the batch
+   is sized against the SHORTEST row this container has ever laid out, which only
+   ever shrinks, so the batch only ever grows and can never come up short. */
 function _thenFitCount(container,fallback){
   fallback=fallback||5;
   if(!container) return fallback;
   const areaH=container.clientHeight;
   if(!areaH) return fallback;
-  let rowH=0;
+  let minH=0;
   container.querySelectorAll('.live-then-row').forEach(function(r){
-    rowH=Math.max(rowH,Math.round(r.getBoundingClientRect().height));
+    const h=Math.round(r.getBoundingClientRect().height);
+    if(h>8) minH=minH?Math.min(minH,h):h;          // skip rows trimmed to display:none
   });
-  if(rowH>8) container._rowH=rowH; else rowH=container._rowH||0;
+  if(minH) container._rowMin=Math.min(container._rowMin||minH,minH);
+  const rowH=container._rowMin||0;
   if(!rowH) return fallback;                       // nothing measured yet
-  return Math.max(1,Math.floor(areaH/rowH));
+  return Math.max(1,Math.floor(areaH/rowH)+1);     // +1 spare so the trim owns the edge
+}
+
+/* Hide whatever spills past the bottom of the queue, measured rather than guessed.
+   Everything after the first row that overflows is hidden too — content-sized rows
+   mean a later row is never shorter in a way that would let it sneak back in.
+   Idempotent, and cheap enough to run on a rebuild or a resize (not every frame). */
+function _thenFitTrim(container){
+  if(!container) return;
+  const areaH=container.clientHeight;
+  if(!areaH) return;
+  const kids=container.children;
+  let i,el;
+  // Un-hide first: offsets of the rows below are only meaningful with the whole
+  // queue laid out.
+  for(i=0;i<kids.length;i++) if(kids[i].style.display==='none') kids[i].style.display='';
+  const top=container.getBoundingClientRect().top;
+  let over=false,last=null;
+  for(i=0;i<kids.length;i++){
+    el=kids[i];
+    if(!over && el.getBoundingClientRect().bottom-top>areaH+1) over=true;
+    if(over) el.style.display='none'; else last=el;
+    el.classList.remove('tq-last');
+  }
+  if(last) last.classList.add('tq-last');
 }
 
 function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,curSeqId){
@@ -7140,6 +7176,13 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,curSeqId){
         end.textContent='— End of sequence —';
         thenRows.appendChild(end);
       }
+      thenRows._fitH=-1;                           // force a re-trim below
+    }
+    /* Re-measure what fits after a rebuild, and after a resize that did not happen
+       to change the batch size. */
+    if(thenRows._fitH!==thenRows.clientHeight){
+      thenRows._fitH=thenRows.clientHeight;
+      _thenFitTrim(thenRows);
     }
     // Fast path: update countdown text + urgency bar only
     const rows=thenRows.children;
@@ -7273,6 +7316,7 @@ function _updateTestCockpit(frames,allCues,curIdx,upNextSongId){
         ${urgBarHtml}`;
       thenRows.appendChild(row);
     }
+    _thenFitTrim(thenRows);   // rebuilt from scratch every frame, so trim every frame
   }
 }
 
@@ -7387,6 +7431,11 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId){
         end.textContent='— End of sequence —';
         tr.appendChild(end);
       }
+      tr._fitH=-1;                                 // force a re-trim below
+    }
+    if(tr._fitH!==tr.clientHeight){
+      tr._fitH=tr.clientHeight;
+      _thenFitTrim(tr);
     }
     const trRows=tr.children;
     for(let r=0;r<trRows.length;r++){
