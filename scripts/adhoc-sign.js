@@ -34,6 +34,22 @@ exports.default = async function adhocSign(context) {
   const appName = context.packager.appInfo.productFilename;
   const appPath = path.join(context.appOutDir, `${appName}.app`);
 
+  /* Point the document type at our exported UTI. electron-builder writes
+     CFBundleDocumentTypes from `fileAssociations` and has no option for
+     LSItemContentTypes, but without it the type declaration and the document entry
+     are two unrelated facts and Finder keeps showing a blank generic icon.
+     Must happen BEFORE signing — editing a signed bundle invalidates it. */
+  const plist = path.join(appPath, 'Contents', 'Info.plist');
+  /* Idempotent: this hook is registered for both afterPack and afterSign, so a bare
+     Add would list the UTI twice. Clear it first; the Delete fails harmlessly the
+     first time through. */
+  spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Delete :CFBundleDocumentTypes:0:LSItemContentTypes', plist]);
+  execFileSync('/usr/libexec/PlistBuddy', [
+    '-c', 'Add :CFBundleDocumentTypes:0:LSItemContentTypes array',
+    '-c', 'Add :CFBundleDocumentTypes:0:LSItemContentTypes:0 string com.cueflow.show',
+    plist,
+  ], { stdio: 'inherit' });
+
   execFileSync('codesign', ['--force', '--deep', '--sign', '-', appPath], { stdio: 'inherit' });
 
   /* Fail the build rather than ship an unsigned bundle again.

@@ -21,7 +21,9 @@
         "description": "CueFlow show file",
         "role": "Editor",
         "mimeType": "application/x-cueflow",
-        "icon": "file-icon.icns"
+        "icon": "file-icon.icns",
+        "rank": "Owner",
+        "isPackage": false
       }
     ],
     "mac": {
@@ -31,7 +33,27 @@
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist",
       "extendInfo": {
-        "NSMicrophoneUsageDescription": "CueFlow reads LTC (linear timecode) from your audio interface to sync the show."
+        "NSMicrophoneUsageDescription": "CueFlow reads LTC (linear timecode) from your audio interface to sync the show.",
+        "UTExportedTypeDeclarations": [
+          {
+            "UTTypeIdentifier": "com.cueflow.show",
+            "UTTypeDescription": "CueFlow Show",
+            "UTTypeIconFile": "file-icon.icns",
+            "UTTypeConformsTo": [
+              "public.data",
+              "public.content",
+              "public.json"
+            ],
+            "UTTypeTagSpecification": {
+              "public.filename-extension": [
+                "cueflow"
+              ],
+              "public.mime-type": [
+                "application/x-cueflow"
+              ]
+            }
+          }
+        ]
       },
       "target": [
         {
