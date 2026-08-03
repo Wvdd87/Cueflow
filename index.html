@@ -9902,9 +9902,32 @@ let ltc={stream:null,ctx:null,source:null,node:null,_analyser:null,rafId:null,
          lastFrames:0,lastWall:null,locked:false,inputName:'',_wasStale:false};
 
 async function listAudioInputs(){
-  try{await navigator.mediaDevices.getUserMedia({audio:true,video:false});}catch(e){}
-  const devs=await navigator.mediaDevices.enumerateDevices();
-  return devs.filter(d=>d.kind==='audioinput');
+  /* This getUserMedia call is what triggers the OS microphone prompt, and its failure
+     is the single most useful thing an operator can be told — so it is no longer
+     swallowed. Without permission enumerateDevices() still returns entries, just with
+     blank labels, so the old code fell through to a device list of nameless inputs and
+     the caller's "Permission denied" branch could never fire. */
+  let permErr=null;
+  try{
+    const probe=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    /* Release it at once — this is only a permission probe. initLTC() opens its own
+       stream. Leaving it running kept the mic (and the macOS recording indicator) hot. */
+    probe.getTracks().forEach(function(t){ try{ t.stop(); }catch(e){} });
+  }catch(e){ permErr=e; }
+  const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='audioinput');
+  /* Blank labels everywhere means the probe really was refused, not that the machine
+     has no inputs — surface the original error so the caller can explain it. */
+  if(permErr && !devs.some(function(d){return !!d.label;})) throw permErr;
+  return devs;
+}
+/* Turn a getUserMedia rejection into something an operator can act on. */
+function _micErrText(e){
+  const n=e&&e.name;
+  if(n==='NotAllowedError'||n==='SecurityError')
+    return 'Microphone access denied — allow CueFlow in System Settings → Privacy & Security → Microphone';
+  if(n==='NotFoundError'||n==='OverconstrainedError') return 'No audio input found on this machine';
+  if(n==='NotReadableError') return 'Audio input is in use by another app';
+  return 'Microphone error: '+((e&&e.message)||'unknown');
 }
 
 async function initLTC(deviceId){
@@ -9929,7 +9952,7 @@ async function initLTC(deviceId){
     ltc.inputName=dev?.label||'Audio input';
     updateTCStatus('waiting','LTC — '+ltc.inputName);
   }catch(err){
-    updateTCStatus('none','LTC error: '+err.message);
+    updateTCStatus("none",_micErrText(err));
     console.error('LTC init failed:',err);
   }
 }
@@ -10045,7 +10068,12 @@ async function refreshLTCDevices(){
       :'<option value="">No audio inputs found</option>';
     if(state.ltcDeviceId)sel.value=state.ltcDeviceId;
     if(sel.value)initLTC(sel.value);
-  }catch(e){sel.innerHTML='<option value="">Permission denied</option>';}
+  }catch(e){
+    const msg=_micErrText(e);
+    sel.innerHTML='<option value="">'+escH(msg)+'</option>';
+    updateTCStatus('none',msg);          /* say it where the operator is already looking */
+    console.warn('[CF] LTC device list:',e&&e.name,e&&e.message);
+  }
 }
 
 let _settingsTCTimer=null;
