@@ -460,7 +460,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "package_build",
-      "community": 3,
+      "community": 7,
       "norm_label": "build"
     },
     {
@@ -470,7 +470,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "package_build_appid",
-      "community": 3,
+      "community": 7,
       "norm_label": "appid"
     },
     {
@@ -480,7 +480,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "package_build_productname",
-      "community": 3,
+      "community": 7,
       "norm_label": "productname"
     },
     {
@@ -490,7 +490,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "package_build_fileassociations",
-      "community": 3,
+      "community": 7,
       "norm_label": "fileassociations"
     },
     {
@@ -574,40 +574,90 @@
       "norm_label": "nsmicrophoneusagedescription"
     },
     {
+      "label": "target",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "package_mac_target",
+      "community": 3,
+      "norm_label": "target"
+    },
+    {
       "label": "dmg",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L37",
+      "source_location": "L51",
       "_origin": "ast",
       "id": "package_build_dmg",
-      "community": 3,
+      "community": 7,
       "norm_label": "dmg"
     },
     {
       "label": "title",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L38",
+      "source_location": "L52",
       "_origin": "ast",
       "id": "package_dmg_title",
-      "community": 3,
+      "community": 7,
       "norm_label": "title"
+    },
+    {
+      "label": "window",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "package_dmg_window",
+      "community": 7,
+      "norm_label": "window"
+    },
+    {
+      "label": "width",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L54",
+      "_origin": "ast",
+      "id": "package_window_width",
+      "community": 7,
+      "norm_label": "width"
+    },
+    {
+      "label": "height",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L55",
+      "_origin": "ast",
+      "id": "package_window_height",
+      "community": 7,
+      "norm_label": "height"
+    },
+    {
+      "label": "contents",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "package_dmg_contents",
+      "community": 7,
+      "norm_label": "contents"
     },
     {
       "label": "files",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L40",
+      "source_location": "L77",
       "_origin": "ast",
       "id": "package_build_files",
-      "community": 3,
+      "community": 7,
       "norm_label": "files"
     },
     {
       "label": "dependencies",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L51",
+      "source_location": "L88",
       "_origin": "ast",
       "id": "package_dependencies",
       "community": 2,
@@ -617,7 +667,7 @@
       "label": "qrcode",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L52",
+      "source_location": "L89",
       "_origin": "ast",
       "id": "package_dependencies_qrcode",
       "community": 2,
@@ -627,7 +677,7 @@
       "label": "ws",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L53",
+      "source_location": "L90",
       "_origin": "ast",
       "id": "package_dependencies_ws",
       "community": 2,
@@ -652,6 +702,106 @@
       "id": "preload_contextbridge_ipcrenderer",
       "community": 8,
       "norm_label": "{ contextbridge, ipcrenderer }"
+    },
+    {
+      "label": "BUILD.md",
+      "file_type": "document",
+      "source_file": "BUILD.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "build",
+      "community": 10,
+      "norm_label": "build.md"
+    },
+    {
+      "label": "Building and distributing CueFlow (macOS)",
+      "file_type": "document",
+      "source_file": "BUILD.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "build_building_and_distributing_cueflow_macos",
+      "community": 10,
+      "norm_label": "building and distributing cueflow (macos)"
+    },
+    {
+      "label": "Build",
+      "file_type": "document",
+      "source_file": "BUILD.md",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "build_build",
+      "community": 10,
+      "norm_label": "build"
+    },
+    {
+      "label": "Installing on the machine that built it",
+      "file_type": "document",
+      "source_file": "BUILD.md",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "build_installing_on_the_machine_that_built_it",
+      "community": 10,
+      "norm_label": "installing on the machine that built it"
+    },
+    {
+      "label": "Installing on any OTHER Mac",
+      "file_type": "document",
+      "source_file": "BUILD.md",
+      "source_location": "L26",
+      "_origin": "ast",
+      "id": "build_installing_on_any_other_mac",
+      "community": 10,
+      "norm_label": "installing on any other mac"
+    },
+    {
+      "label": "Best: hand it over on a USB stick or local file share",
+      "file_type": "document",
+      "source_file": "BUILD.md",
+      "source_location": "L32",
+      "_origin": "ast",
+      "id": "build_best_hand_it_over_on_a_usb_stick_or_local_file_share",
+      "community": 10,
+      "norm_label": "best: hand it over on a usb stick or local file share"
+    },
+    {
+      "label": "Otherwise: strip the flag after copying",
+      "file_type": "document",
+      "source_file": "BUILD.md",
+      "source_location": "L38",
+      "_origin": "ast",
+      "id": "build_otherwise_strip_the_flag_after_copying",
+      "community": 10,
+      "norm_label": "otherwise: strip the flag after copying"
+    },
+    {
+      "label": "First launch will ask for permissions",
+      "file_type": "document",
+      "source_file": "BUILD.md",
+      "source_location": "L54",
+      "_origin": "ast",
+      "id": "build_first_launch_will_ask_for_permissions",
+      "community": 10,
+      "norm_label": "first launch will ask for permissions"
+    },
+    {
+      "label": "If you ever do sign it ($99/year)",
+      "file_type": "document",
+      "source_file": "BUILD.md",
+      "source_location": "L63",
+      "_origin": "ast",
+      "id": "build_if_you_ever_do_sign_it_99_year",
+      "community": 10,
+      "norm_label": "if you ever do sign it ($99/year)"
+    },
+    {
+      "label": "Known gaps",
+      "file_type": "document",
+      "source_file": "BUILD.md",
+      "source_location": "L80",
+      "_origin": "ast",
+      "id": "build_known_gaps",
+      "community": 10,
+      "norm_label": "known gaps"
     },
     {
       "label": "CLAUDE.md",
@@ -910,7 +1060,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "context_architecture",
-      "community": 1,
+      "community": 12,
       "norm_label": "architecture"
     },
     {
@@ -920,7 +1070,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "context_three_script_blocks_in_order",
-      "community": 1,
+      "community": 12,
       "norm_label": "three script blocks (in order)"
     },
     {
@@ -930,7 +1080,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "context_supabase_configuration",
-      "community": 1,
+      "community": 12,
       "norm_label": "supabase configuration"
     },
     {
@@ -940,7 +1090,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "context_supabase_tables",
-      "community": 1,
+      "community": 12,
       "norm_label": "supabase tables"
     },
     {
@@ -950,7 +1100,7 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "context_rls_policies_all_currently_open_to_be_tightened_when_auth_is_added",
-      "community": 1,
+      "community": 12,
       "norm_label": "rls policies (all currently open \u2014 to be tightened when auth is added)"
     },
     {
@@ -1200,7 +1350,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "security_audit_critical_findings",
-      "community": 7,
+      "community": 5,
       "norm_label": "critical findings"
     },
     {
@@ -1210,7 +1360,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "security_audit_c1_shows_is_world_readable_any_internet_user_can_read_every_show_s_full_data",
-      "community": 7,
+      "community": 5,
       "norm_label": "c1 \u2014 `shows` is world-readable: any internet user can read every show's full data"
     },
     {
@@ -1220,7 +1370,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "security_audit_c2_show_access_is_world_readable_and_pins_are_stored_in_plaintext",
-      "community": 7,
+      "community": 5,
       "norm_label": "c2 \u2014 `show_access` is world-readable and pins are stored in plaintext"
     },
     {
@@ -1230,7 +1380,7 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "security_audit_c3_stored_xss_via_rich_text_sequence_description_rendered_raw_in_the_live_cockpit",
-      "community": 7,
+      "community": 5,
       "norm_label": "c3 \u2014 stored xss via rich-text sequence description, rendered raw in the live cockpit"
     },
     {
@@ -1290,7 +1440,7 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "security_audit_medium_findings",
-      "community": 5,
+      "community": 11,
       "norm_label": "medium findings"
     },
     {
@@ -1300,7 +1450,7 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "security_audit_m1_read_only_viewers_crew_can_write_cue_descriptions",
-      "community": 5,
+      "community": 11,
       "norm_label": "m1 \u2014 \"read-only\" viewers/crew can write cue descriptions"
     },
     {
@@ -1310,7 +1460,7 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "security_audit_m2_no_durable_offline_edit_queue_offline_reconnect_is_whole_snapshot_last_write_wins",
-      "community": 5,
+      "community": 11,
       "norm_label": "m2 \u2014 no durable offline edit queue; offline reconnect is whole-snapshot last-write-wins"
     },
     {
@@ -1320,7 +1470,7 @@
       "source_location": "L115",
       "_origin": "ast",
       "id": "security_audit_m3_leaked_password_protection_disabled_on_supabase_auth",
-      "community": 5,
+      "community": 11,
       "norm_label": "m3 \u2014 leaked-password protection disabled on supabase auth"
     },
     {
@@ -1330,7 +1480,7 @@
       "source_location": "L123",
       "_origin": "ast",
       "id": "security_audit_m4_offline_logged_out_show_creation_can_strand_data",
-      "community": 5,
+      "community": 11,
       "norm_label": "m4 \u2014 offline/logged-out show creation can strand data"
     },
     {
@@ -1340,7 +1490,7 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "security_audit_m5_lan_inbound_handler_does_no_role_enforcement",
-      "community": 5,
+      "community": 11,
       "norm_label": "m5 \u2014 lan inbound handler does no role enforcement"
     },
     {
@@ -1948,9 +2098,9 @@
       "source_file": "package.json",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_build",
-      "target": "package_build_fileassociations",
-      "confidence_score": 1.0
+      "target": "package_build_fileassociations"
     },
     {
       "relation": "contains",
@@ -2046,6 +2196,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
+      "source_location": "L36",
+      "weight": 1.0,
+      "source": "package_build_mac",
+      "target": "package_mac_target",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
       "source_location": "L24",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -2056,11 +2216,51 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "package_build_dmg",
+      "target": "package_dmg_contents",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
       "source_location": "L28",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "package_build_dmg",
       "target": "package_dmg_title"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L53",
+      "weight": 1.0,
+      "source": "package_build_dmg",
+      "target": "package_dmg_window",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L55",
+      "weight": 1.0,
+      "source": "package_dmg_window",
+      "target": "package_window_height",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L54",
+      "weight": 1.0,
+      "source": "package_dmg_window",
+      "target": "package_window_width",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -2091,6 +2291,96 @@
       "confidence_score": 1.0,
       "source": "preload",
       "target": "preload_contextbridge_ipcrenderer"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "BUILD.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "build",
+      "target": "build_building_and_distributing_cueflow_macos",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "BUILD.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "build_building_and_distributing_cueflow_macos",
+      "target": "build_build",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "BUILD.md",
+      "source_location": "L63",
+      "weight": 1.0,
+      "source": "build_building_and_distributing_cueflow_macos",
+      "target": "build_if_you_ever_do_sign_it_99_year",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "BUILD.md",
+      "source_location": "L26",
+      "weight": 1.0,
+      "source": "build_building_and_distributing_cueflow_macos",
+      "target": "build_installing_on_any_other_mac",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "BUILD.md",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "build_building_and_distributing_cueflow_macos",
+      "target": "build_installing_on_the_machine_that_built_it",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "BUILD.md",
+      "source_location": "L80",
+      "weight": 1.0,
+      "source": "build_building_and_distributing_cueflow_macos",
+      "target": "build_known_gaps",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "BUILD.md",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "build_installing_on_any_other_mac",
+      "target": "build_best_hand_it_over_on_a_usb_stick_or_local_file_share",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "BUILD.md",
+      "source_location": "L54",
+      "weight": 1.0,
+      "source": "build_installing_on_any_other_mac",
+      "target": "build_first_launch_will_ask_for_permissions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "BUILD.md",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "build_installing_on_any_other_mac",
+      "target": "build_otherwise_strip_the_flag_after_copying",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -2814,5 +3104,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "3887986d1356e00f0365ea96547365b49c2da317"
+  "built_at_commit": "f2a573e9e9a866f7a70ffa8e1a9ba53d07c1b659"
 }

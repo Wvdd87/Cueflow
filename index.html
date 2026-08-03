@@ -1039,7 +1039,11 @@ body.mode-live #edit-mode-banner { display: none; }
 .tl-ruler { position: relative; overflow: hidden; background: var(--surface); border-bottom: 1px solid var(--hair); font-family: var(--mono); font-size: 9.5px; color: var(--txt-low); }
 .tl-ruler::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(to right, var(--hair) 1px, transparent 1px); background-size: 100px 100%; background-position-y: bottom; }
 .tl-tick { position: absolute; bottom: 3px; padding-left: 4px; z-index: 1; }
-#tl-ruler-hover { position: absolute; top: 3px; pointer-events: none; background: var(--surface3); border: 1px solid var(--primary); padding: 3px 7px; font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--primary); white-space: nowrap; z-index: 40; display: none; box-shadow: 0 2px 10px rgba(0,0,0,.6); }
+/* Neutral while the ruler just seeks; amber only while Cmd/Ctrl is held, where the
+   click would ADD a cue — the colour then means the same thing it does everywhere
+   else in the app, and stops reading as a warning during ordinary scrubbing. */
+#tl-ruler-hover { position: absolute; top: 3px; pointer-events: none; background: var(--surface3); border: 1px solid var(--hair3); padding: 3px 7px; font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--txt-hi); white-space: nowrap; z-index: 40; display: none; box-shadow: 0 2px 10px rgba(0,0,0,.6); }
+#tl-ruler-hover.add { border-color: var(--primary); color: var(--primary); }
 
 /* Cue blocks */
 /* cursor is driven by the container (boundary-zone detection); inherit so blocks/inner
@@ -15204,6 +15208,7 @@ function _initEditTimeline(){
       if(hover){
         hover.textContent=fTC(f);
         hover.style.display='block';
+        hover.classList.toggle('add',_etlAddModifier(e));   // amber only while it would add
         /* Trail the cursor on the right so the pointer doesn't sit on top of the text;
            flip to the left near the container's right edge so it can't be clipped. */
         const cw=container.clientWidth, tw=hover.offsetWidth||70;
@@ -15239,6 +15244,10 @@ function _initEditTimeline(){
   function _etlSyncRulerCursor(e){
     if(!ETL._rulerHover) return;
     const c=document.getElementById('edit-tl'); if(!c) return;
+    /* The TC chip tracks the modifier too, so pressing Cmd/Ctrl without moving the
+       mouse turns both the cursor and the tooltip over together. */
+    const hv=document.getElementById('tl-ruler-hover');
+    if(hv) hv.classList.toggle('add',_etlAddModifier(e));
     if(c.classList.contains('etl-in-zone')) return;      // a boundary zone owns the cursor
     c.style.cursor=_etlAddModifier(e)?'crosshair':'pointer';
   }
@@ -17688,11 +17697,11 @@ document.addEventListener('DOMContentLoaded',function(){
               <span class="sc-keys"><span class="sc-key">K</span></span>
             </div>
             <div class="sc-row">
-              <span class="sc-desc">Next cue</span>
+              <span class="sc-desc">Next cue edge — all tracks</span>
               <span class="sc-keys"><span class="sc-key">↓</span></span>
             </div>
             <div class="sc-row">
-              <span class="sc-desc">Previous cue</span>
+              <span class="sc-desc">Previous cue edge — all tracks</span>
               <span class="sc-keys"><span class="sc-key">↑</span></span>
             </div>
             <div class="sc-row">
@@ -17733,6 +17742,26 @@ document.addEventListener('DOMContentLoaded',function(){
           </div>
 
           <div class="sc-section">
+            <div class="sc-section-title">Timeline ruler — edit mode</div>
+            <div class="sc-row">
+              <span class="sc-desc">Move playhead to that point</span>
+              <span class="sc-keys"><span class="sc-key">Click</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Add a cue there (playhead stays)</span>
+              <span class="sc-keys"><span class="sc-key">⌘</span><span class="sc-sep">/</span><span class="sc-key">Ctrl</span><span class="sc-key">Click</span></span>
+            </div>
+          </div>
+
+          <div class="sc-section">
+            <div class="sc-section-title">Live — Internal TC</div>
+            <div class="sc-row">
+              <span class="sc-desc">Play / pause internal TC</span>
+              <span class="sc-keys"><span class="sc-key">Space</span></span>
+            </div>
+          </div>
+
+          <div class="sc-section">
             <div class="sc-section-title">Global</div>
             <div class="sc-row">
               <span class="sc-desc">Undo</span>
@@ -17741,6 +17770,10 @@ document.addEventListener('DOMContentLoaded',function(){
             <div class="sc-row">
               <span class="sc-desc">Redo</span>
               <span class="sc-keys"><span class="sc-key">⌘</span><span class="sc-key">⇧</span><span class="sc-key">Z</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Close dialogs</span>
+              <span class="sc-keys"><span class="sc-key">Esc</span></span>
             </div>
             <div class="sc-row">
               <span class="sc-desc">Show / hide shortcuts</span>

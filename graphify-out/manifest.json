@@ -20,8 +20,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1785571587.7351565,
-    "ast_hash": "74f4b1fbfc0deec36d25c838e1327f47",
+    "mtime": 1785763527.3303094,
+    "ast_hash": "38c2d398583f4c0480b664f7e4baff98",
     "semantic_hash": ""
   },
   "preload.js": {
@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1785573183.3461802,
-    "ast_hash": "5c02e5d59da31cf521c3411ec3d94edb",
+    "mtime": 1785764003.6387634,
+    "ast_hash": "7ba4835199480761dfeb8c945b66da55",
     "semantic_hash": ""
   },
   "favicon.png": {
@@ -75,8 +75,18 @@
     "semantic_hash": ""
   },
   "file-icon.png": {
-    "mtime": 1785571520.261494,
-    "ast_hash": "cea0966902f6c2c985d6c7aaede8dbe7",
+    "mtime": 1785573366.61,
+    "ast_hash": "e21fbd858b819f1f9c6d16b47e339f87",
+    "semantic_hash": ""
+  },
+  "BUILD.md": {
+    "mtime": 1785763527.3647006,
+    "ast_hash": "62920cf2e73cf8af9c9fe81affe245da",
+    "semantic_hash": ""
+  },
+  "dmg/READ ME FIRST.txt": {
+    "mtime": 1785763514.6163242,
+    "ast_hash": "1363c55605225443f5b373368e51c3bc",
     "semantic_hash": ""
   }
 }
