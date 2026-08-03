@@ -19864,8 +19864,26 @@ function _cfOnCloudUp(){
 window.addEventListener('offline', function(){ _cfCloudSignal(false); });
 window.addEventListener('online',  function(){ _cfCloudSignal(true); });
 
+/* Tear the TC/broadcast channel down, always clearing which show it belonged to —
+   otherwise the next open can mistake a dead channel for the current show's. */
+function _closeTcChan(){
+  if(CF._tcChan){ try{ CF._tcChan.unsubscribe(); }catch(e){} }
+  CF._tcChan=null; CF._tcReady=false; CF._tcChanShow=null; CF._viewerTcSubOk=false;
+}
+
 function openTcChan(){
-  if(!CF.showId || CF._tcChan) return;
+  if(!CF.showId) return;
+  /* A channel left over from another project is worse than no channel at all: it
+     keeps the operator broadcasting timecode, flags and active_sel to the show they
+     just left, while the show they are actually running looks dead to its viewers —
+     "Waiting for go-live", cloud connected, no clock ever arriving. Every caller
+     sets CF.showId and then calls this (new project, import, switch, delete,
+     session restore), so the only safe test is which show the channel is on. */
+  if(CF._tcChan){
+    if(CF._tcChanShow===CF.showId) return;
+    _closeTcChan();
+  }
+  CF._tcChanShow = CF.showId;
   CF._tcReady = false;
   /* subscribe() can throw synchronously when a socket cannot be created at all
      (no network stack, blocked/absent WebSocket). This is called from _onEnterLive
@@ -19884,7 +19902,7 @@ function openTcChan(){
         else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED') _cfCloudSignal(false);
       });
   }catch(e){
-    CF._tcChan=null; CF._tcReady=false;
+    _closeTcChan();
     _cfCloudSignal(false);
   }
 }
@@ -20131,6 +20149,11 @@ CF._onRealtimeMsg = onRealtimeMsg;
 
 function subscribeTc(){
   if(!CF.showId) return;
+  /* Drop any previous channel first — re-subscribing (mobile steer, reconnect)
+     used to leave the old one live, so a steered viewer stayed joined to the show
+     it came from. */
+  _closeTcChan();
+  CF._tcChanShow = CF.showId;
   CF._viewerTcSubOk = false;
   // Receivers use a plain channel — broadcast:{self:false} is for senders only
   // Using it on the receiver side tells Supabase to treat this as a sender,
@@ -22907,7 +22930,7 @@ function _ownerMobileScanTc(){
 
 /* Owner on mobile/tablet: subscribe to TC relay as a receiver instead of broadcaster */
 CF._onEnterMobileLive=function(){
-  if(CF._tcChan){ CF._tcChan.unsubscribe(); CF._tcChan=null; CF._viewerTcSubOk=false; }
+  _closeTcChan();
   _ownerMobileScanTc();
 };
 CF._onExitMobileLive=function(){
@@ -22915,7 +22938,7 @@ CF._onExitMobileLive=function(){
     CF._mobileScanChans.forEach(function(c){try{c.unsubscribe();}catch(e){}});
     CF._mobileScanChans=null;
   }
-  if(CF._tcChan){ CF._tcChan.unsubscribe(); CF._tcChan=null; CF._viewerTcSubOk=false; }
+  _closeTcChan();
 
   /* If we were following a different show, restore the original project */
   if(_mobileSteeredId&&_mobileOrigSnap){
