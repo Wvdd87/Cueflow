@@ -15,13 +15,13 @@
     "semantic_hash": ""
   },
   "main.js": {
-    "mtime": 1783790218.064379,
-    "ast_hash": "db1e7b4936ca01c8e0f088b1693e8146",
+    "mtime": 1785791390.4178805,
+    "ast_hash": "d631e3ea67c8ad8f707a3ba46792e21b",
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1785765007.7337215,
-    "ast_hash": "21b7280aa1ea0e57a88c49c80524565b",
+    "mtime": 1785788800.384477,
+    "ast_hash": "9600b45926d0404af39a13b1ee5583e1",
     "semantic_hash": ""
   },
   "preload.js": {
@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1785765741.776263,
-    "ast_hash": "636de89077b5bffdd69d68089840688e",
+    "mtime": 1785791501.973037,
+    "ast_hash": "e035eba280eb39fe9cbdf4487e47aa46",
     "semantic_hash": ""
   },
   "favicon.png": {
@@ -90,8 +90,8 @@
     "semantic_hash": ""
   },
   "scripts/adhoc-sign.js": {
-    "mtime": 1785764995.5449033,
-    "ast_hash": "6ce3652602235554c4c06fca11448a11",
+    "mtime": 1785788872.755339,
+    "ast_hash": "6f9831282918dfb5484bdfad8cdad66a",
     "semantic_hash": ""
   }
 }

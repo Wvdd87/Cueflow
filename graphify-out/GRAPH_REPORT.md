@@ -1,16 +1,16 @@
 # Graph Report - Cueflow  (2026-08-03)
 
 ## Corpus Check
-- 13 files · ~119,711 words
+- 13 files · ~121,144 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 163 nodes · 159 edges · 13 communities (11 shown, 2 thin omitted)
+- 164 nodes · 160 edges · 13 communities (11 shown, 2 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a255aa59`
+- Built from commit: `6001e6f6`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -63,8 +63,8 @@ Cohesion: 0.14
 Nodes (13): dependencies, qrcode, ws, description, devDependencies, electron, electron-builder, main (+5 more)
 
 ### Community 3 - "Community 3"
-Cohesion: 0.22
-Nodes (9): mac, NSMicrophoneUsageDescription, category, entitlements, entitlementsInherit, extendInfo, icon, identity (+1 more)
+Cohesion: 0.20
+Nodes (10): mac, NSMicrophoneUsageDescription, UTExportedTypeDeclarations, category, entitlements, entitlementsInherit, extendInfo, icon (+2 more)
 
 ### Community 4 - "Community 4"
 Cohesion: 0.11
@@ -95,7 +95,7 @@ Cohesion: 0.40
 Nodes (5): H1 — `track-editor` restriction is client-side only; the server lets them overwrite the whole show, H2 — 6-digit PINs from `Math.random()`, no server-side rate limiting, H3 — Editor writes are blind last-write-wins with no conflict detection, H4 — SECURITY DEFINER RPCs are callable by `anon`, HIGH findings
 
 ## Knowledge Gaps
-- **116 isolated node(s):** `http`, `os`, `fs`, `zlib`, `path` (+111 more)
+- **117 isolated node(s):** `http`, `os`, `fs`, `zlib`, `path` (+112 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **2 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -103,13 +103,13 @@ Nodes (5): H1 — `track-editor` restriction is client-side only; the server let
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `build` connect `Community 7` to `Community 2`, `Community 3`?**
-  _High betweenness centrality (0.035) - this node is a cross-community bridge._
+  _High betweenness centrality (0.036) - this node is a cross-community bridge._
 - **Why does `mac` connect `Community 3` to `Community 7`?**
-  _High betweenness centrality (0.019) - this node is a cross-community bridge._
+  _High betweenness centrality (0.021) - this node is a cross-community bridge._
 - **Why does `CueFlow — Security, Data Integrity & Reliability Audit` connect `Community 5` to `Community 11`?**
   _High betweenness centrality (0.018) - this node is a cross-community bridge._
 - **What connects `http`, `os`, `fs` to the rest of the system?**
-  _116 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _117 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.09523809523809523 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
