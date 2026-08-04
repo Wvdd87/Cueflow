@@ -1058,16 +1058,20 @@ body.mode-live #edit-mode-banner { display: none; }
    shown is decided by measured width when the block is built (see the degradation
    ladder there), never by letting the box clip: a half-drawn number or a "T…" stub
    is worse than nothing. */
-.etl-cam-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; overflow: hidden; gap: 1px; padding: 0 6px 0 10px; }
-.etl-cue-body { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-width: 0; max-width: 100%; }
-.etl-cam-head { display: flex; align-items: baseline; gap: 6px; min-width: 0; max-width: 100%; }
+/* Top-left anchored: camera number on its own line, shot name beneath it, timecode
+   under that. */
+.etl-cam-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; overflow: hidden; gap: 1px; padding: 5px 6px 0 10px; }
+/* Content-width, never flex-stretched: the pin logic measures this box to know how
+   far the group may slide before it would run past its own block, and a stretched
+   box measures as wide as the block, which pinned nothing at all. */
+.etl-cue-body { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; min-width: 0; max-width: 100%; flex: 0 1 auto; }
 .etl-cam-num { font-family: var(--mono); font-weight: 900; flex-shrink: 0; line-height: 1; letter-spacing: -.01em; }
 .etl-cam-name { font-family: var(--cond); font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .05em; text-transform: uppercase; color: #f2f4f7; min-width: 0; }
 .etl-cam-tc { font-family: var(--mono); font-size: 9px; font-weight: 600; line-height: 1; white-space: nowrap; color: rgba(255,255,255,.5); }
 .etl-cue.cam-selected .etl-cam-inner { outline: 2px solid #fff; outline-offset: -2px; }
 .etl-cue.cam-active .etl-cam-inner { outline: 2px solid var(--primary); outline-offset: -2px; }
 /* Regular cue block */
-.etl-cue-label { font-family: var(--cond); font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .07em; text-transform: uppercase; flex: 1; }
+.etl-cue-label { font-family: var(--cond); font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .07em; text-transform: uppercase; flex: 0 1 auto; max-width: 100%; }
 /* Edge handles are visual hints only; the cursor is driven by boundary-zone detection
    (col-resize ‖ / w-resize ] / e-resize [) so it must not be overridden here. */
 .etl-cue-handle { position: absolute; left: 0; top: 0; bottom: 0; width: 8px; cursor: inherit; background: transparent; transition: background .1s; z-index: 3; }
@@ -14338,6 +14342,7 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       const block=document.createElement('div');
       block.className='etl-cue'+(isCueSel?' selected':'')+(isInvalid?' invalid':'')+(_isAuto?' auto':' explicit');
       block.dataset.cueId=cue.id;
+      block._x=x; block._w=Math.round(blockW)-1;   // cached so the pin scan needs no layout reads
       block.style.cssText=`left:${x.toFixed(1)}px;width:${Math.round(blockW)-1}px;height:${trackH}px;top:0;opacity:${isDragging?.5:1};`;
       const inner=document.createElement('div');
       inner.className='etl-cue-inner';
@@ -14348,14 +14353,20 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       inner.style.cssText=`position:absolute;inset:0;display:flex;align-items:center;padding:0 10px 0 14px;overflow:hidden;background:${bg};border-left:3px solid ${borderL};border-right:none;border-top:none;border-bottom:none;`;
       _etlStashBase(inner);
       if(isCueSel)inner.style.outline='1.5px solid rgba(255,255,255,.25)';
+      /* Wrapped so the pinned group is content-sized. The label itself used to carry
+         .etl-pinbody, but it is a flex child filling the block, so it always measured
+         as wide as the block and normal-track cues never pinned at all. */
+      const body=document.createElement('span');
+      body.className='etl-cue-body etl-pinbody';
       const lbl=document.createElement('span');
-      lbl.className='etl-cue-label etl-pinbody';
+      lbl.className='etl-cue-label';
       lbl.style.color='#eef0f3';
       lbl._baseColor='#eef0f3';
       /* Same rule as the camera blocks: a name with nowhere to go is dropped rather
          than shaved to a one-letter stub. */
       lbl.textContent=(Math.round(blockW)-1-24>=40)?cue.name:'';
-      inner.appendChild(lbl);
+      body.appendChild(lbl);
+      inner.appendChild(body);
       const handle=document.createElement('div');
       handle.className='etl-cue-handle';
       block.appendChild(handle);
@@ -14363,7 +14374,9 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       handleR.className='etl-cue-handle-r'; handleR.title='Drag to set this cue’s duration';
       block.appendChild(handleR);
       block.appendChild(inner);
-      if(_isAuto){ const ar=document.createElement('span'); ar.className='etl-cue-arrow'; ar.textContent='→'; block.appendChild(ar); }
+      /* Zoomed out the block is narrower than the arrow, so it spilled over the
+         neighbouring cue and read as clutter rather than "runs on to the next". */
+      if(_isAuto&&blockW>=28){ const ar=document.createElement('span'); ar.className='etl-cue-arrow'; ar.textContent='→'; block.appendChild(ar); }
       block.appendChild(_etlCueEditBtn(cue.id));
       track.appendChild(block);
     });
@@ -14402,6 +14415,7 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       const block=document.createElement('div');
       block.className='etl-cue'+(isCueSel?' cam-selected':'')+(_isAuto?' auto':' explicit');
       block.dataset.cueId=cue.id;
+      block._x=x; block._w=Math.round(blockW)-1;   // cached so the pin scan needs no layout reads
       block.style.cssText=`left:${x.toFixed(1)}px;width:${Math.round(blockW)-1}px;height:${camH}px;top:0;opacity:${isDragging?.5:1};`;
       const inner=document.createElement('div');
       inner.className='etl-cam-inner';
@@ -14419,7 +14433,7 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
          A narrow block tightens its padding and shrinks the number to fit rather than
          losing it — the number is the one thing that has to survive every zoom. Only
          below a legible size does it give up and leave the accent bar. */
-      const ACCENT=3,GAP=6;
+      const ACCENT=3;
       const tight=(Math.round(blockW)-1-ACCENT)<44;
       const PAD_L=tight?4:10,PAD_R=tight?2:6;
       const innerW=Math.max(0,Math.round(blockW)-1-PAD_L-PAD_R-ACCENT);
@@ -14434,29 +14448,28 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       if(tight) inner.style.padding=`0 ${PAD_R}px 0 ${PAD_L}px`;
       const NAME_MIN=40;                               // below this a name is a stub, so drop it
       const TC_MIN=62;
+      /* Number, name and timecode each sit on their own line, so each only has to
+         earn its own width rather than share a row with the number. */
       const showNum=innerW>=numW;
-      const showName=showNum&&!!cue.name&&innerW>=numW+GAP+NAME_MIN;
-      const showTc=showName&&innerW>=Math.max(TC_MIN,numW+GAP+NAME_MIN+16);
+      const showName=showNum&&!!cue.name&&innerW>=NAME_MIN;
+      const showTc=showName&&innerW>=TC_MIN;
 
       const body=document.createElement('div');
       body.className='etl-cue-body etl-pinbody';
-      const head=document.createElement('div');
-      head.className='etl-cam-head';
       if(showNum){
         const num=document.createElement('span');
         num.className='etl-cam-num';
         num.style.cssText=`font-size:${numFontPx}px;color:${camHex};`;
         num._baseColor=camHex;
         num.textContent=numTxt;
-        head.appendChild(num);
+        body.appendChild(num);
       }
       if(showName){
         const nameEl=document.createElement('span');
         nameEl.className='etl-cam-name';
         nameEl.textContent=cue.name;
-        head.appendChild(nameEl);
+        body.appendChild(nameEl);
       }
-      body.appendChild(head);
       if(showTc){
         const tcEl=document.createElement('span');
         tcEl.className='etl-cam-tc';
@@ -14471,7 +14484,9 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       handleR.className='etl-cue-handle-r'; handleR.title='Drag to set this cue’s duration';
       block.appendChild(handleR);
       block.appendChild(inner);
-      if(_isAuto){ const ar=document.createElement('span'); ar.className='etl-cue-arrow'; ar.textContent='→'; block.appendChild(ar); }
+      /* Zoomed out the block is narrower than the arrow, so it spilled over the
+         neighbouring cue and read as clutter rather than "runs on to the next". */
+      if(_isAuto&&blockW>=28){ const ar=document.createElement('span'); ar.className='etl-cue-arrow'; ar.textContent='→'; block.appendChild(ar); }
       block.appendChild(_etlCueEditBtn(cue.id));
       block.addEventListener('click',e=>{
         e.stopPropagation();
@@ -14510,7 +14525,9 @@ function _etlUpdateActiveCue(curCueId){
        number's camera colour are inline, so blanking them dropped both. */
     const lbl=el.querySelector('.etl-cue-label');if(lbl)lbl.style.color=lbl._baseColor||'';
     const num=el.querySelector('.etl-cam-num');if(num)num.style.color=num._baseColor||'';
-    const body=el.querySelector('.etl-pinbody');if(body)body.style.transform='';
+    /* Pinning is not reset here: it is per track and owned by the animation loop,
+       which decides it from geometry every frame. Clearing it on a highlight change
+       only produced a one-frame flicker. */
   });
   if(!curCueId)return;
   const active=sc.querySelector(`[data-cue-id="${curCueId}"]`);
@@ -14534,21 +14551,37 @@ function _etlUpdateActiveCue(curCueId){
 function _etlPinCurrentCue(frames){
   const sc=_etlCache.tracksScroll;
   if(!sc||!_etlCache.pxPF) return;
-  const prev=_etlCache.pinnedBody;
-  const el=sc.querySelector('.etl-cue.active-cue,.etl-cue.cam-active');
-  const body=el?el.querySelector('.etl-pinbody'):null;
-  if(prev&&prev!==body){ prev.style.transform=''; }
-  _etlCache.pinnedBody=body;
-  if(!body) return;
-  const left=parseFloat(el.style.left)||0;
-  const width=parseFloat(el.style.width)||0;
-  // x of the visible area's left edge, in the scroller's own coordinates
-  const viewLeft=frames*_etlCache.pxPF-(ETL.PH_X-ETL.LBL_W);
-  // never push the group past its own block's right edge
-  const room=Math.max(0,width-(body.offsetWidth||0)-14);
-  const shift=Math.max(0,Math.min(room,viewLeft-left+4));
-  const next=shift>0.5?`translateX(${shift.toFixed(1)}px)`:'';
-  if(body.style.transform!==next) body.style.transform=next;
+  const phX=frames*_etlCache.pxPF;                       // playhead, scroller coordinates
+  const viewLeft=phX-(ETL.PH_X-ETL.LBL_W);               // left edge of the visible area
+  const rows=sc.children;
+  for(let r=0;r<rows.length;r++){
+    const blocks=rows[r].children;
+    /* The cue the playhead is inside ON THIS TRACK. Deliberately per track rather
+       than the single globally-current cue: with a camera track present, camera cues
+       are almost always the later ones, so a normal track's cue would essentially
+       never qualify and would never pin. Every track carries a cue under the
+       playhead, and each one is worth keeping legible. */
+    let hit=null;
+    for(let i=0;i<blocks.length;i++){
+      const el=blocks[i];
+      if(el._x==null) continue;
+      if(el._x>phX) break;                               // blocks are in time order
+      if(phX<el._x+el._w) hit=el;
+    }
+    for(let i=0;i<blocks.length;i++){
+      const el=blocks[i];
+      const body=el._pinBody!==undefined?el._pinBody:(el._pinBody=el.querySelector('.etl-pinbody'));
+      if(!body) continue;
+      let next='';
+      if(el===hit){
+        if(body._w==null) body._w=body.offsetWidth;      // stable until the next rebuild
+        const room=Math.max(0,el._w-body._w-14);         // never slide past its own right edge
+        const shift=Math.max(0,Math.min(room,viewLeft-el._x+4));
+        if(shift>0.5) next='translateX('+shift.toFixed(1)+'px)';
+      }
+      if(body.style.transform!==next) body.style.transform=next;
+    }
+  }
 }
 
 /* Rebuild the view-dependent media row (waveform) without touching the GPU scroll */
