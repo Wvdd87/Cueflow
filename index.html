@@ -14655,11 +14655,24 @@ function renderEditTimeline(){
     hasCamTrack,song?.mediaFile||song?.audioFilename||'',song?.mediaType||'',
     wf?.visible,ETL.selId||'',rulerCentreSec,state.activeStreamId||''].join('|');
 
-  if(_etlCache.structKey!==structKey){
-    _etlCache.structKey=structKey;
+  /* Rebuild when the key changes — or when the DOM that key describes isn't actually
+     there. The key used to be stamped BEFORE the build, so a build that threw (or was
+     never completed) left an empty timeline that every later render then skipped,
+     because the key still matched. That is the "sequence loaded, right timecode, empty
+     timeline until you press Restart" case: Restart moves the playhead, which rotates
+     rulerCentreSec inside the key and forces the rebuild that should have happened on
+     load. Stamping the key only after the build means a failure retries instead of
+     being cached forever. */
+  if(_etlCache.structKey!==structKey || !document.getElementById('etl-t-sc')){
     container.style.height=neededH+'px';
-    _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MKRH,
-      visStreams,song,songCues,hasCamTrack,camCues,constrainMin,constrainMax,rulerCentreSec);
+    try{
+      _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MKRH,
+        visStreams,song,songCues,hasCamTrack,camCues,constrainMin,constrainMax,rulerCentreSec);
+      _etlCache.structKey=structKey;
+    }catch(e){
+      _etlCache.structKey=null;   // next render retries rather than trusting a half-built DOM
+      console.warn('timeline build',e);
+    }
     _etlCache.pxPF=pxPF;
     _etlCache.baseHeight=parseInt(container.style.height)||neededH;
     _etlCache.rulerScroll=document.getElementById('etl-r-sc');
