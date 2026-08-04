@@ -14426,26 +14426,25 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       _etlStashBase(inner);
       if(isCueSel)inner.style.outline='1.5px solid rgba(255,255,255,.3)';
       /* Degradation ladder, decided from the width actually available inside the
-         block: number+name+TC → number+name → number → accent bar alone. The number
+         block: number+NAME+TC → number+name → number → accent bar alone. The number
          is only dropped when it could not be drawn whole, because a clipped digit
          reads as a different cue.
 
-         A narrow block tightens its padding and shrinks the number to fit rather than
-         losing it — the number is the one thing that has to survive every zoom. Only
-         below a legible size does it give up and leave the accent bar. */
+         One size for every camera number, never scaled to fit. Shrinking narrow ones
+         did keep them on screen, but a row of numbers at assorted sizes — and, in a
+         top-aligned box, at assorted apparent heights — reads as a mistake. A cue too
+         narrow for the number at its proper size shows its accent bar alone; that is
+         the honest signal that there is no room, and the number stays comparable
+         everywhere it does appear. Narrow blocks still tighten their padding, which
+         buys the number several more zoom levels without touching its size. */
       const ACCENT=3;
       const tight=(Math.round(blockW)-1-ACCENT)<44;
       const PAD_L=tight?4:10,PAD_R=tight?2:6;
       const innerW=Math.max(0,Math.round(blockW)-1-PAD_L-PAD_R-ACCENT);
       const numTxt=String(cam?.number??'?');           // no leading zero: 9, not 09
-      const NUM_MIN_PX=10;
-      let numFontPx=Math.min(Math.round(camH*0.28),24);
-      let numW=Math.ceil(numTxt.length*numFontPx*0.62);
-      if(numW>innerW){
-        const fit=Math.floor(innerW/(numTxt.length*0.62));
-        if(fit>=NUM_MIN_PX){ numFontPx=fit; numW=Math.ceil(numTxt.length*numFontPx*0.62); }
-      }
-      if(tight) inner.style.padding=`0 ${PAD_R}px 0 ${PAD_L}px`;
+      const numFontPx=Math.min(Math.round(camH*0.28),24);
+      const numW=Math.ceil(numTxt.length*numFontPx*0.62);
+      if(tight) inner.style.padding=`5px ${PAD_R}px 0 ${PAD_L}px`;
       const NAME_MIN=40;                               // below this a name is a stub, so drop it
       const TC_MIN=62;
       /* Number, name and timecode each sit on their own line, so each only has to
