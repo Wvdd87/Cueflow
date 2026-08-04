@@ -4825,6 +4825,14 @@ function switchMode(mode){
   if(mode==='live'&&window.innerWidth<1024){
     if(!window.CF||CF.isOwner){_ownerMobileLive();return;}
   }
+  /* One show at a time per account: another of this operator's devices is already
+     broadcasting, and two clocks on one show is worse than none. Below the mobile
+     branch on purpose — a mobile owner follows the show rather than running it.
+     Never fires when we cannot know (offline, signed out): see CF._liveElsewhere. */
+  if(mode==='live'&&window.CF&&CF.isOwner&&CF._liveElsewhere&&!CF._takingOverLive){
+    const _liveOther=CF._liveElsewhere();
+    if(_liveOther){CF._askTakeOverLive(_liveOther);return;}
+  }
   // Update all tab instances (3 topbars each with edit/test/live)
   ['edit','test','live'].forEach(m=>{
     ['e','t','l'].forEach(suffix=>{
@@ -18524,6 +18532,7 @@ function initAuth(){
     hideLoading();
     if(!authUser){ showAuthScreen(); return; }
     updateAuthUI();
+    startOwnerLiveWatch();   /* warm, so the go-live guard can read it synchronously */
 
     if(navigator.onLine){
       refreshShowList().then(_afterShowList);
@@ -18561,12 +18570,14 @@ function initAuth(){
       guardUserChange(authUser.id);
       saveOfflineAuth(authUser);
       hideAuthScreen();
+      startOwnerLiveWatch();
       if(CF.showId&&CF.isOwner) pushProject();
       if(navigator.onLine) refreshShowList().then(_afterShowList);
     } else if(!authUser&&wasAuthed){
       /* Explicit sign-out — clear offline credentials and show login */
       try{ localStorage.removeItem(OFFLINE_AUTH_KEY); }catch(e){}
       try{ localStorage.removeItem(SHOW_CACHE_KEY); }catch(e){}
+      stopOwnerLiveWatch();   /* this account is no longer running anything here */
       showAuthScreen();
       CF._showList=[];
       if(window._sbPanel==='save'&&window._sbRender) _sbRender('save');
@@ -20120,6 +20131,130 @@ function _updateLiveStatusChip(){
   if(shareCell) shareCell.style.display='none';
 }
 window._updateLiveStatusChip = _updateLiveStatusChip;
+
+/* ── One show at a time, per account ──────────────────────────────────────────
+   Signed in on two machines, an operator could put both into live mode, and both
+   would broadcast timecode: viewers of the same show get two interleaved clocks,
+   and neither machine shows any sign of it. Every signed-in account keeps one
+   presence channel listing the devices currently running a show; going live looks
+   there first and offers to stop the other one.
+
+   Presence, not a database flag, precisely because presence dies with the socket —
+   a laptop that crashed or had its lid closed cannot leave the account locked out
+   of its own show. */
+var _cfDeviceId = (function(){
+  try{
+    var k = localStorage.getItem('cf_device_id');
+    if(k) return k;
+    var v = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+    localStorage.setItem('cf_device_id', v);
+    return v;
+  }catch(e){ return Math.random().toString(36).slice(2); }
+})();
+
+/* Something the operator recognises from across the room, not a UUID. */
+function _cfDeviceLabel(){
+  var ua = navigator.userAgent || '';
+  var os = /Macintosh|Mac OS/.test(ua) ? 'Mac'
+         : /iPad/.test(ua)              ? 'iPad'
+         : /iPhone/.test(ua)            ? 'iPhone'
+         : /Android/.test(ua)           ? 'Android'
+         : /Windows/.test(ua)           ? 'Windows'
+         : 'another device';
+  if(window.cfLAN || window.cfNativeFs) return 'the '+os+' app';
+  var br = /Edg\//.test(ua)     ? 'Edge'
+         : /Chrome\//.test(ua)  ? 'Chrome'
+         : /Firefox\//.test(ua) ? 'Firefox'
+         : /Safari\//.test(ua)  ? 'Safari'
+         : 'a browser';
+  return br+' on '+os;
+}
+
+function startOwnerLiveWatch(){
+  if(CF._liveChan || !authUser || !authUser.id) return;
+  /* Subscribed from sign-in, not from going live: the guard reads presence state
+     synchronously, so it has to already be there when Live is pressed. */
+  try{
+    CF._liveChan = db()
+      .channel('acct-live:'+authUser.id, {config:{presence:{key:_cfDeviceId}}})
+      .on('presence',{event:'sync'},function(){})
+      .on('broadcast',{event:'stop_live'},function(msg){
+        var p = msg.payload || {};
+        if(p.device && p.device !== _cfDeviceId) return;   /* addressed to another device */
+        CF._stopLiveHere(p.by || 'another device');
+      })
+      .subscribe(function(st){
+        CF._liveChanReady = (st === 'SUBSCRIBED');
+        /* Went live before the socket was up — publish now. */
+        if(CF._liveChanReady && CF._tcRelayActive) _cfTrackLive();
+      });
+  }catch(e){ CF._liveChan = null; CF._liveChanReady = false; }
+}
+function stopOwnerLiveWatch(){
+  if(CF._liveChan){ try{ CF._liveChan.unsubscribe(); }catch(e){} }
+  CF._liveChan = null; CF._liveChanReady = false;
+}
+function _cfTrackLive(){
+  if(!CF._liveChan || !CF._liveChanReady) return;
+  try{
+    CF._liveChan.track({showId:CF.showId,
+      showName:(typeof state !== 'undefined' && state.name) || '',
+      device:_cfDeviceLabel()});
+  }catch(e){}
+}
+function _cfUntrackLive(){
+  if(!CF._liveChan) return;
+  try{ CF._liveChan.untrack(); }catch(e){}
+}
+
+/* Another of this operator's devices already running a show, or null.
+   Null whenever we cannot know (offline, signed out, socket not up) — not knowing
+   must never stand between an operator and their own show. */
+CF._liveElsewhere = function(){
+  if(!CF._liveChan || !CF._liveChanReady) return null;
+  var st;
+  try{ st = CF._liveChan.presenceState(); }catch(e){ return null; }
+  var found = null;
+  Object.keys(st||{}).forEach(function(key){
+    if(key === _cfDeviceId) return;                 /* ourselves, incl. a stale entry from a reload */
+    (st[key]||[]).forEach(function(p){
+      if(!found) found = {key:key, showName:p.showName||'', device:p.device||'another device'};
+    });
+  });
+  return found;
+};
+
+CF._askTakeOverLive = function(other){
+  var what = other.showName ? '“'+other.showName+'”' : 'a show';
+  openConfirmModal(
+    'CueFlow is already running '+what+' on '+other.device+'. Only one device can run a show at a time.',
+    function(){
+      try{
+        CF._liveChan.send({type:'broadcast', event:'stop_live',
+          payload:{device:other.key, by:_cfDeviceLabel()}});
+      }catch(e){}
+      /* Bypass this guard for the retry — the other device is on its way out and
+         its presence entry has not necessarily gone yet. Cleared on entering live,
+         with a timeout so a failed hand-over cannot leave the guard disabled. */
+      CF._takingOverLive = true;
+      setTimeout(function(){ CF._takingOverLive = false; }, 8000);
+      setTimeout(function(){ if(window.switchMode) switchMode('live'); }, 400);
+    },
+    null,
+    'Stop it and go live here', 'primary', 'Already running a show');
+};
+
+/* This device was told to stand down so the show could run somewhere else — the
+   other half of _askTakeOverLive, on the machine being taken over. */
+CF._stopLiveHere = function(by){
+  /* `state` is a script-scope binding, NOT window.state — testing window.state
+     here silently returned every time. */
+  if(typeof state === 'undefined' || state.appMode !== 'live') return;
+  if(window.switchMode) switchMode('edit');
+  if(window.openAlertModal){
+    openAlertModal('This show was stopped here so it could be run from '+by+'.', 'Show stopped');
+  }
+};
 
 function startPresence(){
   if(!CF.showId) return;
@@ -22897,12 +23032,16 @@ window.addEventListener('offline',function(){
 /* ── Live mode hooks ───────────────────────────────────── */
 CF._tcRelayActive=false;
 CF._onEnterLive=function(){
+  CF._takingOverLive=false;
   CF._tcRelayActive=true; openTcChan(); if(window.sbClose) sbClose();
   startPresence(); _updateLiveStatusChip();
+  /* Announce to the operator's other devices that this one is running the show. */
+  startOwnerLiveWatch(); _cfTrackLive();
   if(window._genEnterLive) _genEnterLive(); /* show Internal-TC transport, freeze viewers */
 };
 CF._onExitLive=function(){
   CF._tcRelayActive=false;
+  _cfUntrackLive();          /* frees the account for another device immediately */
   if(CF._presChan){ CF._presChan.unsubscribe(); CF._presChan=null; }
   if(window._genExitLive) _genExitLive(); /* pause generator + hide transport */
 };
