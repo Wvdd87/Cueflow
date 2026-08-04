@@ -18467,20 +18467,18 @@ function loadShowCache(){
 
 /* After a project is pushed to Supabase, ensure an owner PIN row exists
    (may be missing if the project was created while offline). */
-function ensureOwnerPin(){
-  if(!CF.showId||!authUser||!CF.isOwner) return;
-  db().from('show_access').select('id').eq('show_id',CF.showId).eq('role','owner').maybeSingle()
-    .then(function(r){
-      if(r.error||r.data) return;
-      var pin=_cfGenPin();
-      hashPin(pin).then(function(h){
-        return db().from('show_access').insert({
-          show_id:CF.showId,pin_hash:h,display_pin:pin,
-          role:'owner',label:'Admin',track_ids:null
-        });
-      }).then(function(){ if(window._sbRender) _sbRender('save'); });
-    });
-}
+/* Every project used to be given an "Admin" PIN (role 'owner') at creation, and this
+   re-created it if it went missing. It was a dead end: no join path handled the
+   'owner' role, so the link opened the plain read-only viewer — with the Notes
+   button hidden, i.e. strictly less than an ordinary viewer link.
+
+   Kept as a no-op rather than deleted because it is called from four places, and
+   because the point is that nothing should ever mint one of these again. Owners
+   sign in with an email and password; a 6-digit PIN standing in for that is a
+   weaker credential to the same account, not a feature. Rows already in
+   show_access are left alone — they are refused at join and hidden from the
+   Sharing panel, so they grant nothing. */
+function ensureOwnerPin(){ /* intentionally does nothing — see above */ }
 
 /* Called when network comes back online.
    Refreshes show list and flushes any pending local edits. */
@@ -19757,9 +19755,13 @@ function _cfLanPinSource(){
    viewer joins during an outage. */
 function _cfLanPushPins(){
   if(!window.cfLAN || !CF.isOwner) return;
-  try{ cfLAN.setPins(_cfLanPinSource().map(function(p){
-    return {pin_hash:p.pin_hash, role:p.role, track_ids:p.track_ids||null, label:p.label||p.role};
-  })); }catch(e){}
+  try{ cfLAN.setPins(_cfLanPinSource()
+    /* The retired "Admin" PIN is refused on the cloud join path; never let the LAN
+       server become the way around that. */
+    .filter(function(p){ return p.role!=='owner'; })
+    .map(function(p){
+      return {pin_hash:p.pin_hash, role:p.role, track_ids:p.track_ids||null, label:p.label||p.role};
+    })); }catch(e){}
 }
 function _cfLanRefreshPins(){
   if(!window.cfLAN || !CF.isOwner || !CF.showId) return;
@@ -20817,6 +20819,14 @@ function cfJoin(){
       return;
     }
     var acc=r.data;
+    /* Refuse the retired "Admin" PIN (see ensureOwnerPin). Projects made before it
+       was dropped still carry the row; it is no longer offered anywhere, so anyone
+       holding one has a credential the operator can neither see nor revoke. */
+    if(acc.role==='owner'){
+      if(joinBtn){joinBtn.textContent='Join Show';joinBtn.disabled=false;}
+      if(err) err.textContent='This link is no longer in use — ask the operator for a current one';
+      return;
+    }
     CF._baseUpdatedAt = acc.updated_at || null;   /* base version for optimistic-concurrency pushes */
     _applyAccessRow(acc.role, acc.access_id, acc.track_ids||null);
     _cfSaveCollabSession(acc.track_ids||null);     /* enable offline-reload recovery */
@@ -22063,16 +22073,7 @@ function createShow(name, trackName, fps){
         try{ localStorage.setItem(DIRTY_KEY, JSON.stringify({showId:showId, dirtyAt:Date.now()})); }catch(e){}
         updateSyncBtn(); return;
       }
-      /* Create owner PIN */
-      var pin=_cfGenPin();
-      hashPin(pin).then(function(h){
-        return db().from('show_access').insert({
-          show_id:showId,pin_hash:h,display_pin:pin,
-          role:'owner',label:'Admin',track_ids:null
-        });
-      }).then(function(){
-        if(window._sbRender) _sbRender('save');
-      });
+      if(window._sbRender) _sbRender('save');
     });
 }
 
@@ -22103,10 +22104,7 @@ function importShow(proj){
         try{ localStorage.setItem(DIRTY_KEY, JSON.stringify({showId:showId, dirtyAt:Date.now()})); }catch(e){}  /* mark unsynced for M4 recovery */
         if(window.updateSyncBtn)updateSyncBtn();return;
       }
-      var pin=_cfGenPin();
-      hashPin(pin).then(function(h){
-        return db().from('show_access').insert({show_id:showId,pin_hash:h,display_pin:pin,role:'owner',label:'Admin',track_ids:null});
-      }).then(function(){if(window._sbRender)_sbRender('save');});
+      if(window._sbRender)_sbRender('save');
     });
 }
 
@@ -22288,6 +22286,9 @@ function renderPinsList(){
   head.textContent='ACCESS LINKS';
   c.appendChild(head);
   CF._pinList.forEach(function(p){
+    /* Retired "Admin" PIN from a project made before it was dropped — refused at
+       join now, so listing it would only offer a link that cannot work. */
+    if(p.role==='owner') return;
     var url=_cfShareLink(p.display_pin||'');
     var label=p.label||p.role;
     /* A camera-VIEWER pin (CAMERA badge, no track editing) is specifically a viewer
