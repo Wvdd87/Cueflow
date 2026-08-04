@@ -1054,10 +1054,16 @@ body.mode-live #edit-mode-banner { display: none; }
 .etl-cue.selected .etl-cue-inner { outline: 2px solid #fff; outline-offset: -2px; }
 .etl-cue.active-cue .etl-cue-inner { outline: 2px solid var(--primary); outline-offset: -2px; }
 .etl-cue.invalid .etl-cue-inner { opacity: .3; filter: grayscale(.9); }
-/* Camera cue block */
-.etl-cam-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; overflow: hidden; gap: 2px; padding: 0 10px 0 12px; }
+/* Camera cue block — number + shot name grouped up top, timecode beneath. What is
+   shown is decided by measured width when the block is built (see the degradation
+   ladder there), never by letting the box clip: a half-drawn number or a "T…" stub
+   is worse than nothing. */
+.etl-cam-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; overflow: hidden; gap: 1px; padding: 0 6px 0 10px; }
+.etl-cue-body { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-width: 0; max-width: 100%; }
+.etl-cam-head { display: flex; align-items: baseline; gap: 6px; min-width: 0; max-width: 100%; }
 .etl-cam-num { font-family: var(--mono); font-weight: 900; flex-shrink: 0; line-height: 1; letter-spacing: -.01em; }
-.etl-cam-name { font-family: var(--cond); font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .06em; text-transform: uppercase; width: 100%; }
+.etl-cam-name { font-family: var(--cond); font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .05em; text-transform: uppercase; color: #f2f4f7; min-width: 0; }
+.etl-cam-tc { font-family: var(--mono); font-size: 9px; font-weight: 600; line-height: 1; white-space: nowrap; color: rgba(255,255,255,.5); }
 .etl-cue.cam-selected .etl-cam-inner { outline: 2px solid #fff; outline-offset: -2px; }
 .etl-cue.cam-active .etl-cam-inner { outline: 2px solid var(--primary); outline-offset: -2px; }
 /* Regular cue block */
@@ -8638,6 +8644,7 @@ requestAnimationFrame(function _tlSmoothLoop(ts){
     if(_etlCache.rulerScroll)_etlCache.rulerScroll.style.transform=etlTfm;
     if(_etlCache.mkrScroll)_etlCache.mkrScroll.style.transform=etlTfm;
     if(_etlCache.tracksScroll)_etlCache.tracksScroll.style.transform=etlTfm;
+    _etlPinCurrentCue(etlF);   // current cue's label follows the view if its start scrolled off
     if(_etlCache.mediaScroll){
       _etlCache.mediaScroll.style.transform=etlTfm;
       // Recenter the bounded waveform canvas once the playhead scrolls past the
@@ -14321,8 +14328,10 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       // Width = explicit duration, else (auto) to the next cue's start, else a default.
       const _durF=cueDurFrames(cue);
       const _isAuto=_durF==null;
-      const rawW=_isAuto?(nextC?(nextC._f-cue._f)*pxPF:Math.min(60*pxPS,30*pxPS)):(_durF*pxPF);
-      const blockW=Math.max(16,rawW);
+      const _gapNext=nextC?(nextC._f-cue._f)*pxPF:Infinity;
+      const rawW=_isAuto?(nextC?_gapNext:Math.min(60*pxPS,30*pxPS)):(_durF*pxPF);
+      // Same rule as the camera row: the minimum width may not eat into the next cue.
+      const blockW=Math.max(Math.max(2,Math.min(16,_gapNext)),rawW);
       const isDragging=ETL.drag&&ETL.drag.cueId===cue.id;
       const isCueSel=ETL.selId===cue.id;
       const isInvalid=cue._f<constrainMin||cue._f>=constrainMax;
@@ -14334,14 +14343,18 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       inner.className='etl-cue-inner';
       const bg=isCueSel?`${col.hex}28`:`${col.hex}10`;
       const borderL=isCueSel?'#fff':col.hex;
-      // Explicit-duration cues get a clear right edge; auto cues get a trailing arrow.
-      const borderR=_isAuto?'none':('2px solid '+(isCueSel?'#fff':col.hex+'aa'));
-      inner.style.cssText=`position:absolute;inset:0;display:flex;align-items:center;padding:0 10px 0 14px;overflow:hidden;background:${bg};border-left:3px solid ${borderL};border-right:${borderR};border-top:none;border-bottom:none;`;
+      /* Track colour on the LEFT edge only. Auto vs explicit duration stays legible
+         through the trailing arrow, which is the clearer signal of the two. */
+      inner.style.cssText=`position:absolute;inset:0;display:flex;align-items:center;padding:0 10px 0 14px;overflow:hidden;background:${bg};border-left:3px solid ${borderL};border-right:none;border-top:none;border-bottom:none;`;
+      _etlStashBase(inner);
       if(isCueSel)inner.style.outline='1.5px solid rgba(255,255,255,.25)';
       const lbl=document.createElement('span');
-      lbl.className='etl-cue-label';
+      lbl.className='etl-cue-label etl-pinbody';
       lbl.style.color='#eef0f3';
-      lbl.textContent=cue.name;
+      lbl._baseColor='#eef0f3';
+      /* Same rule as the camera blocks: a name with nowhere to go is dropped rather
+         than shaved to a one-letter stub. */
+      lbl.textContent=(Math.round(blockW)-1-24>=40)?cue.name:'';
       inner.appendChild(lbl);
       const handle=document.createElement('div');
       handle.className='etl-cue-handle';
@@ -14377,8 +14390,13 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       const nextC=camCues[ki+1];
       const _durF=cueDurFrames(cue);
       const _isAuto=_durF==null;
-      const rawW=_isAuto?(nextC?(nextC._f-cue._f)*pxPF:Math.min(60*pxPS,30*pxPS)):(_durF*pxPF);
-      const blockW=Math.max(20,rawW);
+      const _gapNext=nextC?(nextC._f-cue._f)*pxPF:Infinity;
+      const rawW=_isAuto?(nextC?_gapNext:Math.min(60*pxPS,30*pxPS)):(_durF*pxPF);
+      /* The readable minimum must never be bought by growing into the next cue: zoomed
+         out, a flat 20px floor made every block overlap its neighbour, which is what
+         turned the row into a smear of half-numbers. Blocks may only reach that floor
+         if the gap allows; past that they shrink to accent bars, cleanly separated. */
+      const blockW=Math.max(Math.max(2,Math.min(20,_gapNext)),rawW);
       const isDragging=ETL.drag&&ETL.drag.cueId===cue.id;
       const isCueSel=ETL.selId===cue.id;
       const block=document.createElement('div');
@@ -14388,22 +14406,64 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
       const inner=document.createElement('div');
       inner.className='etl-cam-inner';
       const bgAlpha=isCueSel?'22':'14';
-      inner.style.cssText=`background:${camHex}${bgAlpha};border-left:3px solid ${isCueSel?'#fff':camHex};`+(_isAuto?'':`border-right:2px solid ${isCueSel?'#fff':camHex}aa;`);
+      /* Track colour on the LEFT edge only — one marker at the start of the cue.
+         Explicit vs auto duration is already carried by the trailing arrow. */
+      inner.style.cssText=`background:${camHex}${bgAlpha};border-left:3px solid ${isCueSel?'#fff':camHex};`;
+      _etlStashBase(inner);
       if(isCueSel)inner.style.outline='1.5px solid rgba(255,255,255,.3)';
-      const numFontPx=Math.min(Math.round(camH*0.28),24);
-      const nameLH=14;const groupH=numFontPx+2+nameLH;
-      const pt=Math.max(0,Math.floor((camH-groupH)/2));
-      inner.style.paddingTop=pt+'px';
-      const num=document.createElement('span');
-      num.className='etl-cam-num';
-      num.style.cssText=`font-size:${numFontPx}px;color:${camHex};`;
-      num.textContent=String(cam?.number||'?').padStart(2,'0');
-      inner.appendChild(num);
-      const nameEl=document.createElement('span');
-      nameEl.className='etl-cam-name';
-      nameEl.style.color='#eef0f3';
-      nameEl.textContent=(cue.name&&blockW>30)?cue.name:'';
-      inner.appendChild(nameEl);
+      /* Degradation ladder, decided from the width actually available inside the
+         block: number+name+TC → number+name → number → accent bar alone. The number
+         is only dropped when it could not be drawn whole, because a clipped digit
+         reads as a different cue.
+
+         A narrow block tightens its padding and shrinks the number to fit rather than
+         losing it — the number is the one thing that has to survive every zoom. Only
+         below a legible size does it give up and leave the accent bar. */
+      const ACCENT=3,GAP=6;
+      const tight=(Math.round(blockW)-1-ACCENT)<44;
+      const PAD_L=tight?4:10,PAD_R=tight?2:6;
+      const innerW=Math.max(0,Math.round(blockW)-1-PAD_L-PAD_R-ACCENT);
+      const numTxt=String(cam?.number??'?');           // no leading zero: 9, not 09
+      const NUM_MIN_PX=10;
+      let numFontPx=Math.min(Math.round(camH*0.28),24);
+      let numW=Math.ceil(numTxt.length*numFontPx*0.62);
+      if(numW>innerW){
+        const fit=Math.floor(innerW/(numTxt.length*0.62));
+        if(fit>=NUM_MIN_PX){ numFontPx=fit; numW=Math.ceil(numTxt.length*numFontPx*0.62); }
+      }
+      if(tight) inner.style.padding=`0 ${PAD_R}px 0 ${PAD_L}px`;
+      const NAME_MIN=40;                               // below this a name is a stub, so drop it
+      const TC_MIN=62;
+      const showNum=innerW>=numW;
+      const showName=showNum&&!!cue.name&&innerW>=numW+GAP+NAME_MIN;
+      const showTc=showName&&innerW>=Math.max(TC_MIN,numW+GAP+NAME_MIN+16);
+
+      const body=document.createElement('div');
+      body.className='etl-cue-body etl-pinbody';
+      const head=document.createElement('div');
+      head.className='etl-cam-head';
+      if(showNum){
+        const num=document.createElement('span');
+        num.className='etl-cam-num';
+        num.style.cssText=`font-size:${numFontPx}px;color:${camHex};`;
+        num._baseColor=camHex;
+        num.textContent=numTxt;
+        head.appendChild(num);
+      }
+      if(showName){
+        const nameEl=document.createElement('span');
+        nameEl.className='etl-cam-name';
+        nameEl.textContent=cue.name;
+        head.appendChild(nameEl);
+      }
+      body.appendChild(head);
+      if(showTc){
+        const tcEl=document.createElement('span');
+        tcEl.className='etl-cam-tc';
+        tcEl.textContent=cue.tc||'';
+        body.appendChild(tcEl);
+      }
+      inner.appendChild(body);
       const handle=document.createElement('div');
       handle.className='etl-cue-handle';
       block.appendChild(handle);
@@ -14428,14 +14488,29 @@ function _buildEditTimeline(container,fps,pxPS,pxPF,tlW,trackH,camTrackFixedH,MK
 }
 
 /* Update active-cue class without a full DOM rebuild */
+/* Remember what a block looks like when it is NOT the current cue, so leaving can put
+   it back exactly. Clearing used to string-replace the amber background out and never
+   touched border-left at all, which is why a cue the playhead had left kept an amber
+   left edge until a click forced a rebuild — and lost its track tint into the bargain. */
+function _etlStashBase(inner){
+  inner._baseBg=inner.style.background;
+  inner._baseBorderL=inner.style.borderLeftColor;
+}
+
 function _etlUpdateActiveCue(curCueId){
   const sc=document.getElementById('etl-t-sc');if(!sc)return;
   sc.querySelectorAll('.etl-cue.active-cue,.etl-cue.cam-active').forEach(el=>{
     el.classList.remove('active-cue','cam-active');
     const inner=el.querySelector('.etl-cue-inner,.etl-cam-inner');
-    if(inner){inner.style.background=inner.style.background.replace('rgba(240,168,56,.15)','').replace('rgba(240,168,56,.28)','');}
-    const lbl=el.querySelector('.etl-cue-label');if(lbl)lbl.style.color='';
-    const num=el.querySelector('.etl-cam-num');if(num)num.style.color='';
+    if(inner){
+      inner.style.background=inner._baseBg||'';
+      inner.style.borderLeftColor=inner._baseBorderL||'';
+    }
+    /* Back to their own colours, not to "unset" — the label's white and the camera
+       number's camera colour are inline, so blanking them dropped both. */
+    const lbl=el.querySelector('.etl-cue-label');if(lbl)lbl.style.color=lbl._baseColor||'';
+    const num=el.querySelector('.etl-cam-num');if(num)num.style.color=num._baseColor||'';
+    const body=el.querySelector('.etl-pinbody');if(body)body.style.transform='';
   });
   if(!curCueId)return;
   const active=sc.querySelector(`[data-cue-id="${curCueId}"]`);
@@ -14449,6 +14524,31 @@ function _etlUpdateActiveCue(curCueId){
   }
   const lbl=active.querySelector('.etl-cue-label');if(lbl)lbl.style.color='var(--primary)';
   const num=active.querySelector('.etl-cam-num');if(num)num.style.color='var(--primary)';
+}
+
+/* Keep the current cue's number and name on screen when the cue itself started far
+   off to the left. Only ever the cue under the playhead: a long cue the playhead is
+   not in has no claim on the operator's attention, and pinning several at once would
+   just be noise. Slides back to its natural position the moment the cue's own start
+   comes back into view, so nothing moves that does not have to. */
+function _etlPinCurrentCue(frames){
+  const sc=_etlCache.tracksScroll;
+  if(!sc||!_etlCache.pxPF) return;
+  const prev=_etlCache.pinnedBody;
+  const el=sc.querySelector('.etl-cue.active-cue,.etl-cue.cam-active');
+  const body=el?el.querySelector('.etl-pinbody'):null;
+  if(prev&&prev!==body){ prev.style.transform=''; }
+  _etlCache.pinnedBody=body;
+  if(!body) return;
+  const left=parseFloat(el.style.left)||0;
+  const width=parseFloat(el.style.width)||0;
+  // x of the visible area's left edge, in the scroller's own coordinates
+  const viewLeft=frames*_etlCache.pxPF-(ETL.PH_X-ETL.LBL_W);
+  // never push the group past its own block's right edge
+  const room=Math.max(0,width-(body.offsetWidth||0)-14);
+  const shift=Math.max(0,Math.min(room,viewLeft-left+4));
+  const next=shift>0.5?`translateX(${shift.toFixed(1)}px)`:'';
+  if(body.style.transform!==next) body.style.transform=next;
 }
 
 /* Rebuild the view-dependent media row (waveform) without touching the GPU scroll */
