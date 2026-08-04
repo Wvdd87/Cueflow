@@ -21947,6 +21947,9 @@ function switchProject(id){
     CF.dirty=false;
     if(CF._projChan){CF._projChan.unsubscribe();CF._projChan=null;}
     CF.showId=id; CF.isOwner=true; CF.role='owner';
+    /* Close the projects panel now the pick has been made. Here rather than on the
+       row's click, so cancelling the confirm leaves the panel where it was. */
+    if(window.sbClose) sbClose();
     saveSession(id);
     /* Re-render panel immediately so selected state shows before async restore */
     if(window._sbRender) _sbRender('save');
@@ -22889,7 +22892,7 @@ CF._plDrop=function(toIdx){
         var isAct=p.id===state.activePlaylistId;
         var cnt=p.songIds?p.songIds.length:0;
         var canDel=(state.playlists||[]).length>1&&!(window.CF&&(CF.role==='editor'||CF.role==='track-editor'));
-        h+='<div class="sbp-pl'+(isAct?' active':'')+'" onclick="CF.switchPlaylist(\''+escH(p.id)+'\')" title="'+escH(p.name)+'">';
+        h+='<div class="sbp-pl'+(isAct?' active':'')+'" onclick="CF.switchPlaylist(\''+escH(p.id)+'\');sbClose()" title="'+escH(p.name)+'">';
         h+='<span class="sbp-pl-nm">'+escH(p.name)+'</span>';
         h+='<span class="sbp-pl-cnt">'+cnt+'</span>';
         h+='<span class="sbp-pl-acts" onclick="event.stopPropagation();">';
@@ -22937,9 +22940,12 @@ CF._plDrop=function(toIdx){
         var isSel=selMode&&selSet.indexOf(song.id)>=0;
         var n=i+1; var numStr=(n<10?'0':'')+n;
         var cls='sbp-seq'+(isAct?' active':isUp?' upnext':'')+(isSel?' selected':'');
+        /* Picking a sequence closes the panel — the point of the pick is to get back
+           to the show. Select mode is the exception: there you are ticking several,
+           so it stays open. */
         var clickAct=selMode
           ?'onclick="event.stopPropagation();CF._toggleSel(\''+escH(song.id)+'\')"'
-          :'onclick="selectSong(\''+escH(song.id)+'\');_sbRender(\'seqs\')"';
+          :'onclick="selectSong(\''+escH(song.id)+'\');sbClose()"';
         rows+='<div class="'+cls+'" draggable="'+(!selMode)+'"'
           +(!selMode?' ondragstart="CF._plDragIdx='+i+';event.dataTransfer.effectAllowed=\'move\';this.classList.add(\'dragging\')"':'')
           +' ondragend="this.classList.remove(\'dragging\')"'
