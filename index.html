@@ -10676,6 +10676,16 @@ document.addEventListener('keydown',e=>{
       redrawTest(Math.floor(state.simFrames));return;}
     // Backspace: delete selected cue (via confirmation modal)
     if(e.code==='Backspace'&&ETL.selId){e.preventDefault();openDeleteCueModal(ETL.selId);return;}
+    /* Arrow to a cue, press Enter, edit it — no mouse round-trip. Only when focus
+       is out of a field, so Enter still commits normally while typing.
+       Opened on the next tick: the global modal handler answers Enter too, and a
+       modal opened inside this keystroke gets confirmed by the very same press. */
+    if(e.code==='Enter'&&!e.metaKey&&!e.ctrlKey&&ETL.selId){
+      e.preventDefault();
+      const _selForEdit=ETL.selId;
+      setTimeout(()=>openEditCueModal(_selForEdit),0);
+      return;
+    }
     // Camera track hotkeys: 1–9 = cameras 1–9, 0 = camera 10
     if(state.activeStreamId==='CAMERA'&&state.cameraTrack&&!e.metaKey&&!e.ctrlKey&&!e.altKey){
       const _camKeys={'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'0':10};
@@ -10685,19 +10695,23 @@ document.addEventListener('keydown',e=>{
         const song=getActiveSong();if(!song)return;
         const tcFrames=Math.floor(state.simFrames);
         const cam=state.cameraTrack.cameras.find(c=>c.number===camNum);
-        if(cam){
-          snapshot();
-          song.cues.push({id:uid(),tc:fTC(tcFrames),name:'',desc:'',cameraId:cam.id});
-          persist();renderCueList();redrawActive();
-        } else {
+        /* A number key used to drop a nameless cue straight onto the track, which
+           meant every one of them needed a second visit to say what the shot was.
+           It now opens the same modal C does, with that camera already chosen and
+           the cursor in the name field: press 3, type the shot, Enter. */
+        const _openFor=(camObj)=>{
+          _ncSelTarget={type:'camera',id:camObj.id};   // read by _ncBuildPicker()
+          _ncOpenModal(tcFrames);
+        };
+        if(cam){ _openFor(cam); }
+        else {
           openConfirmModal('Camera '+camNum+' doesn\'t exist on this track. Add it now?',
             function(){
               const newCam={id:uid(),number:camNum,label:'CAM '+camNum,colorIdx:state.cameraTrack.cameras.length%12};
               state.cameraTrack.cameras.push(newCam);
               state.cameraTrack.cameras.sort(function(a,b){return a.number-b.number;});
-              snapshot();
-              song.cues.push({id:uid(),tc:fTC(tcFrames),name:'',desc:'',cameraId:newCam.id});
-              persist();renderCueList();redrawActive();renderStreamsBar();updateCamTrackBar();
+              persist();renderStreamsBar();updateCamTrackBar();
+              _openFor(newCam);
             },null,'Add Camera','primary');
         }
         return;
@@ -18343,6 +18357,30 @@ document.addEventListener('DOMContentLoaded',function(){
             <div class="sc-row">
               <span class="sc-desc">Insert marker at current TC</span>
               <span class="sc-keys"><span class="sc-key">M</span></span>
+            </div>
+          </div>
+
+          <div class="sc-section">
+            <div class="sc-section-title">Writing cues — edit mode</div>
+            <div class="sc-row">
+              <span class="sc-desc">New cue on camera 1&#8211;10, ready to name</span>
+              <span class="sc-keys"><span class="sc-key">1</span><span class="sc-sep">…</span><span class="sc-key">9</span><span class="sc-key">0</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Open the selected cue for editing</span>
+              <span class="sc-keys"><span class="sc-key">Enter</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Confirm the cue and close</span>
+              <span class="sc-keys"><span class="sc-key">Enter</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Move between fields</span>
+              <span class="sc-keys"><span class="sc-key">Tab</span><span class="sc-sep">/</span><span class="sc-key">⇧</span><span class="sc-key">Tab</span></span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-desc">Back out without saving</span>
+              <span class="sc-keys"><span class="sc-key">Esc</span></span>
             </div>
           </div>
 
