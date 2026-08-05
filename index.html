@@ -12186,7 +12186,10 @@ function renderMediaSettings(){
     btnRow='<button class="ntm-btn primary" onclick="cfMediaSettingsReconnect()">Reconnect folder</button> '
       +'<button class="ntm-btn" onclick="cfMediaSettingsChange()">Change folder…</button>';
   } else {
-    btnRow='<button class="ntm-btn" onclick="cfMediaSettingsChange()">Change folder…</button> '
+    /* Auto-match only makes sense with a live folder behind it, so it appears here
+       and nowhere else. */
+    btnRow='<button class="ntm-btn primary" onclick="cfMediaAutoMatch()" title="Suggest a file for each sequence that has no media yet">Auto-match media…</button> '
+      +'<button class="ntm-btn" onclick="cfMediaSettingsChange()">Change folder…</button> '
       +'<button class="ntm-btn" onclick="cfMediaSettingsForget()">Remove folder</button>';
   }
   var info=hasFolder
@@ -12224,6 +12227,186 @@ async function cfMediaSettingsPick(){ var ok=await cfMediaPickFolder(); if(ok) a
 async function cfMediaSettingsChange(){ await cfMediaChangeFolder(); renderMediaSettings(); }
 async function cfMediaSettingsReconnect(){ var ok=await cfMediaReconnect(); if(!ok) cfMediaToast('Could not access the folder — try Change folder…'); renderMediaSettings(); }
 async function cfMediaSettingsForget(){ await cfMediaForget(); renderMediaSettings(); }
+
+/* ── Auto-match media to sequences ────────────────────────────────────────────
+   Files on a show drive are usually named after the sequence they belong to, but
+   never quite identically — "03 - Pommelien_final_v2.wav" against "Pommelien".
+   This proposes pairings and lets the operator approve them one by one. Nothing
+   is ever attached without a click: a wrong backing track in a live show is far
+   worse than attaching thirty by hand.
+
+   Confidence is used only to decide which rows arrive pre-ticked; it is never
+   shown, because a number invites arguing with it instead of reading the
+   filename. */
+function _amNorm(s){
+  s=String(s||'').toLowerCase();
+  s=s.replace(/\.[a-z0-9]{1,5}$/,'');                                   // extension
+  s=s.replace(/\b(19|20)\d{2}([-_.]\d{1,2}){0,2}\b/g,' ');              // dates
+  s=s.replace(/\b(v|ver|rev)\s?\d+\b/g,' ');                            // v2, ver 3
+  s=s.replace(/\b(final|finale|def|definitief|copy|kopie|draft|master|mix|edit|export|render|new|old)\b/g,' ');
+  s=s.replace(/\b(\d{3,4}p|[248]k|uhd|hd|sd|\d{2,3}fps|h26[45]|prores|stereo|mono|wav|mp3|mp4|mov)\b/g,' ');
+  s=s.replace(/^[\s\-_.]*\d{1,3}(?=[\s\-_.])/,' ');                     // leading track number
+  s=s.replace(/[^a-z0-9]+/g,'');                                        // separators
+  return s;
+}
+function _amBigrams(s){
+  var m=new Map();
+  for(var i=0;i<s.length-1;i++){ var g=s.slice(i,i+2); m.set(g,(m.get(g)||0)+1); }
+  return m;
+}
+/* Dice coefficient over character bigrams: forgiving about word order and small
+   typos, and it does not reward two long strings for merely sharing letters the
+   way a raw edit distance can. */
+function _amScore(a,b){
+  if(!a||!b) return 0;
+  if(a===b) return 1;
+  if(a.length>3&&b.length>3&&(a.indexOf(b)>=0||b.indexOf(a)>=0)) return 0.92;
+  var A=_amBigrams(a),B=_amBigrams(b),hits=0,total=0;
+  A.forEach(function(c,g){ total+=c; hits+=Math.min(c,B.get(g)||0); });
+  B.forEach(function(c){ total+=c; });
+  return total?(2*hits)/total:0;
+}
+var _AM_MIN=0.45;      // below this it is noise, so the row says "no match found"
+var _AM_STRONG=0.72;   // at or above this the row arrives ticked
+
+/* Sequences with nothing attached — deliberate attachments are never touched. */
+function _amEligibleSongs(){
+  return (state.songs||[]).filter(function(s){
+    return !(s.mediaFile||s.audioFilename||s.videoFilename);
+  });
+}
+
+/* Greedy one-to-one assignment: best pair first, then both sides are spoken for.
+   Two sequences wanting the same file means the weaker one is left unmatched
+   rather than the file being attached twice. */
+function _amBuildMatches(songs,files){
+  var pairs=[];
+  var fnorm=files.map(function(f){ return {name:f.name, n:_amNorm(f.name)}; });
+  songs.forEach(function(s,si){
+    var sn=_amNorm(s.name);
+    fnorm.forEach(function(f,fi){
+      var sc=_amScore(sn,f.n);
+      if(sc>=_AM_MIN) pairs.push({si:si,fi:fi,score:sc});
+    });
+  });
+  pairs.sort(function(a,b){ return b.score-a.score; });
+  var takenS={},takenF={},out=songs.map(function(){ return null; });
+  pairs.forEach(function(p){
+    if(takenS[p.si]||takenF[p.fi]) return;
+    takenS[p.si]=1; takenF[p.fi]=1;
+    out[p.si]={file:fnorm[p.fi].name, score:p.score};
+  });
+  return out;
+}
+
+function cfMediaAutoMatch(){
+  if(!cfMediaEnabled()) return;
+  if(!cfMedia.ready||!cfMedia.files.size){
+    openAlertModal('There are no files in the media folder to match against.','Auto-match media');
+    return;
+  }
+  var songs=_amEligibleSongs();
+  if(!songs.length){
+    openAlertModal('Every sequence already has media attached. Auto-match only fills in the empty ones.','Auto-match media');
+    return;
+  }
+  var files=cfMediaList();
+  var matches=_amBuildMatches(songs,files);
+  _amOpenReview(songs,files,matches);
+}
+
+function _amOpenReview(songs,files,matches){
+  var ex=document.getElementById('cf-automatch'); if(ex) ex.remove();
+  var bg=document.createElement('div');
+  bg.id='cf-automatch'; bg.className='ntm-bg show';
+  bg.style.cssText='position:fixed;inset:0;z-index:11050;display:flex;align-items:center;justify-content:center;';
+  bg.addEventListener('mousedown',function(e){ if(e.target===bg) _amClose(); });
+  var opts=files.map(function(f){ return '<option value="'+escH(f.name)+'">'+escH(cfMediaBaseName(f.name))+'</option>'; }).join('');
+  var rows=songs.map(function(s,i){
+    var m=matches[i];
+    var strong=!!(m&&m.score>=_AM_STRONG);
+    return '<div class="am-row" data-song="'+escH(s.id)+'" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--hair);">'
+      +'<input type="checkbox" class="am-ck" '+(strong?'checked':'')+' style="accent-color:var(--amber,#f0a838);width:15px;height:15px;flex-shrink:0;cursor:pointer;">'
+      +'<span class="am-seq" style="flex:0 0 34%;min-width:0;font-size:12px;color:var(--txt-hi);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+escH(s.name)+'">'+escH(s.name)+'</span>'
+      +'<select class="am-sel tcs-select" style="flex:1;min-width:0;font-size:12px;">'
+        +'<option value="">— no match found —</option>'+opts
+      +'</select>'
+      +'<span class="am-warn" style="flex:0 0 auto;font-size:11px;color:var(--red,#e64e2a);display:none;">in use</span>'
+      +'</div>';
+  }).join('');
+  bg.innerHTML='<div class="ntm-box" style="width:720px;max-width:96vw;max-height:84vh;display:flex;flex-direction:column;">'
+    +'<div class="ntm-header"><span class="ntm-title">AUTO-MATCH MEDIA</span>'
+      +'<button class="tcs-close" onclick="_amClose()">✕</button></div>'
+    +'<div style="padding:12px 16px 0;font-size:11px;color:var(--txt-low);line-height:1.5;">'
+      +'Suggestions only — nothing is attached until you press Attach. Sequences that already have media are not listed. '
+      +'Change any suggestion with its dropdown; ticking a row includes it.</div>'
+    +'<div id="am-list" style="flex:1;overflow-y:auto;margin:12px 0 0;border-top:1px solid var(--hair);">'+rows+'</div>'
+    +'<div class="ntm-footer" style="display:flex;align-items:center;gap:12px;">'
+      +'<span id="am-count" style="flex:1;font-size:11px;color:var(--txt-low);"></span>'
+      +'<button class="ntm-btn" onclick="_amClose()">Cancel</button>'
+      +'<button class="ntm-btn primary" id="am-apply" onclick="_amApply()">Attach</button></div>'
+    +'</div>';
+  document.body.appendChild(bg);
+  // Preselect each row's suggestion, then wire change handlers.
+  Array.from(bg.querySelectorAll('.am-row')).forEach(function(row,i){
+    var m=matches[i];
+    var sel=row.querySelector('.am-sel');
+    if(m) sel.value=m.file;
+    sel.addEventListener('change',function(){
+      /* Choosing a file for a row that had none is an act of intent — tick it. */
+      row.querySelector('.am-ck').checked=!!sel.value;
+      _amRefresh();
+    });
+    row.querySelector('.am-ck').addEventListener('change',_amRefresh);
+  });
+  _amRefresh();
+}
+function _amClose(){ var el=document.getElementById('cf-automatch'); if(el) el.remove(); }
+
+/* Conflicts are shown rather than resolved behind the operator's back: two rows
+   pointing at one file is a decision only they can make. */
+function _amRefresh(){
+  var bg=document.getElementById('cf-automatch'); if(!bg) return;
+  var rows=Array.from(bg.querySelectorAll('.am-row'));
+  var used={};
+  rows.forEach(function(r){
+    var sel=r.querySelector('.am-sel'), ck=r.querySelector('.am-ck');
+    if(ck.checked&&sel.value) used[sel.value]=(used[sel.value]||0)+1;
+  });
+  var conflicts=0,checked=0;
+  rows.forEach(function(r){
+    var sel=r.querySelector('.am-sel'), ck=r.querySelector('.am-ck');
+    var bad=ck.checked&&sel.value&&used[sel.value]>1;
+    r.querySelector('.am-warn').style.display=bad?'':'none';
+    sel.style.borderColor=bad?'var(--red,#e64e2a)':'';
+    if(bad) conflicts++;
+    if(ck.checked&&sel.value) checked++;
+    if(ck.checked&&!sel.value) ck.checked=false;   // nothing to attach
+  });
+  var apply=document.getElementById('am-apply'), cnt=document.getElementById('am-count');
+  if(apply) apply.disabled=conflicts>0||checked===0;
+  if(apply) apply.style.opacity=(conflicts>0||checked===0)?'0.45':'';
+  if(cnt) cnt.textContent=conflicts
+    ? (conflicts+' sequence'+(conflicts>1?'s':'')+' pointing at a file already used — change one to continue')
+    : (checked+' of '+rows.length+' selected');
+}
+
+async function _amApply(){
+  var bg=document.getElementById('cf-automatch'); if(!bg) return;
+  var picks=Array.from(bg.querySelectorAll('.am-row')).map(function(r){
+    var sel=r.querySelector('.am-sel');
+    return r.querySelector('.am-ck').checked&&sel.value
+      ? {songId:r.dataset.song, file:sel.value} : null;
+  }).filter(Boolean);
+  var total=bg.querySelectorAll('.am-row').length;
+  _amClose();
+  for(var i=0;i<picks.length;i++){
+    try{ await cfMediaLinkSong(picks[i].songId,picks[i].file); }
+    catch(e){ console.warn('auto-match attach',e); }
+  }
+  cfMediaToast('Attached '+picks.length+' of '+total+' sequence'+(total===1?'':'s')+'.');
+  renderSongList(); if(window._cfMediaRefreshUI) _cfMediaRefreshUI();
+}
 /* Jump straight to Settings → Media (used by the "reconnect / set media folder" hints). */
 function cfMediaOpenFolderSettings(){
   if(!cfMediaTabVisible()) return;
