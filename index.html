@@ -4665,6 +4665,8 @@ function deleteProjectData(id){
 let persistTimer=null;
 function persist(){
   if(state.projectId===BOOT_PLACEHOLDER_ID)return; // transient placeholder — never persist
+  /* Every mutation ends here, which is what makes undo coverage automatic. */
+  if(window._undoRecord) _undoRecord();
   saveProjectData({id:state.projectId,name:state.name,fps:state.fps,visibleCount:state.visibleCount,
     warnSec:state.warnSec,autoAdvanceSec:state.autoAdvanceSec,
     activeSongId:state.activeSongId,activePlaylistId:state.activePlaylistId,
@@ -4766,6 +4768,14 @@ function applyProject(proj){
   // when remote project data carries a different visibility set. Self-guards on identity
   // and skips track/camera-restricted roles (managed by their own access logic).
   if(window._cfRestoreVisOnly) _cfRestoreVisOnly();
+  /* A freshly loaded project is the baseline, not an edit: adopt it as the shadow
+     so the first real change records against it, and drop history belonging to
+     whatever was open before. */
+  if(window._undoResetBaseline){
+    _undoResetBaseline();
+    if(proj.id!==_undoHistoryFor){ _undoHistoryFor=proj.id; state.undoStack=[]; state.redoStack=[]; }
+    if(window.updateUndoButtons) updateUndoButtons();
+  }
   resetSimToActiveSong();
   renderSongList();renderStreamsBar();renderCueList();
   redrawActive();updateStreamDots();_updateCamerasTab();_updateLiveOffsetDisplay();_updateLiveClock();
@@ -4781,6 +4791,7 @@ function applyProject(proj){
   }
 }
 let _lastHydratedProjId=null;
+let _undoHistoryFor=null;   /* history belongs to one project; switching clears it */
 
 // ─── STREAM HELPERS ───
 function getStreamColor(streamId){
@@ -5506,25 +5517,131 @@ function _cfGetAltAddr(){ try{ return localStorage.getItem(CF_ALT_ENV_KEY)||''; 
 function _cfSetAltAddr(a){ try{ if(a) localStorage.setItem(CF_ALT_ENV_KEY,String(a)); }catch(e){} }
 window._cfGetAltAddr=_cfGetAltAddr; window._cfSetAltAddr=_cfSetAltAddr;
 
-// ─── UNDO/REDO ───
-function snapshot(){
-  state.undoStack.push(JSON.stringify({songs:state.songs,streams:state.streams,cameraTrack:state.cameraTrack}));
-  if(state.undoStack.length>50)state.undoStack.shift();
-  state.redoStack=[];updateUndoButtons();
+/* ─── UNDO/REDO ──────────────────────────────────────────────────────────────
+   Coverage is automatic, not opt-in. Undo used to depend on each mutation
+   remembering to call snapshot() first, and an audit found 16 of 26 actions did
+   not — worse, mixing covered and uncovered edits silently threw work away: flag
+   a cue after a snapshotted rename, undo once, and the flag vanished with it.
+
+   Instead this keeps a shadow copy of the last committed project and hooks
+   persist(), which every mutation already calls. On each commit the PREVIOUS
+   shadow becomes an undo entry and the shadow refreshes. Any action that saves is
+   undoable by construction, including ones not yet written.
+
+   The payload is the whole project — the old one held only songs/streams/
+   cameraTrack, which is why reordering sequences was un-undoable despite calling
+   snapshot(): the order lives in playlists[].songIds, outside what was captured.
+   Per-device view preferences (track visibility) are deliberately left out; they
+   are not edits and undo should not flip the operator's own show/hide state.
+   ───────────────────────────────────────────────────────────────────────────── */
+const UNDO_MAX_ENTRIES=50;
+const UNDO_MAX_BYTES=8*1024*1024;   /* whole-project copies: cap the total, not just the count */
+let _undoShadow=null;               /* serialized last committed state */
+let _undoSuspend=0;                 /* >0 while we are the ones writing state */
+let _undoTxnDepth=0, _undoTxnDirty=false;
+
+/* NOT the same thing as Block 2's snapshot(), which builds the Realtime sync
+   payload. This one never leaves the tab. */
+function _undoSerialize(){
+  return JSON.stringify({
+    name:state.name,fps:state.fps,visibleCount:state.visibleCount,
+    warnSec:state.warnSec,autoAdvanceSec:state.autoAdvanceSec,
+    activeSongId:state.activeSongId,activePlaylistId:state.activePlaylistId,
+    playlists:state.playlists,songs:state.songs,streams:state.streams,
+    cameraTrack:state.cameraTrack||null});
+}
+/* Bound both stacks by count AND by bytes. A whole-project copy is ~166KB on a
+   35-sequence show, so a fixed count alone would let history grow without limit as
+   shows get bigger; the byte cap trims depth instead of memory. Oldest goes first,
+   so the recent steps an operator actually reaches for always survive. */
+function _undoTrimStacks(){
+  [state.undoStack,state.redoStack].forEach(function(st){
+    while(st.length>UNDO_MAX_ENTRIES) st.shift();
+    let bytes=0;
+    for(let i=0;i<st.length;i++) bytes+=st[i].length;
+    while(st.length>1&&bytes>UNDO_MAX_BYTES) bytes-=st.shift().length;
+  });
+}
+/* Called from persist(), i.e. after the mutation has landed. */
+function _undoRecord(){
+  if(_undoSuspend) return;
+  const now=_undoSerialize();
+  if(_undoShadow===null){ _undoShadow=now; return; }   /* first commit after a load */
+  if(_undoShadow===now) return;                        /* nothing actually changed */
+  if(_undoTxnDepth>0){ _undoTxnDirty=true; return; }   /* one entry for the whole transaction */
+  state.undoStack.push(_undoShadow);
+  _undoShadow=now;
+  state.redoStack=[];
+  _undoTrimStacks(); updateUndoButtons();
+}
+/* Wrap a compound action so it reverts in ONE step — duplicating a sequence or
+   applying twenty auto-matched files should not cost twenty undo presses.
+   Handles sync and async bodies. */
+function undoTxn(fn){
+  _undoTxnDepth++;
+  const done=()=>{
+    if(--_undoTxnDepth===0&&_undoTxnDirty){
+      _undoTxnDirty=false;
+      const now=_undoSerialize();
+      if(_undoShadow!==null&&_undoShadow!==now){
+        state.undoStack.push(_undoShadow); _undoShadow=now;
+        state.redoStack=[]; _undoTrimStacks(); updateUndoButtons();
+      }
+    }
+  };
+  let out;
+  try{ out=fn(); }catch(e){ done(); throw e; }
+  if(out&&typeof out.then==='function') return out.then(v=>{done();return v;},e=>{done();throw e;});
+  done(); return out;
+}
+/* Adopt a project as the undo baseline without recording it as an edit. */
+function _undoResetBaseline(){ _undoShadow=_undoSerialize(); }
+
+/* Retired: coverage now comes from persist(). Kept as a no-op because ~40 call
+   sites still invoke it, and with automatic recording an extra push here would
+   put the same state on the stack twice — one undo press that appears to do
+   nothing. */
+function snapshot(){}
+
+function _undoApply(json){
+  const p=JSON.parse(json);
+  _undoSuspend++;
+  try{
+    state.name=p.name; state.fps=p.fps; state.visibleCount=p.visibleCount;
+    state.warnSec=p.warnSec; state.autoAdvanceSec=p.autoAdvanceSec;
+    state.activeSongId=p.activeSongId; state.activePlaylistId=p.activePlaylistId;
+    state.playlists=p.playlists; state.songs=p.songs; state.streams=p.streams;
+    state.cameraTrack=p.cameraTrack;
+    /* Visible-track ids can name a track this state does not have. */
+    const ids=(state.streams||[]).map(s=>s.id);
+    state.visibleStreamIds=(state.visibleStreamIds||[]).filter(id=>ids.indexOf(id)!==-1);
+    if(!state.visibleStreamIds.length) state.visibleStreamIds=ids.slice();
+    _undoShadow=json;
+    /* Syncs like any other edit: pushProject uses optimistic concurrency, so a
+       collaborator's concurrent change surfaces as a conflict for a human to
+       resolve rather than being silently overwritten by the undo. */
+    persist();
+  } finally { _undoSuspend--; }
 }
 function undoRedo(dir){
-  if(dir==='undo'&&state.undoStack.length){
-    state.redoStack.push(JSON.stringify({songs:state.songs,streams:state.streams,cameraTrack:state.cameraTrack}));
-    const p=JSON.parse(state.undoStack.pop());state.songs=p.songs;state.streams=p.streams;if(p.cameraTrack!==undefined)state.cameraTrack=p.cameraTrack;
-  } else if(dir==='redo'&&state.redoStack.length){
-    state.undoStack.push(JSON.stringify({songs:state.songs,streams:state.streams,cameraTrack:state.cameraTrack}));
-    const p=JSON.parse(state.redoStack.pop());state.songs=p.songs;state.streams=p.streams;if(p.cameraTrack!==undefined)state.cameraTrack=p.cameraTrack;
-  }
+  /* An edit-mode concern only — Cmd+Z must never rewrite the show being run. */
+  if(state.appMode==='live') return;
+  if(dir==='undo'){
+    if(!state.undoStack.length) return;
+    state.redoStack.push(_undoSerialize());
+    _undoApply(state.undoStack.pop());
+  } else if(dir==='redo'){
+    if(!state.redoStack.length) return;
+    state.undoStack.push(_undoSerialize());
+    _undoApply(state.redoStack.pop());
+  } else return;
+  _undoTrimStacks();
   ETL.selId=null; // clear selection after undo/redo
-  persist();renderSongList();renderStreamsBar();renderCueList();redrawActive();updateUndoButtons();
+  renderSongList();renderStreamsBar();renderCueList();redrawActive();updateUndoButtons();
   _etlRenderSoon();
   // Re-open seq settings panel if it was open
-  if(document.getElementById('seq-settings-modal').classList.contains('show')) openSeqSettingsPanel();
+  const _ssp=document.getElementById('seq-settings-modal');
+  if(_ssp&&_ssp.classList.contains('show')) openSeqSettingsPanel();
 }
 function updateUndoButtons(){
   const u=document.getElementById('undo-btn-toolbar'),r=document.getElementById('redo-btn-toolbar');
@@ -12400,10 +12517,13 @@ async function _amApply(){
   }).filter(Boolean);
   var total=bg.querySelectorAll('.am-row').length;
   _amClose();
-  for(var i=0;i<picks.length;i++){
-    try{ await cfMediaLinkSong(picks[i].songId,picks[i].file); }
-    catch(e){ console.warn('auto-match attach',e); }
-  }
+  /* Attaching twenty files is one decision, so it costs one undo press. */
+  await undoTxn(async function(){
+    for(var i=0;i<picks.length;i++){
+      try{ await cfMediaLinkSong(picks[i].songId,picks[i].file); }
+      catch(e){ console.warn('auto-match attach',e); }
+    }
+  });
   cfMediaToast('Attached '+picks.length+' of '+total+' sequence'+(total===1?'':'s')+'.');
   renderSongList(); if(window._cfMediaRefreshUI) _cfMediaRefreshUI();
 }
