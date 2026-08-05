@@ -4927,6 +4927,9 @@ function switchMode(mode){
       _mobileEd.style.display='none';
     }
   }
+  /* The two offline notices are per mode, so switching modes while offline shows
+     whichever one that mode needs — unless it has already been dismissed. */
+  if(window._cfUpdateOfflineNotice) _cfUpdateOfflineNotice();
   if(window.saveSessionState) saveSessionState();
 }
 
@@ -20393,7 +20396,10 @@ CF._cfCloudSignal=_cfCloudSignal;
 function _cfOnCloudDown(){
   if(CF.isOwner){
     CF._netMode='lan';
-    _cfShowBanner('⚠ No internet · Local Network mode — syncing over the local network');
+    /* Was a full-width bar pinned across the bottom, heavy enough to sit over the
+       cue list and the transport. It is the same dismissible notice as the edit-mode
+       one now, and only shows while the show is being run. */
+    _cfUpdateOfflineNotice();
   } else if(CF._netMode!=='lan'){
     if(CF._ownerLanUrl && CF._joinPin && CF.showId){
       _cfShowBanner('Internet lost — switching to the local network…');
@@ -20409,6 +20415,8 @@ function _cfOnCloudDown(){
 function _cfOnCloudUp(){
   _cfHideBanner();
   if(CF.isOwner) CF._netMode='cloud';
+  CF._offlineDismissed={live:false,edit:false};
+  _cfUpdateOfflineNotice();
   if(window._updateLiveStatusChip) _updateLiveStatusChip();
   if(window._updateViewerStatus) _updateViewerStatus();
   if(!CF.isOwner) return;
@@ -23496,9 +23504,46 @@ CF._plDrop=function(toIdx){
 
 /* ── Online/offline events ───────────────────────────────── */
 CF._wasOffline=false; CF._offlineDirty=false; CF._conflictCheckInProgress=false;
+
+/* ── Offline notices ─────────────────────────────────────────────────────────
+   Two different reassurances, and the operator only needs one at a time:
+
+     live mode — the SHOW is still running: crew and viewers keep getting cues
+     edit mode — the WORK is safe: edits are held and sync when the net returns
+
+   One element carries whichever applies, so both can never appear at once. Each
+   can be dismissed for the current outage; the compact LOCAL NET / CLOUD chip in
+   the topbar is the always-on reminder once a notice has been waved away. A new
+   outage — online, then offline again — brings them back. */
+CF._offlineDismissed={live:false,edit:false};
+function _cfOfflineMode(){ return (typeof state!=='undefined'&&state.appMode==='live')?'live':'edit'; }
+function _cfDismissOfflineNotice(){
+  CF._offlineDismissed[_cfOfflineMode()]=true;
+  var b=document.getElementById('cf-offline-bar'); if(b) b.classList.remove('show');
+}
+function _cfUpdateOfflineNotice(){
+  var b=document.getElementById('cf-offline-bar'); if(!b) return;
+  var offline=(!navigator.onLine)||CF._netMode==='lan';
+  var key=_cfOfflineMode();
+  if(!offline||CF._offlineDismissed[key]){ b.classList.remove('show'); return; }
+  var t=document.getElementById('cf-offline-title'), m=document.getElementById('cf-offline-msg');
+  if(key==='live'){
+    if(t) t.textContent='No internet';
+    if(m) m.textContent='Running on the local network — crew and viewers still get timecode and cues.';
+  } else {
+    if(t) t.textContent='Offline';
+    if(m) m.textContent='Changes will be saved locally and synced when back online.';
+  }
+  b.classList.add('show');
+}
+window._cfDismissOfflineNotice=_cfDismissOfflineNotice;
+window._cfUpdateOfflineNotice=_cfUpdateOfflineNotice;
+
 window.addEventListener('online',function(){
   CF._wasOffline=true;
-  var bar=document.getElementById('cf-offline-bar'); if(bar) bar.classList.remove('show');
+  /* A fresh outage earns a fresh notice. */
+  CF._offlineDismissed={live:false,edit:false};
+  _cfUpdateOfflineNotice();
   if(CF.showId&&CF.isOwner&&CF.dirty){
     /* Set flag synchronously before any async callbacks (onComeOnline's getSession.then)
        can run — they will check this flag and skip their own pushProject calls. */
@@ -23525,7 +23570,7 @@ window.addEventListener('online',function(){
 });
 window.addEventListener('offline',function(){
   if(CF.dirty) CF._offlineDirty=true;
-  var bar=document.getElementById('cf-offline-bar'); if(bar) bar.classList.add('show');
+  _cfUpdateOfflineNotice();
   updateSyncBtn();
   if(window._updateSyncChip) _updateSyncChip('offline');
 });
@@ -23719,10 +23764,10 @@ boot();
     <circle cx="8" cy="11.2" r=".65" fill="var(--amber)"/>
   </svg>
   <div style="flex:1;min-width:0;">
-    <div style="font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-hi);margin-bottom:4px;">Offline</div>
-    <div style="font-size:12px;color:var(--txt-mid);line-height:1.5;">Changes will be saved locally and synced when back online.</div>
+    <div id="cf-offline-title" style="font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-hi);margin-bottom:4px;">Offline</div>
+    <div id="cf-offline-msg" style="font-size:12px;color:var(--txt-mid);line-height:1.5;">Changes will be saved locally and synced when back online.</div>
   </div>
-  <button class="oft-close" onclick="this.closest('#cf-offline-bar').classList.remove('show')" title="Dismiss">×</button>
+  <button class="oft-close" onclick="window._cfDismissOfflineNotice&&_cfDismissOfflineNotice()" title="Dismiss">×</button>
 </div>
 
 <div id="cf-tip"></div>
