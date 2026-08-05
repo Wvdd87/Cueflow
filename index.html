@@ -672,6 +672,11 @@ body.mode-live #edit-mode-banner { display: none; }
   transition: background .12s, border-color .12s, color .12s;
 }
 .btn-icon:hover { background: var(--surface3); border-color: var(--hair3); color: var(--txt-hi); }
+/* Glyph-only variant: same 24px height and roughly the same footprint as the text
+   buttons beside it, but the padding meant for words is dropped so the icon itself
+   can be 16px instead of a 10px character nobody can read. */
+.btn-icon.glyph { width: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.btn-icon.glyph svg { width: 16px; height: 16px; display: block; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .btn-icon.primary { color: var(--bg); background: var(--primary); border-color: var(--primary); }
 .btn-icon.primary:hover { filter: brightness(1.1); }
 .btn-icon.active { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); }
@@ -3818,10 +3823,10 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;">
           <span id="vid-tab-name" style="flex:1;font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">No media attached</span>
           <button class="btn-icon" onclick="mediaAttach(state.activeSongId)" style="font-size:10px;">↑ Attach</button>
-          <button class="btn-icon" id="vid-fs-btn" onclick="videoFullscreen()" aria-label="Video fullscreen" style="font-size:10px;display:none;">⛶</button>
+          <button class="btn-icon glyph" id="vid-fs-btn" onclick="videoFullscreen()" title="Play the video fullscreen" aria-label="Fullscreen video" style="display:none;"><svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></button>
           <button class="btn-icon" id="vid-rm-btn" onclick="mediaRemove(state.activeSongId)" style="font-size:10px;color:var(--red);display:none;">✕ Remove</button>
-          <button class="btn-icon" id="vid-pop-btn" onclick="vidPopOpen()" title="Open the video in a separate window" aria-label="Pop out video" style="font-size:11px;">⧉</button>
-          <button class="btn-icon" id="vid-collapse-btn" onclick="toggleVidPanel()" title="Hide video panel" aria-label="Hide video panel" style="font-size:11px;">›</button>
+          <button class="btn-icon glyph" id="vid-pop-btn" onclick="vidPopOpen()" title="Open the video in a separate window" aria-label="Pop out video"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>
+          <button class="btn-icon glyph" id="vid-collapse-btn" onclick="toggleVidPanel()" title="Hide the video panel" aria-label="Hide video panel"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
         </div>
       </div>
       <button id="er-vid-reopen" onclick="toggleVidPanel()" title="Show video panel" aria-label="Show video panel">Video</button>
@@ -13896,7 +13901,9 @@ function _applyVidPanel(){
   const popBtn=document.getElementById('vid-pop-btn');
   if(popBtn){
     const reopenState=st.poppedOut&&!popped;   // preference survived a reload
-    popBtn.textContent=reopenState?'⧉ Reopen':'⧉';
+    /* Marked with the standard active style rather than by rewriting the label:
+       writing textContent here replaced the button's icon with a character. */
+    popBtn.classList.toggle('active',reopenState);
     popBtn.title=reopenState?'Reopen the separate video window':'Open the video in a separate window';
   }
   if(open) _updateVidEmptyState();
