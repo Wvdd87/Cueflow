@@ -42,6 +42,11 @@ The CSS base class already sets `color: #06060a`. Never override it with `color:
 
 Sizes: `xs` 24 px · `sm` 32 px · `md` 52 px · `lg` 96 px · `xl` 144 px.
 
+**Never pad the camera number.** Camera 9 is `9`, not `09`, everywhere it appears —
+cue list, timeline, pickers, modals, track pills, prompter. `padStart(2,'0')` on a
+camera number is a bug; the same camera must look identical on every surface.
+(Sequence numbers, cue indices and timecodes *are* padded — that is unrelated.)
+
 ### Track glyphs (`.track-glyph`)
 
 **Always: near-black background (`#06060a`) + white text (`#fff`).**

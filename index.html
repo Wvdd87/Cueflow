@@ -6851,7 +6851,7 @@ function _cfpBuild(depth){
     const badge=document.createElement('div');
     badge.className='cam-badge';
     badge.style.background=_cfpKeySafe(getCameraColor(cam.colorIdx||0));
-    badge.textContent=String(cam.number!=null?cam.number:'?').padStart(2,'0');
+    badge.textContent=String(cam.number!=null?cam.number:'?');
     hdr.appendChild(badge);
     const hlbl=document.createElement('div');
     hlbl.className='cfp-hdr-lbl';
@@ -7856,7 +7856,7 @@ function openCamNotesScreen(){
           'padding:0 16px;height:100%;border:none;border-right:1px solid var(--hair);'+
           'background:none;cursor:pointer;flex-shrink:0;transition:background .12s;';
         camBtn.innerHTML='<div class="cam-badge sm" style="background:'+hex+';color:#06060a;">'+
-          String(cam.number||'?').padStart(2,'0')+'</div>';
+          String(cam.number||'?')+'</div>';
         camBtn.title='Switch camera';
         camBtn.onclick=function(){ if(window.openCameraSwitcher)openCameraSwitcher(); };
         camBtn.addEventListener('mouseenter',function(){this.style.background='var(--surface2)';});
@@ -8992,7 +8992,7 @@ function renderCueList(){
     const _stName=streamName(cue.streamId);
     const _stShort=state.streams.find(s=>s.id===cue.streamId)?.shortName||_stName.slice(0,3);
     const _stCol=window.getStreamColor?getStreamColor(cue.streamId):{hex:'#3b7bdd'};
-    const _camNumStr=_isCamCue?String(_cueCam?.number||'?').padStart(2,'0'):null;
+    const _camNumStr=_isCamCue?String(_cueCam?.number||'?'):null;
     const _dotEl=_isCamCue
       ?`<button class="cue-stream-dot cam-badge-sq xs" data-cid="${cue.id}" style="background:${_cueCamHex};color:#06060a;" title="Change camera — click to reassign">${_camNumStr}</button>`
       :`<button class="cue-stream-dot track-glyph xs" data-cid="${cue.id}" style="background:#06060a;color:#fff;" title="Move to track — click to reassign">${escH((_stShort||_stName.charAt(0)||'?').slice(0,3).toUpperCase())}</button>`;
@@ -9196,7 +9196,7 @@ function showStreamCtxMenu(e,cueId){
     state.cameraTrack.cameras.forEach(cam=>{
       const hex=getCameraColor(cam.colorIdx);
       const isCur=_thisCue?.cameraId===cam.id;
-      const numStr=String(cam.number).padStart(2,'0');
+      const numStr=String(cam.number);
       _ctxItem(
         `<span class="cam-badge-sq xs" style="background:${hex};color:#06060a;">${numStr}</span>`,
         cam.label||`CAM ${cam.number}`,isCur,
@@ -9485,7 +9485,7 @@ function openDeleteCueModal(cueId){
     if(isCam){
       const cam=getCameraById(cue.cameraId);
       const hex=getCameraColor(cam?.colorIdx||0);
-      const num=String(cam?.number||'?').padStart(2,'0');
+      const num=String(cam?.number||'?');
       badgeEl.innerHTML=`<div class="cam-badge md" style="background:${hex};color:#06060a;">${num}</div>`;
     } else {
       const st=state.streams.find(s=>s.id===cue.streamId);
@@ -9496,7 +9496,7 @@ function openDeleteCueModal(cueId){
   }
   // Meta: "CUE N · TRACK · DURATION"
   const isCam=!!cue.cameraId&&!!state.cameraTrack;
-  const trackLabel=isCam?('CAM '+String(getCameraById(cue.cameraId)?.number||'?').padStart(2,'0')):(state.streams.find(s=>s.id===cue.streamId)?.name||'Track');
+  const trackLabel=isCam?('CAM '+String(getCameraById(cue.cameraId)?.number||'?')):(state.streams.find(s=>s.id===cue.streamId)?.name||'Track');
   const sorted=getSortedCues(song.id,false);
   const nextCue=sorted[cueIdx+1];
   const toNext=nextCue?(()=>{const d=Math.round((nextCue._f-cue._f)/(state.fps||25));return Math.floor(d/60)+':'+String(d%60).padStart(2,'0');})():null;
@@ -10786,7 +10786,7 @@ function _openImportModal(proj,fileName,fileSize,exportedAt){
       const hex=window.getCameraColor?getCameraColor(cam.colorIdx||0):'#888';
       const b=document.createElement('div');
       b.className='cam-badge sm';b.style.cssText='background:'+hex+';color:#06060a;';
-      b.textContent=String(cam.number||'?').padStart(2,'0');
+      b.textContent=String(cam.number||'?');
       tracksRow.appendChild(b);
     });
     streams.forEach(s=>{
@@ -14045,7 +14045,7 @@ function renderListFilterPanel(){
       cams.forEach(cam=>{
         const hex=getCameraColor(cam.colorIdx||0);
         const on=!isAll&&!isNone&&_listFilterCams.has(cam.id);
-        row.appendChild(_makeChip(String(cam.number).padStart(2,'0'),on,()=>{
+        row.appendChild(_makeChip(String(cam.number),on,()=>{
           if(_listFilterCams===null||_listFilterCams.size===0)_listFilterCams=new Set(cams.map(c=>c.id));
           if(_listFilterCams.has(cam.id))_listFilterCams.delete(cam.id);
           else _listFilterCams.add(cam.id);
@@ -15106,7 +15106,7 @@ function _ncBuildPicker(){
       btn.style.setProperty('--nc-bg',hex);
       btn.style.setProperty('--nc-opacity',isSel?'1':'0.7');
       btn.innerHTML=
-        `<span class="nc-badge-num">${String(cam.number||'?').padStart(2,'0')}</span>`+
+        `<span class="nc-badge-num">${String(cam.number||'?')}</span>`+
         (cam.label?`<span class="nc-badge-lbl">${escH(cam.label.slice(0,6))}</span>`:'');
       btn.onclick=()=>{
         _ncSelTarget={type:'camera',id:cam.id};
@@ -16721,7 +16721,7 @@ function _meRenderCueList(){
     var stream=state.streams.find(function(s){return s.id===cue.streamId;});
     var shortName=stream?(stream.shortName||stream.name||'?').slice(0,3).toUpperCase():'?';
     var trackBadge=isCamCue
-      ?'<span class="me-cue-track cam-badge-sq xs" style="background:'+camHex+';color:#06060a;">'+escH(String(cam?cam.number:'?').padStart(2,'0'))+'</span>'
+      ?'<span class="me-cue-track cam-badge-sq xs" style="background:'+camHex+';color:#06060a;">'+escH(String(cam?cam.number:'?'))+'</span>'
       :'<span class="me-cue-track track-glyph xs" style="background:#06060a;color:#fff;">'+escH(shortName)+'</span>';
     var row=document.createElement('div');
     row.className='me-cue-row'+(cue.flagged?' flagged':'');
@@ -17206,7 +17206,7 @@ function _mePopulateTrackSel(selId,currentVal){
   if(state.cameraTrack&&state.cameraTrack.cameras&&state.cameraTrack.cameras.length){
     state.cameraTrack.cameras.forEach(function(cam){
       var val='cam:'+cam.id;
-      var lbl='CAM '+String(cam.number||'?').padStart(2,'0')+(cam.label?' — '+cam.label:'');
+      var lbl='CAM '+String(cam.number||'?')+(cam.label?' — '+cam.label:'');
       opts.push('<option value="'+escH(val)+'"'+(val===currentVal?' selected':'')+'>'+escH(lbl)+'</option>');
     });
   }
@@ -19583,7 +19583,7 @@ function _cfCmBadgeHtml(cue){
   if(cue.cameraId&&window.getCameraById){
     var cam=getCameraById(cue.cameraId);
     var hex=window.getCameraColor?getCameraColor(cam?cam.colorIdx||0:0):'#888';
-    var num=String(cam&&cam.number||'?').padStart(2,'0');
+    var num=String(cam&&cam.number||'?');
     var lbl=cam&&cam.label?cam.label:('CAM '+num);
     return '<div class="cam-badge xs" style="background:'+escH(hex)+';color:#06060a;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;">'+escH(num)+'</div>&ensp;<span style="font-size:12px;color:var(--txt-hi);">'+escH(lbl)+'</span>';
   }
@@ -21635,7 +21635,7 @@ function buildTrackPills(){
         'padding:0 16px;height:100%;border:none;border-right:1px solid var(--hair);'+
         'background:none;cursor:pointer;flex-shrink:0;transition:background .12s;';
       camBtn.innerHTML='<div class="cam-badge sm" style="background:'+hex+';color:#06060a;">'+
-        String(cam.number||'?').padStart(2,'0')+'</div>';
+        String(cam.number||'?')+'</div>';
       camBtn.title='Switch camera';
       camBtn.onclick=function(){ openCameraSwitcher(); };
       camBtn.addEventListener('mouseenter',function(){this.style.background='var(--surface2)';});
