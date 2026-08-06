@@ -23529,7 +23529,10 @@ function _cfUpdateOfflineNotice(){
   var t=document.getElementById('cf-offline-title'), m=document.getElementById('cf-offline-msg');
   if(key==='live'){
     if(t) t.textContent='No internet';
-    if(m) m.textContent='Running on the local network — crew and viewers still get timecode and cues.';
+    /* Says who it actually covers: this reaches the people on the same network and
+       nobody else, and an operator reading "crew and viewers still get cues" could
+       reasonably assume someone off-site was still following. */
+    if(m) m.textContent='Running on the local network — crew and viewers connected to it still get timecode and cues.';
   } else {
     if(t) t.textContent='Offline';
     if(m) m.textContent='Changes will be saved locally and synced when back online.';
