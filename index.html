@@ -268,6 +268,12 @@ input, select, textarea { font-family: inherit; }
 .tcs-fps-badge { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:2px 6px; border-radius:2px; }
 .tcs-fps-badge.ok { background:rgba(24,217,134,.15); color:var(--green); border:1px solid rgba(24,217,134,.3); }
 .tcs-fps-badge.warn { background:var(--primary-bg); color:var(--primary); border:1px solid var(--primary-dim); }
+/* Rate-mismatch strip. Same amber as the badge it belongs to, sitting under the row so
+   it can carry a full sentence and the one-click fix. */
+.tcs-fps-warn { display:flex; align-items:center; gap:10px; margin-top:8px; padding:8px 10px;
+  background:var(--primary-bg); border:1px solid var(--primary-dim); border-radius:3px;
+  font-size:11px; line-height:1.4; color:var(--primary); }
+.tcs-fps-warn button { flex-shrink:0; }
 .tcs-card { background:var(--canvas); border:1px solid var(--hair2); padding:12px 14px; margin-bottom:12px; }
 .tcs-card-status { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
 .tcs-card-pip { width:8px; height:8px; border-radius:50%; background:var(--txt-low); flex-shrink:0; }
@@ -10129,11 +10135,17 @@ function updateTCStatus(status,label){
 
 // ─── MIDI ───
 let tcListening=false;
-const mtc={pieces:new Array(8).fill(0),count:0,lastFrames:0,lastWall:null,locked:false,rafId:null,inputName:''};
+const mtc={pieces:new Array(8).fill(0),count:0,lastFrames:0,lastWall:null,locked:false,rafId:null,inputName:'',
+           detFps:null};
+/* MTC's last nibble is 0-r-r-h: two rate bits and the top bit of the hours. Unlike LTC
+   this is the sender stating its frame rate outright, so there is nothing to infer. */
+const _MTC_RATES=[24,25,29.97,30];   // rr: 0=24, 1=25, 2=29.97 drop-frame, 3=30
 function mtcDecode(){
   const fps=state.fps;
   const fr=mtc.pieces[0]|(mtc.pieces[1]<<4),sc=mtc.pieces[2]|(mtc.pieces[3]<<4);
   const mn=mtc.pieces[4]|(mtc.pieces[5]<<4),hr=(mtc.pieces[6]|((mtc.pieces[7]&1)<<4))&0x1F;
+  mtc.detFps=_MTC_RATES[(mtc.pieces[7]>>1)&3];
+  /* Reported, not applied: state.fps is what every cue TC is timed against. */
   return((hr*3600+mn*60+sc)*fps)+fr;
 }
 // RAF loop: smooth interpolation — only updates currentFrames and TC display, full redraw at 60fps
@@ -10183,7 +10195,7 @@ function onMTCMessage(m){
 function setTCListening(enabled){
   tcListening=enabled;
   if(!enabled){
-    mtc.locked=false;mtc._wasStale=false;if(mtc.rafId){cancelAnimationFrame(mtc.rafId);mtc.rafId=null;}
+    mtc.locked=false;mtc._wasStale=false;mtc.detFps=null;if(mtc.rafId){cancelAnimationFrame(mtc.rafId);mtc.rafId=null;}
     ltc.locked=false;ltc._wasStale=false;if(ltc.rafId){cancelAnimationFrame(ltc.rafId);ltc.rafId=null;}
     updateTCStatus('none','No input');
   }
@@ -10198,8 +10210,14 @@ class LTCDecoder extends AudioWorkletProcessor {
     this._halfP=0;   // half-bit period estimate (samples)
     this._phase=0;   // 0=at bit boundary, 1=seen first-half of a '1' bit
     this._bits=[];   // sliding bit buffer, max 100 entries
+    /* Frame-rate measurement. LTC carries no frame rate anywhere in its 80 bits, so
+       the only way to know it is to time the frames: consecutive sync words are
+       exactly one frame apart, and we have their positions to sub-sample accuracy
+       against the audio clock. sampleRate/period is then the rate directly. */
+    this._lastSync=0; this._framePer=0; this._nPer=0;
   }
-  _reset(){this._phase=0;this._halfP=0;this._bits=[];}
+  /* A signal gap invalidates the timing too — the next interval would span the gap. */
+  _reset(){this._phase=0;this._halfP=0;this._bits=[];this._lastSync=0;}
   _cross(iv){
     if(iv<=0)return;
     if(this._halfP===0){this._halfP=iv*0.5;return;} // bootstrap: assume first crossing is a long (0-bit)
@@ -10241,7 +10259,25 @@ class LTCDecoder extends AudioWorkletProcessor {
       const mnU=f[32]|(f[33]<<1)|(f[34]<<2)|(f[35]<<3), mnT=f[40]|(f[41]<<1)|(f[42]<<2);
       const hrU=f[48]|(f[49]<<1)|(f[50]<<2)|(f[51]<<3), hrT=f[56]|(f[57]<<1);
       const fr=frT*10+frU, sc=scT*10+scU, mn=mnT*10+mnU, hr=hrT*10+hrU;
-      if(fr<=29&&sc<=59&&mn<=59) this.port.postMessage({hr,mn,sc,fr});
+      const df=f[10];   // bit 10 — drop-frame flag, only ever set on 29.97
+      /* Time this frame against the previous one. _lastX is the crossing that closed
+         the sync word, so it is the same point in every frame. Reject any interval
+         that is not a plausible single frame (23.976-30 fps): a missed frame doubles
+         it, and one bad period would poison a running average that has to resolve
+         29.97 from 30 — a 0.1% difference. */
+      let rate=0;
+      if(this._lastSync>0){
+        const per=this._lastX-this._lastSync;
+        if(per>sampleRate/31&&per<sampleRate/23){
+          if(this._framePer===0){this._framePer=per;this._nPer=1;}
+          /* Settle fast, then average hard: the coarse 24/25/30 answer wants to be
+             right within a frame or two, the 29.97-vs-30 call wants seconds. */
+          else{const k=this._nPer<12?0.15:0.02;this._framePer=this._framePer*(1-k)+per*k;this._nPer++;}
+          rate=sampleRate/this._framePer;
+        }
+      }
+      this._lastSync=this._lastX;
+      if(fr<=29&&sc<=59&&mn<=59) this.port.postMessage({hr,mn,sc,fr,df,rate,n:this._nPer});
       this._bits=[];  // clear — next frame starts fresh
     }
   }
@@ -10266,7 +10302,41 @@ registerProcessor('ltc-decoder',LTCDecoder);
 `;
 
 let ltc={stream:null,ctx:null,source:null,node:null,_analyser:null,rafId:null,
-         lastFrames:0,lastWall:null,locked:false,inputName:'',_wasStale:false};
+         lastFrames:0,lastWall:null,locked:false,inputName:'',_wasStale:false,
+         /* Measured frame rate of the incoming signal — NOT state.fps, which is the
+            project's own rate. They are allowed to disagree, and the settings panel
+            exists to say so out loud when they do. */
+         detFps:null,detDf:false,_detMaxFr:-1};
+
+/* Turn one LTC frame's evidence into a standard frame rate.
+
+   Two independent signals, because neither is enough on its own:
+   · the measured rate (sampleRate / frame period) lands within a fraction of a
+     percent, which separates 24 / 25 / 30 immediately but cannot be trusted to
+     split 29.97 from 30 until it has averaged for a few seconds;
+   · the highest frame NUMBER seen is exact and unarguable — an fr of 27 can only
+     come from a 30-family signal — but needs a second of TC before the counter has
+     been all the way round.
+   So the measurement picks the family, a frame number the family cannot hold
+   overrides it, and only then do the pulldown variants get decided. */
+function _ltcClassifyFps(measured,maxFr,df,n){
+  let fam=0;
+  if(measured>0) fam=measured>=27?30:(measured>=24.5?25:24);
+  if(maxFr>=25) fam=30;                      // only 29.97/30 ever reach fr 25+
+  else if(maxFr===24&&fam===24) fam=25;      // 24 fps tops out at fr 23
+  if(!fam) return null;
+  if(fam===25) return 25;
+  /* The drop-frame flag is only ever set on 29.97, so it settles that case outright.
+     Otherwise wait for the average to be worth reading (n frames), then split on the
+     midpoint; before that, answer with the family rather than guess a pulldown. */
+  if(fam===30){
+    if(df) return 29.97;
+    if(n<60||!measured) return 30;
+    return measured<29.985?29.97:30;
+  }
+  if(n<60||!measured) return 24;
+  return measured<23.988?23.976:24;
+}
 
 async function listAudioInputs(){
   /* This getUserMedia call is what triggers the OS microphone prompt, and its failure
@@ -10327,6 +10397,9 @@ async function initLTC(deviceId){
 async function stopLTC(){
   if(ltc.rafId){cancelAnimationFrame(ltc.rafId);ltc.rafId=null;}
   ltc.locked=false;ltc._wasStale=false;
+  /* A new input is a new signal — never carry the old one's rate across, or switching
+     devices leaves the last box's frame rate on screen as if it were this one's. */
+  ltc.detFps=null;ltc.detDf=false;ltc._detMaxFr=-1;
   if(ltc.node){try{ltc.node.disconnect();}catch(e){}ltc.node=null;}
   if(ltc._analyser){try{ltc._analyser.disconnect();}catch(e){}ltc._analyser=null;}
   if(ltc.source){try{ltc.source.disconnect();}catch(e){}ltc.source=null;}
@@ -10336,6 +10409,12 @@ async function stopLTC(){
 
 function _onLTCFrame(e){
   const d=e.data;const fps=state.fps||25;
+  /* Read the wire's own rate before anything else. This is reporting only — the cue
+     sheet is timed against state.fps and must not be re-based underneath the operator
+     mid-show; the settings panel shows the disagreement and offers the change. */
+  if(d.fr>ltc._detMaxFr) ltc._detMaxFr=d.fr;
+  if(d.df) ltc.detDf=true;
+  ltc.detFps=_ltcClassifyFps(d.rate||0,ltc._detMaxFr,ltc.detDf,d.n||0);
   const frames=Math.max(0,((d.hr*3600+d.mn*60+d.sc)*fps+d.fr)+(state.tcOffset||0));
   ltc.lastFrames=frames;ltc.lastWall=performance.now(); // always update for preview
   if(!tcListening)return;
@@ -11650,30 +11729,68 @@ function openSettingsModal(tab){
   document.getElementById('settings-modal').classList.add('show');
 }
 
+function _fpsTxt(f){ return f.toFixed(f%1?3:0)+' fps'; }
+
+/* One source's FRAME RATE readout. The rule this panel got wrong for a long time: the
+   number next to a DETECTED badge has to be the rate measured off the wire, never
+   state.fps dressed up as one. state.fps is the project's rate; showing it here and
+   calling it detected meant a 30 fps feed read "25 fps DETECTED" and nothing anywhere
+   said the two disagreed — which is the one thing an operator needs to be told, since
+   every cue in the show is timed against the project rate. */
+function _tcsUpdateOneFps(valId,badgeId,warnId,txtId,btnId,det,live,src){
+  const v=document.getElementById(valId), b=document.getElementById(badgeId);
+  const w=document.getElementById(warnId), t=document.getElementById(txtId), btn=document.getElementById(btnId);
+  const proj=state.fps;
+  const mismatch=live&&det!=null&&Math.abs(det-proj)>0.01;
+  if(live&&det!=null){
+    if(v) v.textContent=_fpsTxt(det);
+    if(b){b.textContent=mismatch?'MISMATCH':'DETECTED';b.className='tcs-fps-badge '+(mismatch?'warn':'ok');}
+  } else if(live){
+    /* Locked, but the rate is not established yet — LTC needs a moment for the frame
+       counter to roll over. Say so rather than filling the gap with the project rate. */
+    if(v) v.textContent='—';
+    if(b){b.textContent='DETECTING';b.className='tcs-fps-badge warn';}
+  } else {
+    if(v) v.textContent=_fpsTxt(proj);
+    if(b){b.textContent='PROJECT';b.className='tcs-fps-badge';}
+  }
+  if(w) w.style.display=mismatch?'flex':'none';
+  if(mismatch){
+    if(t) t.textContent='Incoming '+src+' is '+_fpsTxt(det)+', this show is set to '+_fpsTxt(proj)+'. Every cue is timed at the show rate, so they will not line up.';
+    if(btn) btn.textContent='USE '+_fpsTxt(det).toUpperCase();
+  }
+}
+
+/* Freshness, not ltc.locked: the decoder runs and reports its rate before CONNECT is
+   pressed (that is what feeds the waveform and the INCOMING readout), and the frame
+   rate is exactly the thing an operator wants to check BEFORE committing to the feed.
+   Same 350ms window _tcsUpdateReadout uses for the card, so the two never disagree. */
+function _ltcSignalFresh(){
+  return !!ltc.lastWall && (performance.now()-ltc.lastWall)<350;
+}
+
 function _tcsUpdateFpsDisplay(){
-  const fps=state.fps;
-  const ltcOk=ltc.locked&&!ltc._wasStale;
-  const mtcOk=mtc.locked&&!mtc._wasStale;
-  // LTC fps display
-  const lv=document.getElementById('tcs-fps-val');
-  const lb=document.getElementById('tcs-fps-badge');
-  if(ltcOk){
-    if(lv) lv.textContent=fps.toFixed(fps%1?3:0)+' fps';
-    if(lb){lb.textContent='DETECTED';lb.className='tcs-fps-badge ok';}
-  } else {
-    if(lv) lv.textContent=fps.toFixed(fps%1?3:0)+' fps';
-    if(lb){lb.textContent='';lb.className='tcs-fps-badge';}
-  }
-  // MTC fps display
-  const mv=document.getElementById('tcs-mtc-fps-val');
-  const mb=document.getElementById('tcs-mtc-fps-badge');
-  if(mtcOk){
-    if(mv) mv.textContent=fps.toFixed(fps%1?3:0)+' fps';
-    if(mb){mb.textContent='DETECTED';mb.className='tcs-fps-badge ok';}
-  } else {
-    if(mv) mv.textContent=fps.toFixed(fps%1?3:0)+' fps';
-    if(mb){mb.textContent='';mb.className='tcs-fps-badge';}
-  }
+  _tcsUpdateOneFps('tcs-fps-val','tcs-fps-badge','tcs-fps-warn','tcs-fps-warn-txt','tcs-fps-warn-btn',
+                   ltc.detFps, _ltcSignalFresh(), 'LTC');
+  _tcsUpdateOneFps('tcs-mtc-fps-val','tcs-mtc-fps-badge','tcs-mtc-fps-warn','tcs-mtc-fps-warn-txt','tcs-mtc-fps-warn-btn',
+                   mtc.detFps, mtc.locked&&!mtc._wasStale, 'MTC');
+}
+
+/* Adopt the measured rate as the show's rate. Cue TC strings are untouched — they keep
+   the labels the operator typed — but they now resolve against the right rate, which is
+   the whole point. */
+function tcsAdoptDetectedFps(src){
+  const det=(src==='mtc')?mtc.detFps:ltc.detFps;
+  if(det==null) return;
+  state.fps=det;
+  const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=String(v);};
+  sv('fps-sel',det);
+  const pf=document.getElementById('pset-fps');
+  if(pf) pf.value=(Math.abs(det-29.97)<0.01&&((src==='mtc')?false:ltc.detDf))?'29.97df':String(det);
+  persist();
+  if(window._flushPersist) _flushPersist();
+  redrawActive();
+  _tcsUpdateFpsDisplay();
 }
 
 function saveSettings(){
@@ -18128,6 +18245,12 @@ document.addEventListener('DOMContentLoaded',function(){
           </div>
         </div>
       </div>
+      <!-- Shown only when the measured rate and the show's rate disagree — see
+           _tcsUpdateOneFps(). Silent the rest of the time. -->
+      <div class="tcs-fps-warn" id="tcs-fps-warn" style="display:none;">
+        <span id="tcs-fps-warn-txt"></span>
+        <button class="tcs-btn-outline" id="tcs-fps-warn-btn" onclick="tcsAdoptDetectedFps('ltc')"></button>
+      </div>
       <!-- Status card -->
       <div class="tcs-card" id="tcs-ltc-card">
         <div class="tcs-card-status">
@@ -18164,6 +18287,10 @@ document.addEventListener('DOMContentLoaded',function(){
             <span class="tcs-fps-badge" id="tcs-mtc-fps-badge"></span>
           </div>
         </div>
+      </div>
+      <div class="tcs-fps-warn" id="tcs-mtc-fps-warn" style="display:none;">
+        <span id="tcs-mtc-fps-warn-txt"></span>
+        <button class="tcs-btn-outline" id="tcs-mtc-fps-warn-btn" onclick="tcsAdoptDetectedFps('mtc')"></button>
       </div>
       <!-- Status card -->
       <div class="tcs-card" id="tcs-mtc-card">
