@@ -33,8 +33,12 @@ function createWindow() {
      through this handler, and denying it drops the request without firing
      fullscreenerror — the returned promise simply never settles. That is why the
      video panel's fullscreen button did nothing in the packaged app while working
-     in a browser. */
-  const ALLOWED = ['midi', 'midiSysex', 'media', 'audioCapture', 'fullscreen'];
+     in a browser.
+
+     'window-management' is the same story for the camera prompter's Full Screen
+     button: without it getScreenDetails() rejects and the prompter can only fill
+     the monitor its window already sits on. */
+  const ALLOWED = ['midi', 'midiSysex', 'media', 'audioCapture', 'fullscreen', 'window-management'];
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
     callback(ALLOWED.indexOf(permission) !== -1);
   });

@@ -3136,6 +3136,35 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
   padding:.3vh .6vw;
 }
 #cf-prompter-screen.notc #cfp-notc { display:flex; }
+
+/* FULL SCREEN control. This window is captured and keyed, so the one piece of chrome the
+   prompter owns has to be able to paint absolutely nothing: it is revealed by moving the
+   mouse, takes itself away again after a few seconds of stillness, and is gone entirely
+   once we are fullscreen — Esc or F is the way back out. Snap on/off, no fade: a
+   half-opaque frame is exactly what fringes on a key. Opaque like every other card in
+   this section. */
+#cfp-fs {
+  display:none; position:absolute; top:1.6vh; left:1.1vw; z-index:2;
+  flex-direction:column; align-items:flex-start; gap:6px;
+}
+#cf-prompter-screen.ui:not(.fs) #cfp-fs { display:flex; }
+#cf-prompter-screen.ui:not(.fs) { cursor:default; }
+#cfp-fs-btn {
+  display:flex; align-items:center; gap:8px;
+  background:var(--surface); color:var(--txt-hi);
+  border:1px solid var(--hair2); border-radius:6px;
+  padding:9px 14px; cursor:pointer;
+  font-family:var(--cond); font-weight:700; text-transform:uppercase;
+  letter-spacing:.1em; font-size:13px;
+}
+#cfp-fs-btn:hover { border-color:var(--amber); color:var(--amber); }
+#cfp-fs-btn svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; }
+#cfp-fs-hint {
+  background:var(--surface); color:var(--txt-mid);
+  font-family:var(--cond); font-weight:600; letter-spacing:.06em;
+  font-size:11px; line-height:1.35; padding:5px 9px; max-width:26vw;
+}
+#cfp-fs-hint:empty { display:none; }
 </style>
   <script>/* Supabase SDK v2 */
 var supabase=(function(e){function t(e,t){var n={};for(var r in e)Object.prototype.hasOwnProperty.call(e,r)&&t.indexOf(r)<0&&(n[r]=e[r]);if(e!=null&&typeof Object.getOwnPropertySymbols==`function`)for(var i=0,r=Object.getOwnPropertySymbols(e);i<r.length;i++)t.indexOf(r[i])<0&&Object.prototype.propertyIsEnumerable.call(e,r[i])&&(n[r[i]]=e[r[i]]);return n}function n(e,t,n,r){function i(e){return e instanceof n?e:new n(function(t){t(e)})}return new(n||=Promise)(function(n,a){function o(e){try{c(r.next(e))}catch(e){a(e)}}function s(e){try{c(r.throw(e))}catch(e){a(e)}}function c(e){e.done?n(e.value):i(e.value).then(o,s)}c((r=r.apply(e,t||[])).next())})}let r=e=>e?(...t)=>e(...t):(...e)=>fetch(...e);var i=class extends Error{constructor(e,t=`FunctionsError`,n){super(e),this.name=t,this.context=n}toJSON(){return{name:this.name,message:this.message,context:this.context}}},a=class extends i{constructor(e){super(`Failed to send a request to the Edge Function`,`FunctionsFetchError`,e)}},o=class extends i{constructor(e){super(`Relay Error invoking the Edge Function`,`FunctionsRelayError`,e)}},s=class extends i{constructor(e){super(`Edge Function returned a non-2xx status code`,`FunctionsHttpError`,e)}},c;(function(e){e.Any=`any`,e.ApNortheast1=`ap-northeast-1`,e.ApNortheast2=`ap-northeast-2`,e.ApSouth1=`ap-south-1`,e.ApSoutheast1=`ap-southeast-1`,e.ApSoutheast2=`ap-southeast-2`,e.CaCentral1=`ca-central-1`,e.EuCentral1=`eu-central-1`,e.EuWest1=`eu-west-1`,e.EuWest2=`eu-west-2`,e.EuWest3=`eu-west-3`,e.SaEast1=`sa-east-1`,e.UsEast1=`us-east-1`,e.UsWest1=`us-west-1`,e.UsWest2=`us-west-2`})(c||={});var l=class{constructor(e,{headers:t={},customFetch:n,region:i=c.Any}={}){this.url=e,this.headers=t,this.region=i,this.fetch=r(n)}setAuth(e){this.headers.Authorization=`Bearer ${e}`}invoke(e){return n(this,arguments,void 0,function*(e,t={}){let n,r;try{let{headers:i,method:c,body:l,signal:u,timeout:d}=t,f={},{region:p}=t;p||=this.region;let m=new URL(`${this.url}/${e}`);p&&p!==`any`&&(f[`x-region`]=p,m.searchParams.set(`forceFunctionRegion`,p));let h;l&&(i&&!Object.prototype.hasOwnProperty.call(i,`Content-Type`)||!i)?typeof Blob<`u`&&l instanceof Blob||l instanceof ArrayBuffer?(f[`Content-Type`]=`application/octet-stream`,h=l):typeof l==`string`?(f[`Content-Type`]=`text/plain`,h=l):typeof FormData<`u`&&l instanceof FormData?h=l:(f[`Content-Type`]=`application/json`,h=JSON.stringify(l)):h=l&&typeof l!=`string`&&!(typeof Blob<`u`&&l instanceof Blob)&&!(l instanceof ArrayBuffer)&&!(typeof FormData<`u`&&l instanceof FormData)?JSON.stringify(l):l;let ee=u;d&&(r=new AbortController,n=setTimeout(()=>r.abort(),d),u?(ee=r.signal,u.addEventListener(`abort`,()=>r.abort())):ee=r.signal);let g=yield this.fetch(m.toString(),{method:c||`POST`,headers:Object.assign(Object.assign(Object.assign({},f),this.headers),i),body:h,signal:ee}).catch(e=>{throw new a(e)}),te=g.headers.get(`x-relay-error`);if(te&&te===`true`)throw new o(g);if(!g.ok)throw new s(g);let _=(g.headers.get(`Content-Type`)??`text/plain`).split(`;`)[0].trim(),ne;return ne=_===`application/json`?yield g.json():_===`application/octet-stream`||_===`application/pdf`?yield g.blob():_===`text/event-stream`?g:_===`multipart/form-data`?yield g.formData():yield g.text(),{data:ne,error:null,response:g}}catch(e){return{data:null,error:e,response:e instanceof s||e instanceof o?e.context:void 0}}finally{n&&clearTimeout(n)}})}};let u=e=>Math.min(1e3*2**e,3e4),d=[520,503],f=[`GET`,`HEAD`,`OPTIONS`];var p=class extends Error{constructor(e){super(e.message),this.name=`PostgrestError`,this.details=e.details,this.hint=e.hint,this.code=e.code}toJSON(){return{name:this.name,message:this.message,details:this.details,hint:this.hint,code:this.code}}};function m(e,t){return new Promise(n=>{if(t?.aborted){n();return}let r=setTimeout(()=>{t?.removeEventListener(`abort`,i),n()},e);function i(){clearTimeout(r),n()}t?.addEventListener(`abort`,i)})}function h(e,t,n,r){return!(!r||n>=3||!f.includes(e)||!d.includes(t))}var ee=class{constructor(e){this.shouldThrowOnError=!1,this.retryEnabled=!0,this.method=e.method,this.url=e.url,this.headers=new Headers(e.headers),this.schema=e.schema,this.body=e.body,this.shouldThrowOnError=e.shouldThrowOnError??!1,this.signal=e.signal,this.isMaybeSingle=e.isMaybeSingle??!1,this.shouldStripNulls=e.shouldStripNulls??!1,this.urlLengthLimit=e.urlLengthLimit??8e3,this.retryEnabled=e.retry??!0,e.fetch?this.fetch=e.fetch:this.fetch=fetch}throwOnError(){return this.shouldThrowOnError=!0,this}stripNulls(){if(this.headers.get(`Accept`)===`text/csv`)throw Error(`stripNulls() cannot be used with csv()`);return this.shouldStripNulls=!0,this}setHeader(e,t){return this.headers=new Headers(this.headers),this.headers.set(e,t),this}retry(e){return this.retryEnabled=e,this}then(e,t){var n=this;if(this.schema===void 0||([`GET`,`HEAD`].includes(this.method)?this.headers.set(`Accept-Profile`,this.schema):this.headers.set(`Content-Profile`,this.schema)),this.method!==`GET`&&this.method!==`HEAD`&&this.headers.set(`Content-Type`,`application/json`),this.shouldStripNulls){let e=this.headers.get(`Accept`);e===`application/vnd.pgrst.object+json`?this.headers.set(`Accept`,`application/vnd.pgrst.object+json;nulls=stripped`):(!e||e===`application/json`)&&this.headers.set(`Accept`,`application/vnd.pgrst.array+json;nulls=stripped`)}let r=this.fetch,i=(async()=>{let e=0;for(;;){let t=new Headers(n.headers);e>0&&t.set(`X-Retry-Count`,String(e));let i;try{i=await r(n.url.toString(),{method:n.method,headers:t,body:JSON.stringify(n.body,(e,t)=>typeof t==`bigint`?t.toString():t),signal:n.signal})}catch(t){if(t?.name===`AbortError`||t?.code===`ABORT_ERR`||!f.includes(n.method))throw t;if(n.retryEnabled&&e<3){let t=u(e);e++,await m(t,n.signal);continue}throw t}if(h(n.method,i.status,e,n.retryEnabled)){let t=i.headers?.get(`Retry-After`)??null,r=t===null?u(e):Math.max(0,parseInt(t,10)||0)*1e3;await i.text(),e++,await m(r,n.signal);continue}return await n.processResponse(i)}})();return this.shouldThrowOnError||(i=i.catch(e=>{let t=``,n=``,r=``,i=e?.cause;if(i){let n=i?.message??``,r=i?.code??``;t=`${e?.name??`FetchError`}: ${e?.message}`,t+=`\n\nCaused by: ${i?.name??`Error`}: ${n}`,r&&(t+=` (${r})`),i?.stack&&(t+=`\n${i.stack}`)}else t=e?.stack??``;let a=this.url.toString().length;return e?.name===`AbortError`||e?.code===`ABORT_ERR`?(r=``,n=`Request was aborted (timeout or manual cancellation)`,a>this.urlLengthLimit&&(n+=`. Note: Your request URL is ${a} characters, which may exceed server limits. If selecting many fields, consider using views. If filtering with large arrays (e.g., .in('id', [many IDs])), consider using an RPC function to pass values server-side.`)):(i?.name===`HeadersOverflowError`||i?.code===`UND_ERR_HEADERS_OVERFLOW`)&&(r=``,n=`HTTP headers exceeded server limits (typically 16KB)`,a>this.urlLengthLimit&&(n+=`. Your request URL is ${a} characters. If selecting many fields, consider using views. If filtering with large arrays (e.g., .in('id', [200+ IDs])), consider using an RPC function instead.`)),{success:!1,error:{message:`${e?.name??`FetchError`}: ${e?.message}`,details:t,hint:n,code:r},data:null,count:null,status:0,statusText:``}})),i.then(e,t)}async processResponse(e){var t=this;let n=null,r=null,i=null,a=e.status,o=e.statusText;if(e.ok){if(t.method!==`HEAD`){let n=await e.text();n===``||(r=t.headers.get(`Accept`)===`text/csv`||t.headers.get(`Accept`)&&t.headers.get(`Accept`)?.includes(`application/vnd.pgrst.plan+text`)?n:JSON.parse(n))}let s=t.headers.get(`Prefer`)?.match(/count=(exact|planned|estimated)/),c=e.headers.get(`content-range`)?.split(`/`);s&&c&&c.length>1&&(i=parseInt(c[1])),t.isMaybeSingle&&Array.isArray(r)&&(r.length>1?(n={code:`PGRST116`,details:`Results contain ${r.length} rows, application/vnd.pgrst.object+json requires 1 row`,hint:null,message:`JSON object requested, multiple (or no) rows returned`},r=null,i=null,a=406,o=`Not Acceptable`):r=r.length===1?r[0]:null)}else{let i=await e.text();try{n=JSON.parse(i),Array.isArray(n)&&e.status===404&&(r=[],n=null,a=200,o=`OK`)}catch{e.status===404&&i===``?(a=204,o=`No Content`):n={message:i}}if(n&&t.shouldThrowOnError)throw new p(n)}return{success:n===null,error:n,data:r,count:i,status:a,statusText:o}}returns(){return this}overrideTypes(){return this}},g=class extends ee{select(e){let t=!1,n=(e??`*`).split(``).map(e=>/\s/.test(e)&&!t?``:(e===`"`&&(t=!t),e)).join(``);return this.url.searchParams.set(`select`,n),this.headers.append(`Prefer`,`return=representation`),this}order(e,{ascending:t=!0,nullsFirst:n,foreignTable:r,referencedTable:i=r}={}){let a=i?`${i}.order`:`order`,o=this.url.searchParams.get(a);return this.url.searchParams.set(a,`${o?`${o},`:``}${e}.${t?`asc`:`desc`}${n===void 0?``:n?`.nullsfirst`:`.nullslast`}`),this}limit(e,{foreignTable:t,referencedTable:n=t}={}){let r=n===void 0?`limit`:`${n}.limit`;return this.url.searchParams.set(r,`${e}`),this}range(e,t,{foreignTable:n,referencedTable:r=n}={}){let i=r===void 0?`offset`:`${r}.offset`,a=r===void 0?`limit`:`${r}.limit`;return this.url.searchParams.set(i,`${e}`),this.url.searchParams.set(a,`${t-e+1}`),this}abortSignal(e){return this.signal=e,this}single(){return this.headers.set(`Accept`,`application/vnd.pgrst.object+json`),this}maybeSingle(){return this.isMaybeSingle=!0,this}csv(){return this.headers.set(`Accept`,`text/csv`),this}geojson(){return this.headers.set(`Accept`,`application/geo+json`),this}explain({analyze:e=!1,verbose:t=!1,settings:n=!1,buffers:r=!1,wal:i=!1,format:a=`text`}={}){let o=[e?`analyze`:null,t?`verbose`:null,n?`settings`:null,r?`buffers`:null,i?`wal`:null].filter(Boolean).join(`|`),s=this.headers.get(`Accept`)??`application/json`;return this.headers.set(`Accept`,`application/vnd.pgrst.plan+${a}; for="${s}"; options=${o};`),this}rollback(){return this.headers.append(`Prefer`,`tx=rollback`),this}returns(){return this}maxAffected(e){return this.headers.append(`Prefer`,`handling=strict`),this.headers.append(`Prefer`,`max-affected=${e}`),this}};let te=RegExp(`[,()]`);var _=class extends g{eq(e,t){return this.url.searchParams.append(e,`eq.${t}`),this}neq(e,t){return this.url.searchParams.append(e,`neq.${t}`),this}gt(e,t){return this.url.searchParams.append(e,`gt.${t}`),this}gte(e,t){return this.url.searchParams.append(e,`gte.${t}`),this}lt(e,t){return this.url.searchParams.append(e,`lt.${t}`),this}lte(e,t){return this.url.searchParams.append(e,`lte.${t}`),this}like(e,t){return this.url.searchParams.append(e,`like.${t}`),this}likeAllOf(e,t){return this.url.searchParams.append(e,`like(all).{${t.join(`,`)}}`),this}likeAnyOf(e,t){return this.url.searchParams.append(e,`like(any).{${t.join(`,`)}}`),this}ilike(e,t){return this.url.searchParams.append(e,`ilike.${t}`),this}ilikeAllOf(e,t){return this.url.searchParams.append(e,`ilike(all).{${t.join(`,`)}}`),this}ilikeAnyOf(e,t){return this.url.searchParams.append(e,`ilike(any).{${t.join(`,`)}}`),this}regexMatch(e,t){return this.url.searchParams.append(e,`match.${t}`),this}regexIMatch(e,t){return this.url.searchParams.append(e,`imatch.${t}`),this}is(e,t){return this.url.searchParams.append(e,`is.${t}`),this}isDistinct(e,t){return this.url.searchParams.append(e,`isdistinct.${t}`),this}in(e,t){let n=Array.from(new Set(t)).map(e=>typeof e==`string`&&te.test(e)?`"${e}"`:`${e}`).join(`,`);return this.url.searchParams.append(e,`in.(${n})`),this}notIn(e,t){let n=Array.from(new Set(t)).map(e=>typeof e==`string`&&te.test(e)?`"${e}"`:`${e}`).join(`,`);return this.url.searchParams.append(e,`not.in.(${n})`),this}contains(e,t){return typeof t==`string`?this.url.searchParams.append(e,`cs.${t}`):Array.isArray(t)?this.url.searchParams.append(e,`cs.{${t.join(`,`)}}`):this.url.searchParams.append(e,`cs.${JSON.stringify(t)}`),this}containedBy(e,t){return typeof t==`string`?this.url.searchParams.append(e,`cd.${t}`):Array.isArray(t)?this.url.searchParams.append(e,`cd.{${t.join(`,`)}}`):this.url.searchParams.append(e,`cd.${JSON.stringify(t)}`),this}rangeGt(e,t){return this.url.searchParams.append(e,`sr.${t}`),this}rangeGte(e,t){return this.url.searchParams.append(e,`nxl.${t}`),this}rangeLt(e,t){return this.url.searchParams.append(e,`sl.${t}`),this}rangeLte(e,t){return this.url.searchParams.append(e,`nxr.${t}`),this}rangeAdjacent(e,t){return this.url.searchParams.append(e,`adj.${t}`),this}overlaps(e,t){return typeof t==`string`?this.url.searchParams.append(e,`ov.${t}`):this.url.searchParams.append(e,`ov.{${t.join(`,`)}}`),this}textSearch(e,t,{config:n,type:r}={}){let i=``;r===`plain`?i=`pl`:r===`phrase`?i=`ph`:r===`websearch`&&(i=`w`);let a=n===void 0?``:`(${n})`;return this.url.searchParams.append(e,`${i}fts${a}.${t}`),this}match(e){return Object.entries(e).filter(([e,t])=>t!==void 0).forEach(([e,t])=>{this.url.searchParams.append(e,`eq.${t}`)}),this}not(e,t,n){return this.url.searchParams.append(e,`not.${t}.${n}`),this}or(e,{foreignTable:t,referencedTable:n=t}={}){let r=n?`${n}.or`:`or`;return this.url.searchParams.append(r,`(${e})`),this}filter(e,t,n){return this.url.searchParams.append(e,`${t}.${n}`),this}},ne=class{constructor(e,{headers:t={},schema:n,fetch:r,urlLengthLimit:i=8e3,retry:a}){this.url=e,this.headers=new Headers(t),this.schema=n,this.fetch=r,this.urlLengthLimit=i,this.retry=a}cloneRequestState(){return{url:new URL(this.url.toString()),headers:new Headers(this.headers)}}select(e,t){let{head:n=!1,count:r}=t??{},i=n?`HEAD`:`GET`,a=!1,o=(e??`*`).split(``).map(e=>/\s/.test(e)&&!a?``:(e===`"`&&(a=!a),e)).join(``),{url:s,headers:c}=this.cloneRequestState();return s.searchParams.set(`select`,o),r&&c.append(`Prefer`,`count=${r}`),new _({method:i,url:s,headers:c,schema:this.schema,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}insert(e,{count:t,defaultToNull:n=!0}={}){let{url:r,headers:i}=this.cloneRequestState();if(t&&i.append(`Prefer`,`count=${t}`),n||i.append(`Prefer`,`missing=default`),Array.isArray(e)){let t=e.reduce((e,t)=>e.concat(Object.keys(t)),[]);if(t.length>0){let e=[...new Set(t)].map(e=>`"${e}"`);r.searchParams.set(`columns`,e.join(`,`))}}return new _({method:`POST`,url:r,headers:i,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}upsert(e,{onConflict:t,ignoreDuplicates:n=!1,count:r,defaultToNull:i=!0}={}){let{url:a,headers:o}=this.cloneRequestState();if(o.append(`Prefer`,`resolution=${n?`ignore`:`merge`}-duplicates`),t!==void 0&&a.searchParams.set(`on_conflict`,t),r&&o.append(`Prefer`,`count=${r}`),i||o.append(`Prefer`,`missing=default`),Array.isArray(e)){let t=e.reduce((e,t)=>e.concat(Object.keys(t)),[]);if(t.length>0){let e=[...new Set(t)].map(e=>`"${e}"`);a.searchParams.set(`columns`,e.join(`,`))}}return new _({method:`POST`,url:a,headers:o,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}update(e,{count:t}={}){let{url:n,headers:r}=this.cloneRequestState();return t&&r.append(`Prefer`,`count=${t}`),new _({method:`PATCH`,url:n,headers:r,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}delete({count:e}={}){let{url:t,headers:n}=this.cloneRequestState();return e&&n.append(`Prefer`,`count=${e}`),new _({method:`DELETE`,url:t,headers:n,schema:this.schema,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}};function re(e){"@babel/helpers - typeof";return re=typeof Symbol==`function`&&typeof Symbol.iterator==`symbol`?function(e){return typeof e}:function(e){return e&&typeof Symbol==`function`&&e.constructor===Symbol&&e!==Symbol.prototype?`symbol`:typeof e},re(e)}function ie(e,t){if(re(e)!=`object`||!e)return e;var n=e[Symbol.toPrimitive];if(n!==void 0){var r=n.call(e,t||`default`);if(re(r)!=`object`)return r;throw TypeError(`@@toPrimitive must return a primitive value.`)}return(t===`string`?String:Number)(e)}function ae(e){var t=ie(e,`string`);return re(t)==`symbol`?t:t+``}function oe(e,t,n){return(t=ae(t))in e?Object.defineProperty(e,t,{value:n,enumerable:!0,configurable:!0,writable:!0}):e[t]=n,e}function se(e,t){var n=Object.keys(e);if(Object.getOwnPropertySymbols){var r=Object.getOwnPropertySymbols(e);t&&(r=r.filter(function(t){return Object.getOwnPropertyDescriptor(e,t).enumerable})),n.push.apply(n,r)}return n}function ce(e){for(var t=1;t<arguments.length;t++){var n=arguments[t]==null?{}:arguments[t];t%2?se(Object(n),!0).forEach(function(t){oe(e,t,n[t])}):Object.getOwnPropertyDescriptors?Object.defineProperties(e,Object.getOwnPropertyDescriptors(n)):se(Object(n)).forEach(function(t){Object.defineProperty(e,t,Object.getOwnPropertyDescriptor(n,t))})}return e}var le=class e{constructor(e,{headers:t={},schema:n,fetch:r,timeout:i,urlLengthLimit:a=8e3,retry:o}={}){this.url=e,this.headers=new Headers(t),this.schemaName=n,this.urlLengthLimit=a;let s=r??globalThis.fetch;i!==void 0&&i>0?this.fetch=(e,t)=>{let n=new AbortController,r=setTimeout(()=>n.abort(),i),a=t?.signal;if(a){if(a.aborted)return clearTimeout(r),s(e,t);let i=()=>{clearTimeout(r),n.abort()};return a.addEventListener(`abort`,i,{once:!0}),s(e,ce(ce({},t),{},{signal:n.signal})).finally(()=>{clearTimeout(r),a.removeEventListener(`abort`,i)})}return s(e,ce(ce({},t),{},{signal:n.signal})).finally(()=>clearTimeout(r))}:this.fetch=s,this.retry=o}from(e){if(!e||typeof e!=`string`||e.trim()===``)throw Error(`Invalid relation name: relation must be a non-empty string.`);return new ne(new URL(`${this.url}/${e}`),{headers:new Headers(this.headers),schema:this.schemaName,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}schema(t){return new e(this.url,{headers:this.headers,schema:t,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}rpc(e,t={},{head:n=!1,get:r=!1,count:i}={}){let a,o=new URL(`${this.url}/rpc/${e}`),s,c=e=>typeof e==`object`&&!!e&&(!Array.isArray(e)||e.some(c)),l=n&&Object.values(t).some(c);l?(a=`POST`,s=t):n||r?(a=n?`HEAD`:`GET`,Object.entries(t).filter(([e,t])=>t!==void 0).map(([e,t])=>[e,Array.isArray(t)?`{${t.join(`,`)}}`:`${t}`]).forEach(([e,t])=>{o.searchParams.append(e,t)})):(a=`POST`,s=t);let u=new Headers(this.headers);return l?u.set(`Prefer`,i?`count=${i},return=minimal`:`return=minimal`):i&&u.set(`Prefer`,`count=${i}`),new _({method:a,url:o,headers:u,schema:this.schemaName,body:s,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}},ue=class{constructor(){}static detectEnvironment(){if(typeof WebSocket<`u`)return{type:`native`,constructor:WebSocket};if(typeof globalThis<`u`&&globalThis.WebSocket!==void 0)return{type:`native`,constructor:globalThis.WebSocket};if(typeof global<`u`&&global.WebSocket!==void 0)return{type:`native`,constructor:global.WebSocket};if(typeof globalThis<`u`&&globalThis.WebSocketPair!==void 0&&globalThis.WebSocket===void 0)return{type:`cloudflare`,error:`Cloudflare Workers detected. WebSocket clients are not supported in Cloudflare Workers.`,workaround:`Use Cloudflare Workers WebSocket API for server-side WebSocket handling, or deploy to a different runtime.`};if(typeof globalThis<`u`&&globalThis.EdgeRuntime||typeof navigator<`u`&&navigator.userAgent?.includes(`Vercel-Edge`))return{type:`unsupported`,error:`Edge runtime detected (Vercel Edge/Netlify Edge). WebSockets are not supported in edge functions.`,workaround:`Use serverless functions or a different deployment target for WebSocket functionality.`};let e=globalThis.process;if(e){let t=e.versions;if(t&&t.node){let e=t.node,n=parseInt(e.replace(/^v/,``).split(`.`)[0]);return n>=22?globalThis.WebSocket===void 0?{type:`unsupported`,error:`Node.js ${n} detected but native WebSocket not found.`,workaround:`Provide a WebSocket implementation via the transport option.`}:{type:`native`,constructor:globalThis.WebSocket}:{type:`unsupported`,error:`Node.js ${n} detected without native WebSocket support.`,workaround:`For Node.js < 22, install "ws" package and provide it via the transport option:
@@ -3209,6 +3238,16 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
      green; only the text survives the key and lands over PGM. Blocks are built by
      _cfpBuild() and only their text is touched per frame (no reflow, no flicker). -->
 <div id="cf-prompter-screen">
+  <!-- The only chrome on the field. Hidden unless the mouse moves, and never present at
+       all once fullscreen — see the #cfp-fs rules and cfpToggleFullscreen(). -->
+  <div id="cfp-fs">
+    <button id="cfp-fs-btn" type="button" onclick="cfpToggleFullscreen()"
+            title="Fill the prompter monitor, with no browser UI (Esc or F to leave)">
+      <svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      Full Screen
+    </button>
+    <div id="cfp-fs-hint"></div>
+  </div>
   <div id="cfp-panel">
     <div id="cfp-notc"><span>NO TC</span><span id="cfp-notc-sub">HOLDING</span></div>
     <div id="cfp-blocks"></div>
@@ -6866,6 +6905,9 @@ const CFP={
   _els:{},           // cameraId → {block, live, next, desc, cd, ahead[], empty}
   _txt:{},           // last text written per node, so we skip no-op DOM writes
   _fitting:false,
+  _screens:null,     // ScreenDetails, once the Window Management permission is granted
+  _uiT:null,         // timer that takes the Full Screen button away again
+  _fsFitT:null,      // refit debounce for entering/leaving fullscreen
 };
 
 /* Configured cameras, sorted by camera number. Sorting here (not by config order) is
@@ -7133,6 +7175,121 @@ function _cfpAutoFit(){
   _updatePrompter(state.currentFrames||0);   // replace the worst-case fill with real content
 }
 
+/* ── FULL SCREEN ───────────────────────────────────────────────────────────
+   The prompter lives on a second monitor that feeds the switcher, so "fullscreen"
+   here means two things at once: no browser chrome in the picture, and the picture
+   on the RIGHT monitor. A plain requestFullscreen() only delivers the first — it
+   fills whichever screen the window happens to sit on. The Window Management API
+   (Chromium) lets us name the screen, which is the part that matters; where it is
+   missing (Safari, Firefox) we still go fullscreen and say plainly that the window
+   has to be dragged across first. */
+
+const CFP_FS_HINT='Fills the second monitor · Esc or F to leave';
+
+function _cfpFsHint(msg){
+  const h=document.getElementById('cfp-fs-hint'); if(h) h.textContent=msg||CFP_FS_HINT;
+}
+function _cfpIsFs(){ return !!(document.fullscreenElement||document.webkitFullscreenElement); }
+
+/* Reveal the button, then take it back once the operator stops moving the mouse. */
+function _cfpShowUi(ms){
+  const scr=document.getElementById('cf-prompter-screen'); if(!scr) return;
+  scr.classList.add('ui');
+  clearTimeout(CFP._uiT);
+  CFP._uiT=setTimeout(function(){ scr.classList.remove('ui'); },ms||2500);
+}
+
+/* Which screen the prompter belongs on. If the window has already been moved off the
+   primary screen, leave it exactly where it is — the operator put it there on purpose,
+   and dragging it back to the laptop mid-setup is the one thing they never want.
+   Otherwise reach for a real external monitor before any built-in panel. */
+function _cfpTargetScreen(det){
+  if(!det||!det.screens||det.screens.length<2) return null;
+  const cur=det.currentScreen;
+  if(cur&&!cur.isPrimary) return null;          // already parked on the secondary
+  let out=null;
+  det.screens.forEach(function(s){ if(!out&&s!==cur&&!s.isInternal) out=s; });
+  if(!out) det.screens.forEach(function(s){ if(!out&&s!==cur) out=s; });
+  return out;
+}
+
+/* Fullscreen the prompter element rather than the page: everything else in the app —
+   toasts, modals, popovers — then sits outside the top layer and physically cannot
+   paint onto a keyed feed. */
+function _cfpGoFs(det,failMsg){
+  const scr=document.getElementById('cf-prompter-screen'); if(!scr) return;
+  const req=scr.requestFullscreen||scr.webkitRequestFullscreen;
+  if(!req){ _cfpFsHint('This browser cannot go fullscreen.'); return; }
+  const tgt=det?_cfpTargetScreen(det):null;
+  const opts={navigationUI:'hide'};
+  if(tgt) opts.screen=tgt;
+  let p=null;
+  /* Options are ignored by browsers that don't know them, but webkitRequestFullscreen
+     is old enough to be fussy — fall back to the bare call. */
+  try{ p=req.call(scr,opts); }
+  catch(e){ try{ p=req.call(scr); }catch(e2){ _cfpFsHint(failMsg||'Could not go fullscreen.'); return; } }
+  if(p&&p.catch) p.catch(function(err){
+    _cfpFsHint(failMsg||('Could not go fullscreen'+(err&&err.message?': '+err.message:'.')));
+  });
+}
+
+function cfpToggleFullscreen(){
+  if(_cfpIsFs()){
+    if(document.exitFullscreen) document.exitFullscreen();
+    else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+    return;
+  }
+  /* Screen list already in hand → go straight there, while this click's user
+     activation is still live. requestFullscreen has no patience for an await. */
+  if(CFP._screens){ _cfpGoFs(CFP._screens); return; }
+  if(!window.getScreenDetails){
+    _cfpFsHint('This browser fills the monitor the window is already on — drag it to the prompter screen first.');
+    _cfpGoFs(null);
+    return;
+  }
+  /* First run: this raises the window-management permission prompt, which spends the
+     click. Ask, remember the answer, and say that one more press does it. */
+  window.getScreenDetails().then(function(d){
+    CFP._screens=d;
+    _cfpGoFs(d,'Monitor access granted — press Full Screen once more.');
+  }).catch(function(){
+    _cfpFsHint('Monitor access blocked — filling this window’s monitor instead.');
+    _cfpGoFs(null);
+  });
+}
+
+/* Fetch the screen list up front when the permission was already granted on an earlier
+   visit — that path prompts for nothing and needs no gesture, so the button's own click
+   can go straight to the right monitor instead of costing the operator a second press. */
+function _cfpPrimeScreens(){
+  if(CFP._screens||!window.getScreenDetails) return;
+  if(!navigator.permissions||!navigator.permissions.query) return;
+  const ask=function(name){
+    return navigator.permissions.query({name:name}).then(function(st){
+      if(st.state==='granted') return window.getScreenDetails().then(function(d){ CFP._screens=d; });
+    });
+  };
+  try{
+    /* 'window-placement' is the older Chromium spelling; either may be the live one. */
+    ask('window-management').catch(function(){ return ask('window-placement'); }).catch(function(){});
+  }catch(e){}
+}
+
+function _cfpFsSync(){
+  const scr=document.getElementById('cf-prompter-screen'); if(!scr) return;
+  const fs=_cfpIsFs();
+  scr.classList.toggle('fs',fs);
+  _cfpFsHint('');
+  /* Coming back out, put the button back within reach for a moment — whoever pressed
+     Esc is standing there, and hunting for an invisible control is not the moment. */
+  if(!fs&&scr.style.display!=='none') _cfpShowUi(4000);
+  /* The viewport just changed size, and possibly monitor — refit before anything is
+     read off it. The debounced resize handler covers the same ground; this makes sure
+     it happens even when both screens are the same resolution. */
+  clearTimeout(CFP._fsFitT);
+  CFP._fsFitT=setTimeout(_cfpAutoFit,120);
+}
+
 /* Enter the prompter view (role 'prompter'). */
 function showPrompterScreen(show){
   const scr=document.getElementById('cf-prompter-screen'); if(!scr) return;
@@ -7146,7 +7303,24 @@ function showPrompterScreen(show){
     let rt=null;
     window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(_cfpAutoFit,150); });
     setInterval(_cfpTcWatch,500);
+    /* Full Screen chrome: mouse movement calls it up, fullscreenchange keeps the
+       button's state honest, and F toggles without ever touching the field. */
+    scr.addEventListener('mousemove',function(){ _cfpShowUi(); });
+    scr.addEventListener('mousedown',function(){ _cfpShowUi(); });
+    document.addEventListener('fullscreenchange',_cfpFsSync);
+    document.addEventListener('webkitfullscreenchange',_cfpFsSync);
+    document.addEventListener('keydown',function(e){
+      const s=document.getElementById('cf-prompter-screen');
+      if(!s||s.style.display==='none') return;
+      const t=e.target;
+      if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)) return;
+      if(e.key==='f'||e.key==='F'){ e.preventDefault(); cfpToggleFullscreen(); }
+    });
   }
+  _cfpPrimeScreens();
+  _cfpFsSync();
+  /* Show the button once on arrival so it is discoverable, then get out of the way. */
+  _cfpShowUi(6000);
   _cfpTcWatch();
   /* The viewer TC loop only drives a redraw while appMode is 'live' (see viewerTcRaf) —
      without this the prompter renders once and then sits frozen as TC rolls. Every other
