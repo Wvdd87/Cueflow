@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" type="image/png" href="/favicon.png">
 <meta charset="UTF-8">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" type="image/png" href="/favicon.png">
+<!-- Crew put the viewer and prompter on phone home screens, so this one earns its
+     keep: without it iOS uses a screenshot of the join screen as the icon. -->
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="canonical" href="https://cueflow.wannesvideo.com/">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#07070a">
 <title>CueFlow</title>
@@ -17,32 +23,46 @@
      every URL. Per-project / per-role previews ("CueFlow — Pommelien Thijs —
      Camera") need a layer that can rewrite this head per request. See todo #40.
 
-     og:url is deliberately ABSENT. Every URL here would have to declare the
-     same canonical value, and clients that honour og:url as the click target
-     would then send crew to a bare app root instead of their join link — a
-     broken join is a worse outcome than a plainer card. It belongs to the same
-     server-side step, where it can be the real per-link URL with the PIN
-     stripped.
+     og:url and rel=canonical both point at the bare root on EVERY url, which is
+     deliberate and does two jobs. It is the ordinary canonical signal, and it
+     also tells search engines that a join link is not its own page — so a
+     PIN-bearing URL that leaks into a public post is far less likely to end up
+     indexed. The cost is that Facebook and LinkedIn treat og:url as the click
+     target, so a join link shared THERE would land on the root; crew links go
+     via WhatsApp, Slack, iMessage and mail, none of which do that, and a PIN
+     posted publicly is a problem well before the click target is.
+
+     The action lives in the TITLE, not the description: iMessage and others
+     frequently render title + image and drop the description entirely.
 
      Nothing here may ever carry the PIN or show ID: this markup is handed to
      any bot, forwarder or scraper that asks, with no credentials. -->
-<!-- The action lives in the TITLE, not the description: iMessage and friends often
-     render title + image only and drop the description, so a bare product name
-     would leave those recipients with nothing to act on. -->
-<meta name="description" content="Live cues, camera moves and timecode, in sync with the gallery.">
+<meta name="description" content="Live cues, camera moves and timecode, in sync across the whole crew. Open your link to follow the show on any screen.">
 <meta property="og:site_name" content="CueFlow">
 <meta property="og:title" content="CueFlow — Join the show">
-<meta property="og:description" content="Live cues, camera moves and timecode, in sync with the gallery.">
+<meta property="og:description" content="Live cues, camera moves and timecode, in sync across the whole crew. Open your link to follow the show on any screen.">
 <meta property="og:type" content="website">
-<!-- Absolute URL required — crawlers do not resolve relative image paths. -->
-<meta property="og:image" content="https://cueflow.wannesvideo.com/favicon.png">
-<meta property="og:image:width" content="512">
-<meta property="og:image:height" content="512">
-<meta property="og:image:alt" content="CueFlow">
-<meta name="twitter:card" content="summary">
+<meta property="og:url" content="https://cueflow.wannesvideo.com/">
+<meta property="og:locale" content="en_GB">
+<!-- Absolute URL required — crawlers do not resolve relative image paths. 1200x630
+     is the size LinkedIn and the rest expect; the 512 icon was rejected as too
+     small and rendered as a thumbnail rather than a card. -->
+<meta property="og:image" content="https://cueflow.wannesvideo.com/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="CueFlow — live cues, camera, timecode">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="CueFlow — Join the show">
-<meta name="twitter:description" content="Live cues, camera moves and timecode, in sync with the gallery.">
-<meta name="twitter:image" content="https://cueflow.wannesvideo.com/favicon.png">
+<meta name="twitter:description" content="Live cues, camera moves and timecode, in sync across the whole crew. Open your link to follow the show on any screen.">
+<meta name="twitter:image" content="https://cueflow.wannesvideo.com/og-card.png">
+<meta name="twitter:image:alt" content="CueFlow — live cues, camera, timecode">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"CueFlow",
+"url":"https://cueflow.wannesvideo.com/","applicationCategory":"MultimediaApplication",
+"operatingSystem":"Web, macOS",
+"description":"Live show cue manager. Cues locked to SMPTE timecode, shared live with the crew."}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -3280,6 +3300,12 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   </script>
 </head>
 <body>
+
+<!-- The app draws itself entirely from JS into fixed overlays, so the document has
+     no heading of its own. This one is for screen readers and crawlers, not for
+     looks — visually hidden the accessible way (clipped, not display:none, which
+     would take it out of the accessibility tree too). -->
+<h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;">CueFlow — live show cue manager</h1>
 
 <!-- CueFlow v18 overlays -->
 <div id="cf-loading" style="position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;pointer-events:none;">
