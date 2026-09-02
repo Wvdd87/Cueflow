@@ -11759,21 +11759,68 @@ function asmUpdateSeqNum(){
   const el=document.getElementById('asm-seq-num');
   if(el) el.textContent='Sequence will be #'+num;
 }
-function asmHandleAudio(e){
-  const f=e.target.files[0]; if(!f) return;
-  _pendingAudioFile=f;
+/* Show the "file attached" row. Shared by both routes into it — a file chosen from
+   disk, and a name picked out of the media folder. */
+function asmShowAudioRow(name,meta){
   const nm=document.getElementById('asm-audio-name');
-  if(nm) nm.textContent=f.name.length>34?f.name.substring(0,32)+'…':f.name;
-  const meta=document.getElementById('asm-audio-meta');
-  if(meta) meta.textContent='Audio file attached';
+  if(nm) nm.textContent=name.length>34?name.substring(0,32)+'…':name;
+  const mt=document.getElementById('asm-audio-meta');
+  if(mt) mt.textContent=meta;
   const row=document.getElementById('asm-audio-row');
   if(row) row.style.display='flex';
   const empty=document.getElementById('asm-audio-empty');
   if(empty) empty.style.display='none';
+}
+
+/* Audio Bed picker. With a media folder connected, the whole model is "media lives
+   in the folder and sequences reference it by filename" — so opening a Finder
+   dialog here was the odd one out: it let the operator choose a file from anywhere
+   on disk that the rest of the app then could not resolve. Show the library. */
+function asmChooseAudio(){
+  if(cfMediaEnabled()){
+    cfMediaOpenPicker(null,{ kind:'audio', onPick:asmSetPendingMedia });
+    return;
+  }
+  const inp=document.getElementById('asm-file-in');
+  if(inp) inp.click();
+}
+
+function asmSetPendingMedia(name){
+  if(!name) return;
+  _pendingMediaName=name;
+  _pendingAudioFile=null;
+  asmShowAudioRow(cfMediaBaseName(name),'From media folder');
+}
+
+function asmHandleAudio(e){
+  const f=e.target.files[0]; if(!f) return;
+  _pendingAudioFile=f;
+  _pendingMediaName=null;
+  asmShowAudioRow(f.name,'Audio file attached');
   if(e.target&&e.target.value!==undefined) e.target.value='';
 }
+
+/* Dropping a file on the modal. Under the folder model a file from elsewhere on
+   disk cannot simply be adopted — but if what landed is one of the folder's own
+   files, that is a perfectly good way to pick it. */
+function asmHandleDrop(ev){
+  ev.preventDefault();
+  const f=(ev.dataTransfer&&ev.dataTransfer.files&&ev.dataTransfer.files[0])||null;
+  if(!f) return;
+  if(cfMediaEnabled()){
+    if(cfMediaHas(f.name)) asmSetPendingMedia(f.name);
+    else if(window.cfMediaToast) cfMediaToast('"'+f.name+'" is not in the media folder — pick from the library, or add the file to the folder first.');
+    return;
+  }
+  if(!/\.(wav|aif|aiff|mp3|m4a|aac|flac|ogg)$/i.test(f.name)) return;
+  _pendingAudioFile=f;
+  _pendingMediaName=null;
+  asmShowAudioRow(f.name,'Audio file attached');
+}
+
 function asmClearAudio(){
   _pendingAudioFile=null;
+  _pendingMediaName=null;
   const row=document.getElementById('asm-audio-row');
   if(row) row.style.display='none';
   const empty=document.getElementById('asm-audio-empty');
@@ -11799,6 +11846,18 @@ function asmRefreshStartTc(){
 }
 function openAddSeqModal(){
   _pendingAudioFile=null;
+  _pendingMediaName=null;
+  /* The Audio Bed wording follows whichever source is actually in play. */
+  const _lib=cfMediaEnabled();
+  const _cl=document.getElementById('asm-audio-choose-lbl');
+  if(_cl) _cl.textContent=_lib?'Choose from media folder…':'Choose File…';
+  const _cb=document.getElementById('asm-audio-change-btn');
+  if(_cb) _cb.textContent=_lib?'Change…':'Choose File…';
+  const _hint=document.getElementById('asm-audio-hint');
+  if(_hint) _hint.textContent=_lib
+    ? (cfMedia.folderName ? 'Files in "'+cfMedia.folderName+'". Drop one here to pick it.'
+                          : 'Connect a media folder to attach audio.')
+    : 'Or drop a .wav / .aif onto the modal.';
   // Reset name + counter
   document.getElementById('add-seq-name').value='';
   document.getElementById('add-seq-dur').value='';
@@ -11840,7 +11899,19 @@ function confirmAddSeq(){
   const startTc=validateTc(normTc)?normTc:_asmComputeStartTc(afterId);
   const s={id:uid(),name,description:'',startTc,cues:[],chapters:[]};
   if(durStr) s.targetDuration=durStr;
-  if(_pendingAudioFile) s.audioFilename=_pendingAudioFile.name;
+  /* Write mediaFile — the field everything actually reads. This used to set only
+     the legacy audioFilename, which no part of the folder-media path looks at, so
+     a brand-new sequence had no media until applyProject's legacy migration filled
+     it in on the NEXT load. That is exactly why the waveform and audio only turned
+     up after pressing R. */
+  if(_pendingMediaName){
+    s.mediaFile=_pendingMediaName;
+    s.mediaType=cfMediaKind(_pendingMediaName)||'audio';
+  } else if(_pendingAudioFile){
+    s.mediaFile=_pendingAudioFile.name;
+    s.mediaType='audio';
+    s.audioFilename=_pendingAudioFile.name;   /* legacy IDB lookup compat */
+  }
   s.chapters.push({id:uid(),tc:startTc,name:'Start'});
   state.songs.push(s);
   state.activeSongId=s.id;
@@ -11856,7 +11927,17 @@ function confirmAddSeq(){
     }
   }
   persist();renderSongList();renderCueList();
-  if(_pendingAudioFile){
+  if(_pendingMediaName){
+    /* The sequence already carries mediaFile, so hand it to the same loader a
+       normal link uses — waveform and audio come up straight away instead of
+       waiting for a reload. */
+    const _sid=s.id;
+    cfMediaLoadSong(_sid).then(function(){
+      renderSongList(); renderCueList();
+      if(window._mediaUpdateSSP) _mediaUpdateSSP(_sid);
+      if(window._etlRenderSoon) _etlRenderSoon();
+    }).catch(function(e){ console.warn('[CF] new sequence media load', e); });
+  } else if(_pendingAudioFile){
     loadAudioForSong(s.id,_pendingAudioFile);
     showAudioLoading(_pendingAudioFile.name);
   }
@@ -13109,9 +13190,18 @@ window._cfMediaRefreshUI=_cfMediaRefreshUI;
 
 /* ── Media library picker (link a folder file to a sequence) ─────────── */
 var _cfPickerSongId=null;
-function cfMediaOpenPicker(songId){
-  if(!cfMediaEnabled()||!songId) return;
-  _cfPickerSongId=songId;
+/* Set when the picker is opened by something that has no sequence yet — the Add
+   Sequence modal picks a filename before the sequence exists. */
+var _cfPickerOnPick=null;
+var _cfPickerKind=null;   /* 'audio' | 'video' | null (any) */
+/* opts: {onPick(filename), kind:'audio'|'video'} — onPick replaces the default
+   "link it to this sequence" behaviour, for callers that only want a filename. */
+function cfMediaOpenPicker(songId,opts){
+  opts=opts||{};
+  if(!cfMediaEnabled()||(!songId&&!opts.onPick)) return;
+  _cfPickerSongId=songId||null;
+  _cfPickerOnPick=opts.onPick||null;
+  _cfPickerKind=opts.kind||null;
   var ex=document.getElementById('cf-media-picker'); if(ex) ex.remove();
   var bg=document.createElement('div'); bg.id='cf-media-picker'; bg.className='ntm-bg show';
   bg.style.cssText='position:fixed;inset:0;z-index:11000;display:flex;align-items:center;justify-content:center;';
@@ -13125,7 +13215,7 @@ function cfMediaOpenPicker(songId){
   _cfMediaRenderPicker();
   setTimeout(function(){ var s=document.getElementById('cf-media-picker-search'); if(s) s.focus(); },50);
 }
-function cfMediaClosePicker(){ var el=document.getElementById('cf-media-picker'); if(el) el.remove(); _cfPickerSongId=null; }
+function cfMediaClosePicker(){ var el=document.getElementById('cf-media-picker'); if(el) el.remove(); _cfPickerSongId=null; _cfPickerOnPick=null; _cfPickerKind=null; }
 function _cfMediaRenderPicker(){
   var list=document.getElementById('cf-media-picker-list'); if(!list) return;
   var song=state.songs.find(function(s){return s.id===_cfPickerSongId;});
@@ -13138,7 +13228,13 @@ function _cfMediaRenderPicker(){
     return;
   }
   var q=((document.getElementById('cf-media-picker-search')||{}).value||'').trim().toLowerCase();
-  var files=cfMediaList().filter(function(f){ return !q || f.name.toLowerCase().indexOf(q)>=0; });
+  var files=cfMediaList().filter(function(f){
+    if(q && f.name.toLowerCase().indexOf(q)<0) return false;
+    /* An audio-only field must not offer video, or picking one silently changes
+       what kind of media the sequence carries. */
+    if(_cfPickerKind && f.kind!==_cfPickerKind) return false;
+    return true;
+  });
   var html='';
   if(song&&song.mediaFile){
     html+='<button class="ntm-btn danger" style="width:100%;margin-bottom:10px;" onclick="cfMediaUnlinkSong(\''+song.id+'\');cfMediaClosePicker();">Remove current media — '+escH(song.mediaFile)+'</button>';
@@ -13157,7 +13253,11 @@ function _cfMediaRenderPicker(){
   Array.from(list.querySelectorAll('.cf-media-pick-row')).forEach(function(row){
     row.onmouseenter=function(){ if(!row.dataset.cur) row.style.background='var(--surface2)'; };
     row.onmouseleave=function(){ row.style.background=row.dataset.cur?'var(--surface)':''; };
-    row.onclick=function(){ cfMediaLinkSong(_cfPickerSongId,row.dataset.name); cfMediaClosePicker(); };
+    row.onclick=function(){
+      var name=row.dataset.name, take=_cfPickerOnPick, sid=_cfPickerSongId;
+      cfMediaClosePicker();                 /* clears the state, so read it first */
+      if(take) take(name); else cfMediaLinkSong(sid,name);
+    };
   });
   _cfMediaFillDurations('#cf-media-picker-list .cf-media-dur');
 }
@@ -13997,7 +14097,8 @@ const audio = {
   _scrubMuted: false,
 };
 
-let _pendingAudioFile = null;  // file selected in Add Sequence modal
+let _pendingAudioFile = null;  // file selected in Add Sequence modal (no media folder)
+let _pendingMediaName = null;  // filename picked from the media folder (folder model)
 
 // ── IndexedDB helpers ────────────────────────────────────────────
 const IDB_NAME    = 'cueflow_audio';
@@ -18358,7 +18459,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <!-- ADD SEQUENCE MODAL -->
 <!-- Add Sequence modal -->
 <div id="add-seq-modal" class="ntm-bg" role="dialog" aria-modal="true"
-  ondragover="event.preventDefault();" ondrop="event.preventDefault();const f=event.dataTransfer.files[0];if(f&&/\.(wav|aif|aiff)$/i.test(f.name)){const fe={target:{files:[f],value:''}};asmHandleAudio(fe);}">
+  ondragover="event.preventDefault();" ondrop="asmHandleDrop(event)">
   <div class="asm-box">
     <!-- Header -->
     <div class="asm-header">
@@ -18424,15 +18525,15 @@ document.addEventListener('DOMContentLoaded',function(){
             <span class="asm-audio-name" id="asm-audio-name"></span>
             <span class="asm-audio-meta" id="asm-audio-meta"></span>
           </div>
-          <button class="asm-audio-btn" onclick="document.getElementById('asm-file-in').click()">Choose File…</button>
+          <button class="asm-audio-btn" id="asm-audio-change-btn" onclick="asmChooseAudio()">Choose File…</button>
           <button class="asm-audio-btn clr" onclick="asmClearAudio()">Clear</button>
         </div>
         <!-- Empty state -->
-        <div class="asm-audio-empty" id="asm-audio-empty" onclick="document.getElementById('asm-file-in').click()">
-          <span class="asm-audio-choose">Choose File…</span>
+        <div class="asm-audio-empty" id="asm-audio-empty" onclick="asmChooseAudio()">
+          <span class="asm-audio-choose" id="asm-audio-choose-lbl">Choose File…</span>
         </div>
-        <input type="file" id="asm-file-in" accept=".wav,.aif,.aiff,audio/wav" style="display:none" onchange="asmHandleAudio(event)">
-        <span class="asm-audio-hint">Or drop a .wav / .aif onto the modal.</span>
+        <input type="file" id="asm-file-in" accept=".wav,.aif,.aiff,.mp3,.m4a,.aac,.flac,.ogg,audio/*" style="display:none" onchange="asmHandleAudio(event)">
+        <span class="asm-audio-hint" id="asm-audio-hint">Or drop a .wav / .aif onto the modal.</span>
       </div>
     </div>
     <div class="asm-divider"></div>
