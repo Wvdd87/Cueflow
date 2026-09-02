@@ -11926,7 +11926,17 @@ function confirmAddSeq(){
       _apl.songIds.unshift(s.id);
     }
   }
-  persist();renderSongList();renderCueList();
+  persist();renderSongList();
+  /* Land on the new sequence exactly as clicking it in the list would. The key part
+     is selectSong -> resetSimToActiveSong(), which moves the playhead to the new
+     sequence's start. Without it the timeline stayed parked on the PREVIOUS
+     sequence's timecode, so the new sequence's media bar and waveform were rendered
+     minutes off-screen — the only thing left visible was the filename label, which
+     is pinned to the track's left edge instead of scrolling with the content. The
+     transport was equally far from the audio, so nothing played either. Reloading
+     re-seats the playhead on the active sequence, which is why both came good after
+     pressing R. */
+  selectSong(s.id);
   if(_pendingMediaName){
     /* The sequence already carries mediaFile, so hand it to the same loader a
        normal link uses — waveform and audio come up straight away instead of
@@ -12743,6 +12753,15 @@ async function _cfMediaLoadVideo(songId,filename){
 async function cfMediaLoadSong(songId){
   if(!cfMediaEnabled()) return;
   var song=state.songs.find(function(s){return s.id===songId;}); if(!song||!song.mediaFile) return;
+  /* Resume the AudioContext HERE, before the first await, for the same reason
+     loadAudioForSong() does it first thing: when this is reached from a click
+     (linking a file, confirming a new sequence) the gesture is still on the stack.
+     It used to happen after the file read, by which point the gesture is gone and
+     a browser with a strict autoplay policy leaves the context suspended. */
+  if(cfMediaKind(song.mediaFile)!=='video'){
+    _ensureCtx();
+    if(audio.ctx.state!=='running'){ try{ audio.ctx.resume(); }catch(e){} }
+  }
   var kind=cfMediaKind(song.mediaFile);
   if(!cfMediaHas(song.mediaFile)){
     if(audio.meta[songId]) audio.meta[songId]=null;
