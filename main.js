@@ -3,6 +3,23 @@ const path = require('path');
 const { startLanServer } = require('./lan-server');
 const media = require('./media-protocol');
 
+/* Without a handler here, any stray throw in the main process puts up Electron's
+   modal "A JavaScript error occurred in the main process" dialog — on top of the
+   cockpit, mid-show, needing a click before the operator can do anything. That is
+   a far worse outcome than the fault itself, which is usually something peripheral
+   like a stream cleanup race rather than anything the show depends on. Log it
+   loudly and keep running; the renderer, the timecode and the cue list are all
+   untouched by it.
+
+   Deliberately not a crash reporter and not silent: the stack still goes to the
+   console, so `npm start` surfaces it during development exactly as before. */
+function logMainFault(kind, err) {
+  console.error('[CF] ' + kind + ' in main process (continuing):');
+  console.error((err && err.stack) || err);
+}
+process.on('uncaughtException', (err) => logMainFault('uncaught exception', err));
+process.on('unhandledRejection', (err) => logMainFault('unhandled rejection', err));
+
 media.registerScheme(protocol); // must happen before app ready
 
 let win = null;

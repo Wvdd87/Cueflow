@@ -11,7 +11,7 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { Readable } = require('stream');
+const { ReadableStream } = require('stream/web');
 
 const MEDIA_EXTS = ['.mp3', '.wav', '.m4a', '.mp4', '.mov', '.aac', '.flac', '.ogg', '.m4v', '.webm'];
 const MEDIA_MIME = {
@@ -42,6 +42,41 @@ function registerScheme(protocol) {
   }]);
 }
 
+/* Serve a byte range of a file as a web stream.
+ *
+ * This was Readable.toWeb(), which crashed the main process. Its end-of-stream
+ * callback calls controller.close() unconditionally, and close() on an already
+ * closed controller throws ERR_INVALID_STATE. So when a fetch was aborted in the
+ * same tick that the read finished normally — cancel closes the controller, then
+ * the file stream's 'close' fires with no error — the throw surfaced as an
+ * uncaught exception and Electron put up "A JavaScript error occurred in the main
+ * process". Connecting a media folder loads every sequence at once, which is
+ * precisely the pattern that produces those raced aborts.
+ *
+ * Hand-rolled, the rule is simply: once the controller is finished, never touch
+ * it again. `done` is that latch, and it is set before every terminal call. */
+function fileStream(full, start, end) {
+  const rs = fs.createReadStream(full, { start: start, end: end });
+  let done = false;
+  return new ReadableStream({
+    start(controller) {
+      rs.on('data', (chunk) => {
+        if (done) return;
+        try { controller.enqueue(chunk); }
+        catch (_) { done = true; rs.destroy(); return; }   /* consumer went away */
+        /* Backpressure: stop reading until the consumer drains the queue,
+           so a 4 GB video never lands in memory. */
+        if (controller.desiredSize !== null && controller.desiredSize <= 0) rs.pause();
+      });
+      rs.on('end', () => { if (done) return; done = true; try { controller.close(); } catch (_) {} });
+      rs.on('error', (err) => { if (done) return; done = true; try { controller.error(err); } catch (_) {} });
+      rs.pause();
+    },
+    pull() { rs.resume(); },
+    cancel() { done = true; rs.destroy(); }
+  });
+}
+
 /* Must be called after app ready. */
 function registerMediaProtocol(protocol) {
   protocol.handle('cfmedia', async (req) => {
@@ -59,7 +94,18 @@ function registerMediaProtocol(protocol) {
     if (!st.isFile()) return new Response('not found', { status: 404 });
 
     const type = MEDIA_MIME[path.extname(full).toLowerCase()] || 'application/octet-stream';
-    const body = (start, end) => Readable.toWeb(fs.createReadStream(full, { start: start, end: end }));
+    const body = (start, end) => fileStream(full, start, end);
+
+    /* A zero-byte file — a stalled copy, an iCloud placeholder, a file still being
+       written — would ask for bytes 0..-1 and throw ERR_OUT_OF_RANGE inside
+       createReadStream. There is nothing to stream, so answer with an empty body
+       rather than a failed request. */
+    if (st.size === 0) {
+      return new Response(null, {
+        status: 200,
+        headers: { 'Content-Type': type, 'Content-Length': '0', 'Accept-Ranges': 'bytes' }
+      });
+    }
 
     /* <video> scrubbing issues range requests — without 206s, seeking is dead. */
     const m = /^bytes=(\d*)-(\d*)$/.exec((req.headers.get('range') || '').trim());

@@ -173,6 +173,10 @@ function startLanServer(opts) {
   }
 
   const wss = new WebSocketServer({ server });
+  /* ws forwards the http server's 'error' events onto wss. Without a listener here
+     an unhandled 'error' event throws, which is how a busy port used to crash the
+     main process instead of falling through to the port retry in listen(). */
+  wss.on('error', function () { /* handled on the http server itself */ });
   wss.on('connection', function (ws, req) {
     ws._joined = false;
     ws._ip = (req && req.socket && req.socket.remoteAddress) || 'unknown';
@@ -226,13 +230,37 @@ function startLanServer(opts) {
   }
 
   function listen(p, attemptsLeft, cb) {
-    function onErr(err) {
+    /* Two traps here, both of which bit.
+
+       1. server.listen(port, cb) registers cb as a ONE-TIME 'listening' listener.
+          A failed attempt does not remove it, so after retrying on the next port
+          the stale callback fires too and reports the port we did NOT bind — the
+          join URL and QR would point somewhere nothing is listening. Both
+          listeners are therefore removed explicitly on every outcome, and the
+          bound port is read back from server.address() rather than assumed.
+
+       2. WebSocketServer({ server }) re-emits the http server's 'error' on itself.
+          Nothing listened on wss, so an EADDRINUSE became an unhandled 'error'
+          event — which EventEmitter throws — and it took down the main process
+          before this retry ever ran. wss gets an error handler at construction. */
+    function done() {
+      server.removeListener('listening', onListening);
       server.removeListener('error', onErr);
+    }
+    function onListening() {
+      done();
+      const addr = server.address();
+      cb(null, (addr && addr.port) || p);
+    }
+    function onErr(err) {
+      done();
       if (err && err.code === 'EADDRINUSE' && attemptsLeft > 0) listen(p + 1, attemptsLeft - 1, cb);
       else cb(err);
     }
-    server.on('error', onErr);
-    server.listen(p, function () { server.removeListener('error', onErr); cb(null, p); });
+    server.once('listening', onListening);
+    server.once('error', onErr);
+    /* listen() can also throw synchronously instead of emitting. */
+    try { server.listen(p); } catch (err) { onErr(err); }
   }
 
   return new Promise(function (resolve, reject) {
