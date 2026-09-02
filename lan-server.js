@@ -40,6 +40,7 @@ function getLanIPs() {
 function startLanServer(opts) {
   opts = opts || {};
   const appFile     = opts.appFile || path.join(__dirname, 'index.html');
+  const appDir      = path.dirname(appFile);
   const preferredPort = opts.port || 8420;
   let   getSnapshot = opts.getSnapshot || function () { return null; };
   let   getPins     = opts.getPins || function () { return []; }; // [{pin_hash,role,track_ids,label}]
@@ -96,6 +97,34 @@ function startLanServer(opts) {
       });
       return;
     }
+    /* Static assets that ship beside index.html — the fonts and the icon. Without
+       this they fall through to the catch-all below and come back as the app's HTML:
+       LAN crew would download the whole page once per font file and still render in
+       a system fallback face. Allow-listed extension + basename only, so nothing
+       here can walk out of the app directory. */
+    if (url.startsWith('/fonts/') || url === '/favicon.png') {
+      const name = path.basename(url);
+      const ext  = path.extname(name);
+      const mime = { '.woff2': 'font/woff2', '.png': 'image/png' }[ext];
+      const file = url === '/favicon.png'
+        ? path.join(appDir, 'favicon.png')
+        : path.join(appDir, 'fonts', name);
+      let body = null;
+      if (mime) { try { body = fs.readFileSync(file); } catch (e) {} }
+      if (body) {
+        res.writeHead(200, {
+          'Content-Type': mime,
+          /* Content-addressed by app version in practice; a font never changes
+             under the same name, so let a returning device skip the fetch. */
+          'Cache-Control': 'public, max-age=31536000, immutable'
+        });
+        res.end(body);
+        return;
+      }
+      res.writeHead(404); res.end('not found');
+      return;
+    }
+
     /* Everything else → the app itself (lets a fresh device cold-join with no internet). */
     const asset = getAppAsset();
     if (!asset) { res.writeHead(500); res.end('app file not found'); return; }

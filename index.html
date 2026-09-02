@@ -63,9 +63,43 @@
 "operatingSystem":"Web, macOS",
 "description":"Live show cue manager. Cues locked to SMPTE timecode, shared live with the crew."}
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Fonts are served from fonts/ — never from a CDN. They used to come from
+     fonts.googleapis.com as a render-blocking stylesheet, which meant first paint
+     waited on a third-party request: instant failure in airplane mode, but on a
+     Wi-Fi that associates without a route out (plane, hotel, venue) it hangs until
+     the OS gives up, adding ~8s of logo before anything drew. A show tool has to
+     open the same way whether or not there is internet, so the files ship with the
+     app. IBM Plex and JetBrains Mono are both OFL — self-hosting is licensed.
+     Latin + Latin-Extended subsets only; unicode-range keeps each face to the
+     glyphs a page actually uses. -->
+<style>
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/ibm-plex-sans-400-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/ibm-plex-sans-400-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/ibm-plex-sans-500-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/ibm-plex-sans-500-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/ibm-plex-sans-600-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/ibm-plex-sans-600-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/ibm-plex-sans-700-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/ibm-plex-sans-700-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Sans Condensed';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/ibm-plex-sans-condensed-400-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans Condensed';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/ibm-plex-sans-condensed-400-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Sans Condensed';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/ibm-plex-sans-condensed-500-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans Condensed';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/ibm-plex-sans-condensed-500-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Sans Condensed';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/ibm-plex-sans-condensed-600-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans Condensed';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/ibm-plex-sans-condensed-600-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Sans Condensed';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/ibm-plex-sans-condensed-700-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans Condensed';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/ibm-plex-sans-condensed-700-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/jetbrains-mono-400-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/jetbrains-mono-400-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/jetbrains-mono-500-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/jetbrains-mono-500-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/jetbrains-mono-600-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/jetbrains-mono-600-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/jetbrains-mono-700-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/jetbrains-mono-700-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:800;font-display:swap;src:url(fonts/jetbrains-mono-800-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:800;font-display:swap;src:url(fonts/jetbrains-mono-800-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+</style>
 <style> 
 /* ─────────────────────────────────────────────
    CueFlow — Broadcast Cockpit Design System
@@ -11359,7 +11393,7 @@ function _openImportModal(proj,fileName,fileSize,exportedAt){
         _impAcctInfo=_impAccountCopy(proj,exportedAt);
         _impRenderNewer();
         _impApplyGuards();
-      });
+      }).catch(function(){});                      // unreachable → keep the cached list
     }catch(e){}
   }
   // Filename
@@ -19376,7 +19410,59 @@ var DIRTY_KEY        = 'cf18_dirty';         /* {showId, dirtyAt} — unsaved ed
 /* ── Supabase client ─────────────────────────────────────── */
 var _db = null;
 var authUser = null;
-function db(){ if(!_db) _db = supabase.createClient(SB_URL, SB_KEY); return _db; }
+
+/* Every cloud request gets a hard deadline. Without one, a Wi-Fi that associates
+   but has no route out (plane, hotel, venue captive portal) leaves fetch() hanging
+   on the OS TCP timeout — 75s and up — and every boot step chained behind it stalls
+   with it. Airplane mode is the easy case: fetch rejects immediately. This is for
+   the hard one, where the link looks alive and simply never answers. */
+/* One ceiling does not fit every request. Auth is the tightest: a stuck token
+   refresh holds the auth lock and every other call queues behind it, so it has to
+   give up quickly. Reads come next — a boot read that hangs is what the operator
+   experiences as a frozen app. Writes get the most room, because pushing a large
+   cue sheet over a thin venue uplink is slow but succeeding, and cutting it off
+   would strand the operator's edits behind a red sync chip. */
+function _cfTimeoutFor(url, method){
+  if(url.indexOf('/auth/v1/') !== -1) return 8000;
+  return (method && method !== 'GET' && method !== 'HEAD') ? 30000 : 12000;
+}
+function _cfFetch(input, init){
+  init = init || {};
+  var url = (typeof input === 'string') ? input : ((input && input.url) || '');
+  var ctl;
+  try{ ctl = new AbortController(); }catch(e){ return fetch(input, init); }
+  if(init.signal){
+    if(init.signal.aborted){ try{ ctl.abort(); }catch(e){} }
+    else if(init.signal.addEventListener){
+      init.signal.addEventListener('abort', function(){ try{ ctl.abort(); }catch(e){} });
+    }
+  }
+  var opts={}; for(var k in init){ opts[k]=init[k]; }
+  opts.signal=ctl.signal;
+  var to=setTimeout(function(){ try{ ctl.abort(); }catch(e){} },
+                    _cfTimeoutFor(url, init.method || (input && input.method) || 'GET'));
+  var p=fetch(input, opts);
+  p.then(function(){ clearTimeout(to); }, function(){ clearTimeout(to); });
+  return p;
+}
+
+/* True when a PostgREST result never reached the server. The SDK resolves — rather
+   than rejects — transport failures, as {error, data:null, status:0}, which makes
+   "no data" ambiguous: it means both "the row is gone" and "we never got there".
+   Every caller that acts destructively on empty data has to ask this first. */
+function _cfNetFail(r){ return !r || (!!r.error && !r.status); }
+
+function db(){
+  if(!_db) _db = supabase.createClient(SB_URL, SB_KEY, {
+    global: { fetch: _cfFetch },
+    /* The default navigatorLock REJECTS a pending getSession() when another caller
+       steals the lock after 5s — exactly what happens when a token refresh is stuck
+       retrying with no internet. That rejection is what left the app on the splash
+       screen. processLock is in-process: it queues, it never steals, it never throws. */
+    auth: supabase.processLock ? { lock: supabase.processLock } : undefined
+  });
+  return _db;
+}
 function displayUser(user){ return user ? (user.email||'').replace(/@.*$/,'')||user.email : ''; }
 
 /* ── Auth ────────────────────────────────────────────────── */
@@ -19491,21 +19577,61 @@ function loadShowCache(){
    Sharing panel, so they grant nothing. */
 function ensureOwnerPin(){ /* intentionally does nothing — see above */ }
 
+/* The 'online' event only fires when the OS flips navigator.onLine. It does NOT
+   fire when a Wi-Fi that was already "connected" finally gets a route out — the
+   plane lands, someone accepts the captive portal, the venue uplink returns. So
+   whenever a cloud call fails while the OS still insists we are online, poll for
+   real reachability and run the come-online path once it answers. */
+var _cfRetryTimer=null, _cfRetryDelay=0;
+function _cfScheduleCloudRetry(){
+  if(_cfRetryTimer) return;
+  _cfRetryDelay = _cfRetryDelay ? Math.min(_cfRetryDelay*2, 60000) : 5000;
+  _cfRetryTimer=setTimeout(function(){
+    _cfRetryTimer=null;
+    _cfProbeReachable(function(up){
+      if(!up){ _cfScheduleCloudRetry(); return; }
+      _cfRetryDelay=0;
+      onComeOnline();
+    });
+  }, _cfRetryDelay);
+}
+
 /* Called when network comes back online.
    Refreshes show list and flushes any pending local edits. */
 function onComeOnline(){
   db().auth.getSession().then(function(r){
-    if(!r.data.session) return;
+    if(!r||!r.data||!r.data.session) return;
     authUser=r.data.session.user;
     saveOfflineAuth(authUser);
     updateAuthUI();
     if(CF.dirty&&CF.showId&&CF.isOwner&&!CF._conflictCheckInProgress) pushProject();
     ensureOwnerPin();
+    /* A show that could only be loaded from its local cache at boot still needs its
+       cloud copy and its realtime subscription. Do that now, once, instead of
+       leaving the operator on a local-only copy for the rest of the show. */
+    if(CF._showNeedsCloudRestore && CF.showId && CF.isOwner){
+      var _id=CF._showNeedsCloudRestore; CF._showNeedsCloudRestore=null;
+      if(_id===CF.showId) ownerRestoreShow(_id);
+    }
     refreshShowList().then(function(){
       saveShowCache(CF._showList);
       if(window._sbPanel==='save'&&window._sbRender) _sbRender('save');
-    });
-  });
+    }).catch(function(){ _cfScheduleCloudRetry(); });
+  }).catch(function(){ _cfScheduleCloudRetry(); });
+}
+
+/* Show list as last known good. Used to seed the panel at boot and whenever the
+   cloud can't be reached, so the operator sees their projects rather than an empty
+   account. `offerNew` gates the new-project modal: only offer to create one once we
+   actually KNOW the account is empty. Popping it over a stale-but-real cached list
+   reads as "everything is gone", which is the opposite of reassuring. */
+function _showListFromCache(offerNew){
+  CF._showList=loadShowCache();
+  updateAuthUI();
+  if(window._sbPanel==='save'&&window._sbRender) _sbRender('save');
+  if(offerNew&&!CF._showList.length&&!CF.showId&&window.openNewProjectModal){
+    setTimeout(window.openNewProjectModal,350);
+  }
 }
 
 function _afterShowList(){
@@ -19526,33 +19652,71 @@ function _afterShowList(){
 }
 
 function initAuth(){
-  db().auth.getSession().then(function(r){
-    authUser = r.data.session ? r.data.session.user : null;
-
-    if(authUser){
-      guardUserChange(authUser.id);
-      saveOfflineAuth(authUser);
-    } else if(!navigator.onLine){
-      /* Offline — use cached credentials so returning users don't see the login screen */
-      var cached=loadOfflineAuth();
-      if(cached){ authUser=cached; }
-    }
-
+  /* Boot resolves the auth state from local storage and never waits on the network
+     to reveal the UI. With no route out, getSession() can hang behind a token
+     refresh that is stuck retrying, or reject outright when the auth lock is stolen
+     from under it — and everything chained after it, hideLoading() included, simply
+     never runs. That is what left the app sitting on the splash screen at 30,000
+     feet. The cached identity is corrected by the real getSession() result and by
+     onAuthStateChange as soon as either arrives. */
+  var _revealed=false, _graceTimer=null;
+  function reveal(user){
+    if(_revealed) return;
+    _revealed=true;
+    clearTimeout(_graceTimer);
+    authUser = user || null;
     hideLoading();
     if(!authUser){ showAuthScreen(); return; }
     updateAuthUI();
     startOwnerLiveWatch();   /* warm, so the go-live guard can read it synchronously */
+    _loadShowList();
+  }
+  CF._bootReveal=reveal;
 
-    if(navigator.onLine){
-      refreshShowList().then(_afterShowList);
+  /* navigator.onLine===false is trustworthy — it means there is definitely no link.
+     ===true is not: it only says an interface is up, which a plane, hotel or venue
+     Wi-Fi with no route out satisfies just as well. So the online branch is always
+     written to survive its own failure. */
+  function _loadShowList(){
+    /* Seed from the cache first, always. Every PostgREST call awaits getSession()
+       internally, so with a wedged token refresh the project list can be tens of
+       seconds behind the UI — and an empty projects panel for that long is
+       indistinguishable from a deleted account. Seed now; a successful refresh
+       simply replaces the list. */
+    _showListFromCache(false);
+    if(!navigator.onLine){ _showListFromCache(true); return; }
+    refreshShowList().then(_afterShowList).catch(function(e){
+      console.warn('[CF] project list unavailable — keeping the cached list', e);
+      _showListFromCache(true);
+      _cfScheduleCloudRetry();
+    });
+  }
+
+  /* Grace period, not a dependency. Online, getSession answers in a few hundred ms
+     and the app boots from the real session. Offline it never usefully answers, so
+     after the grace we boot from cached credentials anyway. Longer with nothing
+     cached, because there the fallback is the sign-in screen and bouncing a
+     signed-in operator to it over a merely slow network would be worse. */
+  var _cached=loadOfflineAuth();
+  _graceTimer=setTimeout(function(){ reveal(loadOfflineAuth()); }, _cached ? 1200 : 5000);
+
+  db().auth.getSession().then(function(r){
+    var user = (r && r.data && r.data.session) ? r.data.session.user : null;
+    if(user){
+      guardUserChange(user.id);
+      saveOfflineAuth(user);
+      if(_revealed){ authUser=user; updateAuthUI(); }
+      else reveal(user);
     } else {
-      CF._showList=loadShowCache();
-      updateAuthUI();
-      if(window._sbPanel==='save'&&window._sbRender) _sbRender('save');
-      if(!CF._showList.length&&!CF.showId&&window.openNewProjectModal){
-        setTimeout(window.openNewProjectModal,350);
-      }
+      /* No session. Offline that is meaningless — the SDK just couldn't refresh —
+         so fall back to the cache rather than demanding a password with no way to
+         check it. Sign-out clears the cache, so a real sign-out still lands here
+         with nothing to fall back to. */
+      reveal(navigator.onLine ? null : loadOfflineAuth());
     }
+  }).catch(function(e){
+    console.warn('[CF] getSession failed — booting from cached credentials', e);
+    reveal(loadOfflineAuth());
   });
 
   db().auth.onAuthStateChange(function(event, session){
@@ -19581,7 +19745,9 @@ function initAuth(){
       hideAuthScreen();
       startOwnerLiveWatch();
       if(CF.showId&&CF.isOwner) pushProject();
-      if(navigator.onLine) refreshShowList().then(_afterShowList);
+      if(navigator.onLine) refreshShowList().then(_afterShowList).catch(function(){
+        _showListFromCache(true); _cfScheduleCloudRetry();
+      });
     } else if(!authUser&&wasAuthed){
       /* Explicit sign-out — clear offline credentials and show login */
       try{ localStorage.removeItem(OFFLINE_AUTH_KEY); }catch(e){}
@@ -19658,7 +19824,7 @@ function cfSetPassword(){
     updateAuthUI();
     if(navigator.onLine) refreshShowList().then(function(){
       if(window._sbPanel==='save' && window._sbRender) _sbRender('save');
-    });
+    }).catch(function(){});
   });
 }
 
@@ -21481,6 +21647,22 @@ function boot(){
     });
     return;
   }
+  /* Last-resort splash watchdog. Every boot path below clears the overlay itself;
+     this exists so that a path nobody predicted — a rejected promise, a wedged
+     lock, a fetch that never settles — still ends with the operator looking at the
+     app instead of a logo. It should never fire; if it does, that is a bug worth
+     the console line. */
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(function(){
+      var el=document.getElementById('cf-loading');
+      if(!el || el.style.display==='none') return;
+      console.warn('[CF] boot watchdog fired — revealing the UI after a stalled start');
+      if(CF.showId && !CF.role){ _cfJoinReveal(); return; }   /* cold-join, never got in */
+      hideLoading();
+      if(CF._bootReveal) CF._bootReveal(loadOfflineAuth());
+    }, 15000);
+  });
+
   var params = new URLSearchParams(location.search);
   var showId = params.get('show');
   var urlPin = params.get('pin');
@@ -21507,18 +21689,34 @@ function boot(){
       /* Offline reload: recover the cached session + project instead of a dead join
          screen. Fail-safe — falls through to the normal online flow if it can't. */
       if(!navigator.onLine && _cfRestoreCollabOffline(showId)) return;
+      /* Whatever becomes of the name lookup — a hit, an RLS refusal, a Wi-Fi with no
+         route out, or no answer at all — crew have to end up on a screen they can
+         act on. Settle exactly once, from whichever of the three arrives first. */
+      var _lookupDone=false;
+      function _onShowLookup(r){
+        if(_lookupDone) return;
+        _lookupDone=true;
+        /* Cloud unreachable: try the cached session before offering a join screen
+           whose PIN could not possibly be validated. */
+        if(_cfNetFail(r) && _cfRestoreCollabOffline(showId)) return;
+        var el=document.getElementById('cf-join-show-name');
+        if(el&&r&&r.data) el.textContent=r.data.name||'CueFlow';
+        if(urlPin){
+          document.getElementById('cf-join-pin').value=urlPin;
+          cfJoin();   /* every failure path in here reveals the join screen itself */
+        } else {
+          _cfJoinReveal();
+        }
+      }
       db().from('shows').select('name').eq('id',showId).single()
-        .then(function(r){
-          var el=document.getElementById('cf-join-show-name');
-          if(el&&r.data) el.textContent=r.data.name||'CueFlow';
-          if(urlPin){
-            document.getElementById('cf-join-pin').value=urlPin;
-            cfJoin();
-          } else {
-            hideLoading();
-            document.getElementById('cf-join-screen').style.display='flex';
-          }
-        });
+        .then(_onShowLookup, function(){ _onShowLookup(null); });
+      /* The request deadline is deliberately generous — a slow venue network is not
+         a broken one — but crew should not stare at a logo for nine seconds to find
+         out which it was. Probe reachability alongside it: the probe needs no auth
+         and no CORS, so it answers while the real read is still waiting, and lets
+         us settle early when the cloud simply is not there. */
+      _cfProbeReachable(function(up){ if(!up) _onShowLookup(null); });
+      setTimeout(function(){ _onShowLookup(null); }, 12000);
     });
   } else {
     /* Owner boot */
@@ -21548,32 +21746,34 @@ function ownerBoot(){
   if(sess&&sess.showId){
     CF.showId=sess.showId; CF.isOwner=true; CF.role='owner';
     openTcChan();
-    if(navigator.onLine){
-      /* If this show has unpushed offline edits cached (DIRTY_KEY points at it),
-         load that cache FIRST so state.projectId===showId. ownerRestoreShow then
-         takes its same-project path and preserves the edits (push if identical,
-         ask-me conflict modal if they diverge) instead of letting the cloud
-         silently overwrite them. Only ever loads this exact showId — no duplicates. */
-      try{
-        var _di=JSON.parse(localStorage.getItem(DIRTY_KEY)||'null');
-        if(_di&&_di.showId===sess.showId){
-          var _pending=window.loadProjectData?loadProjectData(sess.showId):null;
-          if(_pending&&window.applyProject) applyProject(_pending);
-        }
-      }catch(e){}
-      ownerRestoreShow(sess.showId);
-    } else {
-      /* Offline: load this show from its per-UUID cache so a previously-opened
-         show is editable without connectivity. onComeOnline() flushes edits later. */
-      var _cached=window.loadProjectData?loadProjectData(sess.showId):null;
-      if(_cached&&window.applyProject){
-        applyProject(_cached);
-        if(window.renderSongList) renderSongList();
-        if(window.renderCueList) renderCueList();
-        if(window.redrawActive) redrawActive();
-        if(window._syncEditTopbar) _syncEditTopbar();
-      }
+    /* Load this show's per-UUID cache FIRST, online or not. Two reasons, and the
+       second is why it is now unconditional:
+
+       1. If the show has unpushed offline edits (DIRTY_KEY points at it), the cache
+          must be in `state` before ownerRestoreShow runs, so that its same-project
+          path preserves them — push if identical, conflict modal if they diverge —
+          rather than letting the cloud silently overwrite them.
+       2. Otherwise the operator stares at an empty app until the cloud answers, and
+          on a Wi-Fi with no route out that is however long the request takes to time
+          out. Their show reading as "gone" for nine seconds is indistinguishable
+          from it actually being gone.
+
+       Safe against duplicates: only ever this exact showId, and with no dirty marker
+       ownerRestoreShow still takes its applyRemote path, so the cloud stays
+       authoritative. */
+    var _cached=window.loadProjectData?loadProjectData(sess.showId):null;
+    if(_cached&&window.applyProject){
+      applyProject(_cached);
+      if(window.renderSongList) renderSongList();
+      if(window.renderCueList) renderCueList();
+      if(window.redrawActive) redrawActive();
+      if(window._syncEditTopbar) _syncEditTopbar();
     }
+    /* navigator.onLine===false is the one network fact worth trusting: skip a call
+       that cannot succeed. Anything else goes to the cloud, and ownerRestoreShow
+       falls back to what we just loaded if it can't get there. */
+    if(navigator.onLine) ownerRestoreShow(sess.showId);
+    else { CF._showNeedsCloudRestore=sess.showId; }
   }
 
   /* Patch redrawLive — called by name each frame from mtcRafLoop */
@@ -21613,10 +21813,33 @@ function ownerBoot(){
   };
 }
 
+/* Load a show from its per-UUID local cache and keep the session pointed at it.
+   Used whenever the cloud copy can't be fetched: the operator keeps a working,
+   editable show, and onComeOnline() reconciles with the cloud afterwards. */
+function _cfRestoreOwnerFromCache(showId){
+  CF._showNeedsCloudRestore=showId;
+  _cfScheduleCloudRetry();
+  if(state && state.projectId===showId) return;   /* already loaded by the offline boot path */
+  var cached=window.loadProjectData?loadProjectData(showId):null;
+  if(!cached) return;
+  if(window.applyProject) applyProject(cached);
+  if(window.renderSongList) renderSongList();
+  if(window.renderCueList) renderCueList();
+  if(window.redrawActive) redrawActive();
+  if(window._syncEditTopbar) _syncEditTopbar();
+  try{ restoreSessionState(); }catch(e){}
+}
+
 function ownerRestoreShow(showId){
   db().from('shows').select('name,project_data,updated_at').eq('id',showId).single()
     .then(function(r){
       if(CF.showId!==showId) return; /* Show switched during fetch */
+      /* The request never reached the server, so data:null here means "we don't
+         know", not "the row is gone" — and the branch below treats a missing row as
+         a remote delete: it drops the session and goes hunting for another show.
+         Running that on a dead Wi-Fi would silently unload the operator's show
+         mid-tour. Use the local cache and re-run once the cloud is back. */
+      if(_cfNetFail(r)){ _cfRestoreOwnerFromCache(showId); return; }
       subscribeProject();
       if(!r.data||!r.data.project_data){
         /* Distinguish "deleted remotely" from "created/edited offline, never synced".
@@ -21692,6 +21915,10 @@ function ownerRestoreShow(showId){
         applyRemote(r.data.project_data);
         restoreSessionState();
       }
+    })
+    .catch(function(e){
+      console.warn('[CF] show restore failed — falling back to the local cache', e);
+      if(CF.showId===showId) _cfRestoreOwnerFromCache(showId);
     });
 }
 
@@ -21798,6 +22025,13 @@ function _cfRestoreCollabOffline(showId){
   }catch(e){ return false; }
 }
 
+/* With a PIN in the URL the join runs before the join screen has been revealed, so
+   any failure there would otherwise leave the splash up with nothing behind it. */
+function _cfJoinReveal(){
+  hideLoading();
+  var js=document.getElementById('cf-join-screen'); if(js) js.style.display='flex';
+}
+
 function cfJoin(){
   if(CF._netMode==='lan') return cfJoinLan(); /* LAN cold-join over WebSocket, no Supabase */
   var pin=((document.getElementById('cf-join-pin')||{}).value||'').trim();
@@ -21816,6 +22050,10 @@ function cfJoin(){
     return db().rpc('join_show',{p_show_id:CF.showId, p_pin_hash:h});
   }).then(function(r){
     if(r.error){
+      /* Unreachable, not rejected. If this device has joined before, its cached
+         show is far more use than a join screen with no server to ask. */
+      if(_cfNetFail(r) && _cfRestoreCollabOffline(CF.showId)) return;
+      _cfJoinReveal();
       if(joinBtn){joinBtn.textContent='Join Show';joinBtn.disabled=false;}
       if(err) err.textContent='Connection error — check your network and try again';
       return;
@@ -21823,6 +22061,7 @@ function cfJoin(){
     /* join_show returns a {ok,...} envelope. Distinguish a wrong PIN from a
        rate-limit lockout so the operator knows to wait rather than retry. */
     if(!r.data || r.data.ok===false){
+      _cfJoinReveal();
       if(joinBtn){joinBtn.textContent='Join Show';joinBtn.disabled=false;}
       if(err){
         if(r.data && r.data.reason==='rate_limited'){
@@ -21839,6 +22078,7 @@ function cfJoin(){
        was dropped still carry the row; it is no longer offered anywhere, so anyone
        holding one has a credential the operator can neither see nor revoke. */
     if(acc.role==='owner'){
+      _cfJoinReveal();
       if(joinBtn){joinBtn.textContent='Join Show';joinBtn.disabled=false;}
       if(err) err.textContent='This link is no longer in use — ask the operator for a current one';
       return;
@@ -21883,6 +22123,13 @@ function cfJoin(){
     else if(CF.role==='editor'||CF.role==='track-editor'){ showEditorApp(show); restoreSessionState(); }
     else if(_camSelectMode){ showViewerScreen(show); showCameraPickerModal(show); }
     else { showViewerScreen(show); restoreSessionState(); }
+  }).catch(function(e){
+    console.warn('[CF] join failed', e);
+    if(CF.role) return;                       /* already inside the show — nothing to undo */
+    if(_cfRestoreCollabOffline(CF.showId)) return;
+    _cfJoinReveal();
+    if(joinBtn){joinBtn.textContent='Join Show';joinBtn.disabled=false;}
+    if(err) err.textContent='Connection error — check your network and try again';
   });
 }
 
@@ -22919,7 +23166,7 @@ function afterProjectsRender(){
   });
   /* Refresh show list ONCE — then do a light DOM update that does NOT
      re-schedule afterProjectsRender, breaking the infinite render loop. */
-  if(navigator.onLine) refreshShowList().then(function(){
+  if(navigator.onLine) refreshShowList().catch(function(){ return null; }).then(function(){
     if(window._sbPanel!=='save') return;
     var f=document.activeElement;
     if(f&&(f.id==='sb-auth-username'||f.id==='sb-auth-password')) return;
@@ -23136,17 +23383,24 @@ function refreshShowList(){
     return db().from('shows').select('id,name,updated_at')
       .eq('owner_id',authUser.id)
       .order('updated_at',{ascending:false})
-      .then(function(r){
-        CF._showList=r.data||[];
-        saveShowCache(CF._showList);
-        return CF._showList;
-      });
+      .then(_takeShowList);
   } else {
     return db().from('shows').select('id,name,updated_at')
       .or('owner_id.is.null,owner_id.eq.local')
       .order('updated_at',{ascending:false})
-      .then(function(r){ CF._showList=r.data||[]; saveShowCache(CF._showList); return r.data; });
+      .then(_takeShowList);
   }
+}
+
+/* A request that never reached the server resolves with data:null, which the old
+   code stored as an empty list AND wrote to the offline cache — so one boot on a
+   Wi-Fi with no route out wiped the operator's project list and popped the
+   new-project modal over it. Reject instead, and let the caller fall back. */
+function _takeShowList(r){
+  if(_cfNetFail(r)) throw (r.error || new Error('CueFlow: project list unreachable'));
+  CF._showList=r.data||[];
+  saveShowCache(CF._showList);
+  return CF._showList;
 }
 
 /* ── SHARING PANEL (globe icon) ──────────────────────────── */

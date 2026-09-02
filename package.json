@@ -1,7 +1,7 @@
 {
   "name": "cueflow",
   "version": "1.3.0",
-  "description": "CueFlow — live show cue management",
+  "description": "CueFlow \u2014 live show cue management",
   "main": "main.js",
   "scripts": {
     "start": "env -u ELECTRON_RUN_AS_NODE electron .",
@@ -102,6 +102,7 @@
       "lan-server.js",
       "index.html",
       "favicon.png",
+      "fonts/**",
       "media-protocol.js",
       "build/**",
       "node_modules/**"

@@ -180,6 +180,52 @@ Role checks: `CF.role === 'editor' || CF.role === 'track-editor'`
 - **Realtime**: `postgres_changes` on `shows` for project sync; Broadcast channel `tc:<showId>` for TC frames (never written to DB)
 - TC is broadcast at ~12fps (80ms gate); viewers interpolate using local RAF + clock
 
+### Offline startup — the boot must never depend on the network
+
+CueFlow gets opened on planes, in hotels and at venues whose Wi-Fi associates but has
+no route out. **Boot is local-first: nothing on the network may gate revealing the UI.**
+
+- **`navigator.onLine === false` is trustworthy** ("definitely no link"); **`=== true` is
+  not** — it only means an interface is up. Use `false` to skip calls that cannot
+  succeed; never use `true` to assume a call will work. Reachability is
+  `_cfProbeReachable(cb)` (auth-free, no-cors, 5s).
+- **Every request has a deadline** — `_cfFetch` is installed as the client's `global.fetch`.
+  Tiers via `_cfTimeoutFor`: auth 8s (a stuck refresh holds the auth lock and everything
+  queues behind it), reads 12s, writes 30s (a big cue sheet on a thin uplink is slow, not
+  broken). Without a deadline a dead Wi-Fi hangs `fetch` for the OS TCP timeout, 75s+.
+- **The auth client uses `processLock`, not the default `navigatorLock`.** navigatorLock
+  *rejects* a pending `getSession()` when another caller steals the lock after 5s, which
+  is exactly what a token refresh retrying with no internet causes. That unhandled
+  rejection is what used to leave the app on the splash screen forever.
+- **`_cfNetFail(r)` before acting on empty data.** PostgREST *resolves* transport failures
+  as `{error, data:null, status:0}`, so "no data" means both "the row is gone" and "we
+  never got there". Treating the second as the first deleted sessions and wiped caches.
+  A real 404/406/401 carries a status, so it still reads as authoritative.
+- **`initAuth()` reveals from cached credentials** (`cf18_offline_auth`) on a grace timer —
+  1.2s with a cached identity, 5s without — and is corrected by `getSession()` /
+  `onAuthStateChange` whenever they arrive. `boot()` also arms a 15s splash watchdog that
+  should never fire.
+- **`ownerBoot` loads the session show from its per-UUID cache first, online or not**, then
+  reconciles via `ownerRestoreShow`. `_showListFromCache(offerNew)` seeds the project list
+  the same way; `offerNew` gates the new-project modal so it only appears when the account
+  is *known* empty.
+- **When a cloud call fails while the OS still claims to be online**, `_cfScheduleCloudRetry()`
+  polls reachability with backoff and runs `onComeOnline()`. The `online` event does not fire
+  when an already-connected Wi-Fi finally gets a route out.
+- Test harness for all of this: `Electron + setProxy` to `192.0.2.1` (TEST-NET-1, unroutable)
+  with `<local>` bypass reproduces dead-Wi-Fi; `webRequest cancel` reproduces airplane mode.
+
+### Fonts are local — never a CDN
+
+`fonts/` holds IBM Plex Sans, IBM Plex Sans Condensed and JetBrains Mono as woff2
+(latin + latin-ext, both OFL, self-hosting licensed), declared by an inline `@font-face`
+block in `index.html`. They used to load from `fonts.googleapis.com` as a *render-blocking*
+stylesheet, which added ~8s to first paint on a Wi-Fi with no route out. **Do not
+reintroduce any CDN or remote asset reference.** `fonts/**` is in `build.files`, and
+`lan-server.js` serves `/fonts/*.woff2` + `/favicon.png` explicitly — its catch-all
+returns index.html for every other path, so an unrouted asset would hand LAN crew the
+whole 1.5MB app once per font file.
+
 ## TC/timecode
 
 - `tcF(tc)` converts `"hh:mm:ss:ff"` → integer frame count
