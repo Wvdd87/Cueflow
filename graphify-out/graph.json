@@ -164,10 +164,20 @@
       "norm_label": "media"
     },
     {
+      "label": "logMainFault()",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "main_logmainfault",
+      "community": 4,
+      "norm_label": "logmainfault()"
+    },
+    {
       "label": "latestPins",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L11",
+      "source_location": "L28",
       "_origin": "ast",
       "id": "main_latestpins",
       "community": 4,
@@ -177,7 +187,7 @@
       "label": "createWindow()",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L13",
+      "source_location": "L30",
       "_origin": "ast",
       "id": "main_createwindow",
       "community": 4,
@@ -187,7 +197,7 @@
       "label": "statusObj()",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L100",
+      "source_location": "L117",
       "_origin": "ast",
       "id": "main_statusobj",
       "community": 4,
@@ -197,7 +207,7 @@
       "label": "pushStatus()",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L109",
+      "source_location": "L126",
       "_origin": "ast",
       "id": "main_pushstatus",
       "community": 4,
@@ -207,7 +217,7 @@
       "label": "startLan()",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L113",
+      "source_location": "L130",
       "_origin": "ast",
       "id": "main_startlan",
       "community": 4,
@@ -217,7 +227,7 @@
       "label": "fs",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L144",
+      "source_location": "L161",
       "_origin": "ast",
       "id": "main_fs",
       "community": 4,
@@ -254,14 +264,14 @@
       "norm_label": "path"
     },
     {
-      "label": "{ Readable }",
+      "label": "{ ReadableStream }",
       "file_type": "code",
       "source_file": "media-protocol.js",
       "source_location": "L14",
       "_origin": "ast",
-      "id": "media_protocol_readable",
+      "id": "media_protocol_readablestream",
       "community": 6,
-      "norm_label": "{ readable }"
+      "norm_label": "{ readablestream }"
     },
     {
       "label": "MEDIA_EXTS",
@@ -334,10 +344,20 @@
       "norm_label": "registerscheme()"
     },
     {
+      "label": "fileStream()",
+      "file_type": "code",
+      "source_file": "media-protocol.js",
+      "source_location": "L58",
+      "_origin": "ast",
+      "id": "media_protocol_filestream",
+      "community": 6,
+      "norm_label": "filestream()"
+    },
+    {
       "label": "registerMediaProtocol()",
       "file_type": "code",
       "source_file": "media-protocol.js",
-      "source_location": "L46",
+      "source_location": "L81",
       "_origin": "ast",
       "id": "media_protocol_registermediaprotocol",
       "community": 6,
@@ -667,7 +687,7 @@
       "label": "afterPack",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L109",
+      "source_location": "L110",
       "_origin": "ast",
       "id": "package_build_afterpack",
       "community": 7,
@@ -677,7 +697,7 @@
       "label": "afterSign",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L110",
+      "source_location": "L111",
       "_origin": "ast",
       "id": "package_build_aftersign",
       "community": 7,
@@ -687,7 +707,7 @@
       "label": "dependencies",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L112",
+      "source_location": "L113",
       "_origin": "ast",
       "id": "package_dependencies",
       "community": 2,
@@ -697,7 +717,7 @@
       "label": "qrcode",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L113",
+      "source_location": "L114",
       "_origin": "ast",
       "id": "package_dependencies_qrcode",
       "community": 2,
@@ -707,7 +727,7 @@
       "label": "ws",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L114",
+      "source_location": "L115",
       "_origin": "ast",
       "id": "package_dependencies_ws",
       "community": 2,
@@ -1054,10 +1074,30 @@
       "norm_label": "supabase"
     },
     {
-      "label": "TC/timecode",
+      "label": "Offline startup \u2014 the boot must never depend on the network",
       "file_type": "document",
       "source_file": "CLAUDE.md",
       "source_location": "L183",
+      "_origin": "ast",
+      "id": "claude_offline_startup_the_boot_must_never_depend_on_the_network",
+      "community": 0,
+      "norm_label": "offline startup \u2014 the boot must never depend on the network"
+    },
+    {
+      "label": "Fonts are local \u2014 never a CDN",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L218",
+      "_origin": "ast",
+      "id": "claude_fonts_are_local_never_a_cdn",
+      "community": 0,
+      "norm_label": "fonts are local \u2014 never a cdn"
+    },
+    {
+      "label": "TC/timecode",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L229",
       "_origin": "ast",
       "id": "claude_tc_timecode",
       "community": 0,
@@ -1067,7 +1107,7 @@
       "label": "TC sources \u2014 `state.tcSource` \u2208 `'ltc' | 'midi' | 'gen'`",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L190",
+      "source_location": "L236",
       "_origin": "ast",
       "id": "claude_tc_sources_state_tcsource_ltc_midi_gen",
       "community": 0,
@@ -1077,7 +1117,7 @@
       "label": "Electron",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L194",
+      "source_location": "L240",
       "_origin": "ast",
       "id": "claude_electron",
       "community": 0,
@@ -1087,7 +1127,7 @@
       "label": "graphify",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L207",
+      "source_location": "L253",
       "_origin": "ast",
       "id": "claude_graphify",
       "community": 0,
@@ -1322,76 +1362,6 @@
       "id": "context_file_history",
       "community": 1,
       "norm_label": "file history"
-    },
-    {
-      "label": "PRIORITY_ACTIONS.md",
-      "file_type": "document",
-      "source_file": "PRIORITY_ACTIONS.md",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "priority_actions",
-      "community": 9,
-      "norm_label": "priority_actions.md"
-    },
-    {
-      "label": "CueFlow \u2014 Top 10 Priority Actions",
-      "file_type": "document",
-      "source_file": "PRIORITY_ACTIONS.md",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "priority_actions_cueflow_top_10_priority_actions",
-      "community": 9,
-      "norm_label": "cueflow \u2014 top 10 priority actions"
-    },
-    {
-      "label": "Fix log \u2014 2026-07-04",
-      "file_type": "document",
-      "source_file": "PRIORITY_ACTIONS.md",
-      "source_location": "L39",
-      "_origin": "ast",
-      "id": "priority_actions_fix_log_2026_07_04",
-      "community": 9,
-      "norm_label": "fix log \u2014 2026-07-04"
-    },
-    {
-      "label": "Fix log \u2014 2026-07-04 (batch 2: H1/H2/H3 + PIN hardening)",
-      "file_type": "document",
-      "source_file": "PRIORITY_ACTIONS.md",
-      "source_location": "L57",
-      "_origin": "ast",
-      "id": "priority_actions_fix_log_2026_07_04_batch_2_h1_h2_h3_pin_hardening",
-      "community": 9,
-      "norm_label": "fix log \u2014 2026-07-04 (batch 2: h1/h2/h3 + pin hardening)"
-    },
-    {
-      "label": "Fix log \u2014 2026-07-04 (batch 3: M1/M2/M3)",
-      "file_type": "document",
-      "source_file": "PRIORITY_ACTIONS.md",
-      "source_location": "L77",
-      "_origin": "ast",
-      "id": "priority_actions_fix_log_2026_07_04_batch_3_m1_m2_m3",
-      "community": 9,
-      "norm_label": "fix log \u2014 2026-07-04 (batch 3: m1/m2/m3)"
-    },
-    {
-      "label": "Fix log \u2014 2026-07-04 (batch 4: remaining hardening + deploy)",
-      "file_type": "document",
-      "source_file": "PRIORITY_ACTIONS.md",
-      "source_location": "L96",
-      "_origin": "ast",
-      "id": "priority_actions_fix_log_2026_07_04_batch_4_remaining_hardening_deploy",
-      "community": 9,
-      "norm_label": "fix log \u2014 2026-07-04 (batch 4: remaining hardening + deploy)"
-    },
-    {
-      "label": "Fix log \u2014 2026-07-05 (M4 + deploy notes)",
-      "file_type": "document",
-      "source_file": "PRIORITY_ACTIONS.md",
-      "source_location": "L112",
-      "_origin": "ast",
-      "id": "priority_actions_fix_log_2026_07_05_m4_deploy_notes",
-      "community": 9,
-      "norm_label": "fix log \u2014 2026-07-05 (m4 + deploy notes)"
     },
     {
       "label": "SECURITY_AUDIT.md",
@@ -1833,6 +1803,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "main.js",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "main",
+      "target": "main_logmainfault",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
       "source_location": "L4",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -1936,6 +1916,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "media-protocol.js",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "media_protocol",
+      "target": "media_protocol_filestream",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "media-protocol.js",
       "source_location": "L12",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -2008,9 +1998,9 @@
       "source_file": "media-protocol.js",
       "source_location": "L14",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "media_protocol",
-      "target": "media_protocol_readable"
+      "target": "media_protocol_readablestream",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -2726,6 +2716,26 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CLAUDE.md",
+      "source_location": "L218",
+      "weight": 1.0,
+      "source": "claude_supabase",
+      "target": "claude_fonts_are_local_never_a_cdn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L183",
+      "weight": 1.0,
+      "source": "claude_supabase",
+      "target": "claude_offline_startup_the_boot_must_never_depend_on_the_network",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
       "source_location": "L185",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -2951,66 +2961,6 @@
       "confidence_score": 1.0,
       "source": "context_known_issues_todo",
       "target": "context_high_priority"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "PRIORITY_ACTIONS.md",
-      "source_location": "L1",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "priority_actions",
-      "target": "priority_actions_cueflow_top_10_priority_actions"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "PRIORITY_ACTIONS.md",
-      "source_location": "L34",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "priority_actions_cueflow_top_10_priority_actions",
-      "target": "priority_actions_fix_log_2026_07_04"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "PRIORITY_ACTIONS.md",
-      "source_location": "L54",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "priority_actions_cueflow_top_10_priority_actions",
-      "target": "priority_actions_fix_log_2026_07_04_batch_2_h1_h2_h3_pin_hardening"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "PRIORITY_ACTIONS.md",
-      "source_location": "L77",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "priority_actions_cueflow_top_10_priority_actions",
-      "target": "priority_actions_fix_log_2026_07_04_batch_3_m1_m2_m3"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "PRIORITY_ACTIONS.md",
-      "source_location": "L96",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "priority_actions_cueflow_top_10_priority_actions",
-      "target": "priority_actions_fix_log_2026_07_04_batch_4_remaining_hardening_deploy"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "PRIORITY_ACTIONS.md",
-      "source_location": "L112",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "priority_actions_cueflow_top_10_priority_actions",
-      "target": "priority_actions_fix_log_2026_07_05_m4_deploy_notes"
     },
     {
       "relation": "contains",
@@ -3254,5 +3204,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "cf45ae2ec71281c695b8336393f19d9887319961"
+  "built_at_commit": "e3119b3d23ee1709121138a2154d5274306fde7d"
 }

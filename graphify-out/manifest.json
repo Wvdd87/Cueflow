@@ -10,18 +10,18 @@
     "semantic_hash": ""
   },
   "lan-server.js": {
-    "mtime": 1783198344.0136771,
-    "ast_hash": "b699a8bb7165d221bc00943e8324d5ee",
+    "mtime": 1788354933.5942907,
+    "ast_hash": "6c86565cc7d30d6f0d44e0cb66deb311",
     "semantic_hash": ""
   },
   "main.js": {
-    "mtime": 1786445007.07281,
-    "ast_hash": "00ba40977514185aa63ce0c4e557f1c1",
+    "mtime": 1788354649.3111303,
+    "ast_hash": "aa3375fabda9f6cf98c2b6d03789331f",
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1785862935.1563804,
-    "ast_hash": "188ace69e138e2dcce2f46d88251dae5",
+    "mtime": 1788312968.6625268,
+    "ast_hash": "32c956cd41701d60fec5c921775eafc0",
     "semantic_hash": ""
   },
   "preload.js": {
@@ -30,8 +30,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1785918703.9093823,
-    "ast_hash": "1d266b6b39dca67af05c32e68b4d5ab5",
+    "mtime": 1788313318.811655,
+    "ast_hash": "27f2027a1ee41d1b70c76363a833e863",
     "semantic_hash": ""
   },
   "CONTEXT.md": {
@@ -45,18 +45,13 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1786450483.900352,
-    "ast_hash": "daa2a87ab15d8192a5fd0eea1704120e",
+    "mtime": 1788538195.6724024,
+    "ast_hash": "0dbad06f8b93d5d2493ff521c36c1703",
     "semantic_hash": ""
   },
   "favicon.png": {
     "mtime": 1783159032.2107913,
     "ast_hash": "213880073004cdff0611dafd1cf43216",
-    "semantic_hash": ""
-  },
-  "PRIORITY_ACTIONS.md": {
-    "mtime": 1783240084.4225755,
-    "ast_hash": "55df6951a0a65dfa771541032410084e",
     "semantic_hash": ""
   },
   "SECURITY_AUDIT.md": {
@@ -70,8 +65,8 @@
     "semantic_hash": ""
   },
   "media-protocol.js": {
-    "mtime": 1783790162.1001384,
-    "ast_hash": "e3e4ef3439d9fa67f93248cba90f0bce",
+    "mtime": 1788354529.5731435,
+    "ast_hash": "56c8d1bc9b51202b4557953c96cd9c0c",
     "semantic_hash": ""
   },
   "file-icon.png": {
@@ -92,6 +87,26 @@
   "scripts/adhoc-sign.js": {
     "mtime": 1785788872.755339,
     "ast_hash": "6f9831282918dfb5484bdfad8cdad66a",
+    "semantic_hash": ""
+  },
+  "apple-touch-icon.png": {
+    "mtime": 1786701762.5957,
+    "ast_hash": "defd0d0f81fa5a09d7a5181f869387e9",
+    "semantic_hash": ""
+  },
+  "favicon-16x16.png": {
+    "mtime": 1786701762.6556082,
+    "ast_hash": "82098afb2f978a83bb89cf4d62603693",
+    "semantic_hash": ""
+  },
+  "favicon-32x32.png": {
+    "mtime": 1786701762.6245232,
+    "ast_hash": "9cf36b2ec77061ad9a84593ef97e058c",
+    "semantic_hash": ""
+  },
+  "og-card.png": {
+    "mtime": 1786701824.3432045,
+    "ast_hash": "26bfd7f2e3b20bf9d441307b0ff97224",
     "semantic_hash": ""
   }
 }

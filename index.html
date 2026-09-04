@@ -586,6 +586,9 @@ body.mode-live #edit-mode-banner { display: none; }
 .sbp-seq-nm { font-size: 12px; font-weight: 700; color: var(--txt); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px; font-family: var(--cond); letter-spacing: .01em; }
 .sbp-seq-cb { font-size: 14px; flex-shrink: 0; margin-right: 6px; line-height: 1; width: 14px; text-align: center; }
 .sbp-seq.selected { background: rgba(240,168,56,.06); }
+.sbp-seq.dragging { opacity: .3; }
+.sbp-seq.drop-before { box-shadow: inset 0 2px 0 var(--primary); }
+.sbp-seq.drop-after  { box-shadow: inset 0 -2px 0 var(--primary); }
 
 /* Panel footer */
 .sbp-foot { border-top: 1px solid var(--hair); flex-shrink: 0; display: flex; gap: 0; }
@@ -661,7 +664,10 @@ body.mode-live #edit-mode-banner { display: none; }
 .song-row:hover { background: var(--surface2); }
 .song-row.selected { background: var(--surface2); border-left-color: var(--primary); padding-left: 12px; }
 .song-row.dragging { opacity: .3; }
-.song-row.drag-over { background: var(--primary-bg); border-left-color: var(--primary); }
+/* Drag-reorder: a line drawn in the gap the sequence will land in. Inset shadow
+   rather than a real border so the rows never shift under the pointer. */
+.song-row.drop-before { box-shadow: inset 0 2px 0 var(--primary); }
+.song-row.drop-after  { box-shadow: inset 0 -2px 0 var(--primary); }
 .drag-grip { display: flex; flex-direction: column; gap: 2px; padding: 3px 2px; cursor: grab; flex-shrink: 0; opacity: .25; }
 .drag-grip:hover { opacity: .7; }
 .drag-grip span { display: block; width: 10px; height: 1.5px; background: var(--txt); border-radius: 1px; }
@@ -9223,8 +9229,94 @@ function initResize(handleId,panelId){
   document.addEventListener('mouseup',()=>{drag=false;h.classList.remove('dragging');});
 }
 
+// ─── SEQUENCE DRAG-REORDER ───
+/* Tinting the row under the pointer cannot say whether the sequence lands above
+   or below it, and the old splice-then-insert answered that differently by
+   direction — dragging down landed *after* the target, dragging up landed
+   *before* it. So one gesture meant two things and the sequence arrived
+   somewhere you had not aimed at.
+
+   Both sequence lists now share one rule: the pointer's half of the hovered row
+   picks a gap, a line is drawn in that gap, and the drop lands exactly there. */
+
+/* Move `id` into the gap that sits before rendered position `gap`
+   (gap === list length → the end of the list). Resolved against playlist.songIds
+   by id rather than by index: a playlist may hold an id whose song is gone, and
+   getActivePlaylistSongs() filters those out, which shifts every index after it. */
+function _seqReorder(id,gap){
+  const pl=getActivePlaylist(); if(!pl)return false;
+  const rendered=getActivePlaylistSongs();
+  const from=pl.songIds.indexOf(id); if(from<0)return false;
+  const to=gap<rendered.length?pl.songIds.indexOf(rendered[gap].id):pl.songIds.length;
+  if(to<0)return false;
+  if(to===from||to===from+1)return false;   // already sits in that gap
+  const[m]=pl.songIds.splice(from,1);
+  pl.songIds.splice(to>from?to-1:to,0,m);   // `to` indexed the pre-removal array
+  return true;
+}
+/* gap === -1 clears the line. */
+function _seqPaintGap(listEl,gap){
+  const rows=listEl.querySelectorAll(listEl._cfSel);
+  rows.forEach((r,i)=>{
+    r.classList.toggle('drop-before',gap===i);
+    r.classList.toggle('drop-after',gap===rows.length&&i===rows.length-1);
+  });
+}
+function _seqDoDrop(listEl,gap){
+  const from=listEl._cfFrom,ids=listEl._cfIds||[];
+  listEl._cfFrom=null; _seqPaintGap(listEl,-1);
+  if(from==null||!ids[from])return;
+  if(!_seqReorder(ids[from],gap))return;
+  persist(); renderSongList();   // renderSongList refreshes the sidebar panel too
+}
+function _seqGapAt(row,ev,i){
+  const b=row.getBoundingClientRect();
+  return (ev.clientY-b.top)>b.height/2?i+1:i;
+}
+/* `ids` is the rendered order, row for row. Rows are re-created on every render;
+   the container's own listeners are not, so they are wired once. */
+function _seqWireDnD(listEl,rowSel,ids){
+  listEl._cfIds=ids; listEl._cfSel=rowSel;
+  listEl.querySelectorAll(rowSel).forEach((row,i)=>{
+    row.draggable=true;
+    row.addEventListener('dragstart',e=>{
+      listEl._cfFrom=i; row.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+      try{e.dataTransfer.setData('text/plain',ids[i]||'');}catch(_){}
+    });
+    row.addEventListener('dragend',()=>{
+      row.classList.remove('dragging'); listEl._cfFrom=null; _seqPaintGap(listEl,-1);
+    });
+    row.addEventListener('dragover',e=>{
+      if(listEl._cfFrom==null)return;
+      e.preventDefault(); e.dataTransfer.dropEffect='move';
+      _seqPaintGap(listEl,_seqGapAt(row,e,i));
+    });
+    row.addEventListener('drop',e=>{
+      if(listEl._cfFrom==null)return;
+      e.preventDefault(); e.stopPropagation();
+      _seqDoDrop(listEl,_seqGapAt(row,e,i));
+    });
+  });
+  if(listEl._cfWired)return;
+  listEl._cfWired=true;
+  /* Empty space under the last row is the tail gap — otherwise the only way to
+     move a sequence to the end is to aim at the bottom half of the last row. */
+  listEl.addEventListener('dragover',e=>{
+    if(listEl._cfFrom==null||e.target.closest(listEl._cfSel))return;
+    e.preventDefault(); e.dataTransfer.dropEffect='move';
+    _seqPaintGap(listEl,(listEl._cfIds||[]).length);
+  });
+  listEl.addEventListener('drop',e=>{
+    if(listEl._cfFrom==null||e.target.closest(listEl._cfSel))return;
+    e.preventDefault(); _seqDoDrop(listEl,(listEl._cfIds||[]).length);
+  });
+  listEl.addEventListener('dragleave',e=>{
+    if(!listEl.contains(e.relatedTarget)) _seqPaintGap(listEl,-1);
+  });
+}
+
 // ─── SONG LIST (edit) ───
-let dragSrcId=null;
 function renderSongList(){
   if(_sbPanel==='seqs') setTimeout(()=>_sbRender('seqs'),0);
   const el=document.getElementById('seq-list-scroll');if(!el)return;
@@ -9234,7 +9326,7 @@ function renderSongList(){
   getActivePlaylistSongs().forEach((song,i)=>{
     const isSel=song.id===state.activeSongId;
     const div=document.createElement('div');
-    div.className='song-row'+(isSel?' selected':'');div.dataset.sid=song.id;div.draggable=true;
+    div.className='song-row'+(isSel?' selected':'');div.dataset.sid=song.id;   // draggable set by _seqWireDnD
     const firstCue=getSortedCues(song.id,false)[0];
     // Media badge — owner-desktop only (editors/viewers/mobile see no media reference).
     let audioBadge='';
@@ -9274,22 +9366,9 @@ function renderSongList(){
       selectSong(song.id);
     });
     div.addEventListener('dblclick',e=>{if(!e.target.closest('.drag-grip')){selectSong(song.id);openSeqSettingsPanel();}});
-    div.addEventListener('dragstart',e=>{dragSrcId=song.id;div.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
-    div.addEventListener('dragend',()=>div.classList.remove('dragging'));
-    div.addEventListener('dragover',e=>{e.preventDefault();div.classList.add('drag-over');});
-    div.addEventListener('dragleave',()=>div.classList.remove('drag-over'));
-    div.addEventListener('drop',e=>{
-      e.preventDefault();div.classList.remove('drag-over');
-      if(dragSrcId&&dragSrcId!==song.id){
-        const pl=getActivePlaylist();
-        if(pl){const fi=pl.songIds.indexOf(dragSrcId),ti=pl.songIds.indexOf(song.id);
-          if(fi>=0&&ti>=0){const[m]=pl.songIds.splice(fi,1);pl.songIds.splice(ti,0,m);}
-        }
-        persist();renderSongList();
-      }
-    });
     el.appendChild(div);
   });
+  _seqWireDnD(el,'.song-row',getActivePlaylistSongs().map(s=>s.id));
   el.scrollTop=_st; // set immediately...
   requestAnimationFrame(()=>{ el.scrollTop=_st; }); // ...and again after reflow
   // Refresh mobile editor: show/update if in edit mode on a narrow screen
@@ -13451,20 +13530,6 @@ function sbOpen(name){
   _sbRender(name);
   /* Load version history whenever the project panel is opened */
   if(name === 'save' && window._refreshHistoryPanel) _refreshHistoryPanel();
-}
-
-// ── Sidebar sequence drag-reorder ──────────────────────
-let _sbDragIdx=null;
-function sbSeqDragStart(e,idx){_sbDragIdx=idx;e.dataTransfer.effectAllowed='move';}
-function sbSeqDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';}
-function sbSeqDrop(e,toIdx){
-  e.preventDefault();
-  if(_sbDragIdx===null||_sbDragIdx===toIdx)return;
-  snapshot();
-  const pl=getActivePlaylist();
-  if(pl){const[m]=pl.songIds.splice(_sbDragIdx,1);pl.songIds.splice(toIdx,0,m);}
-  _sbDragIdx=null;
-  persist();renderSongList();_sbRender('seqs');
 }
 
 
@@ -24037,7 +24102,6 @@ CF._savePinTracks=function(id){
 CF._seqSelectMode = false;
 CF._selSeqs = [];
 CF._seqClipboard = null;
-CF._plDragIdx = null;
 
 CF._enterSelectMode = function(){
   CF._seqSelectMode=true; CF._selSeqs=[];
@@ -24210,17 +24274,6 @@ function pasteSeq(){
 CF.createPlaylist=createPlaylist;CF.renamePlaylist=renamePlaylist;CF.deletePlaylist=deletePlaylist;
 CF.duplicatePlaylist=duplicatePlaylist;CF.switchPlaylist=switchPlaylist;
 CF.copySeq=copySeq;CF.pasteSeq=pasteSeq;
-CF._plDrop=function(toIdx){
-  if(CF._plDragIdx===null||CF._plDragIdx===toIdx)return;
-  var pl=window.getActivePlaylist?getActivePlaylist():null;
-  if(!pl)return;
-  var m=pl.songIds.splice(CF._plDragIdx,1)[0];
-  pl.songIds.splice(toIdx,0,m);
-  CF._plDragIdx=null;
-  if(window.persist)persist();
-  if(window.renderSongList)renderSongList();
-  if(window._sbRender)_sbRender('seqs');
-};
 
 /* ── Wire both panels into _sbRender ─────────────────────── */
 (function(){
@@ -24240,6 +24293,22 @@ CF._plDrop=function(toIdx){
   }
 
   window._sbRender=function(name){
+    /* Read the sequence list's scroll offset FIRST. _orig() opens by clearing the
+       panel body's inline flex layout, and without `display:flex` on the body the
+       inner `flex:1;overflow-y:auto` list sizes to its content instead of to the
+       panel — it stops being scrollable, so the browser clamps its scrollTop to 0.
+       Read after that and the answer is always 0, which is why the list snapped
+       back to the top on every re-render. Drag-reorder is where that shows: every
+       other way of touching this panel closes it. The dataset marker keeps a
+       different panel's scroll from being carried in on the way to `seqs`. */
+    var _seqScroll=0, _pb=document.getElementById('cf-panel-body');
+    if(_pb){
+      if(name==='seqs'&&_pb.dataset.cfPanel==='seqs'){
+        var _pl0=_pb.querySelector('[style*="overflow-y:auto"]');
+        if(_pl0) _seqScroll=_pl0.scrollTop;
+      }
+      _pb.dataset.cfPanel=name;
+    }
     _orig(name);
     var body=document.getElementById('cf-panel-body');
     if(!body) return;
@@ -24323,13 +24392,7 @@ CF._plDrop=function(toIdx){
         var clickAct=selMode
           ?'onclick="event.stopPropagation();CF._toggleSel(\''+escH(song.id)+'\')"'
           :'onclick="selectSong(\''+escH(song.id)+'\');sbClose()"';
-        rows+='<div class="'+cls+'" draggable="'+(!selMode)+'"'
-          +(!selMode?' ondragstart="CF._plDragIdx='+i+';event.dataTransfer.effectAllowed=\'move\';this.classList.add(\'dragging\')"':'')
-          +' ondragend="this.classList.remove(\'dragging\')"'
-          +' ondragover="event.preventDefault();this.classList.add(\'drag-over\')"'
-          +' ondragleave="this.classList.remove(\'drag-over\')"'
-          +' ondrop="event.preventDefault();this.classList.remove(\'drag-over\');CF._plDrop('+i+')"'
-          +' '+clickAct+'>';
+        rows+='<div class="'+cls+'" '+clickAct+'>';
         if(selMode){
           rows+='<span class="sbp-seq-cb" style="color:'+(isSel?'var(--primary)':'var(--txt-low)')+';">'+(isSel?'☑':'☐')+'</span>';
         } else {
@@ -24374,15 +24437,17 @@ CF._plDrop=function(toIdx){
         foot+='</div>';
       }
 
-      var _prevListEl=body.querySelector('[style*="overflow-y:auto"]');
-      var _prevScroll=_prevListEl?_prevListEl.scrollTop:0;
       body.innerHTML=plCtx+'<div style="flex:1;overflow-y:auto;">'+rows+'</div>'+foot;
       /* Apply flex layout BEFORE setting scrollTop — without it the inner flex:1 div has
          no constrained height, scrollTop is clamped to 0, and the next _sbRender call
          reads 0 and skips scroll restoration entirely. */
       body.style.display='flex';body.style.flexDirection='column';body.style.padding='0';
       var _newListEl=body.querySelector('[style*="overflow-y:auto"]');
-      if(_newListEl&&_prevScroll){_newListEl.scrollTop=_prevScroll;requestAnimationFrame(function(){_newListEl.scrollTop=_prevScroll;});}
+      if(_newListEl&&_seqScroll){_newListEl.scrollTop=_seqScroll;requestAnimationFrame(function(){_newListEl.scrollTop=_seqScroll;});}
+      /* Same drag-reorder engine as the edit sequence list — one insertion line,
+         one meaning. Select mode is ticking boxes, not reordering. */
+      if(_newListEl&&!selMode&&window._seqWireDnD)
+        _seqWireDnD(_newListEl,'.sbp-seq',songs.map(function(s){return s.id;}));
       /* Init any native selects injected into the footer (e.g. "Move to…") */
       if(window.CfSelect){body.querySelectorAll('select:not([data-cf-skip])').forEach(function(s){CfSelect.init(s,{cls:'ghost',style:'flex:1;min-width:80px;'});});}
     }
