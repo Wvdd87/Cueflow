@@ -10,17 +10,17 @@
     "semantic_hash": ""
   },
   "lan-server.js": {
-    "mtime": 1788354933.5942907,
+    "mtime": 1788542522.3594706,
     "ast_hash": "6c86565cc7d30d6f0d44e0cb66deb311",
     "semantic_hash": ""
   },
   "main.js": {
-    "mtime": 1788354649.3111303,
+    "mtime": 1788542522.3601696,
     "ast_hash": "aa3375fabda9f6cf98c2b6d03789331f",
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1788312968.6625268,
+    "mtime": 1788542522.3613265,
     "ast_hash": "32c956cd41701d60fec5c921775eafc0",
     "semantic_hash": ""
   },
@@ -30,7 +30,7 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1788313318.811655,
+    "mtime": 1788542522.3246214,
     "ast_hash": "27f2027a1ee41d1b70c76363a833e863",
     "semantic_hash": ""
   },
@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1788538195.6724024,
-    "ast_hash": "0dbad06f8b93d5d2493ff521c36c1703",
+    "mtime": 1788622766.2738955,
+    "ast_hash": "65fccf0e44dc114cd4ac3f6e3e2dbc32",
     "semantic_hash": ""
   },
   "favicon.png": {
@@ -65,7 +65,7 @@
     "semantic_hash": ""
   },
   "media-protocol.js": {
-    "mtime": 1788354529.5731435,
+    "mtime": 1788542522.3607414,
     "ast_hash": "56c8d1bc9b51202b4557953c96cd9c0c",
     "semantic_hash": ""
   },

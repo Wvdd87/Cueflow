@@ -21368,17 +21368,20 @@ function relayTC(frames, source, paused){
   /* Paused packets bypass the 12fps throttle so the freeze lands immediately. */
   if(!paused && now - CF._lastBcast < 80) return; /* ~12fps — enough for smooth interpolation */
   CF._lastBcast = now;
-  /* Sequence name: scan songs by startTc to find which sequence TC falls within */
+  /* Sequence name: ask the same helper the cockpit just used for this very frame
+     (redrawLive/redrawTest run _curSeqIdByTc before relaying), so the TC view cannot
+     disagree with the owner's live view.
+
+     The scan this replaces kept the last match in *playlist order* rather than the
+     latest-starting one, so it was only right while the playlist happened to be
+     ordered by startTc — reorder it and the label named the wrong sequence. It also
+     defaulted a missing startTc to 00:00:00:00, which is <= every frame and so
+     clobbered the real match, and it knew nothing of a manually picked sequence. */
   var seqName = '';
   try{
-    var fps = state.fps||25;
-    var allSongs = window.getActivePlaylistSongs ? getActivePlaylistSongs() : (state.songs||[]);
-    var matched = null;
-    allSongs.forEach(function(s){
-      var startF = window.tcF ? tcF(s.startTc||s.cues&&s.cues[0]&&s.cues[0].tc||'00:00:00:00') : 0;
-      if(startF <= frames) matched = s;
-    });
-    seqName = matched ? matched.name : '';
+    var _curId = window._curSeqIdByTc ? _curSeqIdByTc(frames) : null;
+    var _curSong = _curId && state.songs ? state.songs.find(function(x){return x.id===_curId;}) : null;
+    if(_curSong) seqName = _curSong.name||'';
   }catch(e){}
   var playlistName='';
   try{var _rpl=state.playlists&&state.playlists.find(function(p){return p.id===state.activePlaylistId;});if(_rpl)playlistName=_rpl.name;}catch(e){}
@@ -21668,13 +21671,15 @@ function _applyTcMessage(p){
   var big=document.getElementById('cf-tc-big');
   if(big){big.textContent=fmtd;big.style.color=color;}
   var seqEl=document.getElementById('cf-tc-seqname');
-  if(seqEl&&displayLabel) seqEl.textContent=displayLabel;
+  /* Assign even when empty. Guarding on displayLabel left the last name that *did*
+     arrive frozen on screen, so a stale sequence name outlived the state it named. */
+  if(seqEl) seqEl.textContent=displayLabel;
 
   /* Viewer screen */
   var vtc=document.getElementById('cf-v-tc');
   if(vtc){vtc.textContent=fmtd;vtc.style.color=color;}
   var vseq=document.getElementById('cf-v-seqname');
-  if(vseq&&displayLabel) vseq.textContent=displayLabel;
+  if(vseq) vseq.textContent=displayLabel;
   var vstxt=document.getElementById('cf-v-status-txt');
   if(vstxt) vstxt.style.display='none';
   /* Viewer cockpit topbar — TC source */
