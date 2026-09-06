@@ -20989,6 +20989,32 @@ var _SONG_SYNC_LABELS = {
   chapters:'Chapters'
 };
 
+/* Cue fields beyond the tc/name/desc that findConflicts() already resolves per
+   cue. Moving a cue to another track, or changing how long it holds, was invisible
+   to the version check and so could be silently overwritten by a stale copy.
+
+   Normalised the way applyProject() normalises on load, or a raw remote row would
+   look different from an already-normalised local one and prompt forever:
+   _validateCueDuration coerces anything unusable to "auto", and a cue with neither
+   streamId nor cameraId is given the first stream. That last default depends on the
+   project's own streams list, which is not in scope here, so a blank track reads as
+   "unknown" and matches anything rather than inventing a difference. */
+function _cueSyncView(c){
+  c = c || {};
+  var dur = c.duration;
+  if(dur==null || typeof dur!=='string' || !validateTc(dur) || tcF(dur)<1) dur='auto';
+  return {
+    track:    c.cameraId ? ('cam:'+c.cameraId) : (c.streamId ? ('str:'+c.streamId) : ''),
+    duration: dur
+  };
+}
+function _cuesDiffer(lc, rc){
+  var lv=_cueSyncView(lc), rv=_cueSyncView(rc);
+  if(lv.track && rv.track && lv.track!==rv.track) return 'track';
+  if(lv.duration !== rv.duration) return 'duration';
+  return null;
+}
+
 function _versionsDiffer(localSongs, remoteSongs){
   var ls = localSongs  || [];
   var rs = remoteSongs || [];
@@ -21002,6 +21028,12 @@ function _versionsDiffer(localSongs, remoteSongs){
     if((l.cues||[]).length !== (r.cues||[]).length) return true;
     var lv = _songSyncView(l), rv = _songSyncView(r);
     for(var k in _SONG_SYNC_LABELS){ if(lv[k] !== rv[k]) return true; }
+    var lCues = {};
+    (l.cues||[]).forEach(function(c){ lCues[c.id] = c; });
+    for(var ci = 0; ci < (r.cues||[]).length; ci++){
+      var rc = r.cues[ci], lc = lCues[rc.id];
+      if(lc && _cuesDiffer(lc, rc)) return true;
+    }
   }
   // Also check for local songs that don't appear in remote
   var rMap = {};
@@ -21031,6 +21063,17 @@ function _versionDiffSummary(localSongs, remoteSongs){
     for(var k in _SONG_SYNC_LABELS){ if(lv[k] !== rv[k]) counts[k] = (counts[k]||0)+1; }
   });
   if(cueDiff) bits.push('different cue count on '+cueDiff+' sequence'+(cueDiff===1?'':'s'));
+  var cueField = {};
+  rs.forEach(function(r){
+    var l = lMap[r.id]; if(!l) return;
+    var lC = {}; (l.cues||[]).forEach(function(c){ lC[c.id]=c; });
+    (r.cues||[]).forEach(function(rc){
+      var lc = lC[rc.id]; if(!lc) return;
+      var w = _cuesDiffer(lc, rc); if(w) cueField[w] = (cueField[w]||0)+1;
+    });
+  });
+  if(cueField.track)    bits.push('track on '+cueField.track+' cue'+(cueField.track===1?'':'s'));
+  if(cueField.duration) bits.push('duration on '+cueField.duration+' cue'+(cueField.duration===1?'':'s'));
   Object.keys(counts).forEach(function(k){
     bits.push(_SONG_SYNC_LABELS[k].toLowerCase()+' on '+counts[k]+' sequence'+(counts[k]===1?'':'s'));
   });
