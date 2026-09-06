@@ -4856,11 +4856,10 @@ function deleteProjectData(id){
   localStorage.removeItem('cf12_proj_'+id);
 }
 let persistTimer=null;
-function persist(){
-  if(state.projectId===BOOT_PLACEHOLDER_ID)return; // transient placeholder — never persist
-  /* Every mutation ends here, which is what makes undo coverage automatic. */
-  if(window._undoRecord) _undoRecord();
-  saveProjectData({id:state.projectId,name:state.name,fps:state.fps,visibleCount:state.visibleCount,
+/* The full project object as it is written anywhere — one definition, so a backup
+   can never be a different shape from what was saved. */
+function _cfProjectForSave(){
+  return {id:state.projectId,name:state.name,fps:state.fps,visibleCount:state.visibleCount,
     warnSec:state.warnSec,autoAdvanceSec:state.autoAdvanceSec,
     activeSongId:state.activeSongId,activePlaylistId:state.activePlaylistId,
     playlists:state.playlists,songs:state.songs,streams:state.streams,
@@ -4872,7 +4871,42 @@ function persist(){
     cueFlash:state.cueFlash!==false,
     showClock:!!state.showClock,
     cameraTrack:state.cameraTrack?JSON.parse(JSON.stringify(state.cameraTrack)):null,
-    cameraTrackVisible:state.cameraTrackVisible!==false});
+    cameraTrackVisible:state.cameraTrackVisible!==false};
+}
+
+/* ── Rolling on-disk backup ───────────────────────────────────────────────────
+   Deliberately NOT gated on the network, the account, or a successful cloud push:
+   those are precisely the things that have failed when a backup is what you need.
+   Throttled so a burst of typing writes one file, and always rebuilt fresh at
+   write time so a throttled write still records current state. Pruned by age in
+   the main process, so a week of work stays recoverable. */
+var _cfBackupAt=0,_cfBackupTimer=null;
+const CF_BACKUP_MIN_MS=20000;
+function _cfLocalBackup(force){
+  if(!window.cfBackup||!cfBackup.available)return;          // browser build — no disk
+  if(!state.projectId||state.projectId===BOOT_PLACEHOLDER_ID)return;
+  clearTimeout(_cfBackupTimer);
+  const due=force?0:Math.max(0,CF_BACKUP_MIN_MS-(Date.now()-_cfBackupAt));
+  _cfBackupTimer=setTimeout(function(){
+    _cfBackupAt=Date.now();
+    try{
+      const proj=_cfProjectForSave(),songs=proj.songs||[];
+      cfBackup.write({showId:proj.id,json:JSON.stringify(proj),songs:songs.length,
+        cues:songs.reduce(function(n,x){return n+((x.cues||[]).length);},0)})
+        .then(function(r){ if(r&&!r.ok)console.warn('[CF] local backup failed:',r.error); })
+        .catch(function(e){ console.warn('[CF] local backup failed:',e); });
+    }catch(e){ console.warn('[CF] local backup failed:',e); }
+  },due);
+}
+/* A closing window must not take the last few minutes of work with it. */
+window.addEventListener('beforeunload',function(){ _cfLocalBackup(true); });
+
+function persist(){
+  if(state.projectId===BOOT_PLACEHOLDER_ID)return; // transient placeholder — never persist
+  /* Every mutation ends here, which is what makes undo coverage automatic. */
+  if(window._undoRecord) _undoRecord();
+  saveProjectData(_cfProjectForSave());
+  _cfLocalBackup();
   const el=document.getElementById('save-indicator');
   if(el){el.classList.add('show');clearTimeout(persistTimer);persistTimer=setTimeout(()=>el.classList.remove('show'),1800);}
   if(window.saveSessionState) saveSessionState();
@@ -4910,15 +4944,35 @@ function applyProject(proj){
     state.playlists=[{id:plId,name:'Main',songIds:state.songs.map(s=>s.id)}];
   }
   state.activePlaylistId=proj.activePlaylistId||state.playlists[0].id;
-  // Prune songs not referenced by any playlist (stale data from deleted playlists)
+  /* Reconcile songs against playlists. A sequence missing from every playlist used
+     to be DELETED here — and because state.songs is what the next persist() writes,
+     that deletion reached the cloud on the operator's next keystroke. Anything that
+     dropped an id from songIds (a stale playlist array merged over newer songs, an
+     interrupted write, a bad reorder) therefore destroyed that sequence and every cue
+     in it, silently and permanently. A show file must never lose a sequence it still
+     holds: orphans are adopted into a playlist instead, which is what CLAUDE.md always
+     said this did. The reverse — an id pointing at a song that is genuinely gone — is
+     just a dead pointer, and dropping it costs nothing.
+
+     Both repairs stay memory-only at load time: scheduling persist() here would run
+     AFTER Block 2 replaces window.persist, setting DIRTY_KEY and pushing stale
+     localStorage before ownerRestoreShow() can fetch authoritative remote state. They
+     are written on the next real user action instead. */
   const _assigned=new Set(state.playlists.flatMap(p=>p.songIds));
-  const _hadOrphans=state.songs.some(s=>!_assigned.has(s.id));
-  state.songs=state.songs.filter(s=>_assigned.has(s.id));
-  // Orphan removal is memory-only at load time — never persist here.
-  // Scheduling persist() via setTimeout(0) runs AFTER Block 2 replaces window.persist,
-  // which sets DIRTY_KEY and triggers a Supabase push of stale localStorage data before
-  // ownerRestoreShow() can fetch the authoritative remote state. The cleanup is written
-  // to Supabase on the next real user action instead.
+  const _orphans=state.songs.filter(s=>!_assigned.has(s.id));
+  if(_orphans.length){
+    const _home=state.playlists.find(p=>p.id===state.activePlaylistId)||state.playlists[0];
+    _orphans.forEach(s=>_home.songIds.push(s.id));
+    console.warn('[CF] adopted '+_orphans.length+' orphaned sequence(s) into "'+_home.name+'": '+
+                 _orphans.map(s=>s.name).join(', '));
+  }
+  const _live=new Set(state.songs.map(s=>s.id));
+  state.playlists.forEach(p=>{
+    const _before=p.songIds.length;
+    p.songIds=p.songIds.filter(id=>_live.has(id));
+    if(p.songIds.length!==_before)
+      console.warn('[CF] dropped '+(_before-p.songIds.length)+' dead sequence reference(s) from "'+p.name+'"');
+  });
   // Migrate legacy media fields to unified system
   state.songs.forEach(s=>{
     if(!s.chapters)s.chapters=[];
@@ -4969,6 +5023,10 @@ function applyProject(proj){
     if(proj.id!==_undoHistoryFor){ _undoHistoryFor=proj.id; state.undoStack=[]; state.redoStack=[]; }
     if(window.updateUndoButtons) updateUndoButtons();
   }
+  /* Back the show up the moment it loads, before any sync, merge or edit can touch
+     it. This is the copy that survives a remote version arriving and overwriting
+     good local work — by then the pre-overwrite state exists nowhere else. */
+  _cfLocalBackup(true);
   resetSimToActiveSong();
   renderSongList();renderStreamsBar();renderCueList();
   redrawActive();updateStreamDots();_updateCamerasTab();_updateLiveOffsetDisplay();_updateLiveClock();
@@ -6896,8 +6954,15 @@ function _doRedraw(target,frames){
     }
   }
 
-  // auto-advance active song (live only)
-  if(isLive&&curIdx>=0){
+  /* Auto-advance the active sequence as the show runs — gated on being IN live
+     mode, not merely on drawing live TC. The MTC and LTC RAF loops call
+     redrawLive() the whole time a source is armed, whatever mode the operator is
+     in, so `isLive` alone let an incoming feed reach into edit mode and move the
+     selection out from under someone who was working. It also made "+ Add first
+     cue" jump: the new cue changed the cue index, which released the __adv guard,
+     and a show clock already past that cue advanced straight off the sequence the
+     cue had just been added to. Editing must never be steered by the feed. */
+  if(isLive&&state.appMode==='live'&&curIdx>=0){
     const cur=allCues[curIdx];
     const noMore=!getSortedCues(cur.songId,true).find(c=>c._f>frames);
     if(noMore){
@@ -6905,10 +6970,7 @@ function _doRedraw(target,frames){
       if(elapsed>=state.autoAdvanceSec&&_lastCurIdx.__adv!==curIdx){
         _lastCurIdx.__adv=curIdx;
         const songs=getActivePlaylistSongs(),si=songs.findIndex(s=>s.id===cur.songId);
-        if(si>=0&&si<songs.length-1){
-          state.activeSongId=songs[si+1].id;
-          if(state.appMode==='edit'){renderSongList();renderCueList();}
-        }
+        if(si>=0&&si<songs.length-1) state.activeSongId=songs[si+1].id;
       }
     }
   }
@@ -13533,7 +13595,10 @@ function sbOpen(name){
   document.getElementById('sb-'+name)?.classList.add('active');
   _sbRender(name);
   /* Load version history whenever the project panel is opened */
-  if(name === 'save' && window._refreshHistoryPanel) _refreshHistoryPanel();
+  if(name === 'save'){
+    if(window._refreshHistoryPanel) _refreshHistoryPanel();
+    if(window._refreshBackupPanel) _refreshBackupPanel();
+  }
 }
 
 
@@ -13657,6 +13722,14 @@ function _sbRender(name){
       <div id="sbp-hist-list" style="padding-bottom:4px;">
         <div style="padding:6px 14px;font-size:11px;color:var(--txt-low);">Loading…</div>
       </div>
+    </div>
+    <div id="sbp-bak-section" style="display:none;">
+      <hr style="border:none;border-top:1px solid var(--hair);margin:6px 0 0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px 4px;">
+        <span style="font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-low);">On this Mac</span>
+        <button style="background:none;border:none;color:var(--txt-low);cursor:pointer;font-size:10px;padding:2px 4px;" onclick="if(window.cfBackup)cfBackup.reveal(CF.showId)" title="Show backups in Finder">Reveal</button>
+      </div>
+      <div id="sbp-bak-list" style="padding-bottom:4px;"></div>
     </div>`;
   } else if(name === 'playlists'){
     html = ''; // Block 2 override handles full render
@@ -20396,8 +20469,16 @@ function pushProject(cb, _retry){
       clearTimeout(CF._pendingRemoteTimer);
       localStorage.removeItem(DIRTY_KEY);
       updateSyncBtn(); if(cb) cb();
-      /* Save a history snapshot (fire-and-forget; never blocks the push flow) */
-      _saveShowSnapshot();
+      /* Save a history snapshot (fire-and-forget; never blocks the push flow).
+         Throttled: show_history keeps only 10 rows per show, and a push fires a few
+         hundred ms after every edit, so snapshotting each one churned the whole
+         table in well under two minutes — the recoverable past was gone long before
+         anyone noticed a problem. At this spacing those 10 rows cover most of a
+         working session. The on-disk backup carries the fine grain. */
+      if(Date.now()-(CF._lastSnapAt||0) > CF_SNAPSHOT_MIN_MS){
+        CF._lastSnapAt=Date.now();
+        _saveShowSnapshot();
+      }
       /* Keep the LAN server's served copy current for cold-join / failover. */
       _cfLanPushSnapshot();
       /* Signal collaborators to refetch — they no longer get postgres_changes
@@ -20455,6 +20536,8 @@ function _updateSyncChip(state, label){
   if(mdot){ mdot.style.background = c.dot; }
   if(mlbl){ mlbl.style.color = c.lbl; mlbl.textContent = c.text; }
 }
+
+var CF_SNAPSHOT_MIN_MS = 5*60*1000;   /* 10 rows x 5 min ≈ 50 min of cloud history */
 
 /* Save a snapshot to show_history after a successful owner push. Fire-and-forget. */
 function _saveShowSnapshot(){
@@ -20531,6 +20614,62 @@ function _restoreFromHistory(historyId, timeStr, desc){
     'Restore snapshot',
     'danger',
     'Restore from history'
+  );
+}
+
+/* ── Local backups panel ─────────────────────────────────────────────────────
+   The cloud list above holds 10 rows; this one holds weeks. It is also the only
+   list that works with no internet and no account, which is when it matters. */
+function _refreshBackupPanel(){
+  var secEl=document.getElementById('sbp-bak-section');
+  var listEl=document.getElementById('sbp-bak-list');
+  if(!secEl||!listEl) return;
+  if(!window.cfBackup||!cfBackup.available||!CF.showId){ secEl.style.display='none'; return; }
+  secEl.style.display='';
+  cfBackup.list(CF.showId).then(function(r){
+    var rows=(r&&r.backups)||[];
+    if(!rows.length){
+      listEl.innerHTML='<div style="padding:6px 14px;font-size:11px;color:var(--txt-low);">No local backups yet.</div>';
+      return;
+    }
+    listEl.innerHTML='';
+    rows.slice(0,12).forEach(function(b){
+      var d=new Date(b.at);
+      var timeStr=d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+
+                  d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+      var desc=(b.songs==null?'—':b.songs+' seq, '+b.cues+' cues');
+      var el=document.createElement('div');
+      el.className='sbp-hist-row';
+      el.innerHTML='<span class="sbp-hist-time">'+escH(timeStr)+'</span>'+
+                   '<span class="sbp-hist-desc">'+escH(desc)+'</span>'+
+                   '<button class="sbp-hist-btn">Restore</button>';
+      el.querySelector('.sbp-hist-btn').addEventListener('click',function(){
+        _restoreFromBackup(b.name,timeStr,desc);
+      });
+      listEl.appendChild(el);
+    });
+  });
+}
+window._refreshBackupPanel=_refreshBackupPanel;
+
+function _restoreFromBackup(name,timeStr,desc){
+  if(!CF.showId) return;
+  openConfirmModal(
+    'Restore the local backup from '+timeStr+' ('+desc+')?\nThis will overwrite your current project.',
+    function(){
+      cfBackup.read({showId:CF.showId,name:name}).then(function(txt){
+        var proj; try{ proj=JSON.parse(txt); }catch(e){ proj=null; }
+        if(!proj||!proj.songs){ openAlertModal('Could not read that backup.','Restore failed'); return; }
+        /* Snapshot what is on screen first — restoring must never be the thing that
+           loses the current version. */
+        if(window._cfLocalBackup) _cfLocalBackup(true);
+        if(window.applyProject) applyProject(proj);
+        if(window.CF) CF.dirty=true;
+        if(window.updateSyncBtn) updateSyncBtn();
+        if(window.pushProject) setTimeout(pushProject,300);
+      }).catch(function(){ openAlertModal('Could not read that backup.','Restore failed'); });
+    },
+    null,'Restore backup','danger','Restore from this Mac'
   );
 }
 
@@ -20822,6 +20961,34 @@ function findConflicts(localSongs, remoteSongs){
    different song count, different song IDs, or different cue counts.
    findConflicts() only catches field-level conflicts on cues that exist in BOTH
    versions; _versionsDiffer() catches additions and deletions that it misses. */
+/* Song-level fields that belong to the show and so must take part in the version
+   comparison. Anything missing from here can be changed on one machine and be
+   silently overwritten by another's stale copy — which is how a media folder
+   relinked on a second laptop got reverted by the first laptop's older cache.
+
+   Read through the same lens applyProject() applies on load, or a row still
+   carrying the legacy audioFilename/videoFilename shape would read as different
+   from an already-migrated local copy and prompt on every single check. */
+function _songSyncView(s){
+  s = s || {};
+  var mf = s.mediaFile || s.audioFilename || s.videoFilename || '';
+  var mt = mf ? (s.mediaType || (s.audioFilename?'audio':s.videoFilename?'video':'')) : '';
+  return {
+    name:        s.name || '',
+    startTc:     s.startTc || '',
+    description: s.description || '',
+    mediaFile:   mf,
+    mediaType:   mt,
+    mediaOffset: s.mediaOffset || '',
+    chapters:    (s.chapters||[]).length
+  };
+}
+var _SONG_SYNC_LABELS = {
+  name:'Sequence name', startTc:'Start timecode', description:'Description',
+  mediaFile:'Media file', mediaType:'Media type', mediaOffset:'Media offset',
+  chapters:'Chapters'
+};
+
 function _versionsDiffer(localSongs, remoteSongs){
   var ls = localSongs  || [];
   var rs = remoteSongs || [];
@@ -20833,6 +21000,8 @@ function _versionsDiffer(localSongs, remoteSongs){
     var l = lMap[r.id];
     if(!l) return true;                                     // remote has song local doesn't
     if((l.cues||[]).length !== (r.cues||[]).length) return true;
+    var lv = _songSyncView(l), rv = _songSyncView(r);
+    for(var k in _SONG_SYNC_LABELS){ if(lv[k] !== rv[k]) return true; }
   }
   // Also check for local songs that don't appear in remote
   var rMap = {};
@@ -20841,6 +21010,32 @@ function _versionsDiffer(localSongs, remoteSongs){
     if(!rMap[ls[j].id]) return true;
   }
   return false;
+}
+
+/* What actually differs, for the modal's subtitle. Sequence and cue counts often
+   match — a relinked media file changes neither — so without this the operator is
+   shown two identical-looking cards and no way to tell them apart. */
+function _versionDiffSummary(localSongs, remoteSongs){
+  var ls = localSongs || [], rs = remoteSongs || [], bits = [], counts = {};
+  var lMap = {}; ls.forEach(function(s){ lMap[s.id] = s; });
+  var rMap = {}; rs.forEach(function(s){ rMap[s.id] = true; });
+  var added = rs.filter(function(s){ return !lMap[s.id]; }).length;
+  var removed = ls.filter(function(s){ return !rMap[s.id]; }).length;
+  if(added)   bits.push(added+' sequence'+(added===1?'':'s')+' only in the cloud copy');
+  if(removed) bits.push(removed+' sequence'+(removed===1?'':'s')+' only on this device');
+  var cueDiff = 0;
+  rs.forEach(function(r){
+    var l = lMap[r.id]; if(!l) return;
+    if((l.cues||[]).length !== (r.cues||[]).length) cueDiff++;
+    var lv = _songSyncView(l), rv = _songSyncView(r);
+    for(var k in _SONG_SYNC_LABELS){ if(lv[k] !== rv[k]) counts[k] = (counts[k]||0)+1; }
+  });
+  if(cueDiff) bits.push('different cue count on '+cueDiff+' sequence'+(cueDiff===1?'':'s'));
+  Object.keys(counts).forEach(function(k){
+    bits.push(_SONG_SYNC_LABELS[k].toLowerCase()+' on '+counts[k]+' sequence'+(counts[k]===1?'':'s'));
+  });
+  if(!bits.length) return 'This device and the cloud have different versions of this project.';
+  return 'Differs by: '+bits.join(' · ')+'.';
 }
 
 /* Describe a project snapshot for the version-conflict modal. */
@@ -20865,6 +21060,8 @@ function _showVersionConflict(localSongs, remoteSongs, onKeepLocal, onUseRemote)
 
   if(lStat) lStat.textContent = _projDesc(localSongs);
   if(rStat) rStat.textContent = _projDesc(remoteSongs);
+  var subEl = document.getElementById('vcm-subtitle');
+  if(subEl) subEl.textContent = _versionDiffSummary(localSongs, remoteSongs);
   if(lSub)  lSub.textContent  = 'Unsaved changes on this device';
   if(rSub)  rSub.textContent  = 'Last cloud save';
 

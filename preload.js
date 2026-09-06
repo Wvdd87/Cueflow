@@ -32,3 +32,19 @@ contextBridge.exposeInMainWorld('cfNativeFs', {
   /* (path, name) → ArrayBuffer (throws if not found) */
   readMediaFile: function (path, name) { return ipcRenderer.invoke('media:read-file', { path: path, name: name }); }
 });
+
+/* ── Local rolling backups ───────────────────────────────────────────────────
+ * Every save also writes a plain .cueflow file under the app's userData folder,
+ * pruned by age rather than by count. This is the copy that survives a bad sync,
+ * a lost account or an offline week — none of which the cloud history covers. */
+contextBridge.exposeInMainWorld('cfBackup', {
+  available: true,
+  /* ({showId, json, cues, songs}) → {ok, path} | {ok:false, error} */
+  write:  function (a) { return ipcRenderer.invoke('backup:write', a); },
+  /* (showId) → {ok, dir, backups:[{name, at, size, songs, cues}]} */
+  list:   function (showId) { return ipcRenderer.invoke('backup:list', showId); },
+  /* ({showId, name}) → string (the .cueflow JSON) */
+  read:   function (a) { return ipcRenderer.invoke('backup:read', a); },
+  /* (showId) → opens the folder in Finder, returns its path */
+  reveal: function (showId) { return ipcRenderer.invoke('backup:reveal', showId); }
+});

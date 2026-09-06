@@ -199,6 +199,91 @@ ipcMain.handle('media:read-file', async (_e, { path: dir, name }) => {
   return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
 });
 
+/* ── Local rolling backups ───────────────────────────────────────────────────
+ * The cloud was the only copy of a show, and its history table keeps 10 rows per
+ * show while the renderer pushes a few hundred milliseconds after every edit — so
+ * an editing session churned the entire recoverable past inside two minutes. Disk
+ * is free and local: every save also lands here, pruned by AGE rather than by
+ * count, so an ordinary week of work stays recoverable no matter what the network,
+ * the account or another machine does.
+ *
+ * Files are plain .cueflow JSON, importable by the app as-is and readable without
+ * it. Writes are atomic (tmp + rename) so a crash mid-write cannot corrupt the
+ * previous good backup. */
+const BACKUP_KEEP_DAYS = 45;
+const BACKUP_KEEP_MAX  = 800;   // a ceiling, not the policy — age is the policy
+
+function backupRoot() { return path.join(app.getPath('userData'), 'backups'); }
+function backupDir(showId) {
+  const safe = String(showId || 'unknown').replace(/[^A-Za-z0-9_-]/g, '');
+  return path.join(backupRoot(), safe || 'unknown');
+}
+
+ipcMain.handle('backup:write', async (_e, { showId, json, cues, songs }) => {
+  try {
+    const dir = backupDir(showId);
+    await fs.promises.mkdir(dir, { recursive: true });
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const name  = stamp + '__' + (songs || 0) + 'seq-' + (cues || 0) + 'cue.cueflow';
+    const dest  = path.join(dir, name);
+    const tmp   = dest + '.tmp';
+    await fs.promises.writeFile(tmp, json, 'utf8');
+    await fs.promises.rename(tmp, dest);          // atomic: never a half-written backup
+
+    /* Prune by age, then by a generous count ceiling. Newest are always kept. */
+    const cutoff = Date.now() - BACKUP_KEEP_DAYS * 86400000;
+    let entries = (await fs.promises.readdir(dir)).filter(n => n.endsWith('.cueflow'));
+    entries.sort().reverse();                      // ISO names sort chronologically
+    for (let i = 0; i < entries.length; i++) {
+      const full = path.join(dir, entries[i]);
+      let drop = i >= BACKUP_KEEP_MAX;
+      if (!drop) {
+        try { drop = (await fs.promises.stat(full)).mtimeMs < cutoff; } catch (_) { drop = false; }
+      }
+      /* Never prune the most recent few, whatever the clock says. */
+      if (drop && i >= 5) { try { await fs.promises.unlink(full); } catch (_) {} }
+    }
+    return { ok: true, path: dest };
+  } catch (e) {
+    return { ok: false, error: (e && e.message) || 'backup failed' };
+  }
+});
+
+ipcMain.handle('backup:list', async (_e, showId) => {
+  try {
+    const dir = backupDir(showId);
+    const names = (await fs.promises.readdir(dir)).filter(n => n.endsWith('.cueflow'));
+    const rows = [];
+    for (const n of names) {
+      try {
+        const st = await fs.promises.stat(path.join(dir, n));
+        const m = n.match(/__(\d+)seq-(\d+)cue\.cueflow$/);
+        rows.push({ name: n, at: st.mtimeMs, size: st.size,
+                    songs: m ? +m[1] : null, cues: m ? +m[2] : null });
+      } catch (_) { /* skip unreadable entry */ }
+    }
+    rows.sort((a, b) => b.at - a.at);
+    return { ok: true, dir: dir, backups: rows };
+  } catch (e) {
+    return { ok: true, dir: backupDir(showId), backups: [] };
+  }
+});
+
+ipcMain.handle('backup:read', async (_e, { showId, name }) => {
+  if (!name || name.indexOf('/') !== -1 || name.indexOf('\\') !== -1 || name.indexOf('..') !== -1) {
+    throw new Error('invalid backup name');
+  }
+  return await fs.promises.readFile(path.join(backupDir(showId), name), 'utf8');
+});
+
+ipcMain.handle('backup:reveal', async (_e, showId) => {
+  const { shell } = require('electron');
+  const dir = backupDir(showId);
+  try { await fs.promises.mkdir(dir, { recursive: true }); } catch (_) {}
+  shell.openPath(dir);
+  return dir;
+});
+
 app.whenReady().then(() => {
   media.registerMediaProtocol(protocol);
   createWindow();

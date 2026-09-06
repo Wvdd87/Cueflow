@@ -1,16 +1,16 @@
-# Graph Report - Cueflow  (2026-09-04)
+# Graph Report - Cueflow  (2026-09-06)
 
 ## Corpus Check
-- 12 files · ~133,655 words
+- 12 files · ~135,948 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 161 nodes · 158 edges · 12 communities (10 shown, 2 thin omitted)
+- 163 nodes · 161 edges · 12 communities (10 shown, 2 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e3119b3d`
+- Built from commit: `288c222d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -24,8 +24,8 @@
 - [[_COMMUNITY_Community 6|Community 6]]
 - [[_COMMUNITY_Community 7|Community 7]]
 - [[_COMMUNITY_Community 8|Community 8]]
+- [[_COMMUNITY_Community 9|Community 9]]
 - [[_COMMUNITY_Community 10|Community 10]]
-- [[_COMMUNITY_Community 11|Community 11]]
 - [[_COMMUNITY_Community 12|Community 12]]
 
 ## God Nodes (most connected - your core abstractions)
@@ -66,12 +66,12 @@ Cohesion: 0.20
 Nodes (10): mac, NSMicrophoneUsageDescription, UTExportedTypeDeclarations, category, entitlements, entitlementsInherit, extendInfo, icon (+2 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.11
-Nodes (19): crypto, fs, getLanIPs(), http, os, path, QRCode, startLanServer() (+11 more)
+Cohesion: 0.10
+Nodes (21): crypto, fs, getLanIPs(), http, os, path, QRCode, startLanServer() (+13 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.10
-Nodes (19): Assessment: are the `true` RLS policies acceptable for this threat model?, C1 — `shows` is world-readable: any internet user can read every show's full data, C2 — `show_access` is world-readable AND PINs are stored in plaintext, C3 — Stored XSS via rich-text sequence description, rendered raw in the live cockpit, CRITICAL findings, CueFlow — Security, Data Integrity & Reliability Audit, Executive summary, L1 — `escH` does not escape `'` or `>` (+11 more)
+Cohesion: 0.11
+Nodes (18): Assessment: are the `true` RLS policies acceptable for this threat model?, C1 — `shows` is world-readable: any internet user can read every show's full data, C2 — `show_access` is world-readable AND PINs are stored in plaintext, C3 — Stored XSS via rich-text sequence description, rendered raw in the live cockpit, CRITICAL findings, CueFlow — Security, Data Integrity & Reliability Audit, Executive summary, H1 — `track-editor` restriction is client-side only; the server lets them overwrite the whole show (+10 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.15
@@ -81,13 +81,13 @@ Nodes (6): fs, MEDIA_EXTS, MEDIA_MIME, mediaDirs, path, { ReadableStream }
 Cohesion: 0.15
 Nodes (13): build, afterPack, afterSign, appId, dmg, fileAssociations, files, productName (+5 more)
 
+### Community 9 - "Community 9"
+Cohesion: 0.33
+Nodes (6): M1 — "Read-only" viewers/crew can write cue descriptions, M2 — No durable offline edit queue; offline reconnect is whole-snapshot last-write-wins, M3 — Leaked-password protection disabled on Supabase Auth, M4 — Offline/logged-out show creation can strand data, M5 — LAN inbound handler does no role enforcement, MEDIUM findings
+
 ### Community 10 - "Community 10"
 Cohesion: 0.18
 Nodes (10): Ad-hoc signing (automatic, free), Best: hand it over on a USB stick or local file share, Build, Building and distributing CueFlow (macOS), If you ever do sign it ($99/year), Installing on any OTHER Mac, Installing on the machine that built it, Known gaps (+2 more)
-
-### Community 11 - "Community 11"
-Cohesion: 0.40
-Nodes (5): H1 — `track-editor` restriction is client-side only; the server lets them overwrite the whole show, H2 — 6-digit PINs from `Math.random()`, no server-side rate limiting, H3 — Editor writes are blind last-write-wins with no conflict detection, H4 — SECURITY DEFINER RPCs are callable by `anon`, HIGH findings
 
 ## Knowledge Gaps
 - **113 isolated node(s):** `http`, `os`, `fs`, `zlib`, `path` (+108 more)
@@ -98,11 +98,11 @@ Nodes (5): H1 — `track-editor` restriction is client-side only; the server let
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `build` connect `Community 7` to `Community 2`, `Community 3`?**
-  _High betweenness centrality (0.038) - this node is a cross-community bridge._
+  _High betweenness centrality (0.037) - this node is a cross-community bridge._
 - **Why does `mac` connect `Community 3` to `Community 7`?**
-  _High betweenness centrality (0.022) - this node is a cross-community bridge._
-- **Why does `CueFlow — Security, Data Integrity & Reliability Audit` connect `Community 5` to `Community 11`?**
-  _High betweenness centrality (0.019) - this node is a cross-community bridge._
+  _High betweenness centrality (0.021) - this node is a cross-community bridge._
+- **Why does `CueFlow — Security, Data Integrity & Reliability Audit` connect `Community 5` to `Community 9`?**
+  _High betweenness centrality (0.018) - this node is a cross-community bridge._
 - **What connects `http`, `os`, `fs` to the rest of the system?**
   _113 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**

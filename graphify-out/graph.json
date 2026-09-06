@@ -234,6 +234,26 @@
       "norm_label": "fs"
     },
     {
+      "label": "backupRoot()",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L216",
+      "_origin": "ast",
+      "id": "main_backuproot",
+      "community": 4,
+      "norm_label": "backuproot()"
+    },
+    {
+      "label": "backupDir()",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L217",
+      "_origin": "ast",
+      "id": "main_backupdir",
+      "community": 4,
+      "norm_label": "backupdir()"
+    },
+    {
       "label": "media-protocol.js",
       "file_type": "code",
       "source_file": "media-protocol.js",
@@ -1440,7 +1460,7 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "security_audit_high_findings",
-      "community": 11,
+      "community": 5,
       "norm_label": "high findings"
     },
     {
@@ -1450,7 +1470,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "security_audit_h1_track_editor_restriction_is_client_side_only_the_server_lets_them_overwrite_the_whole_show",
-      "community": 11,
+      "community": 5,
       "norm_label": "h1 \u2014 `track-editor` restriction is client-side only; the server lets them overwrite the whole show"
     },
     {
@@ -1460,7 +1480,7 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "security_audit_h2_6_digit_pins_from_math_random_no_server_side_rate_limiting",
-      "community": 11,
+      "community": 5,
       "norm_label": "h2 \u2014 6-digit pins from `math.random()`, no server-side rate limiting"
     },
     {
@@ -1470,7 +1490,7 @@
       "source_location": "L75",
       "_origin": "ast",
       "id": "security_audit_h3_editor_writes_are_blind_last_write_wins_with_no_conflict_detection",
-      "community": 11,
+      "community": 5,
       "norm_label": "h3 \u2014 editor writes are blind last-write-wins with no conflict detection"
     },
     {
@@ -1480,7 +1500,7 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "security_audit_h4_security_definer_rpcs_are_callable_by_anon",
-      "community": 11,
+      "community": 5,
       "norm_label": "h4 \u2014 security definer rpcs are callable by `anon`"
     },
     {
@@ -1490,7 +1510,7 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "security_audit_medium_findings",
-      "community": 5,
+      "community": 9,
       "norm_label": "medium findings"
     },
     {
@@ -1500,7 +1520,7 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "security_audit_m1_read_only_viewers_crew_can_write_cue_descriptions",
-      "community": 5,
+      "community": 9,
       "norm_label": "m1 \u2014 \"read-only\" viewers/crew can write cue descriptions"
     },
     {
@@ -1510,7 +1530,7 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "security_audit_m2_no_durable_offline_edit_queue_offline_reconnect_is_whole_snapshot_last_write_wins",
-      "community": 5,
+      "community": 9,
       "norm_label": "m2 \u2014 no durable offline edit queue; offline reconnect is whole-snapshot last-write-wins"
     },
     {
@@ -1520,7 +1540,7 @@
       "source_location": "L115",
       "_origin": "ast",
       "id": "security_audit_m3_leaked_password_protection_disabled_on_supabase_auth",
-      "community": 5,
+      "community": 9,
       "norm_label": "m3 \u2014 leaked-password protection disabled on supabase auth"
     },
     {
@@ -1530,7 +1550,7 @@
       "source_location": "L123",
       "_origin": "ast",
       "id": "security_audit_m4_offline_logged_out_show_creation_can_strand_data",
-      "community": 5,
+      "community": 9,
       "norm_label": "m4 \u2014 offline/logged-out show creation can strand data"
     },
     {
@@ -1540,7 +1560,7 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "security_audit_m5_lan_inbound_handler_does_no_role_enforcement",
-      "community": 5,
+      "community": 9,
       "norm_label": "m5 \u2014 lan inbound handler does no role enforcement"
     },
     {
@@ -1773,6 +1793,26 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "main.js",
+      "source_location": "L217",
+      "weight": 1.0,
+      "source": "main",
+      "target": "main_backupdir",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L216",
+      "weight": 1.0,
+      "source": "main",
+      "target": "main_backuproot",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
       "source_location": "L10",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -1805,9 +1845,9 @@
       "source_file": "main.js",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "main",
-      "target": "main_logmainfault",
-      "confidence_score": 1.0
+      "target": "main_logmainfault"
     },
     {
       "relation": "contains",
@@ -1903,6 +1943,17 @@
       "target": "main_pushstatus"
     },
     {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L219",
+      "weight": 1.0,
+      "source": "main_backupdir",
+      "target": "main_backuproot",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "media-protocol.js",
@@ -1918,9 +1969,9 @@
       "source_file": "media-protocol.js",
       "source_location": "L58",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "media_protocol",
-      "target": "media_protocol_filestream",
-      "confidence_score": 1.0
+      "target": "media_protocol_filestream"
     },
     {
       "relation": "contains",
@@ -1998,9 +2049,9 @@
       "source_file": "media-protocol.js",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "media_protocol",
-      "target": "media_protocol_readablestream",
-      "confidence_score": 1.0
+      "target": "media_protocol_readablestream"
     },
     {
       "relation": "contains",
@@ -2718,9 +2769,9 @@
       "source_file": "CLAUDE.md",
       "source_location": "L218",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "claude_supabase",
-      "target": "claude_fonts_are_local_never_a_cdn",
-      "confidence_score": 1.0
+      "target": "claude_fonts_are_local_never_a_cdn"
     },
     {
       "relation": "contains",
@@ -2728,9 +2779,9 @@
       "source_file": "CLAUDE.md",
       "source_location": "L183",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "claude_supabase",
-      "target": "claude_offline_startup_the_boot_must_never_depend_on_the_network",
-      "confidence_score": 1.0
+      "target": "claude_offline_startup_the_boot_must_never_depend_on_the_network"
     },
     {
       "relation": "contains",
@@ -3204,5 +3255,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "e3119b3d23ee1709121138a2154d5274306fde7d"
+  "built_at_commit": "288c222d2a18f77a91aae42b64804001519a57ab"
 }
