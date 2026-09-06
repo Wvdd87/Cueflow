@@ -13449,6 +13449,10 @@ function _mediaUpdateSSP(songId){
   const song=state.songs.find(s=>s.id===songId);
   const mf=song?.mediaFile||null;
   const mt=song?.mediaType||cfMediaKind(mf);
+  /* Set before the early returns below: the offset is authored data, so it stays
+     editable even while the folder is disconnected or the file is missing. */
+  const offWrap=document.getElementById('ssp-media-offset-wrap');
+  if(offWrap) offWrap.style.display=mf?'':'none';
   const rowEl=document.getElementById('ssp-media-row');
   const iconEl=document.getElementById('ssp-media-icon');
   const nameEl=document.getElementById('ssp-media-name');
@@ -14375,6 +14379,28 @@ function attachAudioToSeq(songId){
   inp.click();
 }
 
+// ── Media anchor ─────────────────────────────────────────────────
+/* The frame the media file's first sample lands on. Media hangs off the sequence
+   start; song.mediaOffset slides it — positive starts the file later than the
+   sequence, negative starts the sequence partway into the file. Every surface
+   that maps timecode to media time (audio engine, video sync, timeline waveform,
+   progress bar, cue-in-range checks) reads this, so they cannot disagree.
+   A malformed offset reads as 0 rather than throwing playback off. */
+function mediaOffsetF(song){
+  return song&&song.mediaOffset?tcSignedF(song.mediaOffset):0;
+}
+function mediaAnchorF(song){
+  return tcF(song&&song.startTc||'01:00:00:00')+mediaOffsetF(song);
+}
+/* Re-seat audio and video on the current frame. The drift correctors get there on
+   their own within a second or two, but an operator dialling in an offset is
+   listening for the change now. */
+function mediaResyncActive(){
+  const f=Math.floor((state.appMode==='live'?state.currentFrames:state.simFrames)||0);
+  if(window.audioEngineSeek) audioEngineSeek(f);
+  if(window._vidSeekToTC) _vidSeekToTC(f);
+}
+
 // ── Start/Stop source ────────────────────────────────────────────
 function _teardownSource(){
   if(audio.source){
@@ -14404,7 +14430,7 @@ function _doAudioEnginePlay(song,buf,frames){
 
   _teardownSource();
 
-  const startF = tcF(song.startTc || '01:00:00:00');
+  const startF = mediaAnchorF(song);
   const offsetSec = (frames - startF) / state.fps;
 
   if(offsetSec < 0 || offsetSec >= buf.duration) return;
@@ -14514,7 +14540,7 @@ function isCueInAudioRange(cue, song){
   const m = audio.meta[song?.id];
   const b = audio.buffers[song?.id];
   if(!m || !m.ready || !b) return true;
-  const startF = tcF(song.startTc || '01:00:00:00');
+  const startF = mediaAnchorF(song);
   const endF   = startF + Math.round(b.duration * state.fps);
   const cf     = tcF(cue.tc);
   return cf >= startF && cf < endF;
@@ -14524,7 +14550,7 @@ function getSeqMaxFrames(song){
   const b = audio.buffers[song?.id];
   const m = audio.meta[song?.id];
   if(b && m?.ready && b.duration > 0){
-    const startF = tcF(song.startTc || '01:00:00:00');
+    const startF = mediaAnchorF(song);
     return startF + Math.round(b.duration * state.fps);
   }
   const startF    = tcF(song?.startTc || '01:00:00:00');
@@ -14814,7 +14840,7 @@ function updateProgressBar(){
   const fmt=s=>{const m=Math.floor(s/60),sc=Math.floor(s%60);return m+':'+String(sc).padStart(2,'0');};
   let pct=0,durTxt='0:00';
   if(hasBuf){
-    const startF=tcF(song.startTc||'01:00:00:00');
+    const startF=mediaAnchorF(song);
     const durSec=buf.duration;
     const curSec=Math.max(0,(state.simFrames-startF)/state.fps);
     pct=Math.min(100,(curSec/durSec)*100);
@@ -15651,7 +15677,7 @@ function _etlRebuildMediaRow(container,song,fps,pxPS,pxPF,tlW,frames){
   const mediaType=song.mediaType||(song.audioFilename?'audio':song.videoFilename?'video':null);
   const mediaReady=am?.ready||vm?.ready;
   const durationSec=am?.ready?am.durationSec:(vm?.ready?vm.durationSec:0);
-  const songStartSec=tcF(song.startTc||'01:00:00:00')/fps;
+  const songStartSec=mediaAnchorF(song)/fps;
   const songEndSec=songStartSec+durationSec;
   const mRowH=wf.visible?wf.rowH:22;
   const pxPF2=pxPS/fps;
@@ -15717,7 +15743,10 @@ function _etlRebuildMediaRow(container,song,fps,pxPS,pxPF,tlW,frames){
     mTrack.appendChild(mScroll);
     // Filename label — pinned to the track's left edge so it stays readable while scrolling.
     const blbl=document.createElement('div');blbl.className='etl-media-bar-lbl';
-    blbl.style.left='6px';blbl.textContent=mediaFile;mTrack.appendChild(blbl);
+    const offF=mediaOffsetF(song);
+    blbl.style.left='6px';
+    blbl.textContent=mediaFile+(offF?'  ⏱ '+fTCSigned(offF):'');
+    mTrack.appendChild(blbl);
     _etlCache.mediaScroll=mScroll;
     _etlCache.mediaDrawF=frames;
   } else if(mediaFile){
@@ -16825,6 +16854,32 @@ function validateTc(tc){
   if(f<0||f>=state.fps)return false;
   return true;
 }
+/* ── Signed timecode ──────────────────────────────────────────────────────────
+   A media offset points either way, so it carries a sign the show clock never
+   does: "00:00:05:00" starts the file five seconds after the sequence,
+   "-00:00:05:00" starts the sequence five seconds into the file. The format is
+   otherwise the ordinary hh:mm:ss:ff, so these just peel the sign off and hand
+   the rest to the plain helpers. */
+function tcSignedF(tc){
+  const str=String(tc==null?'':tc).trim();
+  const neg=str.charAt(0)==='-';
+  const f=tcF(neg||str.charAt(0)==='+'?str.slice(1):str);
+  return neg?-f:f;
+}
+function fTCSigned(f){
+  f=Math.round(+f||0);
+  return (f<0?'-':'')+fTC(Math.abs(f));
+}
+function validateTcSigned(tc){
+  const str=String(tc==null?'':tc).trim();
+  return validateTc(str.charAt(0)==='-'||str.charAt(0)==='+'?str.slice(1):str);
+}
+function normalizeTcSignedInput(raw){
+  const str=String(raw==null?'':raw).trim();
+  const neg=str.charAt(0)==='-';
+  return (neg?'-':'')+normalizeTcInput(neg||str.charAt(0)==='+'?str.slice(1):str);
+}
+
 function applyTcInput(inp){
   const normalized=normalizeTcInput(inp.value);
   if(validateTc(normalized)){
@@ -17116,7 +17171,7 @@ function removeVideoFromSong(songId){
 function _vidSeekToTC(frames){
   const el = _vidEl(); if(!el || !vid.ready) return;
   const song = state.songs.find(s=>s.id===vid.songId); if(!song) return;
-  const offsetFrames = tcF(song.startTc || '01:00:00:00');
+  const offsetFrames = mediaAnchorF(song);
   const sec = (frames - offsetFrames) / state.fps;
   if(sec < 0 || sec > (vid.meta[vid.songId]?.durationSec||0)+1) return;
   const target = Math.max(0, sec);
@@ -17153,7 +17208,7 @@ function _vidStopSync(){
 function _vidCorrectDrift(){
   const el = _vidEl(); if(!el || !vid.ready || el.paused) return;
   const song = state.songs.find(s=>s.id===vid.songId); if(!song) return;
-  const offsetFrames = tcF(song.startTc || '01:00:00:00');
+  const offsetFrames = mediaAnchorF(song);
   const expectedSec = (state.simFrames - offsetFrames) / state.fps;
   const drift = el.currentTime - expectedSec; // signed: + means video ahead
   const absDrift = Math.abs(drift);
@@ -17338,6 +17393,8 @@ function openSeqSettingsPanel(){
   const song = getActiveSong(); if(!song) return;
   document.getElementById('ssp-name').value = song.name;
   document.getElementById('ssp-tc').value = song.startTc || '01:00:00:00';
+  const _offInp = document.getElementById('ssp-media-offset');
+  if(_offInp){ _offInp.value = song.mediaOffset || ''; _offInp.style.borderColor=''; }
   _mediaUpdateSSP(song.id);
   _sspDelConfirming = false;
   const delBtn = document.getElementById('ssp-del-btn');
@@ -17346,6 +17403,15 @@ function openSeqSettingsPanel(){
   setTimeout(()=>document.getElementById('ssp-name').focus(), 50);
   const _esc = e=>{if(e.key==='Escape'){closeSeqSettingsPanel();document.removeEventListener('keydown',_esc);}};
   document.addEventListener('keydown', _esc);
+}
+/* Blank is a legitimate value here — it means no offset — so it must not read as
+   a validation failure the way an empty start TC would. */
+function sspMediaOffsetBlur(inp){
+  const raw=inp.value.trim();
+  if(!raw){ inp.value=''; inp.style.borderColor=''; return; }
+  const norm=normalizeTcSignedInput(raw);
+  if(validateTcSigned(norm)){ inp.value=norm; inp.style.borderColor=''; }
+  else inp.style.borderColor='var(--red)';
 }
 function closeSeqSettingsPanel(){
   document.getElementById('seq-settings-modal').classList.remove('show');
@@ -17361,12 +17427,26 @@ function saveSeqSettings(){
     tcInp.style.borderColor='var(--red)';
     tcInp.focus();return;
   }
+  const offInp  = document.getElementById('ssp-media-offset');
+  const rawOff  = offInp ? offInp.value.trim() : '';
+  const normOff = rawOff ? normalizeTcSignedInput(rawOff) : '';
+  if(rawOff && !validateTcSigned(normOff)){
+    offInp.style.borderColor='var(--red)';
+    offInp.focus();return;
+  }
   snapshot();
   song.name = newName;
   song.startTc = normTc;
+  /* Blank or zero is the default, and the default is carried by its absence —
+     writing "00:00:00:00" into every sequence would bloat the show file and
+     make a no-op look like a deliberate setting. */
+  if(normOff && tcSignedF(normOff)!==0) song.mediaOffset = normOff;
+  else delete song.mediaOffset;
   persist();
   if(window._flushPersist) _flushPersist();
   renderSongList();renderCueList();redrawActive();
+  if(typeof ETL!=='undefined'&&ETL.visible) renderEditTimeline();
+  mediaResyncActive();
   closeSeqSettingsPanel();
 }
 function sspDeleteSeq(){
@@ -19221,6 +19301,16 @@ document.addEventListener('DOMContentLoaded',function(){
     <div id="ssp-media-actions" style="display:none;gap:6px;margin-top:6px;">
       <button class="mbtn" onclick="cfMediaOpenPicker(getActiveSong()?.id)" style="flex:1;height:32px;font-size:10px;">Change</button>
       <button class="mbtn danger" onclick="cfMediaUnlinkSong(getActiveSong()?.id)" style="flex:1;height:32px;font-size:10px;">✕ Remove</button>
+    </div>
+    <div id="ssp-media-offset-wrap" style="display:none;margin-top:10px;">
+      <div class="mrow">
+        <label class="mlabel" for="ssp-media-offset" style="min-width:110px;">Offset</label>
+        <input class="minp mono" id="ssp-media-offset" placeholder="00:00:00:00" style="margin:0;flex:1;"
+               onblur="sspMediaOffsetBlur(this)">
+      </div>
+      <div style="font-size:10px;color:var(--txt-mid);font-family:var(--cond);margin-top:4px;line-height:1.5;">
+        How far the file starts after the sequence start TC. Lead with − to start the sequence partway into the file.
+      </div>
     </div>
     </div><!-- /ssp-media-section -->
 
