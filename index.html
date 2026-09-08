@@ -4995,6 +4995,7 @@ function applyProject(proj){
   // Migrate legacy media fields to unified system
   state.songs.forEach(s=>{
     if(!s.chapters)s.chapters=[];
+    _syncStartChapter(s);      /* the start marker is the start TC, drawn */
     if(!s.mediaType){
       if(s.audioFilename){s.mediaFile=s.mediaFile||s.audioFilename;s.mediaType='audio';}
       else if(s.videoFilename){s.mediaFile=s.mediaFile||s.videoFilename;s.mediaType='video';}
@@ -5341,6 +5342,46 @@ function fmtOffset(frames){
 
 // Ensure every song has chapters array
 function _ensureChapters(song){ if(!song.chapters) song.chapters=[]; }
+
+/* ── The sequence start marker ────────────────────────────────────────────────
+   The "Start" marker a sequence is created with is not an ordinary chapter that happens
+   to sit at the beginning — it IS the sequence start, drawn. Its timecode is therefore
+   not an independent value, and the two must never disagree. It used to be copied once
+   at creation and then left behind every time the start TC moved.
+
+   Rather than hunt down every route that can write startTc, the marker is pulled back
+   onto it wherever it is about to be shown (and on load). That makes it derived in
+   effect: however the start TC changes — settings panel, inline edit, a sync from
+   another editor, anything added later — the next paint has the marker in the right
+   place, and it cannot drift.
+
+   Identified by name, because all four creation paths write name:'Start' and renaming
+   one is a fair way of saying "this is an ordinary marker now". The EARLIEST such
+   chapter wins, so a marker the operator happens to call "Start" further into the
+   sequence is not dragged to the top. */
+function _songStartChapter(song){
+  if(!song||!song.chapters||!song.chapters.length) return null;
+  var best=null,bestF=Infinity;
+  song.chapters.forEach(function(ch){
+    if(!ch||String(ch.name||'').trim().toLowerCase()!=='start') return;
+    var f=tcF(ch.tc||'01:00:00:00');
+    if(f<bestF){ bestF=f; best=ch; }
+  });
+  return best;
+}
+/* Idempotent; true when the marker actually moved. */
+function _syncStartChapter(song){
+  var ch=_songStartChapter(song); if(!ch) return false;
+  var tc=song.startTc||'01:00:00:00';
+  if(ch.tc===tc) return false;
+  ch.tc=tc;
+  return true;
+}
+function _syncAllStartChapters(){
+  var moved=false;
+  (state.songs||[]).forEach(function(sg){ if(_syncStartChapter(sg)) moved=true; });
+  return moved;
+}
 
 // ── SSP (seq-settings panel) chapter rendering ─────────────
 
@@ -9801,6 +9842,7 @@ function _cueEmptyState(html){
 
 function renderCueList(){
   const song=getActiveSong();
+  _syncStartChapter(song);     /* the "Start" row tracks the sequence start TC */
   const hdr=document.getElementById('cue-editor-song-name');if(hdr){hdr.textContent=song?.name||'No sequence selected';
   _syncTopbarSeqName();/* never un-hide badge — name lives in topbar */}
   // Enable/disable action buttons based on whether a sequence is selected
@@ -10258,10 +10300,47 @@ document.getElementById('cue-list-wrap').addEventListener('blur',e=>{
   // Smart parse: absolute (colons) or relative offset from the sequence start TC.
   _commitCueTc(id,inp);
 },true);
-// Enter key commits TC field
+/* Move to the next (or previous) editable field in the list. Rows render readonly
+   until they are touched, so stepping into one has to open it — otherwise Tab walks
+   into dead cells. Focusing the next field blurs the current one, and blur is what
+   commits, so nothing is lost on the way. */
+function _cueFieldStep(from,back){
+  const fields=[].slice.call(document.querySelectorAll('#cue-list-wrap .cue-field'))
+    .filter(el=>el.tagName==='INPUT'&&el.type!=='checkbox');
+  const i=fields.indexOf(from);
+  if(i<0) return null;
+  const next=fields[i+(back?-1:1)];
+  if(!next) return null;
+  next.classList.remove('cue-readonly');
+  next.removeAttribute('readonly');
+  next.focus();
+  try{ next.select(); }catch(e){}
+  return next;
+}
+
+/* Enter commits and LETS GO; Tab commits and moves on.
+   Letting go is the point of Enter. While a field has focus the global shortcut guard
+   holds — Space types a space, C and S and J/K/L type their letters — which is right
+   while typing and useless afterwards. Blurring hands the keyboard back to the
+   transport, so a correction can be followed straight away by Space to play without
+   reaching for the mouse. Every field in this list is a single-line <input>, so plain
+   Enter can mean "done" everywhere; there is no newline case to reserve it for. */
 document.getElementById('cue-list-wrap').addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&e.target.dataset?.f==='tc'){
-    e.preventDefault();e.target.blur();
+  const t=e.target;
+  if(!t||!t.classList||!t.classList.contains('cue-field')) return;
+  if(t.tagName!=='INPUT'||t.type==='checkbox') return;
+  if(e.key==='Enter'){
+    /* Name and description are already written by the input handler; the TC field
+       commits on blur through _commitCueTc. Either way this saves rather than
+       discards. */
+    e.preventDefault();
+    t.blur();
+    return;
+  }
+  if(e.key==='Tab'){
+    /* Only swallow the key when there is somewhere to go — at the ends of the list
+       native Tab should still carry focus out. */
+    if(_cueFieldStep(t,e.shiftKey)) e.preventDefault();
   }
 },true);
 document.getElementById('cue-list-wrap').addEventListener('focusin',e=>{
@@ -12477,7 +12556,8 @@ function switchSettTab(tab){
     startSettingsTCReadout();
   } else if(isMedia){
     stopSettingsTCReadout();
-    renderMediaSettings();
+    /* Same on the Settings tab, so the folder line and its "N files" count are current. */
+    cfMediaRescanThen(function(){ if(_settTab==='media') renderMediaSettings(); });
   } else {
     stopSettingsTCReadout();
     _populateShowSettings();
@@ -13070,7 +13150,7 @@ async function _cfScanFsApi(handle){
 async function _cfScanElectron(p){
   var map=new Map();
   var res; try{ res=await window.cfNativeFs.scanMediaFolder(p); }catch(e){ res=null; }
-  if(res&&res.ok&&res.files){ res.files.forEach(function(f){ if(cfMediaHidden(f.name))return; var kind=cfMediaKind(f.name); if(!kind)return; map.set(f.name.toLowerCase(),{name:f.name,kind:kind,url:f.url,getFile:async function(){ var ab=await window.cfNativeFs.readMediaFile(p,f.name); return new File([ab],f.name); }}); }); }
+  if(res&&res.ok&&res.files){ res.files.forEach(function(f){ if(cfMediaHidden(f.name))return; var kind=cfMediaKind(f.name); if(!kind)return; map.set(f.name.toLowerCase(),{name:f.name,kind:kind,url:f.url,size:f.size,getFile:async function(){ var ab=await window.cfNativeFs.readMediaFile(p,f.name); return new File([ab],f.name); }}); }); }
   return map;
 }
 
@@ -13089,6 +13169,13 @@ async function cfMediaGetUrl(filename){
   _cfMediaUrls.set(key,url);
   return url;
 }
+/* Release one cached blob URL (FS-API backend). Used when a file's bytes changed
+   under the same name, where the old URL now points at the wrong content. */
+function _cfMediaReleaseUrl(key){
+  var u=_cfMediaUrls.get(key);
+  if(u){ try{ URL.revokeObjectURL(u); }catch(e){} _cfMediaUrls.delete(key); }
+}
+
 function cfMediaReleaseUrls(){
   _cfMediaUrls.forEach(function(u){ URL.revokeObjectURL(u); });
   _cfMediaUrls.clear();
@@ -13148,6 +13235,79 @@ async function cfMediaRestore(projId){
     cfMedia.needsReconnect=true; return false;
   }
   cfMedia.needsReconnect=true; return false;
+}
+
+/* Re-read the folder and refresh the AVAILABLE FILES list.
+ *
+ * Deliberately NOT cfMediaReconnect(): that also runs cfMediaLoadAllSongs(), which
+ * re-decodes every attached file and regenerates its waveform. Opening a menu must not
+ * cost that. A scan is a directory read.
+ *
+ * Attachments are never touched. song.mediaFile is a NAME, and it keeps pointing at that
+ * name whatever the folder now holds — a file that has gone away surfaces through the
+ * existing missing-file handling rather than being cleared. Only files that genuinely
+ * changed get follow-up work:
+ *   · appeared — a sequence waiting for it can finally decode it
+ *   · vanished — drop its buffer so it reads as missing
+ *   · same name, different size — the bytes changed, so the cached waveform is a lie
+ * Everything else keeps the buffer, waveform and probed duration it already had.
+ *
+ * Returns true when the listing changed, so callers can skip a pointless re-render. */
+async function cfMediaRescan(){
+  if(!cfMediaEnabled()) return false;
+  var prev=cfMedia.files||new Map();
+  var map=null;
+  if(cfMedia.backend==='electron' && cfMedia.folderPath && cfHasNativeFs()){
+    map=await _cfScanElectron(cfMedia.folderPath);
+  } else if(cfMedia.backend==='fsapi' && cfMedia.dirHandle){
+    /* Never prompt from here: a permission request needs a user gesture, and this runs
+       on menu-open. Without it, leave needsReconnect showing its Reconnect button. */
+    var perm='prompt'; try{ perm=await cfMedia.dirHandle.queryPermission({mode:'read'}); }catch(e){}
+    if(perm!=='granted') return false;
+    map=await _cfScanFsApi(cfMedia.dirHandle);
+  }
+  if(!map) return false;
+
+  var changed=[], gone=[];
+  map.forEach(function(e,k){
+    var p=prev.get(k);
+    if(!p) changed.push(k);                                        /* new */
+    else if(p.size!=null && e.size!=null && p.size!==e.size) changed.push(k);  /* rewritten */
+  });
+  prev.forEach(function(e,k){ if(!map.has(k)) gone.push(k); });
+
+  cfMedia.files=map;
+  cfMedia.ready=true;
+  cfMedia.needsReconnect=false;
+
+  if(!changed.length && !gone.length) return false;                /* nothing moved */
+
+  /* Only the files that actually changed lose their cached derivations. */
+  changed.concat(gone).forEach(function(k){
+    cfMedia.durations.delete(k);
+    _cfMediaReleaseUrl(k);
+  });
+
+  /* ...and only the sequences pointing at those files are reloaded. Every other
+     sequence keeps its decoded audio and its waveform untouched. */
+  var touched={}; changed.concat(gone).forEach(function(k){ touched[k]=1; });
+  (state.songs||[]).forEach(function(sg){
+    if(!sg.mediaFile) return;
+    if(!touched[String(sg.mediaFile).toLowerCase()]) return;
+    wfInvalidate(sg.id);
+    Promise.resolve(cfMediaLoadSong(sg.id)).catch(function(){});
+  });
+  return true;
+}
+
+/* Rescan in the background and re-render when it lands. The caller paints from the
+   cached listing first, so opening a menu is never blocked by the folder read. */
+function cfMediaRescanThen(render){
+  if(typeof render==='function') render();
+  if(!cfMediaEnabled()) return;
+  Promise.resolve(cfMediaRescan()).then(function(changed){
+    if(changed && typeof render==='function') render();
+  }).catch(function(e){ console.warn('[CF] media rescan',e); });
 }
 
 /* User-gesture reconnect (fsapi re-grant) or rescan (electron). */
@@ -13682,7 +13842,9 @@ function cfMediaOpenPicker(songId,opts){
     +'<div style="padding:12px 16px 0;"><input id="cf-media-picker-search" placeholder="Search files…" class="tcs-select" style="width:100%;" oninput="_cfMediaRenderPicker()"></div>'
     +'<div id="cf-media-picker-list" style="flex:1;overflow-y:auto;padding:12px 16px 16px;"></div></div>';
   document.body.appendChild(bg);
-  _cfMediaRenderPicker();
+  /* Paint from the cached listing, then re-read the folder so a file added in Finder
+     shows up without a reload. */
+  cfMediaRescanThen(function(){ if(document.getElementById('cf-media-picker')) _cfMediaRenderPicker(); });
   setTimeout(function(){ var s=document.getElementById('cf-media-picker-search'); if(s) s.focus(); },50);
 }
 function cfMediaClosePicker(){ var el=document.getElementById('cf-media-picker'); if(el) el.remove(); _cfPickerSongId=null; _cfPickerOnPick=null; _cfPickerKind=null; }
@@ -16219,6 +16381,9 @@ function _etlRenderSoon(){
 function renderEditTimeline(){
   _etlRenderSeq++;
   if(!ETL.visible)return;
+  /* Ahead of the struct key below, which includes each chapter's tc — so moving the
+     marker rotates the key and the timeline actually rebuilds. */
+  _syncStartChapter(getActiveSong());
   const container=document.getElementById('edit-tl');if(!container)return;
   const fps=state.fps,pxPS=ETL.zoom,pxPF=pxPS/fps;
   const frames=state.simFrames;
@@ -17852,6 +18017,7 @@ function saveSeqSettings(){
   snapshot();
   song.name = newName;
   song.startTc = normTc;
+  _syncStartChapter(song);     /* persist the moved marker with this same edit */
   /* Blank or zero is the default, and the default is carried by its absence —
      writing "00:00:00:00" into every sequence would bloat the show file and
      make a no-op look like a deliberate setting. */

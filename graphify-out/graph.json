@@ -10,7 +10,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "lan_server",
-      "community": 9,
+      "community": 4,
       "norm_label": "lan-server.js"
     },
     {
@@ -20,7 +20,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "lan_server_http",
-      "community": 9,
+      "community": 4,
       "norm_label": "http"
     },
     {
@@ -30,7 +30,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "lan_server_os",
-      "community": 9,
+      "community": 4,
       "norm_label": "os"
     },
     {
@@ -40,7 +40,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "lan_server_fs",
-      "community": 9,
+      "community": 4,
       "norm_label": "fs"
     },
     {
@@ -50,7 +50,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "lan_server_zlib",
-      "community": 9,
+      "community": 4,
       "norm_label": "zlib"
     },
     {
@@ -60,7 +60,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "lan_server_path",
-      "community": 9,
+      "community": 4,
       "norm_label": "path"
     },
     {
@@ -70,7 +70,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "lan_server_crypto",
-      "community": 9,
+      "community": 4,
       "norm_label": "crypto"
     },
     {
@@ -80,7 +80,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "lan_server_websocketserver",
-      "community": 9,
+      "community": 4,
       "norm_label": "{ websocketserver }"
     },
     {
@@ -90,7 +90,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "lan_server_qrcode",
-      "community": 9,
+      "community": 4,
       "norm_label": "qrcode"
     },
     {
@@ -100,7 +100,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "lan_server_getlanips",
-      "community": 9,
+      "community": 4,
       "norm_label": "getlanips()"
     },
     {
@@ -110,7 +110,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "lan_server_startlanserver",
-      "community": 9,
+      "community": 4,
       "norm_label": "startlanserver()"
     },
     {
@@ -1077,7 +1077,7 @@
       "label": "Per-device visibility (NOT synced)",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L166",
+      "source_location": "L176",
       "_origin": "ast",
       "id": "claude_per_device_visibility_not_synced",
       "community": 0,
@@ -1087,7 +1087,7 @@
       "label": "Roles",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L170",
+      "source_location": "L180",
       "_origin": "ast",
       "id": "claude_roles",
       "community": 0,
@@ -1097,7 +1097,7 @@
       "label": "Supabase",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L183",
+      "source_location": "L193",
       "_origin": "ast",
       "id": "claude_supabase",
       "community": 0,
@@ -1107,7 +1107,7 @@
       "label": "Offline startup \u2014 the boot must never depend on the network",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L191",
+      "source_location": "L201",
       "_origin": "ast",
       "id": "claude_offline_startup_the_boot_must_never_depend_on_the_network",
       "community": 0,
@@ -1117,17 +1117,27 @@
       "label": "Fonts are local \u2014 never a CDN",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L226",
+      "source_location": "L236",
       "_origin": "ast",
       "id": "claude_fonts_are_local_never_a_cdn",
       "community": 0,
       "norm_label": "fonts are local \u2014 never a cdn"
     },
     {
+      "label": "The sequence start marker is the start TC, drawn",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L247",
+      "_origin": "ast",
+      "id": "claude_the_sequence_start_marker_is_the_start_tc_drawn",
+      "community": 0,
+      "norm_label": "the sequence start marker is the start tc, drawn"
+    },
+    {
       "label": "TC/timecode",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L237",
+      "source_location": "L258",
       "_origin": "ast",
       "id": "claude_tc_timecode",
       "community": 0,
@@ -1137,7 +1147,7 @@
       "label": "Running order is the SETLIST, never absolute timecode",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L244",
+      "source_location": "L265",
       "_origin": "ast",
       "id": "claude_running_order_is_the_setlist_never_absolute_timecode",
       "community": 0,
@@ -1147,7 +1157,7 @@
       "label": "TC sources \u2014 `state.tcSource` \u2208 `'ltc' | 'midi' | 'gen'`",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L281",
+      "source_location": "L302",
       "_origin": "ast",
       "id": "claude_tc_sources_state_tcsource_ltc_midi_gen",
       "community": 0,
@@ -1157,7 +1167,7 @@
       "label": "Electron",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L285",
+      "source_location": "L306",
       "_origin": "ast",
       "id": "claude_electron",
       "community": 0,
@@ -1167,7 +1177,7 @@
       "label": "The show must keep running when the app is not in front",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L298",
+      "source_location": "L319",
       "_origin": "ast",
       "id": "claude_the_show_must_keep_running_when_the_app_is_not_in_front",
       "community": 0,
@@ -1177,7 +1187,7 @@
       "label": "graphify",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L324",
+      "source_location": "L345",
       "_origin": "ast",
       "id": "claude_graphify",
       "community": 0,
@@ -2838,6 +2848,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CLAUDE.md",
+      "source_location": "L247",
+      "weight": 1.0,
+      "source": "claude_supabase",
+      "target": "claude_the_sequence_start_marker_is_the_start_tc_drawn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
       "source_location": "L236",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -3326,5 +3346,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "45490ce2df65648c8ae97eef182110318e9b5e35"
+  "built_at_commit": "4a1493ec33082da502bdad78c70fee60b3920066"
 }

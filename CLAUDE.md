@@ -153,6 +153,16 @@ Audio/video for a sequence is sourced from a folder the **owner** picks on disk.
 - **Access backends** (`cfMediaPickFolder`): native Electron dialog (`window.cfNativeFs`, via `preload.js`/`main.js` IPC `media:pick-folder|scan-folder|read-file`) preferred; falls back to the browser **File System Access API** (`showDirectoryPicker`). No file access (Safari/Firefox/mobile) → all media UI hidden, an info message in Settings → Media; never error-spams.
 - **Persistence**: per-project meta in `localStorage` (`cf_media_folder_<projectId>`); the FS-API directory handle in IndexedDB db `cf_media_handles`. After reload the handle often needs a user-gesture re-grant → `cfMedia.needsReconnect` (shown as a Reconnect button, sequences show a neutral dim icon, not "missing").
 - **Engine**: folder files feed the existing decode/waveform/video engine via `cfMediaLoadSong` → `_decodeAndStore(...,{noPersist:true})` / `_cfMediaLoadVideo`. `cfMediaOnProjectLoad()` (called from `applyProject`) restores the folder and loads all songs.
+- **Re-scanning the folder is cheap; reloading media is not.** `cfMediaRescan()` re-reads the
+  directory and swaps `cfMedia.files`, then does follow-up work **only for names that
+  actually changed** — appeared, vanished, or same name with a different size. Everything
+  else keeps its decoded buffer, waveform and probed duration. Never call
+  `cfMediaReconnect()` for a refresh: it runs `cfMediaLoadAllSongs()`, which re-decodes
+  every attached file. The Media Library picker and Settings → Media both open through
+  `cfMediaRescanThen(render)`, which paints from cache first and re-renders when the scan
+  lands, so the menu never waits on the disk. **A scan never touches attachments** —
+  `song.mediaFile` is a name, and a file that has gone shows through the existing
+  missing-file handling rather than being cleared.
 - **`mediaAnchorF(song)` = `startTc + mediaOffset`** is the single mapping from timecode to
   media time. Because it moves the media row without touching any cue frame, it must appear
   in **both** of the edit timeline's cache keys — `structKey` and the media-row `_mSig` — or
@@ -233,6 +243,17 @@ reintroduce any CDN or remote asset reference.** `fonts/**` is in `build.files`,
 `lan-server.js` serves `/fonts/*.woff2` + `/favicon.png` explicitly — its catch-all
 returns index.html for every other path, so an unrouted asset would hand LAN crew the
 whole 1.5MB app once per font file.
+
+### The sequence start marker is the start TC, drawn
+
+The auto-created "Start" chapter is not an ordinary marker that happens to sit at the
+beginning — its timecode **is** `song.startTc`. It used to be copied once at creation and
+left behind whenever the start TC moved. `_syncStartChapter(song)` pulls it back, and is
+called on load (`applyProject`), before `renderCueList` and `renderEditTimeline`, and in
+`saveSeqSettings` so the correction persists. Normalising on every paint is what makes it
+derived in effect: however the start TC changes — including routes added later — the next
+render puts the marker right. Identified by the name `Start` (all creation paths write it,
+earliest one wins so a user's own later "Start" is not hijacked).
 
 ## TC/timecode
 

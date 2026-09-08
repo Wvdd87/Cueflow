@@ -1,16 +1,16 @@
-# Graph Report - Cueflow  (2026-09-07)
+# Graph Report - Cueflow  (2026-09-08)
 
 ## Corpus Check
-- 12 files · ~139,815 words
+- 12 files · ~141,447 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 166 nodes · 165 edges · 12 communities (10 shown, 2 thin omitted)
+- 167 nodes · 166 edges · 11 communities (9 shown, 2 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `45490ce2`
+- Built from commit: `4a1493ec`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -24,7 +24,6 @@
 - [[_COMMUNITY_Community 6|Community 6]]
 - [[_COMMUNITY_Community 7|Community 7]]
 - [[_COMMUNITY_Community 8|Community 8]]
-- [[_COMMUNITY_Community 9|Community 9]]
 - [[_COMMUNITY_Community 10|Community 10]]
 - [[_COMMUNITY_Community 12|Community 12]]
 
@@ -47,11 +46,11 @@
 ## Import Cycles
 - None detected.
 
-## Communities (12 total, 2 thin omitted)
+## Communities (11 total, 2 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.08
-Nodes (23): Architecture — the three script blocks, Badge rules — enforced design spec, Block 1 — main app globals, Block 2 — collab IIFE, Camera badges (`.cam-badge`, `.cam-badge-sq`), Commands, Data model, Electron (+15 more)
+Nodes (24): Architecture — the three script blocks, Badge rules — enforced design spec, Block 1 — main app globals, Block 2 — collab IIFE, Camera badges (`.cam-badge`, `.cam-badge-sq`), Commands, Data model, Electron (+16 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.09
@@ -66,8 +65,8 @@ Cohesion: 0.20
 Nodes (10): mac, NSMicrophoneUsageDescription, UTExportedTypeDeclarations, category, entitlements, entitlementsInherit, extendInfo, icon (+2 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.17
-Nodes (13): { app, BrowserWindow, session, ipcMain, protocol, powerSaveBlocker }, backupDir(), backupRoot(), fs, latestPins, logMainFault(), media, path (+5 more)
+Cohesion: 0.10
+Nodes (23): crypto, fs, getLanIPs(), http, os, path, QRCode, startLanServer() (+15 more)
 
 ### Community 5 - "Community 5"
 Cohesion: 0.08
@@ -81,16 +80,12 @@ Nodes (6): fs, MEDIA_EXTS, MEDIA_MIME, mediaDirs, path, { ReadableStream }
 Cohesion: 0.15
 Nodes (13): build, afterPack, afterSign, appId, dmg, fileAssociations, files, productName (+5 more)
 
-### Community 9 - "Community 9"
-Cohesion: 0.20
-Nodes (10): crypto, fs, getLanIPs(), http, os, path, QRCode, startLanServer() (+2 more)
-
 ### Community 10 - "Community 10"
 Cohesion: 0.18
 Nodes (10): Ad-hoc signing (automatic, free), Best: hand it over on a USB stick or local file share, Build, Building and distributing CueFlow (macOS), If you ever do sign it ($99/year), Installing on any OTHER Mac, Installing on the machine that built it, Known gaps (+2 more)
 
 ## Knowledge Gaps
-- **114 isolated node(s):** `http`, `os`, `fs`, `zlib`, `path` (+109 more)
+- **115 isolated node(s):** `http`, `os`, `fs`, `zlib`, `path` (+110 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **2 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -102,12 +97,12 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `mac` connect `Community 3` to `Community 7`?**
   _High betweenness centrality (0.020) - this node is a cross-community bridge._
 - **What connects `http`, `os`, `fs` to the rest of the system?**
-  _114 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _115 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.08 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07692307692307693 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.08695652173913043 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
   _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
-- **Should `Community 5` be split into smaller, more focused modules?**
-  _Cohesion score 0.08 - nodes in this community are weakly interconnected._
+- **Should `Community 4` be split into smaller, more focused modules?**
+  _Cohesion score 0.09846153846153846 - nodes in this community are weakly interconnected._
