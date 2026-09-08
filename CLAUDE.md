@@ -257,10 +257,18 @@ given TC maps to exactly one cue in one sequence.
   sequence first — `_curSeqIdByTc(frames)`, which keys off the TC range a sequence owns —
   then the cue inside it, via `_showPos(allCues, frames, seqId)` → `{cur, next, seq}`.
   `next` is the rest of the current sequence, then the following sequence in the setlist.
-- **No countdown across a sequence boundary.** `_cdValid(cue, curSeqId)` is false once the
-  target cue is in another sequence: the source has not jumped into that range, so the
-  subtraction counts toward a moment that is not coming. Surfaces show `—` and drop the
-  warn/urgency state; a real countdown resumes when the source enters the new range.
+- **Countdowns are gated by distance, not by sequence membership.** `_cdInRange(targetF,
+  frames)` — and `_cdValid(cue, frames)` over it — is true only while the target is AHEAD
+  of the playhead and within `CD_HORIZON_SEC` (ten minutes). A target behind the playhead
+  is unreachable by counting, and one hours ahead says nothing about when it comes round,
+  because sequences own independent ranges and the source jumps between them. A cue in the
+  NEXT sequence that is minutes away is usually where the show is going, so it counts down
+  normally. Out of range, surfaces show `—` and drop the warn/urgency state.
+  **Evaluate it per frame** — never stamp the result on a row at build time, or a cue
+  drifting into the horizon stays held until something else forces a rebuild.
+- Naming the incoming sequence in the NEXT hero's eyebrow is a **separate** question from
+  the countdown: `_setNextEyebrow` keys off the cue being in another sequence, so a setlist
+  step is announced whether or not its countdown is running.
 - **Upcoming lists carry a divider at each sequence change** — `_cueQueueItems()` emits
   `{type:'sep'}` entries, rendered by `_makeSeqSep()` (`.live-then-sep`) in the cockpits
   and as `.wf-sep` in the waterfall.

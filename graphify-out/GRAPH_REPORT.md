@@ -1,7 +1,7 @@
 # Graph Report - Cueflow  (2026-09-07)
 
 ## Corpus Check
-- 12 files · ~139,616 words
+- 12 files · ~139,815 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `db74adec`
+- Built from commit: `45490ce2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

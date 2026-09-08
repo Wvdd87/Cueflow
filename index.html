@@ -5613,11 +5613,24 @@ function _showPos(allCues,frames,curSeqId){
   return {cur,next,seq};
 }
 
-/* A countdown is only meaningful while the target cue sits in the sequence the source is
-   actually running. Across a setlist boundary the next sequence's range is unrelated and
-   the source has not jumped into it yet, so subtracting the two would invent a number
-   counting toward a moment that is not coming. Callers show a hold instead. */
-function _cdValid(cue,curSeqId){ return !!cue && (curSeqId==null || cue.songId===curSeqId); }
+/* How far ahead a cue can be and still be worth counting down to. */
+var CD_HORIZON_SEC=600;   /* ten minutes */
+
+/* A countdown is only honest while the target is AHEAD of the playhead and close enough
+   that the source can plausibly still be running toward it.
+
+   Distance, not sequence membership. Sequences own independent timecode ranges and the
+   source jumps between them, so a target behind the playhead is unreachable by counting
+   and one hours ahead says nothing about when it will actually come round. But a cue in
+   the NEXT sequence that is only minutes ahead is usually exactly where the show is
+   going, and holding that countdown threw away something real on setlists that run
+   contiguous timecode. Within a sequence this is effectively always true — a sequence is
+   a song or an act — so the rule reads the same on both sides of a boundary. */
+function _cdInRange(targetF,frames){
+  var d=targetF-frames;
+  return d>=0 && d<=CD_HORIZON_SEC*(state.fps||25);
+}
+function _cdValid(cue,frames){ return !!cue && _cdInRange(cue._f,frames); }
 
 /* Walk the setlist-ordered list from `from`, emitting cues and a divider wherever the
    sequence changes, so a queue reads as [rest of this sequence] -> [divider naming the
@@ -7172,13 +7185,13 @@ function _makeSeqSep(name){
   return sep;
 }
 
-/* The NEXT hero's eyebrow. Normally "Next"; once the next cue is in the FOLLOWING
-   sequence it names that sequence, so the held countdown reads as "we are between
-   sequences" instead of as a timer that has stopped working. */
-function _setNextEyebrow(id,cue,cdOK){
+/* The NEXT hero's eyebrow. Normally "Next"; once the next cue belongs to the FOLLOWING
+   sequence it names that sequence, so a setlist step is visible as one whether or not
+   its countdown is running — the two are separate questions. */
+function _setNextEyebrow(id,cue,crossSeq){
   const el=document.getElementById(id); if(!el) return;
   let txt='Next';
-  if(cue&&!cdOK){
+  if(cue&&crossSeq){
     const sg=state.songs.find(x=>x.id===cue.songId);
     txt='Next · '+((sg&&sg.name)||'next sequence');
   }
@@ -7325,7 +7338,7 @@ function _cfpModel(frames){
   const nextIds=new Set();
   if(nextCue) cues.forEach(c=>{ if(c.songId===nextCue.songId&&c._f===nextCue._f) nextIds.add(c.id); });
   /* Countdowns are only real inside the sequence the source is running. */
-  const cdOK=_cdValid(nextCue,seqId);
+  const cdOK=_cdValid(nextCue,frames);
 
   /* A camera's upcoming shots follow the setlist from the current position — not every
      shot of its whose timecode happens to be greater than the current frame. */
@@ -7485,7 +7498,7 @@ function _updatePrompter(frames){
         /* Not the show's next cue, but it IS this camera's next — give it a countdown,
            unless it sits in a later sequence, where the subtraction means nothing. */
         _cfpState(it,'ahead','cd');
-        _cfpSet(it.mark, id+'-m'+i, (stale||!_cdValid(c,seqId))?'—':_cfpCountdown(c._f-frames));
+        _cfpSet(it.mark, id+'-m'+i, (stale||!_cdValid(c,frames))?'—':_cfpCountdown(c._f-frames));
       } else {
         _cfpState(it,'ahead');
         _cfpSet(it.mark, id+'-m'+i, '');
@@ -7914,8 +7927,8 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,curSeqId,pos){
   const nextCue=(nextIdx>=0&&nextIdx<allCues.length)?allCues[nextIdx]:null;
   /* The source has not jumped into the next sequence's range yet, so counting down to a
      cue over there would tick toward a moment that is not coming. */
-  const nextCdOK=_cdValid(nextCue,curSeqId);
-  _setNextEyebrow('live-next-eyebrow',nextCue,nextCdOK);
+  const nextCdOK=_cdValid(nextCue,frames);
+  _setNextEyebrow('live-next-eyebrow',nextCue,!!nextCue&&curSeqId!=null&&nextCue.songId!==curSeqId);
   const nhName=document.getElementById('live-next-name');
   const nhBadge=document.getElementById('live-next-badge');
   const nhDesc=document.getElementById('live-next-desc-txt');
@@ -7991,7 +8004,6 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,curSeqId,pos){
           (_ckCanFlag?`<button class="ck-flag-btn${qc.flagged?' on':''}" data-cid="${qc.id}" title="Flag for attention">⚑</button>`:'<div></div>')+
           `<div class="urg-bar" data-urg style="display:none"><div class="urg-fill" data-uf></div></div>`;
         row._cqf=qc._f;
-        row._cqHold=!_cdValid(qc,curSeqId);   // past a boundary → no real countdown
         row._cdEl=row.querySelector('[data-cd]');
         row._urgBar=row.querySelector('[data-urg]');
         row._urgFill=row.querySelector('[data-uf]');
@@ -8015,9 +8027,10 @@ function _updateLiveCockpit(frames,allCues,curIdx,upNextSongId,curSeqId,pos){
     for(let r=0;r<rows.length;r++){
       const row=rows[r];
       if(row._cqf==null)continue; // skip separators and the end affordance
-      if(row._cqHold){
-        /* Belongs to a later sequence whose range the source has not reached — hold
-           rather than count toward an unrelated timecode. */
+      /* Evaluated every frame, not stamped at build time: a cue drifts INTO the
+         ten-minute horizon as the show runs, and a stamped flag would keep it held
+         until something else happened to rebuild the queue. */
+      if(!_cdInRange(row._cqf,frames)){
         const h=row._cdEl;
         if(h){ if(h.textContent!=='—')h.textContent='—'; if(h.className!=='cd')h.className='cd'; }
         if(row._urgBar&&row._urgBar.style.display!=='none')row._urgBar.style.display='none';
@@ -8198,8 +8211,8 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId,curSeqId,pos){
   const _nextRaw=(nextIdx>=0&&nextIdx<allCues.length)?allCues[nextIdx]:null;
   const nextCue=_nextRaw&&_isTrackViewer&&_vwCurSongId&&_nextRaw.songId!==_vwCurSongId?null:_nextRaw;
   /* Same rule as the owner cockpit: no countdown across a sequence boundary. */
-  const nextCdOKV=_cdValid(nextCue,curSeqId);
-  _setNextEyebrow('vw-next-eyebrow',nextCue,nextCdOKV);
+  const nextCdOKV=_cdValid(nextCue,frames);
+  _setNextEyebrow('vw-next-eyebrow',nextCue,!!nextCue&&curSeqId!=null&&nextCue.songId!==curSeqId);
   const _ckCanFlagV=window.CF&&(CF.role==='editor'||CF.role==='track-editor');
   const vwFlag=_e('vw-next-flag');
   const nhHero=_e('vw-next-hero'),nhCount=_e('vw-next-count');
@@ -8267,7 +8280,6 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId,curSeqId,pos){
           (_ckCanFlagV?`<button class="ck-flag-btn${qc.flagged?' on':''}" data-cid="${qc.id}" title="Flag for attention">⚑</button>`:'<div></div>')+
           `<div class="urg-bar" data-urg style="display:none"><div class="urg-fill" data-uf></div></div>`;
         row._cqf=qc._f;row._cdEl=row.querySelector('[data-cd]');
-        row._cqHold=!_cdValid(qc,curSeqId);
         row._urgBar=row.querySelector('[data-urg]');row._urgFill=row.querySelector('[data-uf]');
         tr.appendChild(row);
       });
@@ -8286,9 +8298,10 @@ function _updateViewerCockpit(frames,allCues,curIdx,upNextSongId,curSeqId,pos){
     for(let r=0;r<trRows.length;r++){
       const row=trRows[r];
       if(row._cqf==null)continue; // skip separators and the end affordance
-      if(row._cqHold){
-        /* Belongs to a later sequence whose range the source has not reached — hold
-           rather than count toward an unrelated timecode. */
+      /* Evaluated every frame, not stamped at build time: a cue drifts INTO the
+         ten-minute horizon as the show runs, and a stamped flag would keep it held
+         until something else happened to rebuild the queue. */
+      if(!_cdInRange(row._cqf,frames)){
         const h=row._cdEl;
         if(h){ if(h.textContent!=='—')h.textContent='—'; if(h.className!=='cd')h.className='cd'; }
         if(row._urgBar&&row._urgBar.style.display!=='none')row._urgBar.style.display='none';
@@ -9079,9 +9092,9 @@ function renderWaterfall(target,frames,allCues,curIdx,upNextSongId,curSeqId,pos)
       const isCur=row.classList.contains('current');
       const isUp=row.classList.contains('upnext-song');
       let cdF=null;
-      /* A row in a later sequence counts toward a timecode the source has not jumped to
-         — hold it rather than print a number that means nothing. */
-      const hold=row.dataset.cdHold==='1';
+      /* Re-tested every frame off the row's own frame number, so a cue coming inside
+         the horizon starts counting without waiting for a structural rebuild. */
+      const hold=!_cdInRange(allCues[ci]._f,frames);
       if(!isCur&&!isUp&&!hold&&ci>curIdx){cdF=cf-frames;}
       const cdSec=cdF!==null?cdF/state.fps:null;
       const s=hold?'—':(cdF!==null&&cdF>0?fmtCD(cdF):'');
@@ -9197,12 +9210,11 @@ function renderWaterfall(target,frames,allCues,curIdx,upNextSongId,curSeqId,pos)
     const _camHexRow=_isCamRow?getCameraColor(_camRow?.colorIdx||0):null;
     const col=_isCamRow?{hex:_camHexRow,bg:'#0a0a12',text:'#fff'}:getStreamColor(cue.streamId);
 
-    /* A cue outside the running sequence has no countdown. Its timecode belongs to a
-       range the source has not jumped into, so subtracting the current frame from it is
-       meaningless. This used to show the cue's offset from its own sequence start — a
-       real number, but printed in the same column as live countdowns and read at a
-       glance during a show, which makes it a countdown to the eye. Hold instead. */
-    const _xSeq=curSongId!=null&&cue.songId!==curSongId;
+    /* Out of countdown range: behind the playhead, or too far ahead to mean anything.
+       This column used to show a cue's offset from its own sequence start — a real
+       number, but printed beside live countdowns and read at a glance during a show,
+       which makes it a countdown to the eye. Hold instead. */
+    const _xSeq=!_cdInRange(cf,frames);
 
     let cdFrames=null,fillPct=0;
     if(_xSeq){
@@ -9234,7 +9246,6 @@ function renderWaterfall(target,frames,allCues,curIdx,upNextSongId,curSeqId,pos)
     row.className=cls;
     row.style.cssText=`min-height:${h}px;flex-shrink:0;position:relative;--wf-col:${col.hex};`;
     row.dataset.streamColor=col.hex;
-    row.dataset.cdHold=_xSeq?'1':'0';   // read by the per-frame fast path above
 
     // per-sequence cue number
     const _sqC=getSortedCues(cue.songId,true);const _sqI=_sqC.findIndex(c=>c.id===cue.id);

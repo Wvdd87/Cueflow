@@ -1147,7 +1147,7 @@
       "label": "TC sources \u2014 `state.tcSource` \u2208 `'ltc' | 'midi' | 'gen'`",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L273",
+      "source_location": "L281",
       "_origin": "ast",
       "id": "claude_tc_sources_state_tcsource_ltc_midi_gen",
       "community": 0,
@@ -1157,7 +1157,7 @@
       "label": "Electron",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L277",
+      "source_location": "L285",
       "_origin": "ast",
       "id": "claude_electron",
       "community": 0,
@@ -1167,7 +1167,7 @@
       "label": "The show must keep running when the app is not in front",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L290",
+      "source_location": "L298",
       "_origin": "ast",
       "id": "claude_the_show_must_keep_running_when_the_app_is_not_in_front",
       "community": 0,
@@ -1177,7 +1177,7 @@
       "label": "graphify",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L316",
+      "source_location": "L324",
       "_origin": "ast",
       "id": "claude_graphify",
       "community": 0,
@@ -1815,9 +1815,9 @@
       "source_file": "main.js",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "main",
-      "target": "main_app_browserwindow_session_ipcmain_protocol_powersaveblocker",
-      "confidence_score": 1.0
+      "target": "main_app_browserwindow_session_ipcmain_protocol_powersaveblocker"
     },
     {
       "relation": "contains",
@@ -1915,9 +1915,9 @@
       "source_file": "main.js",
       "source_location": "L320",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "main",
-      "target": "main_setkeepawake",
-      "confidence_score": 1.0
+      "target": "main_setkeepawake"
     },
     {
       "relation": "contains",
@@ -1967,9 +1967,9 @@
       "source_file": "main.js",
       "source_location": "L328",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "main_setkeepawake",
-      "target": "main_logmainfault",
-      "confidence_score": 1.0
+      "target": "main_logmainfault"
     },
     {
       "relation": "calls",
@@ -2860,9 +2860,9 @@
       "source_file": "CLAUDE.md",
       "source_location": "L290",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "claude_electron",
-      "target": "claude_the_show_must_keep_running_when_the_app_is_not_in_front",
-      "confidence_score": 1.0
+      "target": "claude_the_show_must_keep_running_when_the_app_is_not_in_front"
     },
     {
       "relation": "contains",
@@ -3326,5 +3326,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "db74adecf14c16fb1819b1b5741466014bd7e6fe"
+  "built_at_commit": "45490ce2df65648c8ae97eef182110318e9b5e35"
 }
