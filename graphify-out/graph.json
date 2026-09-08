@@ -1124,10 +1124,20 @@
       "norm_label": "tc/timecode"
     },
     {
-      "label": "TC sources \u2014 `state.tcSource` \u2208 `'ltc' | 'midi' | 'gen'`",
+      "label": "Running order is the SETLIST, never absolute timecode",
       "file_type": "document",
       "source_file": "CLAUDE.md",
       "source_location": "L236",
+      "_origin": "ast",
+      "id": "claude_running_order_is_the_setlist_never_absolute_timecode",
+      "community": 0,
+      "norm_label": "running order is the setlist, never absolute timecode"
+    },
+    {
+      "label": "TC sources \u2014 `state.tcSource` \u2208 `'ltc' | 'midi' | 'gen'`",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L265",
       "_origin": "ast",
       "id": "claude_tc_sources_state_tcsource_ltc_midi_gen",
       "community": 0,
@@ -1137,7 +1147,7 @@
       "label": "Electron",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L240",
+      "source_location": "L269",
       "_origin": "ast",
       "id": "claude_electron",
       "community": 0,
@@ -1147,7 +1157,7 @@
       "label": "graphify",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L253",
+      "source_location": "L282",
       "_origin": "ast",
       "id": "claude_graphify",
       "community": 0,
@@ -1795,9 +1805,9 @@
       "source_file": "main.js",
       "source_location": "L217",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "main",
-      "target": "main_backupdir",
-      "confidence_score": 1.0
+      "target": "main_backupdir"
     },
     {
       "relation": "contains",
@@ -1805,9 +1815,9 @@
       "source_file": "main.js",
       "source_location": "L216",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "main",
-      "target": "main_backuproot",
-      "confidence_score": 1.0
+      "target": "main_backuproot"
     },
     {
       "relation": "contains",
@@ -1949,9 +1959,9 @@
       "source_file": "main.js",
       "source_location": "L219",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "main_backupdir",
-      "target": "main_backuproot",
-      "confidence_score": 1.0
+      "target": "main_backuproot"
     },
     {
       "relation": "contains",
@@ -2787,6 +2797,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CLAUDE.md",
+      "source_location": "L236",
+      "weight": 1.0,
+      "source": "claude_tc_timecode",
+      "target": "claude_running_order_is_the_setlist_never_absolute_timecode",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
       "source_location": "L185",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -3255,5 +3275,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "288c222d2a18f77a91aae42b64804001519a57ab"
+  "built_at_commit": "9c55169497e2a1048054231393f51ce7bdc1c0ba"
 }

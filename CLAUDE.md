@@ -233,6 +233,35 @@ whole 1.5MB app once per font file.
 - All live-mode logic must use `getAllCues()` (playlist-scoped), not `getSortedSongs()` directly
 - `_doRedraw()` drives the live waterfall; auto-advance and up-next both use `getActivePlaylistSongs()`
 
+### Running order is the SETLIST, never absolute timecode
+
+The show plays the setlist top to bottom, and **each sequence owns a TC range unrelated
+to its neighbours'** — a sequence at `14:00:00:00` can be followed by one at
+`05:00:00:00`, and the source jumps at every boundary. Timecode never overlaps, so any
+given TC maps to exactly one cue in one sequence.
+
+- **`getAllCues()` returns SETLIST order** — sequence by sequence, ascending within each
+  (`getSortedCues` handles the within-sequence sort, which is correct because one
+  sequence's own TC is monotonic). It tags each cue with `_seq`, its setlist position.
+  **Never re-add a global `.sort((a,b)=>a._f-b._f)`** — that interleaves sequences from
+  opposite ends of the show and is what made "next"/"upcoming" surface the wrong cues.
+- **Never derive position by scanning for the last cue whose TC has passed.** Resolve the
+  sequence first — `_curSeqIdByTc(frames)`, which keys off the TC range a sequence owns —
+  then the cue inside it, via `_showPos(allCues, frames, seqId)` → `{cur, next, seq}`.
+  `next` is the rest of the current sequence, then the following sequence in the setlist.
+- **No countdown across a sequence boundary.** `_cdValid(cue, curSeqId)` is false once the
+  target cue is in another sequence: the source has not jumped into that range, so the
+  subtraction counts toward a moment that is not coming. Surfaces show `—` and drop the
+  warn/urgency state; a real countdown resumes when the source enters the new range.
+- **Upcoming lists carry a divider at each sequence change** — `_cueQueueItems()` emits
+  `{type:'sep'}` entries, rendered by `_makeSeqSep()` (`.live-then-sep`) in the cockpits
+  and as `.wf-sep` in the waterfall.
+- Anything deriving a per-track list from `allCues` for a **time axis** (timeline block
+  widths) must sort it by `_f` itself — array adjacency is running order, not time.
+
+Applies to the owner cockpit, the viewer/crew cockpit, the camera-viewer cockpit, the
+waterfall and the camera prompter (`_cfpCamCues` / `_cfpModel`).
+
 ### TC sources — `state.tcSource` ∈ `'ltc' | 'midi' | 'gen'`
 
 `'gen'` = **Internal/Generated TC**, a manual transport for rehearsal/testing with no external feed. **Desktop-owner only** (`_cfOwnerDesktop()` = owner + desktop viewport); editors/viewers/mobile never see it (source value still syncs but is inert for them). Settings → Timecode shows an INTERNAL tab; selecting it runs `setTCListening(false)` + `stopLTC()`. The `genTC` module (Block 1) drives a `performance.now()`-rebased, drift-free tick that calls `redrawLive()` each frame (so the existing Block 2 relay broadcasts it as a normal live feed). A floating transport (`#gen-tc-float`, play/pause/reset + editable TC) appears in Live View; Spacebar toggles play/pause; clicking a setlist row populates that sequence's start TC (no autoplay). **Pause semantics:** `genPause`/`genSetFrames` send a `paused:true` TC packet via `CF._relayTcPaused`; the viewer RAF loop pins to that frame instead of free-running. The TC value is **not** persisted (resets to `01:00:00:00` on reload); only `tcSource` persists.

@@ -1,16 +1,16 @@
-# Graph Report - Cueflow  (2026-09-06)
+# Graph Report - Cueflow  (2026-09-07)
 
 ## Corpus Check
-- 12 files · ~135,948 words
+- 12 files · ~138,204 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 163 nodes · 161 edges · 12 communities (10 shown, 2 thin omitted)
+- 164 nodes · 162 edges · 12 communities (10 shown, 2 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `288c222d`
+- Built from commit: `9c551694`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -50,8 +50,8 @@
 ## Communities (12 total, 2 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.09
-Nodes (21): Architecture — the three script blocks, Badge rules — enforced design spec, Block 1 — main app globals, Block 2 — collab IIFE, Camera badges (`.cam-badge`, `.cam-badge-sq`), Commands, Data model, Electron (+13 more)
+Cohesion: 0.08
+Nodes (22): Architecture — the three script blocks, Badge rules — enforced design spec, Block 1 — main app globals, Block 2 — collab IIFE, Camera badges (`.cam-badge`, `.cam-badge-sq`), Commands, Data model, Electron (+14 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.09
@@ -90,7 +90,7 @@ Cohesion: 0.18
 Nodes (10): Ad-hoc signing (automatic, free), Best: hand it over on a USB stick or local file share, Build, Building and distributing CueFlow (macOS), If you ever do sign it ($99/year), Installing on any OTHER Mac, Installing on the machine that built it, Known gaps (+2 more)
 
 ## Knowledge Gaps
-- **113 isolated node(s):** `http`, `os`, `fs`, `zlib`, `path` (+108 more)
+- **114 isolated node(s):** `http`, `os`, `fs`, `zlib`, `path` (+109 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **2 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -98,15 +98,15 @@ Nodes (10): Ad-hoc signing (automatic, free), Best: hand it over on a USB stick 
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `build` connect `Community 7` to `Community 2`, `Community 3`?**
-  _High betweenness centrality (0.037) - this node is a cross-community bridge._
+  _High betweenness centrality (0.036) - this node is a cross-community bridge._
 - **Why does `mac` connect `Community 3` to `Community 7`?**
   _High betweenness centrality (0.021) - this node is a cross-community bridge._
 - **Why does `CueFlow — Security, Data Integrity & Reliability Audit` connect `Community 5` to `Community 9`?**
   _High betweenness centrality (0.018) - this node is a cross-community bridge._
 - **What connects `http`, `os`, `fs` to the rest of the system?**
-  _113 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _114 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.08695652173913043 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08333333333333333 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.08695652173913043 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
