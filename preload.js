@@ -33,6 +33,15 @@ contextBridge.exposeInMainWorld('cfNativeFs', {
   readMediaFile: function (path, name) { return ipcRenderer.invoke('media:read-file', { path: path, name: name }); }
 });
 
+/* ── Show runtime ────────────────────────────────────────────────────────────
+ * Lets the renderer tell the main process that a show is actually running, so the
+ * OS is asked not to suspend the app while it is relaying timecode. */
+contextBridge.exposeInMainWorld('cfShow', {
+  available: true,
+  /* (bool) — held while TC is running, generated or being relayed */
+  keepAwake: function (on) { ipcRenderer.send('show:keep-awake', !!on); }
+});
+
 /* ── Local rolling backups ───────────────────────────────────────────────────
  * Every save also writes a plain .cueflow file under the app's userData folder,
  * pruned by age rather than by count. This is the copy that survives a bad sync,

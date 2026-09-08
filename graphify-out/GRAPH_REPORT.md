@@ -1,16 +1,16 @@
 # Graph Report - Cueflow  (2026-09-07)
 
 ## Corpus Check
-- 12 files · ~138,204 words
+- 12 files · ~139,616 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 164 nodes · 162 edges · 12 communities (10 shown, 2 thin omitted)
+- 166 nodes · 165 edges · 12 communities (10 shown, 2 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `9c551694`
+- Built from commit: `db74adec`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -51,7 +51,7 @@
 
 ### Community 0 - "Community 0"
 Cohesion: 0.08
-Nodes (22): Architecture — the three script blocks, Badge rules — enforced design spec, Block 1 — main app globals, Block 2 — collab IIFE, Camera badges (`.cam-badge`, `.cam-badge-sq`), Commands, Data model, Electron (+14 more)
+Nodes (23): Architecture — the three script blocks, Badge rules — enforced design spec, Block 1 — main app globals, Block 2 — collab IIFE, Camera badges (`.cam-badge`, `.cam-badge-sq`), Commands, Data model, Electron (+15 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.09
@@ -66,12 +66,12 @@ Cohesion: 0.20
 Nodes (10): mac, NSMicrophoneUsageDescription, UTExportedTypeDeclarations, category, entitlements, entitlementsInherit, extendInfo, icon (+2 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.10
-Nodes (21): crypto, fs, getLanIPs(), http, os, path, QRCode, startLanServer() (+13 more)
+Cohesion: 0.17
+Nodes (13): { app, BrowserWindow, session, ipcMain, protocol, powerSaveBlocker }, backupDir(), backupRoot(), fs, latestPins, logMainFault(), media, path (+5 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.11
-Nodes (18): Assessment: are the `true` RLS policies acceptable for this threat model?, C1 — `shows` is world-readable: any internet user can read every show's full data, C2 — `show_access` is world-readable AND PINs are stored in plaintext, C3 — Stored XSS via rich-text sequence description, rendered raw in the live cockpit, CRITICAL findings, CueFlow — Security, Data Integrity & Reliability Audit, Executive summary, H1 — `track-editor` restriction is client-side only; the server lets them overwrite the whole show (+10 more)
+Cohesion: 0.08
+Nodes (24): Assessment: are the `true` RLS policies acceptable for this threat model?, C1 — `shows` is world-readable: any internet user can read every show's full data, C2 — `show_access` is world-readable AND PINs are stored in plaintext, C3 — Stored XSS via rich-text sequence description, rendered raw in the live cockpit, CRITICAL findings, CueFlow — Security, Data Integrity & Reliability Audit, Executive summary, H1 — `track-editor` restriction is client-side only; the server lets them overwrite the whole show (+16 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.15
@@ -82,8 +82,8 @@ Cohesion: 0.15
 Nodes (13): build, afterPack, afterSign, appId, dmg, fileAssociations, files, productName (+5 more)
 
 ### Community 9 - "Community 9"
-Cohesion: 0.33
-Nodes (6): M1 — "Read-only" viewers/crew can write cue descriptions, M2 — No durable offline edit queue; offline reconnect is whole-snapshot last-write-wins, M3 — Leaked-password protection disabled on Supabase Auth, M4 — Offline/logged-out show creation can strand data, M5 — LAN inbound handler does no role enforcement, MEDIUM findings
+Cohesion: 0.20
+Nodes (10): crypto, fs, getLanIPs(), http, os, path, QRCode, startLanServer() (+2 more)
 
 ### Community 10 - "Community 10"
 Cohesion: 0.18
@@ -98,16 +98,16 @@ Nodes (10): Ad-hoc signing (automatic, free), Best: hand it over on a USB stick 
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `build` connect `Community 7` to `Community 2`, `Community 3`?**
-  _High betweenness centrality (0.036) - this node is a cross-community bridge._
+  _High betweenness centrality (0.035) - this node is a cross-community bridge._
 - **Why does `mac` connect `Community 3` to `Community 7`?**
-  _High betweenness centrality (0.021) - this node is a cross-community bridge._
-- **Why does `CueFlow — Security, Data Integrity & Reliability Audit` connect `Community 5` to `Community 9`?**
-  _High betweenness centrality (0.018) - this node is a cross-community bridge._
+  _High betweenness centrality (0.020) - this node is a cross-community bridge._
 - **What connects `http`, `os`, `fs` to the rest of the system?**
   _114 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.08333333333333333 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.08695652173913043 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
   _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
+- **Should `Community 5` be split into smaller, more focused modules?**
+  _Cohesion score 0.08 - nodes in this community are weakly interconnected._

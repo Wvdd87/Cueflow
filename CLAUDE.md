@@ -153,6 +153,14 @@ Audio/video for a sequence is sourced from a folder the **owner** picks on disk.
 - **Access backends** (`cfMediaPickFolder`): native Electron dialog (`window.cfNativeFs`, via `preload.js`/`main.js` IPC `media:pick-folder|scan-folder|read-file`) preferred; falls back to the browser **File System Access API** (`showDirectoryPicker`). No file access (Safari/Firefox/mobile) → all media UI hidden, an info message in Settings → Media; never error-spams.
 - **Persistence**: per-project meta in `localStorage` (`cf_media_folder_<projectId>`); the FS-API directory handle in IndexedDB db `cf_media_handles`. After reload the handle often needs a user-gesture re-grant → `cfMedia.needsReconnect` (shown as a Reconnect button, sequences show a neutral dim icon, not "missing").
 - **Engine**: folder files feed the existing decode/waveform/video engine via `cfMediaLoadSong` → `_decodeAndStore(...,{noPersist:true})` / `_cfMediaLoadVideo`. `cfMediaOnProjectLoad()` (called from `applyProject`) restores the folder and loads all songs.
+- **`mediaAnchorF(song)` = `startTc + mediaOffset`** is the single mapping from timecode to
+  media time. Because it moves the media row without touching any cue frame, it must appear
+  in **both** of the edit timeline's cache keys — `structKey` and the media-row `_mSig` — or
+  an offset edit is silently cached away and only appears after a detach/re-attach (which
+  changes `mediaFile`, rotating the key by accident). `mediaResyncActive()` re-seats audio
+  and video on the current frame and **forces** the video seek: the drift tolerances
+  (0.5s while playing, and the corrector's 4s hard-seek floor) assume a fixed anchor, so
+  they swallow exactly the change being made.
 - **Gating**: every media surface checks `cfMediaEnabled()` — Settings Media tab (tab itself uses `cfMediaTabVisible()` so a no-FS desktop owner still sees the info message), SSP `#ssp-media-section`, edit `ertab-wf`/`ertab-vid` tabs, timeline waveform (`_etlRebuildMediaRow`), and the seq-list badge. **Editors, viewers, crew, tc and mobile owners see zero media UI.** Old per-file entry points (`mediaAttach`/`mediaRemove`/`attachAudioToSeq`) now redirect to the folder picker when enabled.
 
 ### Per-device visibility (NOT synced)
@@ -278,6 +286,32 @@ waterfall and the camera prompter (`_cfpCamCues` / `_cfpModel`).
   launches the app but does not import it.
 - `build.files` is an explicit allow-list: anything `main.js` requires must be added there
   or the packaged app throws "Cannot find module" at launch.
+
+### The show must keep running when the app is not in front
+
+The operator switches to Notes, email or the switcher mid-show. CueFlow's timecode clock,
+its relay to viewers and its media sync are **all driven from the renderer** — `mtcRafLoop`,
+`_ltcRafLoop`, `_genTick` and `simTick` are `requestAnimationFrame` loops, and `relayTC`
+rides on `redrawLive` inside them. Measured on the old config, unfocused: **rAF 0 Hz,
+timers 1 Hz, nothing on the wire.** The show simply stopped for every viewer.
+
+Four levers, all required — **do not remove any of them**:
+
+- `webPreferences.backgroundThrottling: false` on **every** `BrowserWindow`, including the
+  popped-out video window (`setWindowOpenHandler` → `overrideBrowserWindowOptions`). Covers
+  the unfocused case.
+- `--disable-background-timer-throttling`, `--disable-renderer-backgrounding`,
+  `--disable-backgrounding-occluded-windows`, `--disable-features=CalculateNativeWinOcclusion`,
+  set before app ready. **Occlusion is a separate mechanism from focus**: Chromium treats a
+  fully covered window as hidden and stops producing frames, which no per-window flag undoes.
+- `powerSaveBlocker.start('prevent-app-suspension')` while a show is running, via the
+  `show:keep-awake` IPC (`window.cfShow.keepAwake`). App suspension only, not display sleep —
+  the screen may blank on a dark stage, the relay may not stop.
+- The renderer arms it from `_cfKeepAwakeSync()`, polled every 2s rather than hooked into
+  each transition, because missing one silently gives the throttling back.
+
+Verified end to end with `win.blur()` and `win.hide()` (harsher than occlusion): 60 Hz rAF
+and **12 Hz on the wire in every state**, matching foreground exactly.
 
 ## graphify
 

@@ -10,7 +10,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "lan_server",
-      "community": 4,
+      "community": 9,
       "norm_label": "lan-server.js"
     },
     {
@@ -20,7 +20,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "lan_server_http",
-      "community": 4,
+      "community": 9,
       "norm_label": "http"
     },
     {
@@ -30,7 +30,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "lan_server_os",
-      "community": 4,
+      "community": 9,
       "norm_label": "os"
     },
     {
@@ -40,7 +40,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "lan_server_fs",
-      "community": 4,
+      "community": 9,
       "norm_label": "fs"
     },
     {
@@ -50,7 +50,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "lan_server_zlib",
-      "community": 4,
+      "community": 9,
       "norm_label": "zlib"
     },
     {
@@ -60,7 +60,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "lan_server_path",
-      "community": 4,
+      "community": 9,
       "norm_label": "path"
     },
     {
@@ -70,7 +70,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "lan_server_crypto",
-      "community": 4,
+      "community": 9,
       "norm_label": "crypto"
     },
     {
@@ -80,7 +80,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "lan_server_websocketserver",
-      "community": 4,
+      "community": 9,
       "norm_label": "{ websocketserver }"
     },
     {
@@ -90,7 +90,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "lan_server_qrcode",
-      "community": 4,
+      "community": 9,
       "norm_label": "qrcode"
     },
     {
@@ -100,7 +100,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "lan_server_getlanips",
-      "community": 4,
+      "community": 9,
       "norm_label": "getlanips()"
     },
     {
@@ -110,7 +110,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "lan_server_startlanserver",
-      "community": 4,
+      "community": 9,
       "norm_label": "startlanserver()"
     },
     {
@@ -124,14 +124,14 @@
       "norm_label": "main.js"
     },
     {
-      "label": "{ app, BrowserWindow, session, ipcMain, protocol }",
+      "label": "{ app, BrowserWindow, session, ipcMain, protocol, powerSaveBlocker }",
       "file_type": "code",
       "source_file": "main.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "main_app_browserwindow_session_ipcmain_protocol",
+      "id": "main_app_browserwindow_session_ipcmain_protocol_powersaveblocker",
       "community": 4,
-      "norm_label": "{ app, browserwindow, session, ipcmain, protocol }"
+      "norm_label": "{ app, browserwindow, session, ipcmain, protocol, powersaveblocker }"
     },
     {
       "label": "path",
@@ -167,7 +167,7 @@
       "label": "logMainFault()",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L16",
+      "source_location": "L37",
       "_origin": "ast",
       "id": "main_logmainfault",
       "community": 4,
@@ -177,7 +177,7 @@
       "label": "latestPins",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L28",
+      "source_location": "L49",
       "_origin": "ast",
       "id": "main_latestpins",
       "community": 4,
@@ -187,7 +187,7 @@
       "label": "createWindow()",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L30",
+      "source_location": "L51",
       "_origin": "ast",
       "id": "main_createwindow",
       "community": 4,
@@ -197,7 +197,7 @@
       "label": "statusObj()",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L117",
+      "source_location": "L146",
       "_origin": "ast",
       "id": "main_statusobj",
       "community": 4,
@@ -207,7 +207,7 @@
       "label": "pushStatus()",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L126",
+      "source_location": "L155",
       "_origin": "ast",
       "id": "main_pushstatus",
       "community": 4,
@@ -217,7 +217,7 @@
       "label": "startLan()",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L130",
+      "source_location": "L159",
       "_origin": "ast",
       "id": "main_startlan",
       "community": 4,
@@ -227,7 +227,7 @@
       "label": "fs",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L161",
+      "source_location": "L190",
       "_origin": "ast",
       "id": "main_fs",
       "community": 4,
@@ -237,7 +237,7 @@
       "label": "backupRoot()",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L216",
+      "source_location": "L245",
       "_origin": "ast",
       "id": "main_backuproot",
       "community": 4,
@@ -247,11 +247,21 @@
       "label": "backupDir()",
       "file_type": "code",
       "source_file": "main.js",
-      "source_location": "L217",
+      "source_location": "L246",
       "_origin": "ast",
       "id": "main_backupdir",
       "community": 4,
       "norm_label": "backupdir()"
+    },
+    {
+      "label": "setKeepAwake()",
+      "file_type": "code",
+      "source_file": "main.js",
+      "source_location": "L320",
+      "_origin": "ast",
+      "id": "main_setkeepawake",
+      "community": 4,
+      "norm_label": "setkeepawake()"
     },
     {
       "label": "media-protocol.js",
@@ -1067,7 +1077,7 @@
       "label": "Per-device visibility (NOT synced)",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L158",
+      "source_location": "L166",
       "_origin": "ast",
       "id": "claude_per_device_visibility_not_synced",
       "community": 0,
@@ -1077,7 +1087,7 @@
       "label": "Roles",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L162",
+      "source_location": "L170",
       "_origin": "ast",
       "id": "claude_roles",
       "community": 0,
@@ -1087,7 +1097,7 @@
       "label": "Supabase",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L175",
+      "source_location": "L183",
       "_origin": "ast",
       "id": "claude_supabase",
       "community": 0,
@@ -1097,7 +1107,7 @@
       "label": "Offline startup \u2014 the boot must never depend on the network",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L183",
+      "source_location": "L191",
       "_origin": "ast",
       "id": "claude_offline_startup_the_boot_must_never_depend_on_the_network",
       "community": 0,
@@ -1107,7 +1117,7 @@
       "label": "Fonts are local \u2014 never a CDN",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L218",
+      "source_location": "L226",
       "_origin": "ast",
       "id": "claude_fonts_are_local_never_a_cdn",
       "community": 0,
@@ -1117,7 +1127,7 @@
       "label": "TC/timecode",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L229",
+      "source_location": "L237",
       "_origin": "ast",
       "id": "claude_tc_timecode",
       "community": 0,
@@ -1127,7 +1137,7 @@
       "label": "Running order is the SETLIST, never absolute timecode",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L236",
+      "source_location": "L244",
       "_origin": "ast",
       "id": "claude_running_order_is_the_setlist_never_absolute_timecode",
       "community": 0,
@@ -1137,7 +1147,7 @@
       "label": "TC sources \u2014 `state.tcSource` \u2208 `'ltc' | 'midi' | 'gen'`",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L265",
+      "source_location": "L273",
       "_origin": "ast",
       "id": "claude_tc_sources_state_tcsource_ltc_midi_gen",
       "community": 0,
@@ -1147,17 +1157,27 @@
       "label": "Electron",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L269",
+      "source_location": "L277",
       "_origin": "ast",
       "id": "claude_electron",
       "community": 0,
       "norm_label": "electron"
     },
     {
+      "label": "The show must keep running when the app is not in front",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L290",
+      "_origin": "ast",
+      "id": "claude_the_show_must_keep_running_when_the_app_is_not_in_front",
+      "community": 0,
+      "norm_label": "the show must keep running when the app is not in front"
+    },
+    {
       "label": "graphify",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L282",
+      "source_location": "L316",
       "_origin": "ast",
       "id": "claude_graphify",
       "community": 0,
@@ -1520,7 +1540,7 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "security_audit_medium_findings",
-      "community": 9,
+      "community": 5,
       "norm_label": "medium findings"
     },
     {
@@ -1530,7 +1550,7 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "security_audit_m1_read_only_viewers_crew_can_write_cue_descriptions",
-      "community": 9,
+      "community": 5,
       "norm_label": "m1 \u2014 \"read-only\" viewers/crew can write cue descriptions"
     },
     {
@@ -1540,7 +1560,7 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "security_audit_m2_no_durable_offline_edit_queue_offline_reconnect_is_whole_snapshot_last_write_wins",
-      "community": 9,
+      "community": 5,
       "norm_label": "m2 \u2014 no durable offline edit queue; offline reconnect is whole-snapshot last-write-wins"
     },
     {
@@ -1550,7 +1570,7 @@
       "source_location": "L115",
       "_origin": "ast",
       "id": "security_audit_m3_leaked_password_protection_disabled_on_supabase_auth",
-      "community": 9,
+      "community": 5,
       "norm_label": "m3 \u2014 leaked-password protection disabled on supabase auth"
     },
     {
@@ -1560,7 +1580,7 @@
       "source_location": "L123",
       "_origin": "ast",
       "id": "security_audit_m4_offline_logged_out_show_creation_can_strand_data",
-      "community": 9,
+      "community": 5,
       "norm_label": "m4 \u2014 offline/logged-out show creation can strand data"
     },
     {
@@ -1570,7 +1590,7 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "security_audit_m5_lan_inbound_handler_does_no_role_enforcement",
-      "community": 9,
+      "community": 5,
       "norm_label": "m5 \u2014 lan inbound handler does no role enforcement"
     },
     {
@@ -1795,9 +1815,9 @@
       "source_file": "main.js",
       "source_location": "L1",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "main",
-      "target": "main_app_browserwindow_session_ipcmain_protocol"
+      "target": "main_app_browserwindow_session_ipcmain_protocol_powersaveblocker",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -1893,6 +1913,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "main.js",
+      "source_location": "L320",
+      "weight": 1.0,
+      "source": "main",
+      "target": "main_setkeepawake",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
       "source_location": "L52",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -1929,6 +1959,17 @@
       "confidence_score": 1.0,
       "source": "main",
       "target": "media_protocol"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "main.js",
+      "source_location": "L328",
+      "weight": 1.0,
+      "source": "main_setkeepawake",
+      "target": "main_logmainfault",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -2799,9 +2840,9 @@
       "source_file": "CLAUDE.md",
       "source_location": "L236",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "claude_tc_timecode",
-      "target": "claude_running_order_is_the_setlist_never_absolute_timecode",
-      "confidence_score": 1.0
+      "target": "claude_running_order_is_the_setlist_never_absolute_timecode"
     },
     {
       "relation": "contains",
@@ -2812,6 +2853,16 @@
       "confidence_score": 1.0,
       "source": "claude_tc_timecode",
       "target": "claude_tc_sources_state_tcsource_ltc_midi_gen"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L290",
+      "weight": 1.0,
+      "source": "claude_electron",
+      "target": "claude_the_show_must_keep_running_when_the_app_is_not_in_front",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -3275,5 +3326,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "9c55169497e2a1048054231393f51ce7bdc1c0ba"
+  "built_at_commit": "db74adecf14c16fb1819b1b5741466014bd7e6fe"
 }

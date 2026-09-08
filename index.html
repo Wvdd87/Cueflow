@@ -852,6 +852,10 @@ body.mode-live #edit-mode-banner { display: none; }
 #cue-list-hscroll { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-x: auto; overflow-y: hidden; }
 #cue-list-grid { flex: 1; min-height: 0; display: flex; flex-direction: column; min-width: var(--cue-cols-min); }
 #cue-list-wrap { flex: 1; overflow-y: auto; overflow-x: hidden !important; }
+/* Centres in the cue list's OWN column, so it follows the video panel being resized,
+   collapsed or popped out without measuring anything. */
+#cue-empty-state { display: none; flex: 1; min-height: 0; flex-direction: column;
+  align-items: center; justify-content: flex-start; padding: 24px 20px; text-align: center; }
 .cue-list-wrap { overflow-x: hidden !important; }
 .cue-row {
   display: grid;
@@ -4002,6 +4006,11 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
             <div id="cue-list-wrap"></div>
           </div>
         </div>
+        <!-- Empty states live OUT here, beside the horizontal scroller rather than
+             inside it: #cue-list-grid carries a min-width so the columns keep their
+             size, so with the video panel open the grid is wider than the visible
+             area and anything centred within it lands off to the right. -->
+        <div id="cue-empty-state"></div>
         <div style="display:none;"><span id="desc-has-content"></span></div>
       </div>
 
@@ -5097,12 +5106,39 @@ function _checkAutoLive(){
   setTimeout(()=>{stopSettingsTCReadout();closeModal('settings-modal');switchMode('live');},350);
 }
 
+/* ── Keep the machine awake while a show is running ──────────────────────────
+   The desktop app asks the OS not to suspend it whenever timecode is moving —
+   armed, generated, simulating, or simply in live mode relaying to viewers. This
+   is app suspension only, not display sleep: on a dark stage the screen may well
+   blank, but the relay must not stop with it. No-op in a browser. */
+function _cfShowRunning(){
+  try{
+    if(state.appMode==='live') return true;
+    if(typeof tcListening!=='undefined' && tcListening) return true;
+    if(typeof genTC!=='undefined' && genTC && genTC.rafId) return true;
+    if(state.simRunning) return true;
+  }catch(e){}
+  return false;
+}
+let _cfAwakeState=null;
+function _cfKeepAwakeSync(){
+  if(!window.cfShow||!cfShow.available) return;
+  const on=_cfShowRunning();
+  if(on===_cfAwakeState) return;      // only speak when it changes
+  _cfAwakeState=on;
+  try{ cfShow.keepAwake(on); }catch(e){}
+}
+/* Polled rather than hooked into six transitions: missing one would silently give
+   back the throttling this exists to prevent, and the check is trivial. */
+setInterval(_cfKeepAwakeSync, 2000);
+
 function switchMode(mode){
   // "Open modal before live" guard
   if(mode==='live'&&state.openModalBeforeLive&&!_skipLiveGuard){
     const hasTC=tcListening&&(mtc.locked||ltc.locked);
     if(!hasTC){_awaitingTCForLive=true;openSettingsModal('tc');return;}
   }
+  setTimeout(_cfKeepAwakeSync,0);   // going live must arm it now, not on the next poll
   // Mobile/tablet (<1024px): owners see read-only viewer cockpit instead of full steering UI
   if(mode==='live'&&window.innerWidth<1024){
     if(!window.CF||CF.isOwner){_ownerMobileLive();return;}
@@ -9688,6 +9724,24 @@ function resetSimToActiveSong(){
 }
 
 // ─── CUE LIST (edit) ───
+/* Show or clear the cue list's empty state. Passing null returns the list to normal:
+   the scroller reclaims its flex so the rows fill the column again. */
+function _cueEmptyState(html){
+  const box=document.getElementById('cue-empty-state');
+  const hscroll=document.getElementById('cue-list-hscroll');
+  if(!box) return;
+  if(html==null){
+    if(box.innerHTML!==''){ box.innerHTML=''; }
+    box.style.display='none';
+    if(hscroll) hscroll.style.flex='';
+  } else {
+    if(box.innerHTML!==html) box.innerHTML=html;
+    box.style.display='flex';
+    /* The header stays; it just stops claiming the space the message needs. */
+    if(hscroll) hscroll.style.flex='0 0 auto';
+  }
+}
+
 function renderCueList(){
   const song=getActiveSong();
   const hdr=document.getElementById('cue-editor-song-name');if(hdr){hdr.textContent=song?.name||'No sequence selected';
@@ -9699,7 +9753,7 @@ function renderCueList(){
   [_notesBtn,_addCueBtn,_moreBtn].forEach(b=>{if(b){b.disabled=!song;b.style.opacity=song?'':'0.35';}});
   const el=document.getElementById('cue-list-wrap');if(!el)return;el.innerHTML='';
   if(!song){
-    el.innerHTML='<div style="padding:32px 20px;text-align:center;color:var(--text3);"><div style="font-size:32px;margin-bottom:12px;opacity:.3;">♪</div><div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px;">No sequence selected</div><div style="font-size:12px;line-height:1.6;">Select a sequence on the left,<br>or create one with + New sequence.</div></div>';
+    _cueEmptyState('<div style="color:var(--text3);"><div style="font-size:32px;margin-bottom:12px;opacity:.3;">♪</div><div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px;">No sequence selected</div><div style="font-size:12px;line-height:1.6;">Select a sequence on the left,<br>or create one with + New sequence.</div></div>');
     return;
   }
   let cues=getSortedCues(song.id,true); // visibleOnly=true: global stream visibility
@@ -9996,18 +10050,16 @@ function renderCueList(){
   }
   if(!cues.length){
     const _totalCues=getSortedCues(song.id,true).length;
-    const emptyMsg=document.createElement('div');
     if(_totalCues>0&&(_listFilterTracks!==null||_listFilterCams!==null||_listFilterFlagged||_listFilterType!=='all')){
-      emptyMsg.style.cssText='padding:28px 20px;text-align:center;';
-      emptyMsg.innerHTML='<div style="font-size:12px;color:var(--txt-low);margin-bottom:10px;">No cues match the current filter</div><button class="btn-icon" onclick="toggleListFilter()" style="padding:5px 14px;font-size:11px;">Clear filter</button>';
+      _cueEmptyState('<div style="font-size:12px;color:var(--txt-low);margin-bottom:10px;">No cues match the current filter</div><button class="btn-icon" onclick="toggleListFilter()" style="padding:5px 14px;font-size:11px;">Clear filter</button>');
     } else {
-      emptyMsg.style.cssText='padding:20px 20px;text-align:center;';
       var _hasProj=!!(window.CF && CF.showId);
-      emptyMsg.innerHTML=_hasProj
+      _cueEmptyState(_hasProj
         ?'<div style="font-size:12px;color:var(--txt-low);margin-bottom:10px;">No cues yet</div><button class="btn-icon primary" onclick="addCue()" style="padding:7px 16px;font-size:12px;height:auto;">+ Add first cue</button>'
-        :'<div style="font-size:12px;color:var(--txt-low);margin-bottom:10px;">No project yet</div><button class="btn-icon primary" onclick="openNewProjectModal()" style="padding:7px 16px;font-size:12px;height:auto;">Create new project</button>';
+        :'<div style="font-size:12px;color:var(--txt-low);margin-bottom:10px;">No project yet</div><button class="btn-icon primary" onclick="openNewProjectModal()" style="padding:7px 16px;font-size:12px;height:auto;">Create new project</button>');
     }
-    el.appendChild(emptyMsg);
+  } else {
+    _cueEmptyState(null);
   }
   // ── Auto-scroll: keep selected cue visible ──
   if(ETL.selId){
@@ -14667,10 +14719,15 @@ function mediaAnchorF(song){
 /* Re-seat audio and video on the current frame. The drift correctors get there on
    their own within a second or two, but an operator dialling in an offset is
    listening for the change now. */
+/* Re-seat every media surface on the current frame. Called when the mapping from
+   timecode to media time changes — a media offset or start TC edit — rather than when
+   the playhead moves, so it forces the video rather than letting the drift tolerances
+   absorb it, and restarts audio that is already sounding against the new anchor. */
 function mediaResyncActive(){
   const f=Math.floor((state.appMode==='live'?state.currentFrames:state.simFrames)||0);
   if(window.audioEngineSeek) audioEngineSeek(f);
-  if(window._vidSeekToTC) _vidSeekToTC(f);
+  if(window._vidSeekToTC) _vidSeekToTC(f,true);
+  if(window.updateProgressBar) updateProgressBar();
 }
 
 // ── Start/Stop source ────────────────────────────────────────────
@@ -14730,11 +14787,14 @@ function audioEngineStop(){
 
 // Called on seek (scrub release, jump, etc.)
 function audioEngineSeek(frames){
-  if(state.simRunning){
-    // Restart at new position
+  /* Restart whenever something is actually sounding — not only while the transport
+     says it is running. A buffer source is started once against an anchor and then
+     runs open-loop, so when the anchor moves under it (a media offset edit) the only
+     way to re-align is to start it again. If nothing is sounding there is nothing to
+     move: the next play() reads the anchor fresh. */
+  if(state.simRunning || audio.source){
     audioEnginePlay(frames);
   }
-  // If paused, nothing to do — next play() will use current simFrames
 }
 
 // ── Drift corrector ───────────────────────────────────────────────
@@ -16134,8 +16194,15 @@ function renderEditTimeline(){
   const cueStructKey=songCues.map(c=>[c.id,c._f,c.duration||'',c.streamId||'',c.cameraId||'',c.name||''].join(SEP)).join(',');
   const camDefKey=(state.cameraTrack?.cameras||[]).map(c=>[c.id,c.number,c.colorIdx,c.label||''].join(SEP)).join(',');
   const chapterKey=(song?.chapters||[]).map(ch=>ch.id+':'+ch.tc).join(',');
+  /* startTc and mediaOffset are in here because together they place the media row:
+     the waveform and the media bar are drawn from mediaAnchorF(), and neither shifts
+     any cue frame, so without them the key was identical after an offset edit and the
+     rebuild was skipped. That is why changing the offset appeared to do nothing until
+     the file was detached and re-attached — which DOES change mediaFile, and so did
+     rotate the key. */
   const structKey=[fps,pxPS,tlW,visStreams.join(','),song?.id||'',cueStructKey,chapterKey,camDefKey,
     hasCamTrack,song?.mediaFile||song?.audioFilename||'',song?.mediaType||'',
+    song?.startTc||'',song?.mediaOffset||'',
     wf?.visible,ETL.selId||'',rulerCentreSec,state.activeStreamId||''].join('|');
 
   /* Rebuild when the key changes — or when the DOM that key describes isn't actually
@@ -16174,8 +16241,13 @@ function renderEditTimeline(){
   // Media row: rebuilt only when its content/layout changes (song, file, readiness,
   // cache, waveform toggle/height, zoom, width). The smooth-scroll RAF transforms and
   // recenters it every frame, so it no longer needs a per-frame/timer rebuild here.
+  /* mediaAnchorF is in the signature because it is what POSITIONS this row — the media
+     bar and the waveform are both drawn from it. A start-TC or offset edit moves the row
+     without touching anything else here, so leaving it out meant the row stayed where it
+     was whenever a full struct rebuild had not already happened to wipe it. */
   const _mSig=[song?.id||'',song?.mediaFile||song?.audioFilename||song?.videoFilename||'',
     ((audio.meta[song?.id]?.ready)||(vid.meta?.[song?.id]?.ready))?1:0,
+    song?mediaAnchorF(song):0,
     wf.cache[song?.id]?1:0,wf.visible?1:0,wf.rowH,pxPS,tlW].join('|');
   if(_etlCache._mediaSig!==_mSig||!container.querySelector('.etl-media-row')){
     _etlCache._mediaSig=_mSig;
@@ -17439,7 +17511,13 @@ function removeVideoFromSong(songId){
 }
 
 // ── Playback ───────────────────────────────────────────────
-function _vidSeekToTC(frames){
+/* `force` re-seats the video on the frame exactly, ignoring the tolerances that exist
+   to stop ordinary playback stuttering. Used when the ANCHOR itself moved (a media
+   offset edit): the tolerances assume the mapping from timecode to media time is fixed,
+   so while playing a sub-half-second offset change was swallowed whole, and a larger
+   one was handed to the drift corrector, which only nudges playbackRate below 4s of
+   error and would have crept toward it over many seconds. */
+function _vidSeekToTC(frames, force){
   const el = _vidEl(); if(!el || !vid.ready) return;
   const song = state.songs.find(s=>s.id===vid.songId); if(!song) return;
   const offsetFrames = mediaAnchorF(song);
@@ -17448,7 +17526,8 @@ function _vidSeekToTC(frames){
   const target = Math.max(0, sec);
   // Before sequence start: show black, don't loop
   if(sec < 0){ if(!el.paused)el.pause(); el.currentTime=0; return; }
-  const seekThreshold = el.paused ? 0.04 : 0.5;
+  if(force) el.playbackRate = 1.0;   // drop any drift nudge aimed at the old anchor
+  const seekThreshold = force ? -1 : (el.paused ? 0.04 : 0.5);
   const seekTarget = Math.min(Math.max(0,sec),(vid.meta[vid.songId]?.durationSec||Infinity)-0.05);
   if(Math.abs(el.currentTime - seekTarget) > seekThreshold) el.currentTime = seekTarget;
 }
@@ -17665,7 +17744,10 @@ function openSeqSettingsPanel(){
   document.getElementById('ssp-name').value = song.name;
   document.getElementById('ssp-tc').value = song.startTc || '01:00:00:00';
   const _offInp = document.getElementById('ssp-media-offset');
-  if(_offInp){ _offInp.value = song.mediaOffset || ''; _offInp.style.borderColor=''; }
+  /* Shown as an explicit zero rather than an empty box: the field reads as a timecode,
+     and a blank timecode looks like something is missing. Stored as absence either way
+     (see saveSeqSettings), so shows without an offset stay untouched. */
+  if(_offInp){ _offInp.value = song.mediaOffset || '00:00:00:00'; _offInp.style.borderColor=''; }
   _mediaUpdateSSP(song.id);
   _sspDelConfirming = false;
   const delBtn = document.getElementById('ssp-del-btn');
@@ -17679,7 +17761,7 @@ function openSeqSettingsPanel(){
    a validation failure the way an empty start TC would. */
 function sspMediaOffsetBlur(inp){
   const raw=inp.value.trim();
-  if(!raw){ inp.value=''; inp.style.borderColor=''; return; }
+  if(!raw){ inp.value='00:00:00:00'; inp.style.borderColor=''; return; }
   const norm=normalizeTcSignedInput(raw);
   if(validateTcSigned(norm)){ inp.value=norm; inp.style.borderColor=''; }
   else inp.style.borderColor='var(--red)';

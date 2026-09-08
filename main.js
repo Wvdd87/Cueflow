@@ -1,7 +1,28 @@
-const { app, BrowserWindow, session, ipcMain, protocol } = require('electron');
+const { app, BrowserWindow, session, ipcMain, protocol, powerSaveBlocker } = require('electron');
 const path = require('path');
 const { startLanServer } = require('./lan-server');
 const media = require('./media-protocol');
+
+/* ── Keep running while the operator is looking at something else ────────────
+   During a show the operator switches to Notes, email or the switcher software,
+   and this window ends up unfocused and often completely covered. Measured on the
+   old configuration, unfocused: requestAnimationFrame 0 Hz, timers 1 Hz, nothing
+   on the wire. CueFlow's timecode clock, its relay to viewers and its media sync
+   are all driven from the renderer, so that is the show stopping for everyone
+   watching while the operator reads an email.
+
+   backgroundThrottling:false on each window (see createWindow) covers being merely
+   unfocused. Occlusion is a separate mechanism — Chromium treats a fully covered
+   window as hidden and stops producing frames for it, which no per-window flag
+   undoes — hence these. They must be set before app ready.
+
+   CalculateNativeWinOcclusion is the Windows occlusion detector; harmless
+   elsewhere. On macOS the equivalent risk is App Nap, which powerSaveBlocker
+   below is what actually holds off. */
+app.commandLine.appendSwitch('disable-background-timer-throttling');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
+app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
 
 /* Without a handler here, any stray throw in the main process puts up Electron's
    modal "A JavaScript error occurred in the main process" dialog — on top of the
@@ -37,7 +58,10 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      /* The show clock, the TC relay and media sync all live in this renderer.
+         Throttling them because nobody is looking at the window stops the show. */
+      backgroundThrottling: false
     }
   });
 
@@ -66,7 +90,12 @@ function createWindow() {
   /* The popped-out video window (window.open from the renderer). */
   win.webContents.setWindowOpenHandler(() => ({
     action: 'allow',
-    overrideBrowserWindowOptions: { fullscreenable: true, resizable: true, backgroundColor: '#000000' }
+    overrideBrowserWindowOptions: {
+      fullscreenable: true, resizable: true, backgroundColor: '#000000',
+      /* This window plays the show video. It is on a second monitor precisely so
+         it is NOT the focused window, which is the throttled case. */
+      webPreferences: { backgroundThrottling: false }
+    }
   }));
 
   /* A window opened while the app is in macOS native fullscreen inherits that
@@ -283,6 +312,22 @@ ipcMain.handle('backup:reveal', async (_e, showId) => {
   shell.openPath(dir);
   return dir;
 });
+
+/* Held while a show is running — the renderer arms it whenever timecode is moving.
+   App suspension, not display sleep: the operator may well want the screen to blank
+   on a dark stage, but the machine must never stop relaying timecode. */
+let _psbId = null;
+function setKeepAwake(on) {
+  try {
+    if (on && _psbId === null) {
+      _psbId = powerSaveBlocker.start('prevent-app-suspension');
+    } else if (!on && _psbId !== null) {
+      if (powerSaveBlocker.isStarted(_psbId)) powerSaveBlocker.stop(_psbId);
+      _psbId = null;
+    }
+  } catch (e) { logMainFault('power save blocker', e); }
+}
+ipcMain.on('show:keep-awake', (_e, on) => setKeepAwake(!!on));
 
 app.whenReady().then(() => {
   media.registerMediaProtocol(protocol);
