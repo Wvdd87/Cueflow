@@ -2114,7 +2114,12 @@ body.gen-live #live-mini-seqs .setlist-row:hover { background:var(--surface2); }
   flex:1; min-height:0; overflow-y:auto; padding:10px 12px;
   font-size:12px; line-height:1.65; color:var(--txt);
 }
-.live-rail-notes-body * { color:var(--txt) !important; }
+/* No blanket colour override here. The container's own `color` above is the default and
+   still cascades to anything the note does not colour itself — but a note that DOES set a
+   colour has to win, and `* { color: ... !important }` beat every inline span the editor
+   writes, so the live rail rendered every note white whatever the operator chose. Both
+   surfaces are dark-themed and the editor's "default" swatch resolves to --txt, so
+   uncoloured text is unchanged. */
 .live-rail-notes-body h1 { font-size:15px; font-weight:700; margin-bottom:4px; }
 .live-rail-notes-body h2 { font-size:13px; font-weight:600; margin-bottom:3px; }
 .live-rail-notes-body ul, .live-rail-notes-body ol { padding-left:18px; }
@@ -5732,6 +5737,39 @@ function _cueEndedAt(cue,frames){
   var startF=(cue._f!=null?cue._f:tcF(cue.tc));
   return frames>=startF+(cueDurFrames(cue)||0);
 }
+/* A new cue can land inside the fixed length of the cue before it on the same track, and
+   then both are live at once — a doubled cue in the list and two overlapping blocks in
+   the timeline. A fixed length says how long a look HOLDS; it is not a claim on the next
+   cue's slot. So when a new cue starts inside it, the honest reading is "hold until the
+   next one" — which is exactly what auto means, and auto ends precisely where the new cue
+   begins, leaving no overlap.
+
+   Deliberately narrow:
+     · only the cue IMMEDIATELY before it, on the same track (the camera track counts as
+       one track, matching cueEndFrames);
+     · only when the fixed end actually runs past the new start — a fixed length that
+       finishes earlier is an intentional gap and must survive;
+     · nothing after the new cue is touched.
+   Returns true when a cue was converted, so callers can tell the operator. */
+function cueClearOverlapBefore(song,newCue){
+  if(!song||!newCue) return false;
+  var f=tcF(newCue.tc);
+  var isCam=!!newCue.cameraId;
+  var prev=null,prevF=-Infinity;
+  (song.cues||[]).forEach(function(c){
+    if(c===newCue||c.id===newCue.id) return;
+    var sameTrack=isCam?!!c.cameraId:(!c.cameraId&&c.streamId===newCue.streamId);
+    if(!sameTrack) return;
+    var cf=tcF(c.tc);
+    if(cf<f&&cf>=prevF){ prevF=cf; prev=c; }   /* >= so the latest of equals wins */
+  });
+  if(!prev) return false;                      /* nothing before it on this track */
+  if(cueIsAuto(prev)) return false;            /* already ends at the next cue */
+  if(cueEndFrames(prev,song)<=f) return false; /* ends before it — a gap, keep it */
+  prev.duration='auto';
+  return true;
+}
+
 /* Normalise/validate a cue's duration field in place (called on load). */
 function _validateCueDuration(cue){
   if(cue.duration==null||cue.duration==='auto') return;
@@ -6649,7 +6687,9 @@ function commitCameraCue(){
   const tcF_val=_pendingCamTcF!=null?Math.floor(_pendingCamTcF):(state.appMode==='live'?state.currentFrames:state.simFrames);
   const tc=fTC(tcF_val);
   snapshot();
-  song.cues.push({id:uid(),tc,name,desc,cameraId});
+  var _camCue={id:uid(),tc,name,desc,cameraId};
+  song.cues.push(_camCue);
+  cueClearOverlapBefore(song,_camCue);
   persist();renderCueList();redrawActive();
   closeModal('camera-cue-modal');
   _pendingCamTcF=null;
@@ -8997,14 +9037,17 @@ function _updateLiveRailNotes(songs,liveIdx){
   const nxtBody=document.getElementById('live-rail-next-notes');
   if(curLbl) curLbl.textContent='CURRENT'+(curSong?': '+curSong.name:'');
   if(curBody){
-    const html=curSong&&curSong.description&&curSong.description.trim()?curSong.description:
+    /* Sanitized like every other surface that renders a description. Notes sync from
+       other editors, and this went into innerHTML raw. cfSanitizeHTML keeps `color`
+       and every tag the notes editor can produce, so it costs the fix nothing. */
+    const html=curSong&&curSong.description&&curSong.description.trim()?cfSanitizeHTML(curSong.description):
       '<span class="live-rail-notes-empty">No notes for this sequence</span>';
     if(curBody.innerHTML!==html) curBody.innerHTML=html;
   }
   if(nxtLbl) nxtLbl.textContent='NEXT'+(nextSong?': '+nextSong.name:'');
   if(nxtBody){
     const html=!nextSong?'<span class="live-rail-notes-empty">No next sequence</span>':
-      nextSong.description&&nextSong.description.trim()?nextSong.description:
+      nextSong.description&&nextSong.description.trim()?cfSanitizeHTML(nextSong.description):
       '<span class="live-rail-notes-empty">No notes for this sequence</span>';
     if(nxtBody.innerHTML!==html) nxtBody.innerHTML=html;
   }
@@ -9051,14 +9094,17 @@ function _updateVwRailNotes(songs,liveIdx){
   const nxtBody=document.getElementById('vw-rail-next-notes');
   if(curLbl) curLbl.textContent='CURRENT'+(curSong?': '+curSong.name:'');
   if(curBody){
-    const html=curSong&&curSong.description&&curSong.description.trim()?curSong.description:
+    /* Sanitized like every other surface that renders a description. Notes sync from
+       other editors, and this went into innerHTML raw. cfSanitizeHTML keeps `color`
+       and every tag the notes editor can produce, so it costs the fix nothing. */
+    const html=curSong&&curSong.description&&curSong.description.trim()?cfSanitizeHTML(curSong.description):
       '<span class="live-rail-notes-empty">No notes for this sequence</span>';
     if(curBody.innerHTML!==html) curBody.innerHTML=html;
   }
   if(nxtLbl) nxtLbl.textContent='NEXT'+(nextSong?': '+nextSong.name:'');
   if(nxtBody){
     const html=!nextSong?'<span class="live-rail-notes-empty">No next sequence</span>':
-      nextSong.description&&nextSong.description.trim()?nextSong.description:
+      nextSong.description&&nextSong.description.trim()?cfSanitizeHTML(nextSong.description):
       '<span class="live-rail-notes-empty">No notes for this sequence</span>';
     if(nxtBody.innerHTML!==html) nxtBody.innerHTML=html;
   }
@@ -10614,7 +10660,9 @@ function addCue(){
   const sorted=getSortedCues(song.id,false);
   const defaultTc=sorted.length?fTC(sorted[sorted.length-1]._f+8*state.fps):(song.startTc||'01:00:00:00');
   const newCueId=uid();
-  song.cues.push({id:newCueId,tc:defaultTc,name:'NEW CUE',desc:'',streamId});
+  const _newCue={id:newCueId,tc:defaultTc,name:'NEW CUE',desc:'',streamId};
+  song.cues.push(_newCue);
+  cueClearOverlapBefore(song,_newCue);
   ETL.selId=newCueId;
   persist();renderCueList();redrawActive();
   // Auto-focus the name field of the new cue
@@ -14284,6 +14332,7 @@ function addCueAtTC(){
   const tc = fTC(Math.floor(state.simFrames));
   const cue = {id:uid(), tc, name:'', desc:'', streamId, chapterId:null};
   song.cues.push(cue);
+  cueClearOverlapBefore(song,cue);
   song.cues.sort((a,b)=>tcF(a.tc)-tcF(b.tc));
   persist(); renderCueList(); if(ETL.visible) renderEditTimeline();
 }
@@ -16613,12 +16662,14 @@ function commitTlCreateCue(){
     const _c={id:uid(),tc:fTC(f),name,desc,cameraId:_ncSelTarget.id};
     if(_durStr)_c.duration=_durStr;
     song.cues.push(_c);
+    cueClearOverlapBefore(song,_c);
   } else {
     const streamId=(_ncSelTarget?.type==='stream'?_ncSelTarget.id:null)||state.activeStreamId||state.streams[0]?.id||'';
     while(song.cues.some(c=>c.streamId===streamId&&tcF(c.tc)===f))f++;
     const _c={id:uid(),tc:fTC(f),name,desc,streamId};
     if(_durStr)_c.duration=_durStr;
     song.cues.push(_c);
+    cueClearOverlapBefore(song,_c);
   }
   persist();renderCueList();redrawActive();
   if(ETL.visible)renderEditTimeline();
@@ -18567,6 +18618,7 @@ function meSubmitAddCue(){
   else{newCue.streamId=trackVal;}
   if(_meAddFlag)newCue.flagged=true;
   song.cues.push(newCue);
+  cueClearOverlapBefore(song,newCue);
   persist();renderCueList();
   meCloseAddCue();
   meShowToast('Cue added');
