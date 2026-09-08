@@ -13143,14 +13143,18 @@ async function _cfScanFsApi(handle){
   for await (const entry of handle.values()){
     if(entry.kind!=='file'||cfMediaHidden(entry.name)) continue;
     var kind=cfMediaKind(entry.name); if(!kind) continue;
-    (function(en,kn){ map.set(en.name.toLowerCase(),{name:en.name,kind:kn,getFile:function(){ return en.getFile(); }}); })(entry,kind);
+    /* getFile() here is a metadata read, not a content read — it is what gives us
+       lastModified and size, the two facts that reveal a same-named replacement. */
+    var sz=null, mt=null;
+    try{ var fh=await entry.getFile(); sz=fh.size; mt=fh.lastModified; }catch(e){}
+    (function(en,kn,s2,m2){ map.set(en.name.toLowerCase(),{name:en.name,kind:kn,size:s2,mtime:m2,getFile:function(){ return en.getFile(); }}); })(entry,kind,sz,mt);
   }
   return map;
 }
 async function _cfScanElectron(p){
   var map=new Map();
   var res; try{ res=await window.cfNativeFs.scanMediaFolder(p); }catch(e){ res=null; }
-  if(res&&res.ok&&res.files){ res.files.forEach(function(f){ if(cfMediaHidden(f.name))return; var kind=cfMediaKind(f.name); if(!kind)return; map.set(f.name.toLowerCase(),{name:f.name,kind:kind,url:f.url,size:f.size,getFile:async function(){ var ab=await window.cfNativeFs.readMediaFile(p,f.name); return new File([ab],f.name); }}); }); }
+  if(res&&res.ok&&res.files){ res.files.forEach(function(f){ if(cfMediaHidden(f.name))return; var kind=cfMediaKind(f.name); if(!kind)return; map.set(f.name.toLowerCase(),{name:f.name,kind:kind,url:f.url,size:f.size,mtime:f.mtimeMs,getFile:async function(){ var ab=await window.cfNativeFs.readMediaFile(p,f.name); return new File([ab],f.name); }}); }); }
   return map;
 }
 
@@ -13237,6 +13241,36 @@ async function cfMediaRestore(projId){
   cfMedia.needsReconnect=true; return false;
 }
 
+/* Drop everything cached behind one filename, RELEASING each resource rather than
+   abandoning it. Called when a file's bytes changed under the same name, or when it
+   left the folder.
+
+   Releasing matters here more than usual: replacing a file is a cache-invalidation
+   event, and every abandoned object URL keeps its whole video resident. Swapping files
+   through an editing session would otherwise grow the heap by a file each time. So the
+   blob URL is revoked, the shared player is detached from its source before a new one
+   is attached (the <video> holds the decoded stream, not just the URL), and the decoded
+   audio buffer and waveform PCM go with it.
+
+   The sequence's ATTACHMENT is untouched — song.mediaFile still names this file. Only
+   the cached content behind that name is dropped. */
+function cfMediaForgetFile(key){
+  key=String(key||'').toLowerCase();
+  cfMedia.durations.delete(key);
+  _cfMediaReleaseUrl(key);                       /* blob URL (FS-API backend) */
+  (state.songs||[]).forEach(function(sg){
+    if(!sg.mediaFile || String(sg.mediaFile).toLowerCase()!==key) return;
+    /* Detach BEFORE the new source is attached, or the old decoder stays resident. */
+    if(typeof vid!=='undefined' && vid.songId===sg.id && window._vidDetachPlayer) _vidDetachPlayer();
+    if(window._vidRevokeMeta) _vidRevokeMeta(sg.id);   /* revokes objUrl when we own it */
+    if(typeof audio!=='undefined'){
+      delete audio.buffers[sg.id];
+      if(audio.meta) audio.meta[sg.id]=null;
+    }
+    if(window.wfInvalidate) wfInvalidate(sg.id);       /* wf.cache + wf.pcm */
+  });
+}
+
 /* Re-read the folder and refresh the AVAILABLE FILES list.
  *
  * Deliberately NOT cfMediaReconnect(): that also runs cfMediaLoadAllSongs(), which
@@ -13271,8 +13305,12 @@ async function cfMediaRescan(){
   var changed=[], gone=[];
   map.forEach(function(e,k){
     var p=prev.get(k);
-    if(!p) changed.push(k);                                        /* new */
-    else if(p.size!=null && e.size!=null && p.size!==e.size) changed.push(k);  /* rewritten */
+    if(!p){ changed.push(k); return; }                             /* new */
+    /* Size alone misses the case that matters most — a file swapped for a different
+       one of the same length. Modification time catches it. */
+    var sizeMoved=(p.size!=null && e.size!=null && p.size!==e.size);
+    var timeMoved=(p.mtime!=null && e.mtime!=null && p.mtime!==e.mtime);
+    if(sizeMoved||timeMoved) changed.push(k);
   });
   prev.forEach(function(e,k){ if(!map.has(k)) gone.push(k); });
 
@@ -13282,11 +13320,9 @@ async function cfMediaRescan(){
 
   if(!changed.length && !gone.length) return false;                /* nothing moved */
 
-  /* Only the files that actually changed lose their cached derivations. */
-  changed.concat(gone).forEach(function(k){
-    cfMedia.durations.delete(k);
-    _cfMediaReleaseUrl(k);
-  });
+  /* Only the files that actually changed lose their cached derivations — and they are
+     released, not dropped on the floor. */
+  changed.concat(gone).forEach(cfMediaForgetFile);
 
   /* ...and only the sequences pointing at those files are reloaded. Every other
      sequence keeps its decoded audio and its waveform untouched. */
@@ -13294,7 +13330,10 @@ async function cfMediaRescan(){
   (state.songs||[]).forEach(function(sg){
     if(!sg.mediaFile) return;
     if(!touched[String(sg.mediaFile).toLowerCase()]) return;
-    wfInvalidate(sg.id);
+    /* cfMediaForgetFile already released the old copy; this re-acquires from disk.
+       For audio that is a fresh read and decode, for video a fresh (re-versioned)
+       URL — so the very first play after a replacement is the new file, not a
+       leftover buffer running out. */
     Promise.resolve(cfMediaLoadSong(sg.id)).catch(function(){});
   });
   return true;

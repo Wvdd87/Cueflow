@@ -153,6 +153,22 @@ Audio/video for a sequence is sourced from a folder the **owner** picks on disk.
 - **Access backends** (`cfMediaPickFolder`): native Electron dialog (`window.cfNativeFs`, via `preload.js`/`main.js` IPC `media:pick-folder|scan-folder|read-file`) preferred; falls back to the browser **File System Access API** (`showDirectoryPicker`). No file access (Safari/Firefox/mobile) → all media UI hidden, an info message in Settings → Media; never error-spams.
 - **Persistence**: per-project meta in `localStorage` (`cf_media_folder_<projectId>`); the FS-API directory handle in IndexedDB db `cf_media_handles`. After reload the handle often needs a user-gesture re-grant → `cfMedia.needsReconnect` (shown as a Reconnect button, sequences show a neutral dim icon, not "missing").
 - **Engine**: folder files feed the existing decode/waveform/video engine via `cfMediaLoadSong` → `_decodeAndStore(...,{noPersist:true})` / `_cfMediaLoadVideo`. `cfMediaOnProjectLoad()` (called from `applyProject`) restores the folder and loads all songs.
+- **A file replaced under the SAME name is a different file.** The scan carries `size` and
+  `mtimeMs` per entry, and `cfMediaRescan` treats a change in *either* as new content —
+  size alone misses a swap for a file of the same length. `cfmedia://` URLs also carry a
+  `?v=<mtime>-<size>` token, because they are built from the path: without it a
+  replacement produced a byte-identical URL, and `_vidLoad` skips re-assigning an
+  unchanged `src`, so the `<video>` kept the OLD decoder and played old content until its
+  byte range ran out. The protocol handler reads only `pathname`, so the query is inert.
+- **`cfMediaForgetFile(key)` releases; it does not abandon.** Revokes the cached blob URL,
+  detaches the shared player before a new source is attached (the element holds the
+  decoded stream, not just the URL), revokes an owned `vid.meta` objUrl, and drops the
+  decoded buffer, waveform and PCM. Replacement is a cache-invalidation event, and this
+  app has a history of leaked object URLs — measured: ten 60s replacements retain one
+  decoded buffer, not ten. Note an AudioContext resamples to its own rate, so a 60s 8 kHz
+  file decodes to ~11.5 MB, not 1.9 MB; size any memory assertion off the live buffer
+  rather than off the file, and settle `gc()` over several passes or uncollected garbage
+  reads as a leak.
 - **Re-scanning the folder is cheap; reloading media is not.** `cfMediaRescan()` re-reads the
   directory and swaps `cfMedia.files`, then does follow-up work **only for names that
   actually changed** — appeared, vanished, or same name with a different size. Everything

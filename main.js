@@ -209,7 +209,20 @@ ipcMain.handle('media:scan-folder', async (_e, dir) => {
       if (!isMediaFile(n)) continue;
       try {
         const st = await fs.promises.stat(path.join(dir, n));
-        if (st.isFile()) files.push({ name: n, size: st.size, url: mediaUrl(dir, n) });
+        /* mtime + size travel with every entry: they are how a file replaced under the
+           SAME name is spotted, which a name-keyed cache cannot see on its own.
+
+           They also version the URL. cfmedia:// URLs are built from the path, so a
+           replacement produced a byte-for-byte identical URL — and _vidLoad skips
+           re-assigning an unchanged src, so the <video> kept the OLD decoder and played
+           the old content until its byte range ran out. A version token makes the new
+           file a genuinely new URL, which also keeps Chromium from serving the previous
+           bytes from its cache. The protocol handler reads only the pathname, so the
+           query is inert to it. */
+        if (st.isFile()) files.push({
+          name: n, size: st.size, mtimeMs: st.mtimeMs,
+          url: mediaUrl(dir, n) + '?v=' + Math.round(st.mtimeMs) + '-' + st.size
+        });
       } catch (_) { /* skip unreadable entry */ }
     }
     addMediaDir(dir);
