@@ -1154,10 +1154,20 @@
       "norm_label": "running order is the setlist, never absolute timecode"
     },
     {
-      "label": "TC sources \u2014 `state.tcSource` \u2208 `'ltc' | 'midi' | 'gen'`",
+      "label": "Camera Prompter bottom bar",
       "file_type": "document",
       "source_file": "CLAUDE.md",
       "source_location": "L318",
+      "_origin": "ast",
+      "id": "claude_camera_prompter_bottom_bar",
+      "community": 0,
+      "norm_label": "camera prompter bottom bar"
+    },
+    {
+      "label": "TC sources \u2014 `state.tcSource` \u2208 `'ltc' | 'midi' | 'gen'`",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L340",
       "_origin": "ast",
       "id": "claude_tc_sources_state_tcsource_ltc_midi_gen",
       "community": 0,
@@ -1167,7 +1177,7 @@
       "label": "Electron",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L322",
+      "source_location": "L344",
       "_origin": "ast",
       "id": "claude_electron",
       "community": 0,
@@ -1177,7 +1187,7 @@
       "label": "The show must keep running when the app is not in front",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L335",
+      "source_location": "L357",
       "_origin": "ast",
       "id": "claude_the_show_must_keep_running_when_the_app_is_not_in_front",
       "community": 0,
@@ -1187,7 +1197,7 @@
       "label": "graphify",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L361",
+      "source_location": "L383",
       "_origin": "ast",
       "id": "claude_graphify",
       "community": 0,
@@ -1550,7 +1560,7 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "security_audit_medium_findings",
-      "community": 5,
+      "community": 9,
       "norm_label": "medium findings"
     },
     {
@@ -1560,7 +1570,7 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "security_audit_m1_read_only_viewers_crew_can_write_cue_descriptions",
-      "community": 5,
+      "community": 9,
       "norm_label": "m1 \u2014 \"read-only\" viewers/crew can write cue descriptions"
     },
     {
@@ -1570,7 +1580,7 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "security_audit_m2_no_durable_offline_edit_queue_offline_reconnect_is_whole_snapshot_last_write_wins",
-      "community": 5,
+      "community": 9,
       "norm_label": "m2 \u2014 no durable offline edit queue; offline reconnect is whole-snapshot last-write-wins"
     },
     {
@@ -1580,7 +1590,7 @@
       "source_location": "L115",
       "_origin": "ast",
       "id": "security_audit_m3_leaked_password_protection_disabled_on_supabase_auth",
-      "community": 5,
+      "community": 9,
       "norm_label": "m3 \u2014 leaked-password protection disabled on supabase auth"
     },
     {
@@ -1590,7 +1600,7 @@
       "source_location": "L123",
       "_origin": "ast",
       "id": "security_audit_m4_offline_logged_out_show_creation_can_strand_data",
-      "community": 5,
+      "community": 9,
       "norm_label": "m4 \u2014 offline/logged-out show creation can strand data"
     },
     {
@@ -1600,7 +1610,7 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "security_audit_m5_lan_inbound_handler_does_no_role_enforcement",
-      "community": 5,
+      "community": 9,
       "norm_label": "m5 \u2014 lan inbound handler does no role enforcement"
     },
     {
@@ -2858,6 +2868,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CLAUDE.md",
+      "source_location": "L318",
+      "weight": 1.0,
+      "source": "claude_tc_timecode",
+      "target": "claude_camera_prompter_bottom_bar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
       "source_location": "L236",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -3346,5 +3366,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "597414d8d983ec64e2fcc592b060d7ef83e7521f"
+  "built_at_commit": "c82dd93e47e68aa62eb5c24a135eaf19dbcd9ad8"
 }

@@ -315,6 +315,28 @@ given TC maps to exactly one cue in one sequence.
 Applies to the owner cockpit, the viewer/crew cockpit, the camera-viewer cockpit, the
 waterfall and the camera prompter (`_cfpCamCues` / `_cfpModel`).
 
+### Camera Prompter bottom bar
+
+Optional per prompter view, and it **replaces** the old `#cfp-notc` "NO TC HOLDING" chip —
+that element and its `.notc` class are gone; when the bar is off there is no bottom
+indicator at all. Config rides in `track_ids` as `bar:1` / `bar:0` beside `depth:`, parsed
+and stripped by `_applyAccessRow` into `CF.promptBar`. **Absent means ON** (`null`, not
+`false`): links made before the setting existed must keep a lost-TC warning.
+
+- **Solid black (`#000`), never the chroma green.** It is meant to survive the key and sit
+  over the program image. Type matches `.cfp-name` exactly — same family, weight and size —
+  plus tabular figures so the clock does not jitter.
+- It is a flex sibling of `#cfp-blocks`, not an absolutely-placed chip, so the shot list
+  shrinks around it and `_cfpAutoFit` (which measures `#cfp-blocks`) needs no reserved strip.
+- **Three states from `_cfpTcState()`**, read off `CF._tcRef` using `_startViewerTcLoop`'s own
+  thresholds (`>1.5s` → free, `>1800s` → none) so the bar can never disagree with the numbers
+  the prompter is running on. A *paused* generated clock is `live`, not free-run — it is
+  still anchored. No TC shows the playlist but **not** the sequence: without a clock there is
+  no telling which one is up.
+- `_cfpUpdateBar()` is called from `_updatePrompter` (per frame) **and** the 500ms
+  `_cfpTcWatch` — because when TC stops the redraws that drive `_updatePrompter` stop with
+  it, and a bar frozen on the last live value is the exact lie it exists to prevent.
+
 ### TC sources — `state.tcSource` ∈ `'ltc' | 'midi' | 'gen'`
 
 `'gen'` = **Internal/Generated TC**, a manual transport for rehearsal/testing with no external feed. **Desktop-owner only** (`_cfOwnerDesktop()` = owner + desktop viewport); editors/viewers/mobile never see it (source value still syncs but is inert for them). Settings → Timecode shows an INTERNAL tab; selecting it runs `setTCListening(false)` + `stopLTC()`. The `genTC` module (Block 1) drives a `performance.now()`-rebased, drift-free tick that calls `redrawLive()` each frame (so the existing Block 2 relay broadcasts it as a normal live feed). A floating transport (`#gen-tc-float`, play/pause/reset + editable TC) appears in Live View; Spacebar toggles play/pause; clicking a setlist row populates that sequence's start TC (no autoplay). **Pause semantics:** `genPause`/`genSetFrames` send a `paused:true` TC packet via `CF._relayTcPaused`; the viewer RAF loop pins to that frame instead of free-running. The TC value is **not** persisted (resets to `01:00:00:00` on reload); only `tcSource` persists.

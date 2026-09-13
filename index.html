@@ -3142,10 +3142,11 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
   width:25%;                       /* 25% of frame width (was 20%) — wider shot names
                                       and room for the per-camera countdown */
   display:flex; flex-direction:column;
-  /* The bottom strip is reserved for the NO TC chip, always — so the chip can never
-     overlap the shot list, and the auto-fit (which measures #cfp-blocks) accounts for
-     it whether TC is present or not. Nothing moves when it appears. */
-  padding:1.6vh 1.1vw 4.4vh;
+  /* The info bar is a flex sibling of #cfp-blocks rather than an absolutely-placed chip,
+     so the shot list shrinks around it on its own and the auto-fit — which measures
+     #cfp-blocks — needs no reserved strip to guess at. Turning the bar off gives the
+     space straight back to the shots. */
+  padding:1.6vh 1.1vw 1.6vh;
   box-sizing:border-box;
   background:transparent;          /* the green field shows through and keys out */
 }
@@ -3240,19 +3241,33 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 /* Camera with nothing left to do — an em dash in its first slot; the block never moves. */
 .cfp-item.dash .cfp-name { color:var(--txt-mid); -webkit-line-clamp:1; }
 
-/* TC loss. A show-critical feed must never silently free-run, but the warning must not
-   shove the layout around or read as a tally: a small chip pinned to the bottom of the
-   panel, out of the operator's shot list, amber rather than red. */
-#cfp-notc {
-  display:none; position:absolute; left:1.1vw; right:1.1vw; bottom:1.2vh;
-  align-items:center; gap:.4vw;
-  background:var(--surface); border-left:4px solid var(--amber);
-  color:var(--amber); font-weight:700;
-  font-family:var(--cond); letter-spacing:.12em; text-transform:uppercase;
-  font-size:calc(clamp(10px,.8vw,16px) * var(--cfp-s,1));
-  padding:.3vh .6vw;
+/* Bottom info bar — running TC and where the show is. Optional per prompter view, and
+   it takes over the job the old NO TC chip did.
+
+   SOLID BLACK on purpose. Everything else in this view is the chroma field and keys
+   away; this strip is meant to survive the key and sit over the program image, so the
+   camera operator can still read the clock off the monitor. Do not make it green.
+
+   Type matches .cfp-name — same family, weight and size — because it is read at the same
+   distance as the shot names. Tabular figures so the running clock does not jitter. */
+#cfp-bar {
+  display:none; flex-shrink:0; margin-top:1.2vh;
+  background:#000; padding:.8vh .8vw;
+  font-family:var(--cond); font-weight:700; color:#fff;
+  font-size:calc(clamp(16px,1.5vw,30px) * var(--cfp-s,1));
+  line-height:1.12;
 }
-#cf-prompter-screen.notc #cfp-notc { display:flex; }
+#cf-prompter-screen.bar-on #cfp-bar { display:block; }
+#cfp-bar-tc { display:flex; align-items:baseline; gap:.5vw; font-variant-numeric:tabular-nums; }
+/* Amber says the numbers are moving but no longer anchored to a real source. */
+#cf-prompter-screen.tc-free #cfp-bar-tc { color:var(--amber,#f0a838); }
+#cfp-bar-free { display:none; font-size:.62em; letter-spacing:.12em; text-transform:uppercase; }
+#cf-prompter-screen.tc-free #cfp-bar-free { display:inline; }
+/* One line, clipped rather than wrapped: a second line would change the bar's height and
+   push the shot list about. */
+#cfp-bar-name {
+  margin-top:.25vh; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
 
 /* FULL SCREEN control. This window is captured and keyed, so the one piece of chrome the
    prompter owns has to be able to paint absolutely nothing: it is revealed by moving the
@@ -3417,8 +3432,11 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <div id="cfp-fs-pick" style="display:none;"></div>
   </div>
   <div id="cfp-panel">
-    <div id="cfp-notc"><span>NO TC</span><span id="cfp-notc-sub">HOLDING</span></div>
     <div id="cfp-blocks"></div>
+    <div id="cfp-bar">
+      <div id="cfp-bar-tc"><span id="cfp-bar-tc-val">00:00:00:00</span><span id="cfp-bar-free">Free run</span></div>
+      <div id="cfp-bar-name"></div>
+    </div>
   </div>
 </div>
 
@@ -4762,6 +4780,13 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
           <option value="4">4</option>
           <option value="5">5</option>
         </select>
+        <label class="sbp-cl-chk-row" style="margin-top:12px;">
+          <input type="checkbox" id="cf-pin-prompt-bar" checked style="accent-color:var(--primary);margin-right:6px;">
+          <span>Bottom info bar — timecode and playlist / sequence</span>
+        </label>
+        <div style="font-size:10px;color:var(--txt-low);font-style:italic;margin-top:4px;line-height:1.5;">
+          A black strip that stays visible when the feed is keyed. Also how this view reports lost timecode.
+        </div>
       </div>
       <div id="cf-pin-tracks-wrap" style="display:none;">
         <div class="sbp-cl-tracks-lbl" id="cf-pin-tracks-lbl">Visible tracks</div>
@@ -7348,6 +7373,7 @@ const CFP={
   depth:'auto',      // lookahead per camera: a number, or 'auto' (fit to height)
   MAX_DEPTH:8,
   _autoDepth:3,
+  bar:true,          // bottom info bar on? (per prompter view, rides in track_ids)
   _built:'',         // signature of the DOM currently in the panel
   _els:{},           // cameraId → {block, live, next, desc, cd, ahead[], empty}
   _txt:{},           // last text written per node, so we skip no-op DOM writes
@@ -7535,6 +7561,8 @@ function _updatePrompter(frames){
   const scr=document.getElementById('cf-prompter-screen');
   if(!scr||scr.style.display==='none') return;
 
+  _cfpUpdateBar();   /* ahead of the rebuild guard below, so it paints every frame */
+
   const depth=(CFP.depth==='auto')?CFP._autoDepth:CFP.depth;
   const camsSig=_cfpCameras().map(c=>c.id+':'+c.number+':'+c.colorIdx).join(',')+'|'+depth;
   if(CFP._built!==camsSig && !CFP._fitting){    // cameras changed under us (remote edit)
@@ -7589,15 +7617,73 @@ function _updatePrompter(frames){
 }
 
 /* TC watchdog. Viewers free-run when packets stop, which is right for the waterfall but
-   dangerous here — so the prompter holds its content and says NO TC out loud. */
+   dangerous here — so the prompter blanks its countdowns rather than ticking a lie. */
 function _cfpTcStale(){
   if(!window.CF) return false;
   return !CF._lastTcRx || (Date.now()-CF._lastTcRx)>2000;
 }
+
+/* Which of the three states the clock is in: 'live' | 'free' | 'none'.
+
+   Read from CF._tcRef — the same reference _startViewerTcLoop extrapolates from — using
+   its thresholds, so the bar can never disagree with the numbers the prompter is
+   actually running on. Free-run is not a new idea here; it is that loop's own
+   `elapsed > 1.5` rule, and its 30-minute cap, reflected. */
+var CFP_FREERUN_AFTER_SEC=1.5, CFP_FREERUN_MAX_SEC=1800;
+function _cfpTcState(){
+  var ref=window.CF&&CF._tcRef;
+  if(!ref) return 'none';                      /* never had a clock at all */
+  /* Generated TC paused: pinned to an exact frame by the owner. The numbers are still
+     anchored to a real source, they are simply not advancing — that is not free-run. */
+  if(ref.paused) return 'live';
+  var elapsed=ref.recvPerf!=null?(performance.now()-ref.recvPerf)/1000:(Date.now()-ref.recvAt)/1000;
+  if(elapsed>CFP_FREERUN_MAX_SEC) return 'none';   /* free-run gave up long ago */
+  return elapsed>CFP_FREERUN_AFTER_SEC?'free':'live';
+}
+
+/* Paint the bottom bar. Called every frame from _updatePrompter while TC is moving, and
+   from the 500ms watchdog as well — because when TC stops entirely the redraws that call
+   _updatePrompter stop with it, and a bar left frozen on the last live value would be
+   the exact lie this is here to prevent. */
+function _cfpUpdateBar(){
+  const scr=document.getElementById('cf-prompter-screen');
+  const bar=document.getElementById('cfp-bar');
+  if(!scr||!bar) return;
+  scr.classList.toggle('bar-on',!!CFP.bar);
+  if(!CFP.bar){ scr.classList.remove('tc-free'); return; }
+
+  const st=_cfpTcState();
+  scr.classList.toggle('tc-free',st==='free');
+
+  const val=document.getElementById('cfp-bar-tc-val');
+  const nm=document.getElementById('cfp-bar-name');
+  const pl=(window.getActivePlaylist&&getActivePlaylist())||null;
+  const plName=(pl&&pl.name)||'';
+
+  if(st==='none'){
+    /* The playlist still says which show this monitor belongs to; the sequence does not,
+       because without a clock there is no telling which one is up. */
+    _cfpSet(val,'bar-tc','No TC Running');
+    _cfpSet(nm,'bar-nm',plName);
+    return;
+  }
+
+  const f=Math.floor((state.currentFrames!=null?state.currentFrames:state.simFrames)||0);
+  _cfpSet(val,'bar-tc',window.fTC?fTC(f):'00:00:00:00');
+
+  /* Same resolver the cockpit uses, so the bar names the sequence the show is actually
+     in rather than whichever one happens to be selected. */
+  var seq=null;
+  try{ var sid=window._curSeqIdByTc?_curSeqIdByTc(f):null; seq=sid?state.songs.find(function(x){return x.id===sid;}):null; }catch(e){}
+  if(!seq&&window.getActiveSong) seq=getActiveSong();
+  const seqName=(seq&&seq.name)||'';
+  _cfpSet(nm,'bar-nm',plName&&seqName?(plName+' / '+seqName):(seqName||plName));
+}
+
 function _cfpTcWatch(){
   const scr=document.getElementById('cf-prompter-screen');
   if(!scr||scr.style.display==='none') return;
-  scr.classList.toggle('notc',_cfpTcStale());
+  _cfpUpdateBar();
 }
 
 /* Fit the panel: pick the largest lookahead depth that fits the height without
@@ -7862,6 +7948,10 @@ function showPrompterScreen(show){
   const scr=document.getElementById('cf-prompter-screen'); if(!scr) return;
   CFP.cams=(window.CF&&CF.cameraIds)?CF.cameraIds.slice():[];
   CFP.depth=(window.CF&&CF.promptDepth)?CF.promptDepth:'auto';
+  /* Absent from an older link's config means ON: this bar replaces the NO TC indicator,
+     and silently dropping that warning from links made before the setting existed would
+     be the one change here that could cost someone a show. */
+  CFP.bar=(window.CF&&CF.promptBar!=null)?!!CF.promptBar:true;
   scr.style.display='block';
   CFP._built='';
   _cfpAutoFit();
@@ -23004,14 +23094,21 @@ function _applyAccessRow(role, accessId, rawTrackIds){
      (no schema change needed). Strip it before anything reads the list as track ids —
      including _trackRestricted, or a depth token alone would read as a restriction. */
   CF.promptDepth=null;
+  /* null, not false: absent means "made before the setting existed", which
+     showPrompterScreen reads as ON so those links keep a lost-TC warning. */
+  CF.promptBar=null;
   if(rawTrackIds&&rawTrackIds.length){
     rawTrackIds.forEach(function(id){
       if(id&&id.indexOf('depth:')===0){
         var d=id.slice(6);
         CF.promptDepth=(d==='auto')?'auto':(parseInt(d,10)||'auto');
+      } else if(id&&id.indexOf('bar:')===0){
+        CF.promptBar=(id.slice(4)==='1');
       }
     });
-    rawTrackIds=rawTrackIds.filter(function(id){return !(id&&id.indexOf('depth:')===0);});
+    rawTrackIds=rawTrackIds.filter(function(id){
+      return !(id&&(id.indexOf('depth:')===0||id.indexOf('bar:')===0));
+    });
   }
   CF._trackRestricted = !!(rawTrackIds && rawTrackIds.length);
   if(rawTrackIds&&rawTrackIds.length){
@@ -24837,6 +24934,8 @@ function addPin(){
     trackIds=Array.from(pBoxes).map(function(b){return 'cam:'+b.value;});
     var depthEl=document.getElementById('cf-pin-prompt-depth');
     trackIds.push('depth:'+((depthEl&&depthEl.value)||'auto'));
+    var barEl=document.getElementById('cf-pin-prompt-bar');
+    trackIds.push('bar:'+((!barEl||barEl.checked)?'1':'0'));
     if(!label||label===role) label='Camera Prompter';
   } else if(role==='viewer'||role==='editor'){
     var boxes=document.querySelectorAll('#cf-pin-tracks-list input:checked');
