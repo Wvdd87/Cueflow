@@ -1958,6 +1958,14 @@ body.mode-live #edit-mode-banner { display: none; }
 }
 .live-sb-cell.grow { flex: 1; border-right: none; }
 .live-sb-cell.right { margin-left: auto; border-right: none; border-left: none; }
+/* The connection chip doubles as the cloud-broadcast switch. */
+#live-onair-chip { cursor: pointer; user-select: none; }
+#live-onair-chip:hover { background: var(--surface2); }
+/* Muted. This is remembered across sessions, so it can be inherited from a rehearsal
+   into a show — it gets the amber warning treatment rather than a subtle tint, because
+   it is the only thing that will tell an operator the crew are not receiving. */
+#live-onair-chip.bcast-off { background: var(--amber-bg, rgba(240,168,56,.12)); }
+#live-onair-chip.bcast-off .sb-val { color: var(--amber, #f0a838); }
 .live-sb-cell .sb-val { font-family: var(--mono); color: var(--txt-hi); font-size: 10px; letter-spacing: .01em; text-transform: none; font-weight: 600; font-variant-numeric: tabular-nums; }
 .live-sb-cell.onair-cell { color: var(--red); }
 .live-sb-cell.onair-cell .sb-val { color: var(--red); }
@@ -4256,7 +4264,9 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <span id="live-sharing-lbl" style="letter-spacing:0.05em;">Sharing</span>
     </div>
     <!-- Connection status chip -->
-    <div class="live-sb-cell right" id="live-onair-chip">
+    <div class="live-sb-cell right" id="live-onair-chip"
+         onclick="if(window.CF&&CF._toggleBroadcast)CF._toggleBroadcast()"
+         title="Cloud broadcast — click to mute or resume">
       <div class="tc-pip idle" id="live-status-pip"></div>
       <span class="sb-val" id="live-status-lbl">—</span>
     </div>
@@ -22095,6 +22105,28 @@ var TC_EMPTY_GRACE_MS=15000;    /* keep relaying this long after the last viewer
    consumer of metered realtime messages, so it should be readable without grepping. */
 CF._tcBcastMs=TC_BCAST_MS; CF._tcEmptyGraceMs=TC_EMPTY_GRACE_MS;
 
+/* ── Cloud broadcast switch ───────────────────────────────────────────────────
+ * Lets an operator sit in live mode — firing cues, scrubbing timecode, checking
+ * triggers — without publishing any of it to the cloud. LAN keeps running: crew on
+ * the venue network are not the metered leg, and the operator asked for them to stay
+ * live. Project sync, flags and selection are untouched; this mutes the TIMECODE
+ * relay only, which is the message that costs.
+ *
+ * Remembered per device rather than reset on each entry to live, by request. That
+ * means it CAN be inherited from a rehearsal into a show, so the off state has to be
+ * impossible to miss — see _updateLiveStatusChip, where it takes over the chip
+ * entirely and reads NOT BROADCASTING rather than shading an existing state. */
+var BCAST_KEY='cf18_bcast_on';
+CF._bcastOn=(function(){
+  try{ return localStorage.getItem(BCAST_KEY)!=='0'; }catch(e){ return true; }
+})();
+CF._setBroadcast=function(on){
+  CF._bcastOn=!!on;
+  try{ localStorage.setItem(BCAST_KEY, CF._bcastOn?'1':'0'); }catch(e){}
+  if(window._updateLiveStatusChip) _updateLiveStatusChip();
+};
+CF._toggleBroadcast=function(){ CF._setBroadcast(!CF._bcastOn); };
+
 /* Non-owner clients on the presence channel, or NULL when we cannot know.
    Null is the important value: it means "no reliable count", and callers must read it
    as "someone might be listening", never as zero. */
@@ -22112,6 +22144,9 @@ CF._cfCloudFollowers=_cfCloudFollowers;
    Fails OPEN everywhere it is unsure — presence not synced, count unknown, anything
    thrown. A few unnecessary messages are a billing line; a silenced relay is a show. */
 function _cfShouldRelayCloud(){
+  /* Switched off by the operator. Deliberately ahead of the presence check: this is a
+     decision, not an inference, and nothing about followers should override it. */
+  if(!CF._bcastOn) return false;
   var n=_cfCloudFollowers();
   if(n===null) return true;
   if(n>0){ CF._lastFollowerAt=Date.now(); return true; }
@@ -22507,7 +22542,17 @@ function _updateLiveStatusChip(){
   var lanMode = (CF._netMode==='lan');
   /* Single consolidated chip: transport (how) + follower count (how many). */
   var pipCls, lblTxt, title;
-  if(lanMode){
+  if(!CF._bcastOn){
+    /* Takes over the whole chip rather than tinting another state. This is the only
+       thing standing between a remembered rehearsal setting and a show going out to
+       nobody, so it does not share the line with anything else. */
+    pipCls = 'tc-pip warn pulse';
+    lblTxt = 'NOT BROADCASTING' + (lanN ? ' · LAN '+lanN : '');
+    title  = 'Timecode is NOT being sent to the cloud'
+           + (lanN ? ' — '+lanN+' local follower'+(lanN===1?'':'s')+' still receiving over LAN' : '')
+           + (cloudN ? ' — '+cloudN+' cloud follower'+(cloudN===1?' is':'s are')+' NOT receiving' : '')
+           + '. Click to resume.';
+  } else if(lanMode){
     pipCls = total ? 'tc-pip warn pulse' : 'tc-pip warn';
     lblTxt = 'LOCAL NET' + (total ? ' · '+total : '');
     title  = total+' follower'+(total===1?'':'s')+' on the local network';
@@ -22520,7 +22565,11 @@ function _updateLiveStatusChip(){
   }
   if(pip) pip.className = pipCls;
   if(lbl) lbl.textContent = lblTxt;
-  var chip=document.getElementById('live-onair-chip'); if(chip) chip.title=title;
+  var chip=document.getElementById('live-onair-chip');
+  if(chip){
+    chip.title=title;
+    chip.classList.toggle('bcast-off',!CF._bcastOn);
+  }
   /* Consolidated into the chip above — never show the separate transport cell. */
   var shareCell = document.getElementById('live-sharing-cell');
   if(shareCell) shareCell.style.display='none';
@@ -25577,7 +25626,7 @@ CF._tcRelayActive=false;
 CF._onEnterLive=function(){
   CF._takingOverLive=false;
   CF._tcRelayActive=true; openTcChan(); if(window.sbClose) sbClose();
-  startPresence(); _updateLiveStatusChip();
+  startPresence(); _updateLiveStatusChip();   /* shows NOT BROADCASTING if that is how it was left */
   /* Announce to the operator's other devices that this one is running the show. */
   startOwnerLiveWatch(); _cfTrackLive();
   if(window._genEnterLive) _genEnterLive(); /* show Internal-TC transport, freeze viewers */

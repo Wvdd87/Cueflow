@@ -228,6 +228,16 @@ its quota. Two levers, both in `relayTC` / `netSend`:
   further apart packets are, the longer a real TC jump takes to reach crew. This throttle
   is upstream of the transport split, so **LAN slows with it too** (harmless: LAN viewers
   interpolate identically).
+- **`CF._bcastOn` — the operator's cloud broadcast switch** (the live status chip,
+  `#live-onair-chip`, is the control). Lets an operator sit in live mode testing triggers
+  without publishing. Mutes the TIMECODE relay only — `proj_sync`, `flag` and `active_sel`
+  still go out, and **LAN keeps running at full rate** by design, so crew on the venue
+  network stay live. It is **remembered per device** (`cf18_bcast_on`) and deliberately
+  NOT reset on entering live, by the operator's explicit choice — which means an off state
+  can be inherited from a rehearsal into a show. That is exactly why the off state takes
+  over the whole chip and reads `NOT BROADCASTING` in amber rather than tinting another
+  state: it is the only thing that will tell an operator their crew are not receiving.
+  **Do not soften it.**
 - **`_cfShouldRelayCloud()`** — skips the cloud leg when presence reports no non-owner
   clients, via `netSend(..., lanOnly)`. Rehearsals and soundchecks broadcasting to an empty
   room are where the quota actually went. LAN always transmits; only the metered leg is
