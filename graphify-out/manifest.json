@@ -20,8 +20,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1789318306.1603093,
-    "ast_hash": "0eed4f29db8c875c400fc1ec63bb7535",
+    "mtime": 1789592431.3437023,
+    "ast_hash": "9b5608c80f95b087c6fa46334adedf5d",
     "semantic_hash": ""
   },
   "preload.js": {
@@ -30,8 +30,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1789318306.2055597,
-    "ast_hash": "2f539ea9a6be5c011990da272cbcce30",
+    "mtime": 1789592431.3872721,
+    "ast_hash": "1172ce80fb66edfc029ed22540e4b086",
     "semantic_hash": ""
   },
   "CONTEXT.md": {
@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1789318066.1394045,
-    "ast_hash": "35e6e5b4c7a0ed894d0c673d85637184",
+    "mtime": 1789592372.8208458,
+    "ast_hash": "4db70a55457880b764099150edb5087b",
     "semantic_hash": ""
   },
   "favicon.png": {

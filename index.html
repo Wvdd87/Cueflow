@@ -22056,15 +22056,70 @@ function _onFlagBroadcast(msg){
  * a second transport (LAN WebSocket via Electron) can be swapped in without
  * touching call sites. In 'cloud' mode this is byte-for-byte the old Supabase
  * broadcast. 'lan' dispatch is wired in Phase 2 (owner LAN transport). */
-function netSend(event, payload){
+function netSend(event, payload, lanOnly){
   /* Owner hosting on Electron: always mirror to the LAN server so any LAN-connected
      viewer stays live regardless of cloud state. Cheap local IPC; harmless if no
-     LAN viewers are connected. */
+     LAN viewers are connected — and never metered, so it always runs at full rate. */
   if(CF.isOwner && window.cfLAN){ try{ cfLAN.broadcast(event, payload); }catch(e){} }
+  /* lanOnly: a timecode packet with nobody on the cloud side to hear it. The channel
+     stays subscribed either way, so a viewer joining is noticed immediately — we just
+     do not pay to transmit into an empty room. Only relayTC passes this; project sync,
+     flags and selection changes are rare and always go out.
+     Note this is the ONLY cloud-specific saving — the cadence throttle in relayTC sits
+     upstream of this split and so slows both transports alike. */
+  if(lanOnly) return;
   /* Cloud transport — skipped only when we've fully switched to LAN-only (cloud down). */
   if(CF._netMode!=='lan' && CF._tcChan){ try{ CF._tcChan.send({type:'broadcast',event:event,payload:payload}); }catch(e){} }
 }
 CF._netSend = netSend;
+
+/* ── Cloud realtime is metered per message, and at 12/sec the TC relay is very nearly
+ * all of it: 43,200 messages an hour of live mode, against a free plan's 2M a month.
+ * Two changes keep a show inside that without crew seeing any difference.
+ *
+ * 1. A slower cadence. Viewers never display these packets — _startViewerTcLoop
+ *    interpolates from its own clock and only RE-ANCHORS on arrival — so the rate
+ *    decides re-anchoring frequency, not smoothness. 200ms is still far inside the
+ *    1.5s free-run threshold and the 2s prompter watchdog, so nothing about loss
+ *    detection changes. Do not push this much past 250ms: the further apart packets
+ *    are, the longer a genuine TC jump takes to reach crew.
+ *    This throttle is upstream of the transport split, so LAN slows with it. That is
+ *    fine — LAN viewers interpolate identically — but it is why the saving is not
+ *    "cloud only", and why the floor above is about crew, not about billing.
+ * 2. No cloud sends while nobody is listening. Rehearsals, setup and soundchecks are
+ *    where the quota actually goes — hours of broadcasting to an empty room. This one
+ *    IS cloud-only: LAN costs nothing, so it keeps transmitting regardless. */
+var TC_BCAST_MS=200;            /* 5/sec (was 80ms, 12.5/sec) */
+var TC_EMPTY_GRACE_MS=15000;    /* keep relaying this long after the last viewer leaves */
+/* Exposed for diagnostics and tests — the relay cadence is the app's single biggest
+   consumer of metered realtime messages, so it should be readable without grepping. */
+CF._tcBcastMs=TC_BCAST_MS; CF._tcEmptyGraceMs=TC_EMPTY_GRACE_MS;
+
+/* Non-owner clients on the presence channel, or NULL when we cannot know.
+   Null is the important value: it means "no reliable count", and callers must read it
+   as "someone might be listening", never as zero. */
+function _cfCloudFollowers(){
+  if(!CF._presChan || !CF._presSynced) return null;
+  try{
+    var ps=CF._presChan.presenceState(), n=0;
+    Object.keys(ps).forEach(function(k){ (ps[k]||[]).forEach(function(p){ if(p.role!=='owner') n++; }); });
+    return n;
+  }catch(e){ return null; }
+}
+CF._cfCloudFollowers=_cfCloudFollowers;
+
+/* Should this TC packet go to the cloud at all?
+   Fails OPEN everywhere it is unsure — presence not synced, count unknown, anything
+   thrown. A few unnecessary messages are a billing line; a silenced relay is a show. */
+function _cfShouldRelayCloud(){
+  var n=_cfCloudFollowers();
+  if(n===null) return true;
+  if(n>0){ CF._lastFollowerAt=Date.now(); return true; }
+  /* Grace after the last one leaves, so a viewer bouncing on a WiFi blip does not have
+     to wait for the next presence sync to get timecode back. */
+  return !!(CF._lastFollowerAt && Date.now()-CF._lastFollowerAt<TC_EMPTY_GRACE_MS);
+}
+CF._cfShouldRelayCloud=_cfShouldRelayCloud;
 
 /* Push the current full project to the LAN server (serves /snapshot + cold-join). */
 function _cfLanPushSnapshot(){
@@ -22334,7 +22389,7 @@ function relayTC(frames, source, paused){
   }
   var now = Date.now();
   /* Paused packets bypass the 12fps throttle so the freeze lands immediately. */
-  if(!paused && now - CF._lastBcast < 80) return; /* ~12fps — enough for smooth interpolation */
+  if(!paused && now - CF._lastBcast < TC_BCAST_MS) return;   /* viewers interpolate between these */
   CF._lastBcast = now;
   /* Sequence name: ask the same helper the cockpit just used for this very frame
      (redrawLive/redrawTest run _curSeqIdByTc before relaying), so the TC view cannot
@@ -22360,7 +22415,7 @@ function relayTC(frames, source, paused){
     lanUrl='http://'+CF._lanStatus.ips[0]+':'+(CF._lanStatus.port||8420); } }catch(e){}
   netSend('tc',{frames:frames,source:source,seqName:seqName,playlistName:playlistName,
              activePlaylistId:state.activePlaylistId||null,fps:state.fps||25,lanUrl:lanUrl,
-             paused:!!paused});
+             paused:!!paused}, !_cfShouldRelayCloud());
 }
 /* Generated-TC pause: tell viewers to freeze at this frame (no free-run interpolation). */
 CF._relayTcPaused=function(frames){ if(typeof relayTC==='function') relayTC(frames,'gen',true); };
@@ -22599,12 +22654,16 @@ CF._stopLiveHere = function(by){
 function startPresence(){
   if(!CF.showId) return;
   if(CF._presChan){ try{ CF._presChan.unsubscribe(); }catch(e){} CF._presChan = null; }
+  /* Cleared until the channel has actually synced once: an un-synced channel reports an
+     empty state, which would read as "no viewers" and silence the relay. */
+  CF._presSynced=false;
   /* Same guard as openTcChan(): this runs from _onEnterLive, and presence is a
      nice-to-have — it must never stop the owner going live with no network. */
   try{
     CF._presChan = db()
       .channel('presence:'+CF.showId, {config:{presence:{key:_presKey}}})
       .on('presence', {event:'sync'}, function(){
+        CF._presSynced=true;    /* only now is a follower count of zero trustworthy */
         _updateLiveStatusChip();
       })
       .subscribe(function(status){

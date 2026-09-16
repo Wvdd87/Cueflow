@@ -1104,10 +1104,20 @@
       "norm_label": "supabase"
     },
     {
-      "label": "Offline startup \u2014 the boot must never depend on the network",
+      "label": "Realtime messages are metered \u2014 the TC relay is nearly all of them",
       "file_type": "document",
       "source_file": "CLAUDE.md",
       "source_location": "L217",
+      "_origin": "ast",
+      "id": "claude_realtime_messages_are_metered_the_tc_relay_is_nearly_all_of_them",
+      "community": 0,
+      "norm_label": "realtime messages are metered \u2014 the tc relay is nearly all of them"
+    },
+    {
+      "label": "Offline startup \u2014 the boot must never depend on the network",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L240",
       "_origin": "ast",
       "id": "claude_offline_startup_the_boot_must_never_depend_on_the_network",
       "community": 0,
@@ -1117,7 +1127,7 @@
       "label": "Fonts are local \u2014 never a CDN",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L252",
+      "source_location": "L275",
       "_origin": "ast",
       "id": "claude_fonts_are_local_never_a_cdn",
       "community": 0,
@@ -1127,7 +1137,7 @@
       "label": "The sequence start marker is the start TC, drawn",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L263",
+      "source_location": "L286",
       "_origin": "ast",
       "id": "claude_the_sequence_start_marker_is_the_start_tc_drawn",
       "community": 0,
@@ -1137,7 +1147,7 @@
       "label": "TC/timecode",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L274",
+      "source_location": "L297",
       "_origin": "ast",
       "id": "claude_tc_timecode",
       "community": 0,
@@ -1147,7 +1157,7 @@
       "label": "Running order is the SETLIST, never absolute timecode",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L281",
+      "source_location": "L304",
       "_origin": "ast",
       "id": "claude_running_order_is_the_setlist_never_absolute_timecode",
       "community": 0,
@@ -1157,7 +1167,7 @@
       "label": "Camera Prompter bottom bar",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L318",
+      "source_location": "L341",
       "_origin": "ast",
       "id": "claude_camera_prompter_bottom_bar",
       "community": 0,
@@ -1167,7 +1177,7 @@
       "label": "TC sources \u2014 `state.tcSource` \u2208 `'ltc' | 'midi' | 'gen'`",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L340",
+      "source_location": "L363",
       "_origin": "ast",
       "id": "claude_tc_sources_state_tcsource_ltc_midi_gen",
       "community": 0,
@@ -1177,7 +1187,7 @@
       "label": "Electron",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L344",
+      "source_location": "L367",
       "_origin": "ast",
       "id": "claude_electron",
       "community": 0,
@@ -1187,7 +1197,7 @@
       "label": "The show must keep running when the app is not in front",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L357",
+      "source_location": "L380",
       "_origin": "ast",
       "id": "claude_the_show_must_keep_running_when_the_app_is_not_in_front",
       "community": 0,
@@ -1197,7 +1207,7 @@
       "label": "graphify",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L383",
+      "source_location": "L406",
       "_origin": "ast",
       "id": "claude_graphify",
       "community": 0,
@@ -1560,7 +1570,7 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "security_audit_medium_findings",
-      "community": 9,
+      "community": 5,
       "norm_label": "medium findings"
     },
     {
@@ -1570,7 +1580,7 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "security_audit_m1_read_only_viewers_crew_can_write_cue_descriptions",
-      "community": 9,
+      "community": 5,
       "norm_label": "m1 \u2014 \"read-only\" viewers/crew can write cue descriptions"
     },
     {
@@ -1580,7 +1590,7 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "security_audit_m2_no_durable_offline_edit_queue_offline_reconnect_is_whole_snapshot_last_write_wins",
-      "community": 9,
+      "community": 5,
       "norm_label": "m2 \u2014 no durable offline edit queue; offline reconnect is whole-snapshot last-write-wins"
     },
     {
@@ -1590,7 +1600,7 @@
       "source_location": "L115",
       "_origin": "ast",
       "id": "security_audit_m3_leaked_password_protection_disabled_on_supabase_auth",
-      "community": 9,
+      "community": 5,
       "norm_label": "m3 \u2014 leaked-password protection disabled on supabase auth"
     },
     {
@@ -1600,7 +1610,7 @@
       "source_location": "L123",
       "_origin": "ast",
       "id": "security_audit_m4_offline_logged_out_show_creation_can_strand_data",
-      "community": 9,
+      "community": 5,
       "norm_label": "m4 \u2014 offline/logged-out show creation can strand data"
     },
     {
@@ -1610,7 +1620,7 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "security_audit_m5_lan_inbound_handler_does_no_role_enforcement",
-      "community": 9,
+      "community": 5,
       "norm_label": "m5 \u2014 lan inbound handler does no role enforcement"
     },
     {
@@ -2858,6 +2868,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CLAUDE.md",
+      "source_location": "L217",
+      "weight": 1.0,
+      "source": "claude_supabase",
+      "target": "claude_realtime_messages_are_metered_the_tc_relay_is_nearly_all_of_them",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
       "source_location": "L247",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -2870,9 +2890,9 @@
       "source_file": "CLAUDE.md",
       "source_location": "L318",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "claude_tc_timecode",
-      "target": "claude_camera_prompter_bottom_bar",
-      "confidence_score": 1.0
+      "target": "claude_camera_prompter_bottom_bar"
     },
     {
       "relation": "contains",
@@ -3366,5 +3386,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "c82dd93e47e68aa62eb5c24a135eaf19dbcd9ad8"
+  "built_at_commit": "ef08cd4a1730c89806b45945dd7093c12e4df390"
 }

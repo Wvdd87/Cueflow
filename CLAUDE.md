@@ -212,7 +212,30 @@ Role checks: `CF.role === 'editor' || CF.role === 'track-editor'`
 - **Publishable key**: `sb_publishable_fjJ9TRMu-6dTcVHTxRvXLw_kC3F-5Rl`
 - **Tables**: `shows` (project data as jsonb blob), `show_access` (PINs + roles)
 - **Realtime**: `postgres_changes` on `shows` for project sync; Broadcast channel `tc:<showId>` for TC frames (never written to DB)
-- TC is broadcast at ~12fps (80ms gate); viewers interpolate using local RAF + clock
+- TC is broadcast at 5/sec (`TC_BCAST_MS`, 200ms gate); viewers interpolate using local RAF + clock
+
+### Realtime messages are metered — the TC relay is nearly all of them
+
+Supabase bills realtime per message, and the relay dwarfs everything else: project sync is
+per-save, the relay is per-frame. At the old 80ms gate that was **43,200 messages per hour**
+of live mode against a free plan's 2M a month — which is how this project first breached
+its quota. Two levers, both in `relayTC` / `netSend`:
+
+- **`TC_BCAST_MS` (200ms → 5/sec)** — measured 18,000/hour. Viewers never *display* these
+  packets; `_startViewerTcLoop` interpolates from its own clock and only re-anchors on
+  arrival, so the rate sets re-anchoring frequency, not smoothness. Well inside the 1.5s
+  free-run threshold and the 2s prompter watchdog. **Do not go much past 250ms** — the
+  further apart packets are, the longer a real TC jump takes to reach crew. This throttle
+  is upstream of the transport split, so **LAN slows with it too** (harmless: LAN viewers
+  interpolate identically).
+- **`_cfShouldRelayCloud()`** — skips the cloud leg when presence reports no non-owner
+  clients, via `netSend(..., lanOnly)`. Rehearsals and soundchecks broadcasting to an empty
+  room are where the quota actually went. LAN always transmits; only the metered leg is
+  gated, and only for `'tc'` — `proj_sync`, `flag` and `active_sel` are never gated.
+  **It fails OPEN in every uncertain case**: presence not yet synced (`CF._presSynced`), no
+  channel, or anything thrown means broadcast. An un-synced presence channel reports an
+  empty state, and believing that would silence a live show. `TC_EMPTY_GRACE_MS` keeps the
+  relay up for 15s after the last viewer leaves so a WiFi blip does not drop crew.
 
 ### Offline startup — the boot must never depend on the network
 
