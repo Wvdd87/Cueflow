@@ -2973,6 +2973,7 @@ input.minp:focus { border-color: var(--primary); box-shadow: var(--focus); }
 .sbp-sync-btn.clean { background:var(--surface2); border:1px solid var(--hair2); color:var(--txt-low); cursor:not-allowed; opacity:.45; }
 .sbp-share-url-block { padding:10px 14px 12px; border-bottom:1px solid var(--hair); }
 .sbp-share-url-lbl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-low); margin-bottom:5px; }
+.sbp-share-url-hint { font-family:var(--sans); font-size:10px; line-height:1.5; color:var(--txt-low); margin-top:6px; }
 .sbp-share-url-val { font-family:var(--mono); font-size:9px; color:var(--txt-mid); word-break:break-all; line-height:1.5; }
 /* ── Access-link card (sharing panel) ──────────────────────────────────────
    Visual hierarchy: label (brightest) → role badge (colour-coded) → PIN → a
@@ -5943,20 +5944,46 @@ function _cfCopyText(text){
   return Promise.resolve(fallback());
 }
 window._cfCopyText=_cfCopyText;
-/* Build a crew join link. On the Electron owner the page origin is file://, which
-   is useless to crew — so when we're hosting a LAN server, hand out its reachable
-   address with &lan=1. In a normal browser owner, use the page origin (cloud). */
+/* True when the page has no origin worth handing to anyone else — the packaged app,
+   or a sandboxed document with a null origin. */
+function _cfNoWebOrigin(){
+  return location.protocol==='file:' || !location.origin || location.origin==='null';
+}
+window._cfNoWebOrigin=_cfNoWebOrigin;
+/* Build a crew join link. This is the LOCAL link, and it stays local:
+     1. the LAN address we are hosting on — works with no internet at all, which is
+        the whole point of the local fallback, so it wins whenever we have one;
+     2. the page origin, when CueFlow is a real web page (browser owner);
+     3. loopback, for the desktop build with no address on any interface — the LAN
+        server is bound on 0.0.0.0 and listening either way, so this is still the
+        honest answer to "where is my local copy", just one nobody else can reach.
+   Never a file:// path (that is the app's own path on disk, inside app.asar, and
+   opens nothing even for the operator), and never the hosted app — handing out an
+   online URL from the local button is how an operator ends up pointing crew at the
+   cloud when they meant the venue network. The online link has its own button. */
 function _cfShareLink(pin){
   var showId=(window.CF&&CF.showId)||'';
   var st=(window.CF&&CF._lanStatus)||null;
   var ips=(st&&st.ips)||[];
-  if((location.protocol==='file:'||(window.CF&&window.cfLAN))&&ips.length){
-    var port=st.port||8420;
+  var port=(st&&st.port)||8420;
+  if((location.protocol==='file:'||(window.CF&&window.cfLAN))&&ips.length)
     return 'http://'+ips[0]+':'+port+'/?show='+showId+(pin?'&pin='+pin:'')+'&lan=1';
-  }
+  if(_cfNoWebOrigin())
+    return 'http://127.0.0.1:'+port+'/?show='+showId+(pin?'&pin='+pin:'')+'&lan=1';
   return location.origin+location.pathname+'?show='+showId+(pin?'&pin='+pin:'');
 }
 window._cfShareLink=_cfShareLink;
+/* Which of the three _cfShareLink just picked — 'lan' | 'origin' | 'loopback'. The
+   Sharing panel shows one URL, and a loopback address looks like a working link
+   until a crew member on another device tries it. */
+function _cfShareLinkKind(){
+  var st=(window.CF&&CF._lanStatus)||null;
+  var ips=(st&&st.ips)||[];
+  if((location.protocol==='file:'||(window.CF&&window.cfLAN))&&ips.length) return 'lan';
+  if(_cfNoWebOrigin()) return 'loopback';
+  return 'origin';
+}
+window._cfShareLinkKind=_cfShareLinkKind;
 
 /* ── Alternative-environment links (local ↔ online) ──────────────────────────
    Operators run CueFlow on localhost during rehearsal and on a hosted domain in
@@ -18698,7 +18725,6 @@ function _meRenderDrawer(){
     shareSec.body.appendChild(shareHint);
     var _svgClip='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
     var _svgCheck='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-    var _meShareBase=location.origin+location.pathname;
     var pins=CF._pinList||[];
     pins.forEach(function(pin){
       if(pin.role==='owner') return;
@@ -18709,7 +18735,9 @@ function _meRenderDrawer(){
       item.innerHTML='<span class="me-drawer-item-name">'+escH(pin.label||pin.role||'Link')+'</span>'+
         '<span class="me-drawer-pin-info">'+escH((pin.role||'viewer').toUpperCase())+' '+escH(pinCode)+'</span>'+
         '<span class="me-drawer-copy-icon">'+_svgClip+'</span>';
-      var linkUrl=_meShareBase+'?show='+CF.showId+'&pin='+encodeURIComponent(rawPin);
+      /* Through _cfShareLink, not location.*: on the desktop app that is a file://
+         path on the operator's disk, which this list handed out verbatim. */
+      var linkUrl=_cfShareLink(rawPin);
       item.addEventListener('click',(function(url,el){
         return function(){
           var iconEl=el.querySelector('.me-drawer-copy-icon');
@@ -24725,6 +24753,13 @@ function buildRolesPanel(){
   h+='<div class="sbp-share-url-block">';
   h+='<div class="sbp-share-url-lbl">Join URL</div>';
   h+='<div class="sbp-share-url-val">'+joinUrl+'</div>';
+  var _lk=window._cfShareLinkKind?_cfShareLinkKind():'origin';
+  if(_lk==='lan'){
+    h+='<div class="sbp-share-url-hint">Local network — no internet needed, but crew have to be on this WiFi.</div>';
+  } else if(_lk==='loopback'){
+    h+='<div class="sbp-share-url-hint">Not on a network — this address only opens on this '
+      +'machine. Join a WiFi or plug in ethernet and it becomes your local address by itself.</div>';
+  }
   h+='</div>';
 
   /* Offline/LAN readiness — filled by _cfRenderShareOffline() */

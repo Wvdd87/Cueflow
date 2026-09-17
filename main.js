@@ -45,6 +45,7 @@ media.registerScheme(protocol); // must happen before app ready
 
 let win = null;
 let lan = null;            // LAN server handle (null until started)
+let lanIpWatch = null;     // interval: notices the machine changing network
 let latestSnapshot = null; // {showId, name, project_data} — pushed by the renderer
 let latestPins = [];       // [{pin_hash,role,track_ids,label}] — pushed by the renderer
 
@@ -156,6 +157,20 @@ function pushStatus() {
   if (win && !win.isDestroyed()) win.webContents.send('lan:status', statusObj());
 }
 
+/* Node has no network-change event, so poll the interface list. Without this the
+   renderer's CF._lanStatus keeps whatever addresses existed when the app started,
+   and the share link stays wrong until a restart — the operator joining the venue
+   WiFi after launch is the normal order of events, not an edge case. */
+let lanIpSig = '';
+function watchLanIPs() {
+  if (lanIpWatch) return;
+  lanIpWatch = setInterval(() => {
+    if (!lan) return;
+    const sig = lan.ips.join(',');
+    if (sig !== lanIpSig) { lanIpSig = sig; pushStatus(); }
+  }, 3000);
+}
+
 async function startLan() {
   if (lan) return;
   try {
@@ -167,8 +182,10 @@ async function startLan() {
       onClientMsg: (msg) => { if (win && !win.isDestroyed()) win.webContents.send('lan:client-msg', msg); },
       onClientsChange: () => pushStatus()
     });
+    lanIpSig = lan.ips.join(',');
     pushStatus();
-    console.log('[CF] LAN server:', lan.ips.map(ip => 'http://' + ip + ':' + lan.port).join('  '));
+    watchLanIPs();
+    console.log('[CF] LAN server:', lan.ips.map(ip => 'http://' + ip + ':' + lan.port).join('  ') || '(no network yet)');
   } catch (e) {
     console.error('[CF] LAN server failed to start:', e && e.message);
   }

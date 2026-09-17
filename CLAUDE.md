@@ -282,6 +282,44 @@ no route out. **Boot is local-first: nothing on the network may gate revealing t
 - Test harness for all of this: `Electron + setProxy` to `192.0.2.1` (TEST-NET-1, unroutable)
   with `<local>` bypass reproduces dead-Wi-Fi; `webRequest cancel` reproduces airplane mode.
 
+### A share link must be openable by someone else
+
+The desktop build runs from `file://`, so `location.origin + location.pathname` is a path
+on the operator's own disk — inside `app.asar`, which opens nothing even for them. That is
+what a join link silently became whenever no LAN address was available (WiFi on but not
+joined to a network), and the mobile drawer's SHARE LINKS list built its own base the same
+way, so it handed out `file://` links *even on a working LAN*. **Every join link goes
+through `_cfShareLink(pin)`** — never `location.*` — and it picks, in order:
+
+1. the **LAN address** we are hosting on (`&lan=1`), because it works with no internet at
+   all and that is the whole point of the local fallback;
+2. the **page origin**, when CueFlow is a real web page (browser owner);
+3. **loopback** (`http://127.0.0.1:<port>/?…&lan=1`) for the desktop build with no address
+   on any interface — the LAN server is bound on `0.0.0.0` and listening regardless, and
+   measured, that URL really does serve the app.
+
+**This is the LOCAL link and it stays local — never the hosted app, not even as a
+fallback.** Handing out an online URL from the local button is how an operator ends up
+pointing crew at the cloud when they meant the venue network; the online link has its own
+button (`_cfAltLink` + `_cfGetAltAddr`, labelled by `_cfAltEnvLabel`), and `_cfShareLink`
+deliberately ignores that stored address.
+
+`_cfShareLinkKind()` reports which of the three was chosen; the Sharing panel prints it
+under the Join URL, because a loopback address looks like a working link right up until a
+crew member on another device tries it.
+
+**`lan.ips` is a live getter, not a snapshot.** It used to be captured once when
+`startLanServer()` resolved, and the normal order of events at a venue is *launch CueFlow,
+then join the house WiFi* — which left the address list empty for the rest of the session,
+with no LAN link and no `lanUrl` failover in the snapshot. Node has no network-change
+event, so `main.js` polls the interface list every 3s and calls `pushStatus()` when it
+changes; the renderer's `CF._lanStatus`, the share link and the live chip follow within
+about three seconds of plugging in or joining. Verified by driving the real `main.js` with
+`os.networkInterfaces` swapped mid-run.
+
+Note `_cfLanPanelHtml()` is dead code — defined, never called. Don't "fix" bugs in it and
+believe you changed something the operator sees.
+
 ### Fonts are local — never a CDN
 
 `fonts/` holds IBM Plex Sans, IBM Plex Sans Condensed and JetBrains Mono as woff2

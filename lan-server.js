@@ -266,9 +266,8 @@ function startLanServer(opts) {
   return new Promise(function (resolve, reject) {
     listen(preferredPort, 10, function (err, boundPort) {
       if (err) return reject(err);
-      resolve({
+      var handle = {
         port: boundPort,
-        ips: getLanIPs(),
         broadcast: broadcast,
         clientCount: function () { return joinedCount(); },
         setSnapshotSource: function (fn) { getSnapshot = fn; },
@@ -279,7 +278,13 @@ function startLanServer(opts) {
             server.close(function () { r(); });
           });
         }
-      });
+      };
+      /* Live, never a snapshot. The operator routinely opens the laptop, launches
+         CueFlow, and joins the venue WiFi after — a list captured here would stay
+         empty for the rest of the session and the LAN join link would never appear.
+         The server binds 0.0.0.0, so it is already listening on whatever arrives. */
+      Object.defineProperty(handle, 'ips', { get: getLanIPs, enumerable: true });
+      resolve(handle);
     });
   });
 }

@@ -1,6 +1,6 @@
 {
   "name": "cueflow",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "CueFlow \u2014 live show cue management",
   "main": "main.js",
   "scripts": {

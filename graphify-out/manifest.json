@@ -10,13 +10,13 @@
     "semantic_hash": ""
   },
   "lan-server.js": {
-    "mtime": 1788542522.3594706,
-    "ast_hash": "6c86565cc7d30d6f0d44e0cb66deb311",
+    "mtime": 1789665309.5868063,
+    "ast_hash": "2991d36e07068643f3d6cc62781457e0",
     "semantic_hash": ""
   },
   "main.js": {
-    "mtime": 1789593402.4906158,
-    "ast_hash": "1b55e95c4aaacbd6825065a4836ea4b6",
+    "mtime": 1789665324.1000516,
+    "ast_hash": "22392b2e7a3759d4b2c9db0b97530b4f",
     "semantic_hash": ""
   },
   "package.json": {
@@ -30,8 +30,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1789594812.2159739,
-    "ast_hash": "5432d23903bed0ef10d73b2a6645e594",
+    "mtime": 1789666074.6307163,
+    "ast_hash": "5c428c551663dfaf7613390fe392124d",
     "semantic_hash": ""
   },
   "CONTEXT.md": {
@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1789594747.9039996,
-    "ast_hash": "213dc411b0ac381f479d0b981d69a04c",
+    "mtime": 1789665999.80563,
+    "ast_hash": "eb57b5b9c88497a90f1a8a6eb83a385c",
     "semantic_hash": ""
   },
   "favicon.png": {
