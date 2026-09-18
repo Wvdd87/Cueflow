@@ -10854,14 +10854,59 @@ function confirmNewPlaylist(){
   closeNewPlaylistModal();
 }
 
+/* The track a new cue should land on: the picker's choice while it still names a real
+   track, otherwise the first one there is. `state.activeStreamId` survives the deletion
+   of the track it points at, and both cue-creation paths used to take it on trust —
+   writing a cue whose streamId matches no track. Such a cue is saved, counted, and then
+   filtered out of every list, so "Add first cue" appears to do nothing and clicking it
+   again just buries another one. Same outcome with no tracks at all, where the id was
+   simply ''. */
+function _cueTargetStreamId(){
+  const list=state.streams||[];
+  const sel=state.activeStreamId;
+  if(sel && list.some(s=>s.id===sel)) return sel;
+  return list.length?list[0].id:'';
+}
+/* A cue on a hidden track is real but invisible, which reads as "nothing happened". The
+   operator just asked for this cue, so show the track it went on. Visibility is a
+   per-device preference, so this changes nothing for anyone else. */
+function _revealStreamForCue(streamId){
+  if(!streamId) return false;
+  if(!Array.isArray(state.visibleStreamIds)) state.visibleStreamIds=[];
+  if(state.visibleStreamIds.indexOf(streamId)>=0) return false;
+  state.visibleStreamIds.push(streamId);
+  if(window.saveSessionState) saveSessionState();
+  if(window.renderStreamsBar) renderStreamsBar();
+  return true;
+}
+function _cueNoTrackAlert(){
+  openAlertModal('Cues live on tracks, and this show has none. Add a track first, then add the cue.','No tracks yet');
+}
+/* 'CAMERA' is the sentinel for "the camera track is selected", not a stream id — every
+   other surface treats it that way, and adding a cue while it is selected means a CAMERA
+   cue. addCue used to hand it straight to a cue's streamId, which matches no track, so
+   the cue vanished from every list. Route to the same modal the C key and the timeline
+   use, with the first camera pre-chosen. Returns true when it took over. */
+function _cueRouteToCamera(song,tcStr){
+  if(state.activeStreamId!=='CAMERA') return false;
+  var cams=state.cameraTrack&&state.cameraTrack.cameras;
+  if(!cams||!cams.length) return false;
+  openCameraCueModal(cams[0].id, tcF(tcStr));
+  return true;
+}
 function addCue(){
   if(window.CF && !CF.showId){ openNewProjectModal(); return; }
   const song=getActiveSong();if(!song)return;
-  const streamId=state.activeStreamId||state.streams[0]?.id||'';
+  const _sorted0=getSortedCues(song.id,false);
+  const _atTc=_sorted0.length?fTC(_sorted0[_sorted0.length-1]._f+8*state.fps):(song.startTc||'01:00:00:00');
+  if(_cueRouteToCamera(song,_atTc)) return;
+  const streamId=_cueTargetStreamId();
+  if(!streamId){ _cueNoTrackAlert(); return; }
   if(window.CF&&(CF.role==='editor'||CF.role==='track-editor')&&!CF._cueEditable({streamId:streamId})){
     if(CF._showTrackPermissionModal)CF._showTrackPermissionModal(streamId);
-    return;
+    return;   /* refused — leave the picker alone */
   }
+  state.activeStreamId=streamId;
   snapshot();
   const sorted=getSortedCues(song.id,false);
   const defaultTc=sorted.length?fTC(sorted[sorted.length-1]._f+8*state.fps):(song.startTc||'01:00:00:00');
@@ -10869,6 +10914,7 @@ function addCue(){
   const _newCue={id:newCueId,tc:defaultTc,name:'NEW CUE',desc:'',streamId};
   song.cues.push(_newCue);
   cueClearOverlapBefore(song,_newCue);
+  _revealStreamForCue(streamId);
   ETL.selId=newCueId;
   persist();renderCueList();redrawActive();
   // Auto-focus the name field of the new cue
@@ -12609,8 +12655,14 @@ function confirmAddSeq(){
     showAudioLoading(_pendingAudioFile.name);
   }
   asmClearAudio();
-  if(getOverlappingSongs().size){
-    openConfirmModal('Warning: this sequence overlaps in time with one or more existing sequences.',null,null);
+  /* Only warn about THIS sequence. The check used to be "does the playlist contain any
+     overlap at all", so a show that already had two sequences clashing blamed every new
+     sequence for it — and no amount of moving the new one's start TC could clear a
+     warning that was never about it. */
+  const _clash=getOverlappingSongs().get(s.id);
+  if(_clash&&_clash.length){
+    openConfirmModal('"'+s.name+'" overlaps in time with '+_clash.join(', ')
+      +'. Sequences should not share timecode.',null,null,'OK','primary','Timecode overlap');
   }
   closeModal('add-seq-modal');
 }
@@ -14654,13 +14706,17 @@ function commitMarker(){
 function addCueAtTC(){
   if(window.CF && !CF.showId){ openNewProjectModal(); return; }
   const song = getActiveSong(); if(!song) return;
-  const streamId = state.activeStreamId || state.visibleStreamIds[0] || state.streams[0]?.id||'';
-  if(!streamId) return;
+  const _tcAt = fTC(Math.floor(state.simFrames));
+  if(_cueRouteToCamera(song,_tcAt)) return;
+  const streamId = _cueTargetStreamId();
+  if(!streamId){ _cueNoTrackAlert(); return; }   /* used to return silently */
+  state.activeStreamId = streamId;
   snapshot();
-  const tc = fTC(Math.floor(state.simFrames));
+  const tc = _tcAt;
   const cue = {id:uid(), tc, name:'', desc:'', streamId, chapterId:null};
   song.cues.push(cue);
   cueClearOverlapBefore(song,cue);
+  _revealStreamForCue(streamId);
   song.cues.sort((a,b)=>tcF(a.tc)-tcF(b.tc));
   persist(); renderCueList(); if(ETL.visible) renderEditTimeline();
 }
@@ -15283,9 +15339,21 @@ function getOverlappingSongs(){
   // Returns Map<songId, string[]> — conflicting song names for each affected song
   const songs = getActivePlaylistSongs();
   const conflicts = new Map();
+  /* A sequence owns a TC range from its START TC, not from its first cue. Ranges used
+     to be derived from cues alone, so a sequence with none had no range at all and was
+     never flagged — you could add one directly on top of another, be told nothing, and
+     the two would then fight over every frame in live mode. It also meant moving a
+     sequence's start TC could not clear a warning, because nothing about the warning
+     depended on the start TC. */
   const ranges = songs.map(song=>{
     const sorted = getSortedCues(song.id, false);
-    return sorted.length ? {id:song.id, name:song.name, start:sorted[0]._f, end:sorted[sorted.length-1]._f} : null;
+    const startF = tcF(song.startTc||'01:00:00:00');
+    let start = startF, end = startF;
+    if(sorted.length){
+      start = Math.min(start, sorted[0]._f);
+      end   = Math.max(end,   sorted[sorted.length-1]._f);
+    }
+    return {id:song.id, name:song.name, start, end};
   });
   for(let i = 0; i < ranges.length; i++){
     if(!ranges[i]) continue;

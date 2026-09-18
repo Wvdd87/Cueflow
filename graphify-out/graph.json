@@ -1110,7 +1110,7 @@
       "source_location": "L209",
       "_origin": "ast",
       "id": "claude_supabase",
-      "community": 0,
+      "community": 14,
       "norm_label": "supabase"
     },
     {
@@ -1120,7 +1120,7 @@
       "source_location": "L217",
       "_origin": "ast",
       "id": "claude_realtime_messages_are_metered_the_tc_relay_is_nearly_all_of_them",
-      "community": 0,
+      "community": 14,
       "norm_label": "realtime messages are metered \u2014 the tc relay is nearly all of them"
     },
     {
@@ -1130,7 +1130,7 @@
       "source_location": "L250",
       "_origin": "ast",
       "id": "claude_offline_startup_the_boot_must_never_depend_on_the_network",
-      "community": 0,
+      "community": 14,
       "norm_label": "offline startup \u2014 the boot must never depend on the network"
     },
     {
@@ -1140,7 +1140,7 @@
       "source_location": "L285",
       "_origin": "ast",
       "id": "claude_a_share_link_must_be_openable_by_someone_else",
-      "community": 0,
+      "community": 14,
       "norm_label": "a share link must be openable by someone else"
     },
     {
@@ -1150,7 +1150,7 @@
       "source_location": "L323",
       "_origin": "ast",
       "id": "claude_fonts_are_local_never_a_cdn",
-      "community": 0,
+      "community": 14,
       "norm_label": "fonts are local \u2014 never a cdn"
     },
     {
@@ -1160,7 +1160,7 @@
       "source_location": "L334",
       "_origin": "ast",
       "id": "claude_the_sequence_start_marker_is_the_start_tc_drawn",
-      "community": 0,
+      "community": 14,
       "norm_label": "the sequence start marker is the start tc, drawn"
     },
     {
@@ -1170,7 +1170,7 @@
       "source_location": "L345",
       "_origin": "ast",
       "id": "claude_tc_timecode",
-      "community": 0,
+      "community": 13,
       "norm_label": "tc/timecode"
     },
     {
@@ -1180,34 +1180,54 @@
       "source_location": "L352",
       "_origin": "ast",
       "id": "claude_running_order_is_the_setlist_never_absolute_timecode",
-      "community": 0,
+      "community": 13,
       "norm_label": "running order is the setlist, never absolute timecode"
+    },
+    {
+      "label": "A sequence's TC range starts at its start TC",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L389",
+      "_origin": "ast",
+      "id": "claude_a_sequence_s_tc_range_starts_at_its_start_tc",
+      "community": 13,
+      "norm_label": "a sequence's tc range starts at its start tc"
+    },
+    {
+      "label": "A cue must land on a real, visible track",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L404",
+      "_origin": "ast",
+      "id": "claude_a_cue_must_land_on_a_real_visible_track",
+      "community": 13,
+      "norm_label": "a cue must land on a real, visible track"
     },
     {
       "label": "Camera Prompter bottom bar",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L389",
+      "source_location": "L427",
       "_origin": "ast",
       "id": "claude_camera_prompter_bottom_bar",
-      "community": 0,
+      "community": 13,
       "norm_label": "camera prompter bottom bar"
     },
     {
       "label": "TC sources \u2014 `state.tcSource` \u2208 `'ltc' | 'midi' | 'gen'`",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L411",
+      "source_location": "L449",
       "_origin": "ast",
       "id": "claude_tc_sources_state_tcsource_ltc_midi_gen",
-      "community": 0,
+      "community": 13,
       "norm_label": "tc sources \u2014 `state.tcsource` \u2208 `'ltc' | 'midi' | 'gen'`"
     },
     {
       "label": "Electron",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L415",
+      "source_location": "L453",
       "_origin": "ast",
       "id": "claude_electron",
       "community": 0,
@@ -1217,7 +1237,7 @@
       "label": "The show must keep running when the app is not in front",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L428",
+      "source_location": "L466",
       "_origin": "ast",
       "id": "claude_the_show_must_keep_running_when_the_app_is_not_in_front",
       "community": 0,
@@ -1227,7 +1247,7 @@
       "label": "graphify",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L454",
+      "source_location": "L492",
       "_origin": "ast",
       "id": "claude_graphify",
       "community": 0,
@@ -2939,6 +2959,26 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CLAUDE.md",
+      "source_location": "L404",
+      "weight": 1.0,
+      "source": "claude_tc_timecode",
+      "target": "claude_a_cue_must_land_on_a_real_visible_track",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L389",
+      "weight": 1.0,
+      "source": "claude_tc_timecode",
+      "target": "claude_a_sequence_s_tc_range_starts_at_its_start_tc",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
       "source_location": "L318",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -3437,5 +3477,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "9934cb316ea55d67de7132eae9f070299ab5d71e"
+  "built_at_commit": "1d79325cedac99b993329829be2580512c55ac20"
 }

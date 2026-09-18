@@ -1,16 +1,16 @@
-# Graph Report - Cueflow  (2026-09-17)
+# Graph Report - Cueflow  (2026-09-18)
 
 ## Corpus Check
-- 12 files · ~145,136 words
+- 12 files · ~146,048 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 171 nodes · 171 edges · 13 communities (11 shown, 2 thin omitted)
+- 173 nodes · 173 edges · 15 communities (13 shown, 2 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `9934cb31`
+- Built from commit: `1d79325c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -28,6 +28,8 @@
 - [[_COMMUNITY_Community 10|Community 10]]
 - [[_COMMUNITY_Community 11|Community 11]]
 - [[_COMMUNITY_Community 12|Community 12]]
+- [[_COMMUNITY_Community 13|Community 13]]
+- [[_COMMUNITY_Community 14|Community 14]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `CueFlow — Project Context` - 15 edges
@@ -36,10 +38,10 @@
 4. `mac` - 8 edges
 5. `Building and distributing CueFlow (macOS)` - 7 edges
 6. `Supabase` - 6 edges
-7. `MEDIUM findings` - 6 edges
-8. `Architecture` - 5 edges
-9. `HIGH findings` - 5 edges
-10. `startLanServer()` - 4 edges
+7. `TC/timecode` - 6 edges
+8. `MEDIUM findings` - 6 edges
+9. `Architecture` - 5 edges
+10. `HIGH findings` - 5 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `startLan()` --calls--> `startLanServer()`  [EXTRACTED]
@@ -48,11 +50,11 @@
 ## Import Cycles
 - None detected.
 
-## Communities (13 total, 2 thin omitted)
+## Communities (15 total, 2 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.07
-Nodes (27): A share link must be openable by someone else, Architecture — the three script blocks, Badge rules — enforced design spec, Block 1 — main app globals, Block 2 — collab IIFE, Camera badges (`.cam-badge`, `.cam-badge-sq`), Camera Prompter bottom bar, Commands (+19 more)
+Cohesion: 0.11
+Nodes (17): Architecture — the three script blocks, Badge rules — enforced design spec, Block 1 — main app globals, Block 2 — collab IIFE, Camera badges (`.cam-badge`, `.cam-badge-sq`), Commands, Data model, Electron (+9 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.09
@@ -94,8 +96,16 @@ Nodes (10): Ad-hoc signing (automatic, free), Best: hand it over on a USB stick 
 Cohesion: 0.40
 Nodes (5): H1 — `track-editor` restriction is client-side only; the server lets them overwrite the whole show, H2 — 6-digit PINs from `Math.random()`, no server-side rate limiting, H3 — Editor writes are blind last-write-wins with no conflict detection, H4 — SECURITY DEFINER RPCs are callable by `anon`, HIGH findings
 
+### Community 13 - "Community 13"
+Cohesion: 0.33
+Nodes (6): A cue must land on a real, visible track, A sequence's TC range starts at its start TC, Camera Prompter bottom bar, Running order is the SETLIST, never absolute timecode, TC sources — `state.tcSource` ∈ `'ltc' | 'midi' | 'gen'`, TC/timecode
+
+### Community 14 - "Community 14"
+Cohesion: 0.33
+Nodes (6): A share link must be openable by someone else, Fonts are local — never a CDN, Offline startup — the boot must never depend on the network, Realtime messages are metered — the TC relay is nearly all of them, Supabase, The sequence start marker is the start TC, drawn
+
 ## Knowledge Gaps
-- **118 isolated node(s):** `http`, `os`, `fs`, `zlib`, `path` (+113 more)
+- **120 isolated node(s):** `http`, `os`, `fs`, `zlib`, `path` (+115 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **2 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -107,11 +117,11 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `mac` connect `Community 3` to `Community 7`?**
   _High betweenness centrality (0.019) - this node is a cross-community bridge._
 - **Why does `CueFlow — Security, Data Integrity & Reliability Audit` connect `Community 5` to `Community 11`?**
-  _High betweenness centrality (0.017) - this node is a cross-community bridge._
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **What connects `http`, `os`, `fs` to the rest of the system?**
-  _118 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _120 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.06896551724137931 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.10526315789473684 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.08695652173913043 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**

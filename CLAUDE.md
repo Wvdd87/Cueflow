@@ -386,6 +386,44 @@ given TC maps to exactly one cue in one sequence.
 Applies to the owner cockpit, the viewer/crew cockpit, the camera-viewer cockpit, the
 waterfall and the camera prompter (`_cfpCamCues` / `_cfpModel`).
 
+### A sequence's TC range starts at its start TC
+
+`getOverlappingSongs()` derives each sequence's range from `min(startTc, first cue)` to
+`max(startTc, last cue)`. It used to use the cues alone, which failed in both directions:
+a sequence with **no cues had no range**, so you could drop a new one straight on top of
+an existing one and be told nothing; and because nothing about the warning depended on
+`startTc`, **moving a sequence's start TC could never clear a warning**. Every sequence
+has a range now, a cue-less one being a point at its start TC.
+
+The warning raised after creating a sequence is scoped to **that** sequence —
+`getOverlappingSongs().get(newId)` — and names what it clashes with. It used to ask only
+whether the playlist contained *any* overlap, so a show that already had two sequences
+fighting blamed every new sequence for it, and no amount of moving the new one could
+silence a warning that was never about it.
+
+### A cue must land on a real, visible track
+
+`state.activeStreamId` outlives the track it names — deleting a track does not clear it —
+and both cue-creation paths used to trust it, writing a cue whose `streamId` matches no
+track (or, with no tracks at all, `''`). That cue is saved and counted, then filtered out
+of every list by `getSortedCues(…, true)`. The operator clicks **+ Add first cue**,
+nothing appears, the empty state still says "No cues yet", and clicking again just buries
+another invisible cue in the show file.
+
+- `_cueTargetStreamId()` resolves the picker's choice only while it still names a real
+  track, else the first track there is; `addCue` and `addCueAtTC` both go through it.
+- **`state.activeStreamId === 'CAMERA'` is a sentinel, not a track id.** Every other
+  surface reads it that way; `addCue` handed it straight to a cue's `streamId`, which
+  matches no track, so the cue vanished. `commitCameraCue` *sets* that sentinel when it
+  finishes, so the trap was armed by adding one camera cue and sprung by the next
+  "+ Add first cue". `_cueRouteToCamera()` sends both paths to the camera cue modal
+  instead, pre-filled with the same TC the cue would have taken.
+- No tracks at all is a dead end, not a silent one — `_cueNoTrackAlert()` says so.
+  `addCueAtTC` used to `return` without a word.
+- `_revealStreamForCue()` un-hides the track a new cue went on. A cue on a hidden track is
+  real but invisible, which reads as "nothing happened"; the operator just asked for it.
+  Visibility is a per-device preference, so this changes nothing for anyone else.
+
 ### Camera Prompter bottom bar
 
 Optional per prompter view, and it **replaces** the old `#cfp-notc` "NO TC HOLDING" chip —
